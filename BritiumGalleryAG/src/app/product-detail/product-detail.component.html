@@ -1,0 +1,115 @@
+<div class="product-detail-page">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" *ngIf="breadcrumb.length > 0">
+  <ng-container *ngFor="let item of breadcrumb; let i = index">
+    <span [class.current]="i === breadcrumb.length - 1">{{ item }}</span>
+    <span class="separator" *ngIf="i !== breadcrumb.length - 1">></span>
+  </ng-container>
+</div>
+
+
+  <!-- Product Title -->
+  <h1 class="product-title" *ngIf="productDetail$ | async as pd">{{ pd.name }}</h1>
+
+  <div class="product-description" *ngIf="productDetail$ | async as pd">
+
+    <div class="description-content">
+      <p>{{ pd.description }}</p>
+    </div>
+  </div>
+
+  <div *ngIf="productDetail$ | async as pd" class="product-main-content">
+    <!-- Left Section: Images -->
+    <div class="left-section">
+      <div class="thumbnail-gallery">
+        <!-- Loop through productImages for thumbnails -->
+        <img *ngFor="let imageUrl of productImages"
+             [src]="imageUrl"
+             alt="Product Thumbnail"
+             [class.selected]="imageUrl === mainImageUrl"
+             (click)="selectImage(imageUrl)"
+             class="thumbnail-image">
+      </div>
+      <div class="main-media">
+        <!-- Main product image/video -->
+        <img [src]="mainImageUrl" alt="Product Image" class="main-image">
+        <!-- Add video element if applicable -->
+      </div>
+    </div>
+
+    <!-- Right Section: Details, Variations, Actions -->
+    <div class="right-section">
+      <!-- Company Info -->
+      <div class="company-info">
+        <div class="company-header">
+          <span class="supplier-name">Shenzhen Gotron Electronic Co., Ltd.</span>
+          <div class="company-badges">
+            <span class="verified-badge">✓ Verified</span>
+            <span class="years-badge">5 yrs</span>
+            <span class="country-badge">CN</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price and Sample Info -->
+      <div class="price-sample-section">
+        <div class="product-tags">
+          <div class="customizable-tag">Customizable</div>
+          <div class="min-order">Min. Order: >= 50 pieces</div>
+        </div>
+        <div class="price-container">
+          <div class="main-price">
+            {{ selectedVariantPrice | number:'1.0-0' }} MMK
+          </div>
+          <div class="price-range">/piece</div>
+        </div>
+      </div>
+
+      <!-- Variations Section -->
+      <div class="variations-section">
+        <div class="variations-header">
+          <h3>Variations</h3>
+          <a href="#" class="select-now-link">Select now ></a>
+        </div>
+        <div class="variation-groups">
+          <div class="variation-group" *ngFor="let variationType of getVariationTypes(pd)">
+            <label class="variation-label">{{ variationType }}:</label>
+            <div class="variation-options">
+              <button class="variation-option"
+                      *ngFor="let option of getVariationOptions(pd, variationType)"
+                      [class.selected]="isSelectedVariation(variationType, option)"
+                      [class.unavailable]="!isOptionSelectable(pd, variationType, option)"
+                      (click)="selectVariation(variationType, option)">
+                <img *ngIf="hasVariationImage(pd, variationType, option)" [src]="getVariationImage(pd, variationType, option)" alt="option image">
+                {{ option }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="send-inquiry-button">Send inquiry</button>
+        <button class="chat-now-button">Chat now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Other Recommendations Section -->
+  <div class="recommendations-section">
+    <h3>Other recommendations for your business</h3>
+    <div class="recommendations-placeholder">
+      <!-- Placeholder for recommendation items -->
+      <p>Recommendation items will be displayed here</p>
+    </div>
+  </div>
+
+  <!-- Product Description -->
+  <div class="product-description" *ngIf="productDetail$ | async as pd">
+    <h3>Product Details</h3>
+    <div class="description-content">
+      <p>{{ pd.description }}</p>
+    </div>
+  </div>
+</div>

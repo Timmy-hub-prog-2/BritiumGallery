@@ -1,0 +1,74 @@
+<!-- Header Section -->
+<div class="page-header">
+  <div class="header-content">
+    <div class="header-left">
+      <h1 class="page-title">Categories</h1>
+      <p class="page-subtitle">Explore our art collections</p>
+    </div>
+    <div class="header-actions">
+      <a [routerLink]="['/categoryRegister', urlParam]" class="btn-action">
+        <i class="fas fa-plus"></i>
+        New Category
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Search and Filter Section -->
+<div class="search-section">
+  <div class="search-wrapper">
+    <i class="fas fa-search search-icon"></i>
+    <input type="text" 
+           placeholder="Search categories..." 
+           class="search-input"
+           [(ngModel)]="searchTerm"
+           (input)="onSearch()">
+  </div>
+  <div class="filter-wrapper">
+    <select class="filter-select" [(ngModel)]="sortBy" (change)="onSort()">
+      <option value="name">Sort by Name</option>
+      <option value="id">Sort by ID</option>
+      <option value="date">Sort by Date</option>
+    </select>
+  </div>
+</div>
+
+<!-- Categories Grid -->
+<div class="categories-grid">
+  <div *ngFor="let category of filteredCategories" class="category-item" [routerLink]="['/sub-category', category.id]">
+    <div class="category-image">
+      <img [src]="category.image_url || 'assets/img/electronic.jpg'" alt="{{ category.name }}">
+      <div class="category-overlay">
+        <div class="category-actions">
+          <button class="btn-icon" (click)="editCategory(category); $event.stopPropagation()" title="Edit Category">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-icon btn-danger" (click)="deleteCategory(category); $event.stopPropagation()" title="Delete Category">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="category-info">
+      <h3 class="category-name">{{ category.name }}</h3>
+    </div>
+  </div>
+</div>
+
+<!-- Empty State -->
+<div *ngIf="filteredCategories.length === 0" class="empty-state">
+  <div class="empty-icon">
+    <i class="fas fa-folder-open"></i>
+  </div>
+  <h3>No Categories Found</h3>
+  <p>Start by adding your first category</p>
+  <a routerLink="/categoryRegister" class="btn-action">
+    <i class="fas fa-plus"></i>
+    Add New Category
+  </a>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="isLoading" class="loading-overlay">
+  <div class="loading-spinner"></div>
+</div>

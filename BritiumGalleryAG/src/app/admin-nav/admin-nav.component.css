@@ -1,0 +1,27 @@
+.nav {
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 60px;
+  position: relative;
+  z-index: 1000;
+  font-family: Arial, sans-serif;
+}
+
+.nav-center {
+  margin: 0 auto;       /* Center horizontally */
+  display: flex;
+  gap: 60px;            /* Space between links */
+}
+
+.nav-center a {
+  text-decoration: none;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.nav-center a:hover {
+  color: #ff6a00;
+}

@@ -1,0 +1,87 @@
+<nav class="nav">
+  <div class="nav-left">
+    <div class="hover-wrapper" (mouseenter)="showMegaMenu()" (mouseleave)="hideMegaMenu()">
+
+      <!-- All Categories Trigger -->
+      <div class="all-categories-trigger nav-link">
+      
+        <span>All Categories</span>
+      </div>
+
+      <!-- Mega Menu -->
+      <div class="categories-mega-menu" [class.visible]="isMegaMenuVisible">
+        <div class="mega-menu-content">
+
+          <!-- First Column - Main Categories -->
+          <div class="main-categories-list">
+            <div class="my-categories-header">Categories</div>
+            <div *ngFor="let category of categories"
+                 class="main-category-item"
+                 [class.active]="category === activeCategory"
+                 (mouseover)="setActiveCategory(category)">
+             
+              {{ category.name }}
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+
+          <!-- Second Column - Either subcategories or products -->
+          <div class="subcategories-list" *ngIf="activeCategory && secondColumnItems?.length">
+            <div class="subcategories-header">{{ activeCategory?.name }}</div>
+            
+            <!-- If category has subcategories, show them -->
+            <ng-container *ngIf="activeCategory.subcategories?.length">
+              <div *ngFor="let subcat of secondColumnItems"
+                   class="subcategory-item"
+                   [class.active]="subcat === activeSubcategory"
+                   (mouseover)="setActiveSubcategory(subcat)">
+                {{ subcat.name }}
+                <i class="fas fa-chevron-right" *ngIf="hasChildren(subcat)"></i>
+              </div>
+            </ng-container>
+
+            <!-- If category has no subcategories, show products -->
+            <ng-container *ngIf="!activeCategory.subcategories?.length">
+              <div class="product-grid">
+                <div *ngFor="let item of secondColumnItems">
+                  <ng-container *ngIf="isProduct(item)">
+                    <div class="product-box">
+                      <img [src]="item.imageUrl || 'assets/img/iphone15.jpg'" alt="{{ item.name }}" />
+                      <span>{{ item.name }}</span>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- Third Column - Products (only shown if we have subcategories) -->
+          <div class="products-list" *ngIf="activeSubcategory && thirdColumnItems?.length">
+            <div class="products-header">{{ activeSubcategory?.name }}</div>
+            <div class="product-grid">
+              <div *ngFor="let item of thirdColumnItems">
+                <ng-container *ngIf="isProduct(item)">
+                  <div class="product-box">
+                    <img [src]="item.imageUrl || 'assets/img/iphone15.jpg'" alt="{{ item.name }}" />
+                    <span>{{ item.name }}</span>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <div class="nav-right">
+    <a routerLink="/">Home</a>
+    <a href="#">Collections</a>
+    <a href="#">Shop</a>
+    <a href="#">About</a>
+    <a routerLink="/contact">Contact</a>
+  </div>  
+</nav>

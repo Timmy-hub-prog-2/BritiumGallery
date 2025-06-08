@@ -1,0 +1,62 @@
+
+
+<div class="container mt-4">
+  <h3>Edit Category</h3>
+  <form (ngSubmit)="save()" #categoryForm="ngForm">
+    <div class="mb-3">
+      <label for="name">Category Name:</label>
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="category.name"
+        name="name"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <label>Attributes:</label>
+      <div
+        *ngFor="let attr of category.attributes; let i = index"
+        class="row mb-2"
+      >
+        <div class="col">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Attribute Name"
+            [(ngModel)]="attr.name"
+            name="name{{ i }}"
+            required
+          />
+        </div>
+        <div class="col">
+          <select
+            class="form-control"
+            [(ngModel)]="attr.dataType"
+            name="type{{ i }}"
+            required
+          >
+            <option value="STRING">String</option>
+            <option value="NUMBER">Number</option>
+            <option value="BOOLEAN">Boolean</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <button
+            class="btn btn-danger"
+            type="button"
+            (click)="removeAttribute(i)"
+          >
+            X
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-secondary" type="button" (click)="addAttribute()">
+        + Add Attribute
+      </button>
+    </div>
+
+    <button type="submit" class="btn btn-success">Update Category</button>
+  </form>
+</div>
