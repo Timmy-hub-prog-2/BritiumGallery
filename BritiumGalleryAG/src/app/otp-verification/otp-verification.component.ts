@@ -1,5 +1,5 @@
-import { Component, ElementRef, QueryList, ViewChildren } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, ElementRef, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '../../user.service';
 
 @Component({
@@ -8,36 +8,54 @@ import { UserService } from '../../user.service';
   templateUrl: './otp-verification.component.html',
   styleUrls: ['./otp-verification.component.css']
 })
-export class OtpVerificationComponent {
+export class OtpVerificationComponent implements OnInit {
   @ViewChildren('otpInput') inputs!: QueryList<ElementRef>;
+
   otpCode: string = '';
-  email: string = '';
+  identifier: string = '';
+  useSms: boolean = false;
   message: string = '';
   error: string = '';
   isVerifying = false;
   isResending = false;
 
-  constructor(private userService: UserService, private router: Router) {
-    const storedEmail = localStorage.getItem('pendingEmail');
-    this.email = storedEmail ?? '';
-    if (!this.email) {
-      this.router.navigate(['/register']);
-    }
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private userService: UserService
+  ) {}
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      this.identifier = params['identifier'] || '';
+      this.useSms = params['useSms'] === 'true';
+
+      if (!this.identifier) {
+        this.router.navigate(['/register']);
+        return;
+      }
+
+      // ✅ Don't call resend here — first-time OTP already sent from backend
+      this.message = '📨 Please check your ' + (this.useSms ? 'phone' : 'email') + ' for the OTP.';
+    });
   }
 
-  maskEmail(email: string): string {
-    const [name, domain] = email.split('@');
-    return name.length <= 2
-      ? '*@' + domain
-      : name[0] + '*'.repeat(name.length - 2) + name[name.length - 1] + '@' + domain;
+  maskIdentifier(): string {
+    if (this.identifier.includes('@')) {
+      const [name, domain] = this.identifier.split('@');
+      return name.length <= 2
+        ? '*@' + domain
+        : name[0] + '*'.repeat(name.length - 2) + name[name.length - 1] + '@' + domain;
+    } else {
+      return this.identifier.slice(0, 4) + '***' + this.identifier.slice(-2);
+    }
   }
 
   onInput(event: Event, index: number): void {
     const input = event.target as HTMLInputElement;
-    const val = input.value.replace(/\D/g, '').slice(0, 1); // keep only 1 digit
+    const val = input.value.replace(/\D/g, '').slice(0, 1);
     input.value = val;
 
-    // Move to next field
     if (val && index < this.inputs.length - 1) {
       this.inputs.toArray()[index + 1].nativeElement.focus();
     }
@@ -47,7 +65,6 @@ export class OtpVerificationComponent {
 
   onKeyDown(event: KeyboardEvent, index: number): void {
     const input = this.inputs.toArray()[index].nativeElement;
-
     if (event.key === 'Backspace') {
       if (!input.value && index > 0) {
         const prev = this.inputs.toArray()[index - 1].nativeElement;
@@ -56,16 +73,12 @@ export class OtpVerificationComponent {
       } else {
         input.value = '';
       }
-
       this.updateOtpCode();
     }
   }
 
   updateOtpCode(): void {
-    this.otpCode = this.inputs
-      .toArray()
-      .map(input => input.nativeElement.value)
-      .join('');
+    this.otpCode = this.inputs.map(input => input.nativeElement.value).join('');
   }
 
   verifyOtp(): void {
@@ -77,17 +90,16 @@ export class OtpVerificationComponent {
 
     this.isVerifying = true;
 
-    this.userService.verifyOtp(this.email, this.otpCode).subscribe({
+    this.userService.verifyOtp(this.identifier, this.otpCode).subscribe({
       next: (res: string) => {
         this.isVerifying = false;
         const normalized = res.toLowerCase().trim();
 
         if (normalized.includes('verified')) {
           this.message = res.includes('already')
-            ? 'ℹ️ This email has already been verified.'
+            ? 'ℹ️ This account has already been verified.'
             : '✅ OTP verified successfully!';
           this.error = '';
-          localStorage.removeItem('pendingEmail');
           setTimeout(() => this.router.navigate(['/login']), 2000);
         } else {
           this.error = `❌ Unexpected response: ${res}`;
@@ -105,15 +117,20 @@ export class OtpVerificationComponent {
 
   resendOtp(): void {
     this.isResending = true;
-    this.userService.resendOtp(this.email).subscribe({
+
+    const resend$ = this.useSms
+      ? this.userService.resendSmsOtp(this.identifier)
+      : this.userService.resendEmailOtp(this.identifier);
+
+    resend$.subscribe({
       next: () => {
         this.isResending = false;
-        this.error = '';
         this.message = '📨 OTP has been resent successfully!';
+        this.error = '';
       },
       error: err => {
         this.isResending = false;
-        const msg = typeof err.error === 'string' ? err.error : '⚠️ OTP may have sent, but failed to respond cleanly.';
+        const msg = typeof err.error === 'string' ? err.error : '⚠️ OTP resend may have failed.';
         this.error = msg;
         this.message = '';
       }

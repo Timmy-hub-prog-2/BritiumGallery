@@ -20,16 +20,28 @@ export class UserService {
     });
   }
 
-  verifyOtp(email: string, otp: string): Observable<string> {
-    const params = new HttpParams().set('email', email).set('otp', otp);
+  verifyOtp(identifier: string, otp: string): Observable<string> {
+    const params = new HttpParams()
+      .set('identifier', identifier)
+      .set('otp', otp);
     return this.http.post(`${this.otpBase}/verify`, null, {
       params,
       responseType: 'text' as const
     });
   }
 
-  resendOtp(email: string): Observable<string> {
-    const params = new HttpParams().set('email', email);
+  resendEmailOtp(email: string): Observable<string> {
+    const params = new HttpParams().set('identifier', email);
+    return this.http.post(`${this.otpBase}/resend`, null, {
+      params,
+      responseType: 'text' as const
+    });
+  }
+
+  resendSmsOtp(phone: string): Observable<string> {
+    const params = new HttpParams()
+      .set('identifier', phone)
+      .set('useSms', true);
     return this.http.post(`${this.otpBase}/resend`, null, {
       params,
       responseType: 'text' as const

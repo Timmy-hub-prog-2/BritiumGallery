@@ -71,7 +71,8 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found after save"));
         System.out.println("🔍 Saved user ID: " + savedUser.getId());
 
-        otpService.generateAndSendOtp(savedUser);
+        boolean useSms = false;
+        otpService.generateAndSendOtp(savedUser, useSms, false);
 
         return "User registered successfully";
     }

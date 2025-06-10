@@ -1,8 +1,6 @@
 package com.maven.demo.controller;
 
-import com.maven.demo.entity.OtpEntity;
 import com.maven.demo.entity.UserEntity;
-import com.maven.demo.repository.OtpRepository;
 import com.maven.demo.repository.UserRepository;
 import com.maven.demo.service.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,16 +19,18 @@ public class OtpController {
     private OtpService otpService;
 
     @Autowired
-    private OtpRepository otpRepository;
-
-    @Autowired
     private UserRepository userRepository;
 
+    // ✅ Resend OTP (email or phone)
     @PostMapping("/resend")
-    public ResponseEntity<String> resendOtp(@RequestParam String email) {
-        System.out.println("🔁 Resend OTP for: " + email);
+    public ResponseEntity<String> resendOtp(@RequestParam String identifier,
+                                            @RequestParam(required = false) Boolean useSms) {
+        System.out.println("🔁 Resend OTP for: " + identifier);
 
-        Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+        Optional<UserEntity> userOpt = identifier.contains("@")
+                ? userRepository.findByEmail(identifier)
+                : userRepository.findByPhoneNumber(identifier);
+
         if (userOpt.isEmpty()) {
             System.out.println("❌ User not found");
             return ResponseEntity.badRequest().body("User not found");
@@ -48,25 +48,28 @@ public class OtpController {
             return ResponseEntity.badRequest().body("Please wait before requesting another code.");
         }
 
-        otpService.generateAndSendOtp(user);
-        System.out.println("✅ OTP resent");
-        return ResponseEntity.ok("OTP has been resent to your email.");
+        otpService.generateAndSendOtp(user, Boolean.TRUE.equals(useSms), true); // 👈 Pass true for "isResend"
+        String channel = Boolean.TRUE.equals(useSms) ? "phone" : "email";
+        System.out.println("✅ OTP resent to " + channel);
+        return ResponseEntity.ok("OTP has been resent to your " + channel + ".");
     }
 
-    //  Verify OTP
+    // ✅ Verify OTP (email or phone)
     @PostMapping("/verify")
-    public ResponseEntity<String> verifyOtp(@RequestParam String email, @RequestParam String otp) {
-        String result = otpService.verifyOtp(email, otp);
+    public ResponseEntity<String> verifyOtp(@RequestParam String identifier,
+                                            @RequestParam String otp) {
+        String result = otpService.verifyOtp(identifier, otp);
 
-        if ("verified".equals(result)) {
-            return ResponseEntity.ok("verified");
-        } else if ("already-verified".equals(result)) {
-            return ResponseEntity.ok("already-verified");
-        } else {
-
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid or expired OTP");
+        switch (result) {
+            case "verified":
+            case "already-verified":
+                return ResponseEntity.ok(result);
+            case "OTP expired":
+            case "Invalid OTP":
+            case "No OTP found":
+            case "User not found":
+            default:
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
         }
     }
 }

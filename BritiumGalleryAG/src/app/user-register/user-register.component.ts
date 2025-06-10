@@ -117,7 +117,13 @@ export class UserRegisterComponent {
         this.isSubmitting = false;
         if (res.message === 'User registered successfully') {
           localStorage.setItem('pendingEmail', this.user.email);
-          this.router.navigate(['/verify-email']);
+          this.router.navigate(['/choose-verification'], {
+            queryParams: {
+              email: this.user.email,
+              phone: this.user.phoneNumber
+            }
+          });
+          
         } else {
           alert(res.message);
         }
