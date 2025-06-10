@@ -42,12 +42,8 @@
       <!-- Company Info -->
       <div class="company-info">
         <div class="company-header">
-          <span class="supplier-name">Shenzhen Gotron Electronic Co., Ltd.</span>
-          <div class="company-badges">
-            <span class="verified-badge">✓ Verified</span>
-            <span class="years-badge">5 yrs</span>
-            <span class="country-badge">CN</span>
-          </div>
+          <span class="supplier-name">{{ pd.name }}</span>
+          
         </div>
       </div>
 
@@ -61,7 +57,7 @@
           <div class="main-price">
             {{ selectedVariantPrice | number:'1.0-0' }} MMK
           </div>
-          <div class="price-range">/piece</div>
+          
         </div>
       </div>
 
@@ -90,8 +86,8 @@
 
       <!-- Action Buttons -->
       <div class="action-buttons">
-        <button class="send-inquiry-button">Send inquiry</button>
-        <button class="chat-now-button">Chat now</button>
+        <button class="send-inquiry-button">Add To Cart</button>
+        <button class="chat-now-button">Favourite</button>
       </div>
     </div>
   </div>
@@ -105,11 +101,4 @@
     </div>
   </div>
 
-  <!-- Product Description -->
-  <div class="product-description" *ngIf="productDetail$ | async as pd">
-    <h3>Product Details</h3>
-    <div class="description-content">
-      <p>{{ pd.description }}</p>
-    </div>
-  </div>
-</div>
+

@@ -97,7 +97,10 @@ export class SubCategoryComponent implements OnInit {
   }
 
   navigateToProduct(productId: number): void {
-  this.router.navigate(['/product-detail', productId]);
-}
+    this.router.navigate(['/product-detail', productId]);
+  }
 
+  navigateToProductEdit(productId: number) {
+    this.router.navigate(['/product-edit', productId]);
+  }
 }

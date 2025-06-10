@@ -168,7 +168,14 @@ export class AddresseditComponent implements OnInit {
       const addr = res.address || {};
 
       this.address.city = addr.city || addr.town || addr.village || '';
-      this.address.township = addr.suburb || addr.neighbourhood || '';
+     this.address.township = addr.suburb
+         addr.neighbourhood
+         addr.village
+         addr.hamlet
+         addr.quarter
+         addr.town
+         addr.city_district
+        || '';
       this.address.street = addr.road || addr.street || '';
       this.address.state = addr.state || '';
       this.address.country = addr.country || '';

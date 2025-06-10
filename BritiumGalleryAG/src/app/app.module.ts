@@ -3,6 +3,11 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
+import { MatTableModule } from '@angular/material/table';
+import { MatSortModule } from '@angular/material/sort';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
@@ -32,7 +37,13 @@ import { AddresseditComponent } from './addressedit/addressedit.component';
 import { AddresslistComponent } from './addresslist/addresslist.component';
 import { UserRegisterComponent } from './user-register/user-register.component';
 import { OtpVerificationComponent } from './otp-verification/otp-verification.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { CustomerDashboardComponent } from './customer-dashboard/customer-dashboard.component';
+import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
+import { ProductEditModule } from './product-edit/product-edit.module';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { ChooseVerificationComponent } from './choose-verification/choose-verification.component';
+
+
 
 @NgModule({
   declarations: [
@@ -59,20 +70,25 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     LoginComponent,
     AddresseditComponent,
     AddresslistComponent,
-     UserRegisterComponent,
+    UserRegisterComponent,
     OtpVerificationComponent,
-    UserRegisterComponent
-
-
-    
+    CustomerDashboardComponent,
+    AdminDashboardComponent,
+    ChooseVerificationComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    RouterModule, // ✅ Add this
+    RouterModule,
     FormsModule,
     BrowserAnimationsModule,
     HttpClientModule,
+    MatTableModule,
+    MatSortModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ProductEditModule,
+    MatPaginatorModule
   ],
   providers: [],
   bootstrap: [AppComponent],

@@ -13,6 +13,7 @@ export interface VariantResponse {
   id: number;
   price: number;
   stock: number;
-  imageUrls:string;
-  attributes?: { [key: string]: string };
+  attributes: Record<string, string>;
+  imageUrls: string;
+  attributesString?: string; // For editing purposes
 }

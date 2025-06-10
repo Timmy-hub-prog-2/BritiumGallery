@@ -17,11 +17,13 @@
         <p class="page-subtitle">Browse and manage subcategories and products</p>
       </div>
       <div class="header-actions">
-        <a [routerLink]="['/categoryRegister', urlParam]" class="btn-action btn-primary">
+        <!-- Only show New Subcategory button if no products exist -->
+        <a *ngIf="!productList?.length" [routerLink]="['/categoryRegister', urlParam]" class="btn-action btn-primary">
           <i class="bi bi-plus-circle"></i>
           New Subcategory
         </a>
-        <a [routerLink]="['/productRegister', urlParam]" class="btn-action btn-secondary">
+        <!-- Only show Add Product button if no categories exist -->
+        <a *ngIf="!categoryList?.length" [routerLink]="['/productRegister', urlParam]" class="btn-action btn-secondary">
           <i class="bi bi-box-seam"></i>
           Add Product
         </a>
@@ -31,8 +33,8 @@
 
   <!-- Main Content -->
   <div class="content-wrapper">
-    <!-- Subcategories Section -->
-    <section class="section">
+    <!-- Subcategories Section - Only show if no products exist -->
+    <section *ngIf="!productList?.length" class="section">
       <div class="section-header">
         <div class="section-title-wrapper">
           <h2 class="section-title">Subcategories</h2>
@@ -67,8 +69,8 @@
       </div>
     </section>
 
-    <!-- Products Section -->
-    <section class="section products-section">
+    <!-- Products Section - Only show if no categories exist -->
+    <section *ngIf="!categoryList?.length" class="section products-section">
       <div class="section-header">
         <div class="section-title-wrapper">
           <h2 class="section-title">Products</h2>
@@ -78,16 +80,23 @@
       </div>
 
       <div class="products-grid">
-        <div *ngFor="let product of productList" class="product-card" (click)="navigateToProduct(product.id)">
-  <div class="product-image">
-    <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" [alt]="product.name">
-  </div>
-  <div class="product-info">
-    <h3 class="product-title">{{ product.name }}</h3>
-    <span class="price-range">{{ getPriceRange(product) }}</span>
-  </div>
-</div>
-
+        <div *ngFor="let product of productList" class="product-card">
+          <div class="product-image">
+            <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" [alt]="product.name">
+            <div class="product-overlay">
+              <div class="product-actions">
+                <button class="btn-icon" (click)="navigateToProductEdit(product.id)" title="Edit Product">
+                  <i class="fas fa-edit"></i>
+                </button>
+              
+              </div>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">{{ product.name }}</h3>
+            <span class="price-range">{{ getPriceRange(product) }}</span>
+          </div>
+        </div>
       </div>
 
       <!-- Empty State -->

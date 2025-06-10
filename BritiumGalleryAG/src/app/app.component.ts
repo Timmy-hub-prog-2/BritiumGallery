@@ -1,11 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-root',
-  standalone: false,
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
+  standalone:false,
+  styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'BritiumGalleryAG';
+  roleId: number | null = null;
+
+  ngOnInit() {
+    const user = localStorage.getItem('loggedInUser');
+    if (user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        this.roleId = parsedUser.roleId;
+      } catch (error) {
+        console.error('Failed to parse loggedInUser', error);
+      }
+    }
+  }
 }

@@ -24,12 +24,21 @@ export class LoginComponent {
     next: (user) => {
       console.log('User received from backend:', user); 
       localStorage.setItem('loggedInUser', JSON.stringify(user)); 
-      this.router.navigate(['/']);
+
+      // Redirect based on role
+      if (user.roleId === 3) {
+        this.router.navigate(['/customer-dashboard']);
+      } else if (user.roleId === 2) {
+        this.router.navigate(['/admin-dashboard']);
+      } else {
+        this.message = 'Unauthorized role. Please contact support.';
+      }
     },
     error: (err) => {
       console.error('Login error', err);
-      this.message = err.error || 'Login failed';
+      this.message = err.error?.message || 'Login failed';
     }
   });
 }
+
 }

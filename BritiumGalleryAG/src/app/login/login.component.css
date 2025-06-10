@@ -121,7 +121,7 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #38517c;
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
@@ -135,7 +135,7 @@
 }
 
 .form-group:focus-within .input-icon {
-  color: #6366f1;
+  color: #38517c;
 }
 
 .password-toggle {
@@ -152,7 +152,7 @@
 }
 
 .password-toggle:hover {
-  color: #6366f1;
+  color: #38517c;
 }
 
 .remember-forgot {
@@ -181,8 +181,8 @@
 }
 
 .remember-me input[type="checkbox"]:checked {
-  background: #6366f1;
-  border-color: #6366f1;
+  background: #38517c;
+  border-color: #38517c;
 }
 
 .remember-me input[type="checkbox"]:checked::after {
@@ -201,7 +201,7 @@
 }
 
 .forgot-password {
-  color: #6366f1;
+  color: #38517c;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -209,14 +209,14 @@
 }
 
 .forgot-password:hover {
-  color: #4f46e5;
+  color: #010610;
   text-decoration: underline;
 }
 
 .login-button {
   width: 100%;
   padding: 12px 16px;
-  background: #6366f1;
+  background: #38517c;
   color: white;
   border: none;
   border-radius: 12px;
@@ -231,7 +231,7 @@
 }
 
 .login-button:hover {
-  background: #4f46e5;
+  background: #000000;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
 }
@@ -270,7 +270,7 @@
 }
 
 .register-link {
-  color: #6366f1;
+  color: #38517c;
   text-decoration: none;
   font-weight: 500;
   margin-left: 4px;
@@ -278,7 +278,7 @@
 }
 
 .register-link:hover {
-  color: #4f46e5;
+  color: #000000;
   text-decoration: underline;
 }
 

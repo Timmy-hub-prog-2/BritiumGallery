@@ -15,6 +15,10 @@ import { AddresslistComponent } from './addresslist/addresslist.component';
 import { UserRegisterComponent } from './user-register/user-register.component';
 import { OtpVerificationComponent } from './otp-verification/otp-verification.component';
 import { AddresseditComponent } from './addressedit/addressedit.component';
+import { CustomerDashboardComponent } from './customer-dashboard/customer-dashboard.component';
+import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
+import { ProductEditComponent } from './product-edit/product-edit.component';
+import { ChooseVerificationComponent } from './choose-verification/choose-verification.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -24,17 +28,19 @@ const routes: Routes = [
   { path: 'sub-category/:id', component: SubCategoryComponent },
   { path: 'contact', component: ContactComponent },
   { path: 'content', component: ContentComponent },
-  {path:'productRegister/:id',component:ProductRegisterComponent},
+  { path: 'productRegister/:id', component: ProductRegisterComponent },
   { path: 'product-detail/:id', component: ProductDetailComponent },
-  {path: 'addressform', component: AddressformComponent},
-  {path: 'login' , component: LoginComponent},
- { path: 'addresslist', component: AddresslistComponent },
-  {path: 'register', component: UserRegisterComponent},
-  {path: 'verify-email', component: OtpVerificationComponent},
-   { path: 'addressedit', component: AddresseditComponent }
-
-
-
+  { path: 'product-edit/:id', component: ProductEditComponent },
+  { path: 'addressform', component: AddressformComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'addresslist', component: AddresslistComponent },
+  { path: 'register', component: UserRegisterComponent },
+  { path: 'verify-email', component: OtpVerificationComponent },
+  { path: 'addressedit', component: AddresseditComponent },
+  { path: 'customer-dashboard', component: CustomerDashboardComponent },
+  { path: 'admin-dashboard', component: AdminDashboardComponent },
+  {path:'choose-verification',component: ChooseVerificationComponent},
+  {path: 'otp-verification',component: OtpVerificationComponent}
 ];
 
 @NgModule({

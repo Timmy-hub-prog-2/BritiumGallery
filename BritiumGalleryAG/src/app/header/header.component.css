@@ -1,9 +1,8 @@
 /* Header Styling */
 .header {
-  background-color: #5e503f; /* Luxury brown */
+  background-color: #1e293b; /* Luxury brown */
   color: #f5f0e6; /* Soft beige text */
   font-family: "Playfair Display", serif;
-  border-bottom: 1px solid #c2a661;
   padding: 1rem 0;
 }
 
@@ -46,14 +45,14 @@
 .brand-highlight {
   font-family: "Playfair Display", serif;
   font-size: 2rem;
-  color: #f2d690;
+  color: #ffc42f;
 }
 
 .search-container {
   display: flex;
   margin-right: 10em;
   align-items: center;
-  background-color: #f5f0e6;
+  background-color: #ffffff;
   border-radius: 25px;
   padding: 0.12rem 1rem;
   width: 400px;
@@ -65,18 +64,18 @@
   outline: none;
   width: 100%;
   font-family: "Playfair Display", serif;
-  color: #5e503f;
+  color: #1e293b;
   font-size: 1rem;
 }
 
 .search-input::placeholder {
-  color: #c2a661;
+  color: #1e293b;
 }
 
 .search-button {
   background: none;
   border: none;
-  color: #5e503f;
+  color: #1e293b;
   cursor: pointer;
   padding: 0.5rem;
 }

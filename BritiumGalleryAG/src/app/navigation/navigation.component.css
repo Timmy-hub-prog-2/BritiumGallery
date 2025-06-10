@@ -39,7 +39,7 @@
 }
 
 .nav-right a:hover {
-  color: #ff6a00;
+  color: #1e293b;
 }
 
 /* "All Categories" Trigger */
@@ -62,7 +62,7 @@
 }
 
 .all-categories-trigger.nav-link:hover {
-  color: #ff6a00;
+  color: #1e293b;
   background: #f0f0f0;
 }
 

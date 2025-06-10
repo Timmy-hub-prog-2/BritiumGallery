@@ -5,6 +5,13 @@ import { ProductService } from '../product.service';
 import { ProductRequest, VariantRequest } from '../product-request.model';
 import { CategoryAttribute } from '../category';
 
+interface VariantCombination {
+  attributes: { [key: string]: string };
+  price: number;
+  stock: number;
+  photoUrl?: string;
+}
+
 @Component({
   selector: 'app-product-register',
   templateUrl: './product-register.component.html',
@@ -12,14 +19,19 @@ import { CategoryAttribute } from '../category';
   styleUrls: ['./product-register.component.css']
 })
 export class ProductRegisterComponent implements OnInit {
-
   categoryId: number = 0;
   attributes: CategoryAttribute[] = [];
   attributeOptions: { [attributeId: number]: string[] } = {};
   showOptionsModal: boolean = false;
   newOptions: { [attributeId: number]: string } = {};
 
-  // To store base photo file and variant files separately
+  // Base product information
+  basePrice: number = 0;
+  baseStock: number = 0;
+  selectedAttributeOptions: { [attributeId: number]: string[] } = {};
+  variantCombinations: VariantCombination[] = [];
+
+  // Photo handling
   basePhotoFile?: File;
   basePhotoPreview?: string;
   variantFiles: { [key: string]: File[] } = {};
@@ -31,13 +43,6 @@ export class ProductRegisterComponent implements OnInit {
     basePhotoUrl: ''
   };
 
-  variants: {
-    price: number;
-    stock: number;
-    photoUrl?: string;
-    attributeValues: { [attributeId: number]: string[] }
-  }[] = [];
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -46,18 +51,15 @@ export class ProductRegisterComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Get category ID from route param
     this.categoryId = +this.route.snapshot.paramMap.get('id')!;
-    // Fetch attributes for the category
     this.categoryService.getAttributesForCategory(this.categoryId).subscribe(data => {
       this.attributes = data;
-      // Initialize attributeOptions with the options from backend
       data.forEach(attr => {
         if (attr.id && attr.options) {
           this.attributeOptions[attr.id] = attr.options;
+          this.selectedAttributeOptions[attr.id] = [];
         }
       });
-      this.addVariant(); // Initialize with one variant
     });
   }
 
@@ -79,29 +81,130 @@ export class ProductRegisterComponent implements OnInit {
     }
   }
 
-  removeOption(attributeId: number, index: number): void {
-    this.attributeOptions[attributeId].splice(index, 1);
+  removeOption(attributeId: number, optionIndex: number): void {
+    this.attributeOptions[attributeId].splice(optionIndex, 1);
   }
 
   saveAttributeOptions(): void {
-    // The options are already stored in this.attributeOptions
+    // Here you would typically save the options to your backend
     this.closeOptionsModal();
   }
 
-  addVariant() {
-    this.variants.push({
-      price: 0,
-      stock: 0,
-      photoUrl: '',
-      attributeValues: {}
+  onAttributeOptionChange(attributeId: number, option: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const isChecked = input.checked;
+
+    if (isChecked) {
+      if (!this.selectedAttributeOptions[attributeId].includes(option)) {
+        this.selectedAttributeOptions[attributeId].push(option);
+      }
+    } else {
+      const index = this.selectedAttributeOptions[attributeId].indexOf(option);
+      if (index > -1) {
+        this.selectedAttributeOptions[attributeId].splice(index, 1);
+      }
+    }
+
+    this.generateVariantCombinations();
+  }
+
+  generateVariantCombinations(): void {
+    const selectedAttributes = Object.entries(this.selectedAttributeOptions)
+      .filter(([_, options]) => options.length > 0)
+      .map(([id, options]) => ({ id: Number(id), options }));
+
+    if (selectedAttributes.length === 0) {
+      this.variantCombinations = [];
+      return;
+    }
+
+    // Generate all possible combinations
+    let combinations: { [key: string]: string }[] = [{}];
+
+    for (const attr of selectedAttributes) {
+      const newCombinations: { [key: string]: string }[] = [];
+      
+      for (const combination of combinations) {
+        for (const option of attr.options) {
+          newCombinations.push({
+            ...combination,
+            [attr.id.toString()]: option
+          });
+        }
+      }
+      
+      combinations = newCombinations;
+    }
+
+    // Create variant combinations with base price and stock
+    this.variantCombinations = combinations.map(combination => ({
+      attributes: combination,
+      price: this.basePrice,
+      stock: this.baseStock,
+      photoUrl: ''
+    }));
+  }
+
+  updateAllVariants(property: 'price' | 'stock', value: number): void {
+    this.variantCombinations.forEach(variant => {
+      variant[property] = value;
     });
   }
 
-  removeVariant(index: number) {
-    this.variants.splice(index, 1);
-    const variantKey = `variant_${index}`;
-    delete this.variantFiles[variantKey];
-    delete this.variantPreviews[variantKey];
+  onSubmit() {
+    const formData = new FormData();
+
+    const variantsPayload = this.variantCombinations.map(variant => ({
+      price: variant.price,
+      stock: variant.stock,
+      attributes: Object.entries(variant.attributes).reduce((acc, [attrId, value]) => {
+        const attr = this.attributes.find(a => a.id === Number(attrId));
+        if (attr) {
+          acc[attr.name] = value;
+        }
+        return acc;
+      }, {} as { [key: string]: string }),
+      photoUrl: variant.photoUrl
+    }));
+
+    const productPayload = {
+      name: this.product.name,
+      description: this.product.description,
+      categoryId: this.categoryId,
+      adminId: 1,
+      variants: variantsPayload,
+      attributeOptions: Object.entries(this.attributeOptions).map(([attributeId, options]) => ({
+        attributeId: +attributeId,
+        options: options
+      }))
+    };
+
+    formData.append('product', new Blob([JSON.stringify(productPayload)], { type: 'application/json' }));
+
+    if (this.basePhotoFile) {
+      formData.append('basePhoto', this.basePhotoFile);
+    } else {
+      alert('Base photo is required.');
+      return;
+    }
+
+    Object.entries(this.variantFiles).forEach(([variantKey, files]) => {
+      files.forEach(file => {
+        formData.append('variantPhotos', file);
+      });
+    });
+
+    this.productService.saveProduct(formData).subscribe({
+      next: (response) => {
+        console.log('Save response:', response);
+        alert('Product and variants saved!');
+        this.router.navigate(['/sub-category', this.categoryId]);
+      },
+      error: (error) => {
+        console.error('Save error:', error);
+        alert('Failed to save product');
+      },
+    });
   }
 
   // Base photo selected handler
@@ -135,104 +238,22 @@ export class ProductRegisterComponent implements OnInit {
     }
   }
 
-  // Helper function to generate all combinations of selected options
-  private generateAttributeCombinations(selectedOptions: { [attributeId: number]: string[] }): { [attributeId: number]: string }[] {
-    const attributeIds = Object.keys(selectedOptions).map(Number);
-    if (attributeIds.length === 0) return [];
-
-    // Start with the first attribute's options
-    let combinations: { [attributeId: number]: string }[] = selectedOptions[attributeIds[0]].map(value => ({
-      [attributeIds[0]]: value
-    }));
-
-    // For each remaining attribute, combine with existing combinations
-    for (let i = 1; i < attributeIds.length; i++) {
-      const attributeId = attributeIds[i];
-      const newCombinations: { [attributeId: number]: string }[] = [];
-
-      for (const combination of combinations) {
-        for (const value of selectedOptions[attributeId]) {
-          newCombinations.push({
-            ...combination,
-            [attributeId]: value
-          });
-        }
-      }
-
-      combinations = newCombinations;
+  removeVariant(index: number): void {
+    // Remove the variant from combinations
+    this.variantCombinations.splice(index, 1);
+    
+    // Clean up associated files and previews
+    const variantKey = `variant_${index}`;
+    if (this.variantFiles[variantKey]) {
+      // Revoke all preview URLs for this variant
+      this.variantPreviews[variantKey]?.forEach(preview => URL.revokeObjectURL(preview));
+      delete this.variantFiles[variantKey];
+      delete this.variantPreviews[variantKey];
     }
-
-    return combinations;
   }
-
-  onSubmit() {
-  const formData = new FormData();
-
-  const variantsPayload: any[] = [];
-
-  this.variants.forEach((variant, index) => {
-    const combinations = this.generateAttributeCombinations(variant.attributeValues);
-    combinations.forEach(combination => {
-      const attributesMap: { [key: string]: any } = {};
-      for (const attr of this.attributes) {
-        if (attr.id != null && combination[attr.id] != null) {
-          attributesMap[attr.name] = combination[attr.id];
-        }
-      }
-
-      // You might also want to attach photoUrl per variant if you process that before upload
-      variantsPayload.push({
-        price: variant.price,
-        stock: variant.stock,
-        attributes: attributesMap,
-        photoUrl: '' // You can associate variant photos here if needed
-      });
-    });
-  });
-
-  const productPayload = {
-    name: this.product.name,
-    description: this.product.description,
-    categoryId: this.categoryId,
-    adminId: 1,
-    variants: variantsPayload,
-    attributeOptions: Object.entries(this.attributeOptions).map(([attributeId, options]) => ({
-      attributeId: +attributeId,
-      options: options
-    }))
-  };
-
-  formData.append('product', new Blob([JSON.stringify(productPayload)], { type: 'application/json' }));
-
-  if (this.basePhotoFile) {
-    formData.append('basePhoto', this.basePhotoFile);
-  } else {
-    alert('Base photo is required.');
-    return;
-  }
-
-  Object.entries(this.variantFiles).forEach(([variantKey, files]) => {
-    files.forEach(file => {
-      formData.append('variantPhotos', file);
-    });
-  });
-
-  this.productService.saveProduct(formData).subscribe({
-    next: (response) => {
-      console.log('Save response:', response);
-      alert('Product and variants saved!');
-      this.router.navigate(['/sub-category', this.categoryId]);
-    },
-    error: (error) => {
-      console.error('Save error:', error);
-      alert('Failed to save product');
-    },
-  });
-}
-
 
   // Clean up preview URLs when component is destroyed
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     if (this.basePhotoPreview) {
       URL.revokeObjectURL(this.basePhotoPreview);
     }
@@ -240,56 +261,4 @@ export class ProductRegisterComponent implements OnInit {
       previews.forEach(preview => URL.revokeObjectURL(preview));
     });
   }
-
-  // Method to track options for ngFor
-  trackByOption(index: number, option: any): any {
-    return option; // Or a unique ID if your option objects have one
-  }
-
-  // Method to handle checkbox changes for attribute options
-  onOptionChange(event: any, variant: any, attributeId: number, option: any): void {
-    const isChecked = event.target.checked;
-    const attributeValues = variant.attributeValues[attributeId];
-
-    if (isChecked) {
-      // Add the option if it's not already in the array
-      if (!attributeValues.includes(option)) {
-        attributeValues.push(option);
-      }
-    } else {
-      // Remove the option if it's in the array
-      const index = attributeValues.indexOf(option);
-      if (index !== -1) {
-        attributeValues.splice(index, 1);
-      }
-    }
-    // Ensure attributeValues is an array if it wasn't already
-    if (!Array.isArray(variant.attributeValues[attributeId])) {
-        variant.attributeValues[attributeId] = attributeValues;
-    }
-
-    console.log(`Variant ${variant.id} Attribute ${attributeId}: Selected options`, variant.attributeValues[attributeId]);
-  }
-
-  onCheckboxChange(attrId: number, variantIndex: number, option: string, event: Event) {
-  const input = event.target as HTMLInputElement;
-  const isChecked = input.checked;
-
-  const values = this.variants[variantIndex].attributeValues[attrId] || [];
-
-  if (isChecked) {
-    if (!values.includes(option)) {
-      values.push(option);
-    }
-  } else {
-    const index = values.indexOf(option);
-    if (index > -1) {
-      values.splice(index, 1);
-    }
-  }
-
-  this.variants[variantIndex].attributeValues[attrId] = values;
-}
-
-
 }

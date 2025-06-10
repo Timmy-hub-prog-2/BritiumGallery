@@ -142,7 +142,14 @@ export class AddressformComponent implements AfterViewInit {
       const addr = res.address || {};
 
       this.city = addr.city || addr.town || addr.village || '';
-      this.township = addr.suburb || addr.neighbourhood || '';
+      this.township = addr.suburb
+         addr.neighbourhood
+         addr.village
+         addr.hamlet
+         addr.quarter
+         addr.town
+         addr.city_district
+        || '';
       this.street = addr.road || addr.street || '';
       this.state = addr.state || '';
       this.country = addr.country || '';

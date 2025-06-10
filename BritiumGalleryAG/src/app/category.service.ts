@@ -55,5 +55,26 @@ export class CategoryService {
     return this.http.get<CategoryAttribute[]>(`${this.baseUrl}/attributes/${categoryId}`);
   }
 
-  
+  // New methods for attribute options management
+  getAttributeOptions(attributeId: number): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/attribute/${attributeId}/options`);
+  }
+
+  updateAttributeOptions(attributeId: number, options: string[]): Observable<any> {
+    return this.http.put(`${this.baseUrl}/attribute/${attributeId}/options`, options, {
+      responseType: 'text' as 'json'
+    });
+  }
+
+  addAttributeOption(attributeId: number, option: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/attribute/${attributeId}/option`, { option }, {
+      responseType: 'text' as 'json'
+    });
+  }
+
+  removeAttributeOption(attributeId: number, option: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/attribute/${attributeId}/option/${encodeURIComponent(option)}`, {
+      responseType: 'text' as 'json'
+    });
+  }
 }

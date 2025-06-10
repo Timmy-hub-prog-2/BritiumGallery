@@ -1,20 +1,24 @@
 /* Make the page take full height and layout with flexbox */
 html, body {
   height: 100%;
+  width: 100%;
   margin: 0;
-  background-color: rgb(255, 239, 219);
+  background-color: rgb(253, 253, 253);
 }
 
 .page-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: rgb(255, 249, 243);
+  background-color: rgb(255, 255, 255);
+ 
 }
 
 .content-wrap {
+  margin: 2em;
+
   flex: 1;
-  padding: 1rem; /* Optional */
+  
 }
 
 
@@ -38,3 +42,6 @@ html, body {
 .custom-swal-close:hover {
   opacity: 1 !important;
 }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
