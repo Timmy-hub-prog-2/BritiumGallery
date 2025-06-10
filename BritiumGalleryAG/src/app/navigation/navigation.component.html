@@ -45,7 +45,7 @@
               <div class="product-grid">
                 <div *ngFor="let item of secondColumnItems">
                   <ng-container *ngIf="isProduct(item)">
-                    <div class="product-box">
+                    <div class="product-box" (click)="goToProductDetail(item.id)">
                       <img [src]="item.imageUrl || 'assets/img/iphone15.jpg'" alt="{{ item.name }}" />
                       <span>{{ item.name }}</span>
                     </div>
@@ -61,7 +61,7 @@
             <div class="product-grid">
               <div *ngFor="let item of thirdColumnItems">
                 <ng-container *ngIf="isProduct(item)">
-                  <div class="product-box">
+                  <div class="product-box" (click)="goToProductDetail(item.id)">
                     <img [src]="item.imageUrl || 'assets/img/iphone15.jpg'" alt="{{ item.name }}" />
                     <span>{{ item.name }}</span>
                   </div>

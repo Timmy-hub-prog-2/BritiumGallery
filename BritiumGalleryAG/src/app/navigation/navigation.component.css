@@ -176,52 +176,34 @@
 }
 
 .product-box {
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  /* Remove justify-content: space-between */
-  /* Instead, add margin between img and span */
-  margin-bottom: 10px;
-  padding: 10px;
-  border: 1px solid #eee;
-  border-radius: 5px;
-  background: #fafafa;
-  width: 100%;
-  box-sizing: border-box;
-  text-decoration: none;
-  color: #333;
-  height: 140px; /* fixed height */
 }
 
-
-
 .product-box:hover {
-    background: #f0f0f0; /* Hover effect for product box */
+  background-color: #f0f2f5;
+  transform: translateY(-2px);
 }
 
 .product-box img {
-  width: 70px; /* Increased image size */
-  height: 70px; /* Increased image size */
-  margin-right: 0; /* Remove right margin */
-  margin-bottom: 8px; /* Space between image and name */
+  width: 80px;
+  height: 80px;
   object-fit: cover;
-  border-radius: 50%; /* Make image round */
-  border: 1px solid #ddd; /* Add a light border */
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
 }
 
 .product-box span {
-  font-size: 0.85em;
+  font-size: 0.85rem;
   color: #333;
-  word-break: break-word;
-  text-align: center;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-weight: 500;
 }
-
-
-
 
 /* Optional: Style for the right arrow in category items */
 .main-category-item i,

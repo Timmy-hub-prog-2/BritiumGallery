@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CategoryService } from '../category.service';
 import { ProductService } from '../product.service';
 import { category } from '../category';
 import { ProductResponse } from '../ProductResponse';
+import { Router } from '@angular/router';
+import { forkJoin, Observable, of } from 'rxjs';
+import { map, switchMap, catchError } from 'rxjs/operators';
 
 interface CategoryWithSubs extends category {
   subcategories?: CategoryWithSubs[];
@@ -11,113 +14,100 @@ interface CategoryWithSubs extends category {
 
 @Component({
   selector: 'app-navigation',
-  templateUrl: './navigation.component.html',
   standalone:false,
+  templateUrl: './navigation.component.html',
   styleUrls: ['./navigation.component.css']
 })
 export class NavigationComponent implements OnInit {
   categories: CategoryWithSubs[] = [];
-  isMegaMenuVisible: boolean = false;
   activeCategory: CategoryWithSubs | null = null;
   activeSubcategory: CategoryWithSubs | null = null;
   activeSubSubcategory: CategoryWithSubs | null = null;
+  isMegaMenuVisible = false;
 
   constructor(
     private categoryService: CategoryService,
-    private productService: ProductService
+    private productService: ProductService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.loadCategories();
-  }
-
-  loadCategories(): void {
-    this.categoryService.getAllCategories().subscribe({
-      next: (categories) => {
-        const map = new Map<number, CategoryWithSubs>();
-
-        // Convert to map for quick lookup
-        categories.forEach(cat => {
-          map.set(cat.id, { ...cat, subcategories: [], products: [] });
-        });
-
-        // Build category tree
-        map.forEach(cat => {
-          if (cat.parent_category_id) {
-            const parent = map.get(cat.parent_category_id);
-            if (parent) {
-              parent.subcategories!.push(cat);
-            }
-          }
-        });
-
-        // Set root categories
-        this.categories = Array.from(map.values()).filter(cat => !cat.parent_category_id);
-
-        // Load products for leaf categories
-        this.categories.forEach(category => this.loadChildren(category));
-      },
-      error: (err) => console.error("Error loading categories:", err)
+    this.categoryService.getAllCategories().subscribe((categories: CategoryWithSubs[]) => {
+      this.categories = categories.filter(cat => !cat.parent_category_id); // Filter top-level categories
+      this.loadCategoryChildren(this.categories).subscribe(() => {
+        if (this.categories.length > 0) {
+          this.setActiveCategory(this.categories[0]);
+        }
+      });
     });
   }
 
-  loadChildren(parent: CategoryWithSubs): void {
-    this.categoryService.getSubCategories(parent.id).subscribe({
-      next: (subs) => {
-        parent.subcategories = subs.map(sub => ({
-          ...sub,
-          subcategories: [],
-          products: []
-        }));
+  private loadCategoryChildren(categories: CategoryWithSubs[]): Observable<any> {
+    if (!categories || categories.length === 0) {
+      return of(null);
+    }
 
-        // If no subcategories, load products
-        if (parent.subcategories.length === 0) {
-          this.loadProducts(parent);
-        } else {
-          // Load children for each subcategory
-          parent.subcategories.forEach(sub => this.loadChildren(sub));
-        }
+    const observables: Observable<any>[] = categories.map(cat => {
+      return this.categoryService.getSubCategories(cat.id).pipe(
+        switchMap(subcategories => {
+          cat.subcategories = subcategories;
+          if (subcategories.length > 0) {
+            return this.loadCategoryChildren(subcategories); // Recursively load children
+          } else {
+            // If no subcategories, load products for this category
+            return this.productService.getProductsByCategory(cat.id).pipe(
+              map(products => {
+                cat.products = products.map(product => ({
+                  ...product,
+                  imageUrl: product.basePhotoUrl || 'assets/img/phone.jpg' // Fallback image
+                }));
+                return products;
+              }),
+              catchError(err => {
+                console.error(`Error loading products for category ${cat.name}:`, err);
+                cat.products = [];
+                return of(null);
+              })
+            );
+          }
+        }),
+        catchError(err => {
+          console.error(`Error loading subcategories for ${cat.name}:`, err);
+          cat.subcategories = [];
+          return of(null);
+        })
+      );
+    });
+    return forkJoin(observables);
+  }
+
+  loadProducts(category: CategoryWithSubs): void {
+    this.productService.getProductsByCategory(category.id).subscribe({
+      next: (products) => {
+        // Ensure each product has an imageUrl or fallback
+        category.products = products.map(product => ({
+          ...product,
+          imageUrl: product.basePhotoUrl || 'assets/img/phone.jpg' // Fallback image
+        }));
       },
       error: err => console.error(err)
     });
   }
 
-  loadProducts(category: CategoryWithSubs): void {
-  this.productService.getProductsByCategory(category.id).subscribe({
-    next: (products) => {
-
-      
-     
-      // Ensure each product has an imageUrl or fallback
-      category.products = products.map(product => ({
-        ...product,
-        imageUrl: product.basePhotoUrl || 'assets/img/phone.jpg' // Fallback image
-        
-      }));
-    },
-    error: err => console.error(err)
-  });
-}
-
   showMegaMenu(): void {
     this.isMegaMenuVisible = true;
-    if (this.categories.length > 0 && !this.activeCategory) {
-      this.setActiveCategory(this.categories[0]);
-    }
   }
 
   hideMegaMenu(): void {
     this.isMegaMenuVisible = false;
-    this.resetActiveCategories();
   }
 
   setActiveCategory(category: CategoryWithSubs): void {
     this.activeCategory = category;
     this.activeSubcategory = null;
     this.activeSubSubcategory = null;
-    
-    // If category has no subcategories, ensure products are loaded
-    if (category.subcategories?.length === 0 && !category.products) {
+    // Ensure products are loaded if this is a leaf category
+    if (!category.subcategories || category.subcategories.length === 0) {
       this.loadProducts(category);
     }
   }
@@ -125,69 +115,56 @@ export class NavigationComponent implements OnInit {
   setActiveSubcategory(subcategory: CategoryWithSubs): void {
     this.activeSubcategory = subcategory;
     this.activeSubSubcategory = null;
-    
-    // If subcategory has no subcategories, ensure products are loaded
-    if (subcategory.subcategories?.length === 0 && !subcategory.products) {
+    // Ensure products are loaded if this is a leaf subcategory
+    if (!subcategory.subcategories || subcategory.subcategories.length === 0) {
       this.loadProducts(subcategory);
     }
   }
 
-  setActiveSubSubcategory(subSubcategory: CategoryWithSubs): void {
-    this.activeSubSubcategory = subSubcategory;
-    
-    // If sub-subcategory has no subcategories, ensure products are loaded
-    if (subSubcategory.subcategories?.length === 0 && !subSubcategory.products) {
-      this.loadProducts(subSubcategory);
-    }
-  }
-
-  resetActiveCategories(): void {
-    this.activeCategory = null;
-    this.activeSubcategory = null;
-    this.activeSubSubcategory = null;
+  isProduct(item: any): item is ProductResponse {
+    return (item as ProductResponse).variants !== undefined;
   }
 
   hasChildren(item: CategoryWithSubs): boolean {
-  return !!((item.subcategories && item.subcategories.length > 0) || 
-         (item.products && item.products.length > 0));
-}
+    return !!((item.subcategories && item.subcategories.length > 0) || 
+           (item.products && item.products.length > 0));
+  }
 
   get secondColumnItems(): (CategoryWithSubs | ProductResponse)[] | undefined {
-    if (!this.activeCategory) return undefined;
-    
-    // If category has subcategories, show them
-    if (this.activeCategory.subcategories && this.activeCategory.subcategories.length > 0) {
-      return this.activeCategory.subcategories;
-    }
-    // Otherwise show products
-    else if (this.activeCategory.products) {
-      return this.activeCategory.products;
+    if (this.activeCategory) {
+      if (this.activeCategory.subcategories && this.activeCategory.subcategories.length > 0) {
+        return this.activeCategory.subcategories;
+      } else if (this.activeCategory.products && this.activeCategory.products.length > 0) {
+        return this.activeCategory.products;
+      }
     }
     return undefined;
   }
 
-  get thirdColumnItems(): (CategoryWithSubs | ProductResponse)[] | undefined {
-    if (!this.activeSubcategory) return undefined;
-    
-    // If subcategory has subcategories, show them
-    if (this.activeSubcategory.subcategories && this.activeSubcategory.subcategories.length > 0) {
-      return this.activeSubcategory.subcategories;
-    }
-    // Otherwise show products
-    else if (this.activeSubcategory.products) {
-      return this.activeSubcategory.products;
+  get thirdColumnItems(): ProductResponse[] | undefined {
+    if (this.activeSubcategory) {
+      if (this.activeSubcategory.products && this.activeSubcategory.products.length > 0) {
+        return this.activeSubcategory.products;
+      }
     }
     return undefined;
   }
 
-  isCategory(item: any): item is CategoryWithSubs {
-    return item && typeof item.id === 'number' && 
-           typeof item.name === 'string' && 
-           Array.isArray(item.subcategories);
+  goToProductDetail(productId: number): void {
+    this.router.navigate(['/product-detail', productId]);
+    this.hideMegaMenu(); // Hide the mega menu after navigation
   }
 
-  isProduct(item: any): item is ProductResponse {
-    return item && typeof item.name === 'string' && 
-           (typeof item.imageUrl === 'string' || item.imageUrl === undefined);
+  @HostListener('document:click', ['$event'])
+  onClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const megaMenu = document.querySelector('.categories-mega-menu');
+    const allCategoriesTrigger = document.querySelector('.all-categories-trigger');
+
+    if (megaMenu && !megaMenu.contains(target) && allCategoriesTrigger && !allCategoriesTrigger.contains(target)) {
+      this.hideMegaMenu();
+    }
   }
 }
+
+
