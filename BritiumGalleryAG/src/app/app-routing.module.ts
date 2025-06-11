@@ -19,6 +19,11 @@ import { CustomerDashboardComponent } from './customer-dashboard/customer-dashbo
 import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
 import { ProductEditComponent } from './product-edit/product-edit.component';
 import { ChooseVerificationComponent } from './choose-verification/choose-verification.component';
+import { ViewadminComponent } from './viewadmin/viewadmin.component';
+import { ViewcustomerComponent } from './viewcustomer/viewcustomer.component';
+import { ShopaddressformComponent } from './shopaddressform/shopaddressform.component';
+import { ShopaddresslistComponent } from './shopaddresslist/shopaddresslist.component';
+import { ShopaddresseditComponent } from './shopaddressedit/shopaddressedit.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -40,7 +45,12 @@ const routes: Routes = [
   { path: 'customer-dashboard', component: CustomerDashboardComponent },
   { path: 'admin-dashboard', component: AdminDashboardComponent },
   {path:'choose-verification',component: ChooseVerificationComponent},
-  {path: 'otp-verification',component: OtpVerificationComponent}
+  {path: 'otp-verification',component: OtpVerificationComponent},
+  { path: 'viewadmin', component:ViewadminComponent},
+{ path: 'viewcustomer', component:ViewcustomerComponent},
+{ path: 'shopaddressform', component:ShopaddressformComponent},
+ { path: 'shopaddresslist', component:ShopaddresslistComponent},
+  { path: 'shopaddressedit', component:ShopaddresseditComponent}
 ];
 
 @NgModule({

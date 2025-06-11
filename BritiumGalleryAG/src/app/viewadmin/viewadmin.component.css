@@ -1,0 +1,79 @@
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+/* Top bar styling */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+/* Search bar */
+.search-bar input {
+  width: 250px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Table styling */
+.customer-table {
+  width: 100%;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Sticky paginator */
+.custom-paginator {
+  position: sticky;
+  bottom: 0;
+  background-color: #fff;
+  padding: 10px;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.08);
+  border-radius: 0 0 8px 8px;
+  z-index: 10;
+}
+
+/* Styling inside paginator */
+.custom-paginator .mat-paginator-page-size-label,
+.custom-paginator .mat-paginator-range-label {
+  font-size: 14px;
+  color: #333;
+}
+
+.custom-paginator .mat-select-value {
+  font-size: 14px;
+  padding: 4px 6px;
+}
+
+.custom-paginator .mat-paginator-navigation-previous,
+.custom-paginator .mat-paginator-navigation-next,
+.custom-paginator .mat-paginator-navigation-first,
+.custom-paginator .mat-paginator-navigation-last {
+  color: white;
+  background-color: #1976d2;
+  border-radius: 4px;
+  margin: 0 4px;
+  transition: background-color 0.3s;
+}
+
+.custom-paginator .mat-paginator-navigation-previous:hover,
+.custom-paginator .mat-paginator-navigation-next:hover,
+.custom-paginator .mat-paginator-navigation-first:hover,
+.custom-paginator .mat-paginator-navigation-last:hover {
+  background-color: #115293;
+}
+
+.custom-paginator .mat-paginator-navigation-disabled {
+  background-color: #e0e0e0 !important;
+  color: #999 !important;
+  cursor: not-allowed;
+}

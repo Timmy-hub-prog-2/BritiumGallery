@@ -3,8 +3,10 @@
     import com.maven.demo.dto.LoginRequestDTO;
     import com.maven.demo.dto.LoginResponseDTO;
     import com.maven.demo.dto.UserDTO;
+    import com.maven.demo.dto.UserResponseDTO;
     import com.maven.demo.service.CloudinaryUploadService;
     import com.maven.demo.service.UserService;
+    import com.maven.demo.service.UserService1;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
@@ -27,6 +29,9 @@
 
         @Autowired
         private CloudinaryUploadService cloudinaryUploadService;
+
+        @Autowired
+        private UserService1 userService1;
 
         @PostMapping("/register")
         public ResponseEntity<Map<String, String>> registerUser(
@@ -67,6 +72,16 @@
             } catch (RuntimeException ex) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
             }
+        }
+
+        @GetMapping("/admins")
+        public List<UserResponseDTO> viewAdmins() {
+            return userService1.getAdmins();
+        }
+
+        @GetMapping("/customers")
+        public List<UserResponseDTO> viewCustomers() {
+            return userService1.getCustomers();
         }
 
     }

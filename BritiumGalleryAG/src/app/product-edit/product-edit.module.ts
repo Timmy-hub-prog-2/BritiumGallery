@@ -11,11 +11,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ProductEditComponent } from './product-edit.component';
+import { PhotoDialogComponent } from './photo-dialog.component';
 
 @NgModule({
   declarations: [
-    ProductEditComponent
+    ProductEditComponent,
+    PhotoDialogComponent
   ],
   imports: [
     CommonModule,
@@ -30,7 +37,12 @@ import { ProductEditComponent } from './product-edit.component';
     MatIconModule,
     MatCardModule,
     MatTooltipModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatAutocompleteModule,
+    MatSelectModule,
+    MatDialogModule,
+    MatChipsModule,
+    MatProgressSpinnerModule
   ],
   exports: [
     ProductEditComponent

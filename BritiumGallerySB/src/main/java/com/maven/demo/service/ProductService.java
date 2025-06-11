@@ -1,14 +1,34 @@
 package com.maven.demo.service;
 
-import com.maven.demo.dto.*;
-import com.maven.demo.entity.*;
-import com.maven.demo.repository.*;
-import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import com.maven.demo.dto.AttributeOptionDTO;
+import com.maven.demo.dto.ProductRequestDTO;
+import com.maven.demo.dto.ProductResponseDTO;
+import com.maven.demo.dto.VariantDTO;
+import com.maven.demo.dto.VariantResponseDTO;
+import com.maven.demo.entity.AttributeEntity;
+import com.maven.demo.entity.AttributeOptions;
+import com.maven.demo.entity.CategoryEntity;
+import com.maven.demo.entity.ProductEntity;
+import com.maven.demo.entity.ProductVariantEntity;
+import com.maven.demo.entity.ProductVariantImage;
+import com.maven.demo.entity.VariantAttributeValueEntity;
+import com.maven.demo.repository.AttributeOptionRepository;
+import com.maven.demo.repository.AttributeRepository;
+import com.maven.demo.repository.CategoryRepository;
+import com.maven.demo.repository.ProductRepository;
+import com.maven.demo.repository.ProductVariantRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProductService {
@@ -71,10 +91,10 @@ public class ProductService {
             variantRepository.save(variant);
 
             // Save image if provided
-            if (varDto.getPhotoUrl() != null && !varDto.getPhotoUrl().isBlank()) {
+            if (varDto.getImageUrls() != null && !varDto.getImageUrls().isEmpty()) {
                 ProductVariantImage image = new ProductVariantImage();
                 image.setVariant(variant);
-                image.setImageUrl(varDto.getPhotoUrl());
+                image.setImageUrl(varDto.getImageUrls().get(0)); // Use the first photo URL for now
                 image.setCreatedAt(LocalDateTime.now());
                 variant.getImages().add(image);
             }
@@ -199,106 +219,115 @@ public class ProductService {
         return breadcrumb;
     }
 
-//        @Transactional
-//        public void saveProductWithVariantsAndOptions(ProductRequestDTO dto) {
-//            // Save product
-//
-//            catRepo.getById()
-//            ProductEntity product = new ProductEntity();
-//            product.setName(dto.getName());
-//            product.setDescription(dto.getDescription());
-//            product.setBasePhotoUrl(dto.getBasePhotoUrl());
-//
-//            product.setCategoryId(dto.getCategoryId());
-//            product.setAdminId(dto.getAdminId());
-//            product = proRepo.save(product);
-//
-//            // Save attribute options
-//            if (dto.getAttributeOptions() != null) {
-//                for (AttributeOptionDTO optionDTO : dto.getAttributeOptions()) {
-//                    Attribute attribute = attriRepo.findById(optionDTO.getAttributeId())
-//                            .orElseThrow(() -> new RuntimeException("Attribute not found"));
-//
-//                    // Delete existing options for this attribute
-//                    attributeOptionRepository.deleteByAttributeId(attribute.getId());
-//
-//                    // Save new options
-//                    for (String optionValue : optionDTO.getOptions()) {
-//                        AttributeOption option = new AttributeOption();
-//                        option.setAttribute(attribute);
-//                        option.setValue(optionValue);
-//                        attributeOptionRepository.save(option);
-//                    }
-//                }
-//            }
-//
-//            // Save variants
-//            for (VariantDTO variantDTO : dto.getVariants()) {
-//                Variant variant = new Variant();
-//                variant.setProduct(product);
-//                variant.setPrice(variantDTO.getPrice());
-//                variant.setStock(variantDTO.getStock());
-//                variant.setPhotoUrl(variantDTO.getPhotoUrl());
-//
-//                // Convert attributes map to JSON string
-//                String attributesJson = convertAttributesToJson(variantDTO.getAttributes());
-//                variant.setAttributes(attributesJson);
-//
-//                variantRepo.save(variant);
-//            }
-//        }
+    @Transactional
+    public ProductResponseDTO updateProduct(Long productId, ProductRequestDTO dto) {
+        ProductEntity product = proRepo.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
+        // Update basic product details
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        if (dto.getBasePhotoUrl() != null) {
+            product.setBasePhotoUrl(dto.getBasePhotoUrl());
+        }
 
-//        public List<ProductResponseDTO> getProductsByParentCategory(Long parentId) {
-//            // Step 1: Fetch all child category IDs under this parent
-//            List<CategoryEntity> subCategories = catRepo.findByParentId(parentId);
-//            List<Long> categoryIds = subCategories.stream()
-//                    .map(CategoryEntity::getId)
-//                    .toList();
-//
-//            // Also include the parent category itself
-//            categoryIds.add(parentId);
-//
-//            // Step 2: Fetch all products that belong to the parent and its subcategories
-//            List<ProductEntity> products = proRepo.findByCategoryIdIn(categoryIds);
-//
-//            // Step 3: Map to response DTOs
-//            return products.stream().map(product -> {
-//                ProductResponseDTO dto = new ProductResponseDTO();
-//                dto.setId(product.getId());
-//                dto.setName(product.getName());
-//                dto.setDescription(product.getDescription());
-//                dto.setRating(product.getRating());
-//                dto.setCategoryId(product.getCategory().getId());
-//                dto.setAdminId(product.getAdmin_id());
-//
-//                // Step 4: Get variants linked to this product
-//                List<ProductVariantEntity> variants = product.getVariants(); // JPA fetches variants
-//
-//                List<VariantResponseDTO> variantDTOs = variants.stream().map(variant -> {
-//                    VariantResponseDTO varDTO = new VariantResponseDTO();
-//                    varDTO.setId(variant.getId());
-//                    varDTO.setPrice(variant.getPrice());
-//                    varDTO.setStock(variant.getStock());
-//
-//                    Map<String, String> attrMap = new HashMap<>();
-//                    for (VariantAttributeValueEntity vav : variant.getAttributeValues()) {
-//                        attrMap.put(vav.getAttribute().getName(), vav.getValue());
-//                    }
-//
-//                    varDTO.setAttributes(attrMap);
-//                    return varDTO;
-//                }).toList();
-//
-//                dto.setVariants(variantDTOs);
-//                return dto;
-//            }).toList();
-//        }
+        proRepo.save(product);
 
+        // Convert to response DTO
+        return convertToProductResponseDTO(product);
+    }
 
+    @Transactional
+    public ProductResponseDTO updateVariant(Long variantId, VariantDTO dto, List<String> newPhotoUrls) {
+        ProductVariantEntity variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
 
+        // Update basic variant details
+        variant.setPrice(dto.getPrice());
+        variant.setStock(dto.getStock());
 
+        // Handle image updates
+        // 1. Delete images marked for removal
+        if (dto.getImageUrlsToDelete() != null && !dto.getImageUrlsToDelete().isEmpty()) {
+            for (String url : dto.getImageUrlsToDelete()) {
+                variant.getImages().removeIf(image -> image.getImageUrl().equals(url));
+            }
+        }
 
+        // 2. Add new photos uploaded
+        if (newPhotoUrls != null && !newPhotoUrls.isEmpty()) {
+            for (String url : newPhotoUrls) {
+                ProductVariantImage image = new ProductVariantImage();
+                image.setVariant(variant);
+                image.setImageUrl(url);
+                image.setCreatedAt(LocalDateTime.now());
+                variant.getImages().add(image);
+            }
+        }
 
+        // Note: Existing images that are not in imageUrlsToDelete will automatically be retained
+        // due to the persistent collection management by JPA/Hibernate.
 
+        // Update attributes
+        if (dto.getAttributes() != null) {
+            // Clear existing attributes using the helper method
+            variant.clearAttributeValues();
+            
+            // Add new attributes
+            for (Map.Entry<String, String> entry : dto.getAttributes().entrySet()) {
+                AttributeEntity attr = attriRepo.findByNameAndCategory(entry.getKey(), variant.getProduct().getCategory())
+                        .orElseThrow(() -> new RuntimeException("Attribute not found: " + entry.getKey()));
+                VariantAttributeValueEntity val = new VariantAttributeValueEntity();
+                val.setAttribute(attr);
+                val.setValue(entry.getValue());
+                variant.addAttributeValue(val);
+            }
+        }
+
+        variantRepository.save(variant);
+
+        // Return updated product
+        return getProductDetailById(variant.getProduct().getId());
+    }
+
+    @Transactional
+    public void deleteVariant(Long variantId) {
+        ProductVariantEntity variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+        variantRepository.delete(variant);
+    }
+
+    private ProductResponseDTO convertToProductResponseDTO(ProductEntity product) {
+        ProductResponseDTO dto = new ProductResponseDTO();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setDescription(product.getDescription());
+        dto.setRating(product.getRating());
+        dto.setCategoryId(product.getCategory().getId());
+        dto.setAdminId(product.getAdmin_id());
+        dto.setBasePhotoUrl(product.getBasePhotoUrl());
+
+        List<VariantResponseDTO> variantDTOs = product.getVariants().stream().map(variant -> {
+            VariantResponseDTO varDTO = new VariantResponseDTO();
+            varDTO.setId(variant.getId());
+            varDTO.setPrice(variant.getPrice());
+            varDTO.setStock(variant.getStock());
+
+            Map<String, String> attrMap = new HashMap<>();
+            for (VariantAttributeValueEntity vav : variant.getAttributeValues()) {
+                attrMap.put(vav.getAttribute().getName(), vav.getValue());
+            }
+            varDTO.setAttributes(attrMap);
+
+            List<String> imageUrls = variant.getImages().stream()
+                    .map(ProductVariantImage::getImageUrl)
+                    .toList();
+            varDTO.setImageUrls(imageUrls);
+
+            return varDTO;
+        }).toList();
+
+        dto.setVariants(variantDTOs);
+        return dto;
+    }
 }

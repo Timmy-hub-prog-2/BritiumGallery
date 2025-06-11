@@ -2,33 +2,34 @@ import { Component, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as L from 'leaflet';
 import { NgForm } from '@angular/forms';
-import 'leaflet-control-geocoder';
+import { AuthService } from '../AuthService';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-addressform',
-  standalone: false,
-  templateUrl: './addressform.component.html',
-  styleUrls: ['./addressform.component.css']
+  selector: 'app-shopaddressform',
+  standalone:false,
+  templateUrl: './shopaddressform.component.html',
+  styleUrls: ['./shopaddressform.component.css']
 })
-export class AddressformComponent implements AfterViewInit {
+export class ShopaddressformComponent implements AfterViewInit {
   // Form fields
+  country = '';
+  state = '';
   city = '';
   township = '';
   street = '';
   houseNumber = '';
   wardName = '';
-  state = '';
-  country = '';
   postalCode = '';
+  formSubmitAttempted = false;
+  editingId: number | null = null;
 
   center = { lat: 16.8661, lng: 96.1951 };
   searchQuery = '';
-  locationPlaceholder = 'Search township, street, etc.';
+  locationPlaceholder = 'Search location...';
 
-  formSubmitAttempted = false;
-  editingId: number | null = null;
-  addresses: any[] = [];
+  userId: number | null = null;
+  shopAddresses: any[] = [];
 
   private map: any;
   private marker: any;
@@ -40,19 +41,26 @@ export class AddressformComponent implements AfterViewInit {
     popupAnchor: [0, -40]
   });
 
-  constructor(private http: HttpClient,private router: Router) { }
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngAfterViewInit(): void {
-    this.initializeMap();
-    this.getCurrentLocation();
+    setTimeout(() => {
+      this.userId = this.authService.getLoggedInUserId();
+      this.initializeMap();
+      this.getCurrentLocation();
+    });
   }
 
   initializeMap() {
     this.map = L.map('map').setView([this.center.lat, this.center.lng], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(this.map);
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(this.map);
 
     this.marker = L.marker([this.center.lat, this.center.lng], {
       draggable: true,
@@ -65,31 +73,29 @@ export class AddressformComponent implements AfterViewInit {
       this.reverseGeocode(pos.lat, pos.lng);
     });
 
-    this.map.on('click', (e: any) => {
+    this.map.on('click', (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
-      this.marker.setLatLng([lat, lng]);
       this.center = { lat, lng };
+      this.marker.setLatLng([lat, lng]);
       this.reverseGeocode(lat, lng);
     });
 
-    this.loadAddresses();
+    this.loadShopAddresses();
   }
 
   getCurrentLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        position => {
+        (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
 
           this.center = { lat, lng };
-
-          if (this.map) this.map.setView([lat, lng], 15);
-          if (this.marker) this.marker.setLatLng([lat, lng]);
-
+          this.map.setView([lat, lng], 15);
+          this.marker.setLatLng([lat, lng]);
           this.reverseGeocode(lat, lng);
         },
-        error => {
+        (error) => {
           console.error('Geolocation error:', error);
           alert('Unable to get your current location.');
         }
@@ -106,7 +112,7 @@ export class AddressformComponent implements AfterViewInit {
     const encodedQuery = encodeURIComponent(query);
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}&addressdetails=1&limit=1&accept-language=en`;
 
-    this.http.get<any[]>(url).subscribe(results => {
+    this.http.get<any[]>(url).subscribe((results) => {
       if (results.length > 0) {
         const result = results[0];
         const lat = parseFloat(result.lat);
@@ -116,8 +122,8 @@ export class AddressformComponent implements AfterViewInit {
         this.center = { lat, lng };
         const zoom = addr.state && !addr.city ? 8 : 15;
 
-        if (this.map) this.map.setView([lat, lng], zoom);
-        if (this.marker) this.marker.setLatLng([lat, lng]);
+        this.map.setView([lat, lng], zoom);
+        this.marker.setLatLng([lat, lng]);
 
         this.country = addr.country || '';
         this.state = addr.state || '';
@@ -137,18 +143,10 @@ export class AddressformComponent implements AfterViewInit {
   reverseGeocode(lat: number, lng: number) {
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`;
 
-    this.http.get<any>(url).subscribe(res => {
+    this.http.get<any>(url).subscribe((res) => {
       const addr = res.address || {};
-
       this.city = addr.city || addr.town || addr.village || '';
-      this.township = addr.suburb
-         addr.neighbourhood
-         addr.village
-         addr.hamlet
-         addr.quarter
-         addr.town
-         addr.city_district
-        || '';
+      this.township = addr.suburb || addr.neighbourhood || addr.village || addr.hamlet || '';
       this.street = addr.road || addr.street || '';
       this.state = addr.state || '';
       this.country = addr.country || '';
@@ -158,63 +156,58 @@ export class AddressformComponent implements AfterViewInit {
         addr.road || addr.street || '',
         addr.suburb || addr.neighbourhood || '',
         addr.city || addr.town || addr.village || ''
-      ].filter(Boolean).join(', ') || 'Search township, street, etc.';
+      ].filter(Boolean).join(', ') || 'Search location...';
     });
   }
 
   submitForm(form: NgForm) {
     this.formSubmitAttempted = true;
-    if (!form.valid) {
+    if (!form.valid || !this.userId) {
       alert('Please fill in all required fields.');
       return;
     }
 
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
-    const userId = loggedInUser.id;
-
-    const addressPayload = {
-      userId,
+    const payload = {
+      userId: this.userId,
+      country: this.country,
+      state: this.state,
       city: this.city,
       township: this.township,
       street: this.street,
       houseNumber: this.houseNumber,
       wardName: this.wardName,
-      state: this.state,
-      country: this.country,
       postalCode: this.postalCode,
       latitude: this.center.lat,
       longitude: this.center.lng
     };
 
     const url = this.editingId
-      ? `http://localhost:8080/api/addresses/${this.editingId}`
-      : `http://localhost:8080/api/addresses`;
+      ? `http://localhost:8080/api/shopaddresses/${this.editingId}`
+      : `http://localhost:8080/api/shopaddresses`;
 
     const request = this.editingId
-      ? this.http.put(url, addressPayload)
-      : this.http.post(url, addressPayload);
+      ? this.http.put(url, payload)
+      : this.http.post(url, payload);
 
     request.subscribe({
       next: () => {
-        alert(this.editingId ? 'Address updated successfully' : 'Address saved successfully');
+        alert(this.editingId ? 'Shop address updated successfully' : 'Shop address saved successfully');
         this.resetForm();
-        this.loadAddresses();
-         this.router.navigate(['/addresslist']);
+        this.loadShopAddresses();
+        this.router.navigate(['/shopaddresslist']);
       },
       error: err => {
-        console.error('Address save failed:', err);
+        console.error('Shop address save failed:', err);
         alert('Something went wrong. Please try again.');
       }
     });
   }
 
-  loadAddresses() {
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
-    const userId = loggedInUser.id;
+  loadShopAddresses() {
+    if (!this.userId) return;
 
-    this.http.get<any[]>(`http://localhost:8080/api/addresses/user/${userId}`).subscribe(data => {
-      this.addresses = data;
-    });
+    this.http.get<any[]>(`http://localhost:8080/api/shopaddresses/user/${this.userId}`)
+      .subscribe(data => this.shopAddresses = data);
   }
 
   editAddress(address: any) {
@@ -236,22 +229,23 @@ export class AddressformComponent implements AfterViewInit {
   }
 
   deleteAddress(id: number) {
-    if (!confirm('Are you sure you want to delete this address?')) return;
+    if (!confirm('Are you sure you want to delete this shop address?')) return;
 
-    this.http.delete(`http://localhost:8080/api/addresses/${id}`).subscribe(() => {
-      alert('Address deleted.');
-      this.loadAddresses();
-    });
+    this.http.delete(`http://localhost:8080/api/shopaddresses/${id}`)
+      .subscribe(() => {
+        alert('Shop address deleted.');
+        this.loadShopAddresses();
+      });
   }
 
   resetForm() {
+    this.country = '';
+    this.state = '';
     this.city = '';
     this.township = '';
     this.street = '';
     this.houseNumber = '';
     this.wardName = '';
-    this.state = '';
-    this.country = '';
     this.postalCode = '';
     this.center = { lat: 16.8661, lng: 96.1951 };
     this.editingId = null;

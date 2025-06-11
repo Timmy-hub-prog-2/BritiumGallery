@@ -1,16 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { AddressService } from '../address.service';
 import { AuthService } from '../AuthService';
+import { Router } from '@angular/router';
 import * as L from 'leaflet';
+import { ShopAddressService } from '../shop-address.service';
 
 @Component({
-  selector: 'app-addresslist',
+  selector: 'app-shopaddresslist',
   standalone: false,
-  templateUrl: './addresslist.component.html',
-  styleUrls: ['./addresslist.component.css'],
+  templateUrl: './shopaddresslist.component.html',
+  styleUrl: './shopaddresslist.component.css'
 })
-export class AddresslistComponent implements OnInit {
+export class ShopaddresslistComponent implements OnInit {
   addresses: any[] = [];
   currentUserId!: number;
   private locationIcon = L.icon({
@@ -21,7 +21,7 @@ export class AddresslistComponent implements OnInit {
   });
 
   constructor(
-    private addressService: AddressService,
+  private addressService:ShopAddressService,
     private authService: AuthService,
     private router: Router
   ) { }
@@ -34,7 +34,7 @@ export class AddresslistComponent implements OnInit {
     const userId = this.authService.getLoggedInUserId();
     if (userId) {
        this.currentUserId = userId; // ✅ FIXED
-      this.addressService.getAddressesByUserId(userId).subscribe(
+     this.addressService.getByUserId(userId).subscribe(
         (data: any[]) => {
           this.addresses = data;
 
@@ -61,8 +61,9 @@ export class AddresslistComponent implements OnInit {
       if (lat && lng) {
         const map = L.map(mapElementId).setView([lat, lng], 13);
 
-       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
+        L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
+          maxZoom: 20,
         }).addTo(map);
 
         L.marker([lat, lng], { icon: this.locationIcon, draggable: true }) // <-- Custom icon used here
@@ -73,7 +74,7 @@ export class AddresslistComponent implements OnInit {
   }
 
   editAddress(address: any): void {
-    this.router.navigate(['/addressedit'], {
+    this.router.navigate(['/shopaddressedit'], {
       queryParams: { id: address.id },
       state: { address }
     });
@@ -81,14 +82,14 @@ export class AddresslistComponent implements OnInit {
 
   deleteAddress(id: number): void {
     if (confirm('Are you sure you want to delete this address?')) {
-      this.addressService.deleteAddress(id).subscribe(() => {
+     this.addressService.deleteAddress(id).subscribe(() => {
         this.fetchAddresses(); // Refresh after delete
       });
     }
   }
 
   addNewAddress() {
-    this.router.navigate(['/addressform']);
+    this.router.navigate(['/shopaddressform']);
   }
 markAsMain(addressId: number): void {
   if (!this.currentUserId) {
@@ -97,7 +98,7 @@ markAsMain(addressId: number): void {
   }
 
   console.log("Setting as main address: ", addressId);
-  this.addressService.setMainAddress(this.currentUserId, addressId).subscribe(() => {
+  this.addressService.setMain(this.currentUserId, addressId).subscribe(() => {
     this.fetchAddresses();
   });
 }

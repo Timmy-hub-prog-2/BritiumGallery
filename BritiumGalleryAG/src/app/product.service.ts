@@ -36,22 +36,20 @@ export class ProductService {
     return this.http.get<string[]>(`${this.baseUrl}/${productId}/breadcrumb`);
   }
 
-  // New methods for variant management
-  updateVariant(variant: VariantResponse): Observable<any> {
-    return this.http.put(`${this.baseUrl}/variant/update`, variant, {
-      responseType: 'text' as 'json'
-    });
+  updateProduct(productId: number, formData: FormData): Observable<ProductResponse> {
+    return this.http.put<ProductResponse>(`${this.baseUrl}/update/${productId}`, formData);
   }
 
-  deleteVariant(variantId: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/variant/delete/${variantId}`, {
-      responseType: 'text' as 'json'
-    });
+  // Variant management methods
+  addVariantWithPhotos(productId: number, formData: FormData): Observable<VariantResponse> {
+    return this.http.post<VariantResponse>(`${this.baseUrl}/${productId}/variant/with-photos`, formData);
   }
 
-  addVariant(productId: number, variant: VariantResponse): Observable<any> {
-    return this.http.post(`${this.baseUrl}/${productId}/variant/add`, variant, {
-      responseType: 'text' as 'json'
-    });
+  updateVariantWithPhotos(variantId: number, formData: FormData): Observable<VariantResponse> {
+    return this.http.put<VariantResponse>(`${this.baseUrl}/variants/${variantId}/with-photos`, formData);
+  }
+
+  deleteVariant(variantId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/variants/${variantId}`);
   }
 }

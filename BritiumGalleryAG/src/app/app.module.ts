@@ -42,6 +42,11 @@ import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.compo
 import { ProductEditModule } from './product-edit/product-edit.module';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { ChooseVerificationComponent } from './choose-verification/choose-verification.component';
+import { ViewcustomerComponent } from './viewcustomer/viewcustomer.component';
+import { ViewadminComponent } from './viewadmin/viewadmin.component';
+import { ShopaddressformComponent } from './shopaddressform/shopaddressform.component';
+import { ShopaddresseditComponent } from './shopaddressedit/shopaddressedit.component';
+import { ShopaddresslistComponent } from './shopaddresslist/shopaddresslist.component';
 
 
 
@@ -74,7 +79,12 @@ import { ChooseVerificationComponent } from './choose-verification/choose-verifi
     OtpVerificationComponent,
     CustomerDashboardComponent,
     AdminDashboardComponent,
-    ChooseVerificationComponent
+    ChooseVerificationComponent,
+    ViewcustomerComponent,
+    ViewadminComponent,
+    ShopaddressformComponent,
+    ShopaddresseditComponent,
+    ShopaddresslistComponent
   ],
   imports: [
     BrowserModule,

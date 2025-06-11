@@ -1,0 +1,111 @@
+<div class="address-container">
+  <!-- Left Sidebar -->
+  <div class="left-panel">
+    <!-- ✅ Search Bar -->
+    <div class="search-bar">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (keydown.enter)="searchLocation()"
+        [placeholder]="locationPlaceholder"
+        class="form-control"
+        name="searchQuery"
+      />
+      <button (click)="searchLocation()" class="icon-button" title="Search">
+        <i class="bi bi-search"></i>
+      </button>
+      <button (click)="getCurrentLocation()" class="icon-button" title="Use My Current Location">
+        <i class="bi bi-geo-alt-fill"></i>
+      </button>
+    </div>
+
+     <div id="map" style="height: 400px; width: 100%;"></div>
+
+    <!-- ✅ Address Form -->
+    <form #addressForm="ngForm" (ngSubmit)="submitForm(addressForm)" class="address-form">
+     
+
+      <div class="form-group">
+        <label>Country:</label>
+        <input [(ngModel)]="country" name="country" class="form-control" required #countryRef="ngModel" />
+        <div *ngIf="formSubmitAttempted && countryRef.invalid" class="error-message">
+          Country is required.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>State/Region:</label>
+        <input [(ngModel)]="state" name="state" class="form-control" required #stateRef="ngModel" />
+        <div *ngIf="formSubmitAttempted && stateRef.invalid" class="error-message">
+          State/Region is required.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>City:</label>
+        <input [(ngModel)]="city" name="city" class="form-control" required #cityRef="ngModel" />
+        <div *ngIf="formSubmitAttempted && cityRef.invalid" class="error-message">
+          City is required.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Township:</label>
+        <input [(ngModel)]="township" name="township" class="form-control" required #townshipRef="ngModel" />
+        <div *ngIf="formSubmitAttempted && townshipRef.invalid" class="error-message">
+          Township is required.
+        </div>
+      </div>
+
+
+      <div class="form-group">
+        <label>Postal Code:</label>
+        <input [(ngModel)]="postalCode" name="postalCode" class="form-control" />
+      </div>
+
+
+      <div class="form-group">
+        <label>Street:</label>
+        <input [(ngModel)]="street" name="street" class="form-control" required #streetRef="ngModel" />
+        <div *ngIf="formSubmitAttempted && streetRef.invalid" class="error-message">
+          Street is required.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>House No:</label>
+        <input [(ngModel)]="houseNumber" name="houseNumber" class="form-control" required #houseNumberRef="ngModel" />
+        <div *ngIf="formSubmitAttempted && houseNumberRef.invalid" class="error-message">
+          House number is required.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Ward:</label>
+        <input [(ngModel)]="wardName" name="wardName" class="form-control" required #wardRef="ngModel" />
+        <div *ngIf="formSubmitAttempted && wardRef.invalid" class="error-message">
+          Ward name is required.
+        </div>
+      </div>
+
+      <!-- Form actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          {{ editingId !== null ? 'Update' : 'Save' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="resetForm()" *ngIf="editingId !== null">
+          Cancel
+        </button>
+      </div>
+    </form>
+
+<div class="go-to-addresslist">
+  <button class="btn btn-outline-info" [routerLink]="['/shopaddresslist']">
+    View My Saved Addresses
+  </button>
+
+    <hr />
+
+   
+  </div>
+</div>

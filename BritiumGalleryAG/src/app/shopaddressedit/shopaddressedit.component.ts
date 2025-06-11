@@ -1,24 +1,23 @@
 import { Component, OnInit } from '@angular/core';
+import { ShopAddressDTO } from '../ShopAddressDTO';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AddressService } from '../address.service';
+import { ShopAddressService } from '../shop-address.service';
+import { HttpClient } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import * as L from 'leaflet'; // Import Leaflet
-import { HttpClient } from '@angular/common/http'; 
-import { AddressDTO } from '../../AddressDTO';
-
 
 @Component({
-  selector: 'app-addressedit',
+  selector: 'app-shopaddressedit',
   standalone: false,
-  templateUrl: './addressedit.component.html',
-  styleUrls: ['./addressedit.component.css']
+  templateUrl: './shopaddressedit.component.html',
+  styleUrl: './shopaddressedit.component.css'
 })
-export class AddresseditComponent implements OnInit {
+export class ShopaddresseditComponent implements OnInit {
   editingId: number | null = null;
   isEditing: boolean = false;
   formSubmitAttempted: boolean = false;
 
-  address: AddressDTO = {
+  address: ShopAddressDTO = {
     id: 0,
     country: '',
     state: '',
@@ -48,7 +47,7 @@ export class AddresseditComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private addressService: AddressService,
+    private addressService: ShopAddressService,
     private http: HttpClient
   ) { }
 
@@ -66,9 +65,15 @@ export class AddresseditComponent implements OnInit {
 
   initMap(): void {
     this.map = L.map('map').setView([16.775, 96.1575], 13); // Center map to a default location (e.g., Myanmar)
+    // L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+    //   attribution: '&copy; OpenStreetMap contributors',
+    //   maxZoom: 20
+    // }).addTo(this.map);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; OpenStreetMap contributors'
         }).addTo(this.map);
+    
 
     // Add a default marker with the custom location icon
     this.marker = L.marker([16.775, 96.1575], { icon: this.locationIcon }).addTo(this.map);
@@ -90,15 +95,15 @@ export class AddresseditComponent implements OnInit {
 
 
   // Get address from latitude and longitude using reverse geocoding (Nominatim API)
- getAddressFromLatLng(lat: number, lng: number): void {
-  if (this.map && this.marker) {
-    // Update map view and marker position
-    this.map.setView([lat, lng], 15);
-    this.marker.setLatLng([lat, lng]);
-  }
+  getAddressFromLatLng(lat: number, lng: number): void {
+    if (this.map && this.marker) {
+      // Update map view and marker position
+      this.map.setView([lat, lng], 15);
+      this.marker.setLatLng([lat, lng]);
+    }
 
-  this.reverseGeocode(lat, lng);  // Call reverse geocoding method
-}
+    this.reverseGeocode(lat, lng);  // Call reverse geocoding method
+  }
 
   searchLocation() {
     const query = this.searchQuery.trim();
@@ -167,14 +172,15 @@ export class AddresseditComponent implements OnInit {
       const addr = res.address || {};
 
       this.address.city = addr.city || addr.town || addr.village || '';
-     this.address.township = addr.suburb
-         addr.neighbourhood
-         addr.village
-         addr.hamlet
-         addr.quarter
-         addr.town
-         addr.city_district
+      this.address.township = addr.suburb
+        || addr.neighbourhood
+        || addr.village
+        || addr.hamlet
+        || addr.quarter
+        || addr.town
+        || addr.city_district
         || '';
+
       this.address.street = addr.road || addr.street || '';
       this.address.state = addr.state || '';
       this.address.country = addr.country || '';
@@ -189,7 +195,7 @@ export class AddresseditComponent implements OnInit {
   }
 
   // Populate the form with address data
-  populateForm(address: AddressDTO): void {
+  populateForm(address: ShopAddressDTO): void {
     this.address = { ...address };
     if (address.latitude && address.longitude) {
       this.map?.setView([address.latitude, address.longitude], 13);
@@ -204,20 +210,21 @@ export class AddresseditComponent implements OnInit {
       this.address.id = this.editingId;
       this.addressService.updateAddress(this.editingId, this.address).subscribe(() => {
         alert('Address updated successfully!');
-        this.router.navigate(['/addresslist']);
+        this.router.navigate(['/shopaddresslist']);
       });
     }
   }
 
   // Cancel edit
- cancelEdit(): void {
-  if (confirm('Are you sure you want to cancel editing?')) {
-    this.router.navigate(['/addresslist']);
+  cancelEdit(): void {
+    if (confirm('Are you sure you want to cancel editing?')) {
+      this.router.navigate(['/shopaddresslist']);
+    }
   }
-}
 
 
   resetForm(): void {
-    this.router.navigate(['/addresslist']);
+    this.router.navigate(['/shopaddresslist']);
   }
 }
+
