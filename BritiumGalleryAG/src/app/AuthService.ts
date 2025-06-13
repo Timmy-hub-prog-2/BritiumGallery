@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 export class AuthService {
   getLoggedInUser() {
     const user = localStorage.getItem('loggedInUser');
+      console.log('User from localStorage:', user); // Check the format
     return user ? JSON.parse(user) : null;
   }
 

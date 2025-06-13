@@ -1,5 +1,6 @@
 package com.maven.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,4 +50,9 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<AddressEntity> addresses;
+
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private List<WishlistEntity> wishlists;
+
 }

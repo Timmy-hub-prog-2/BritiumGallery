@@ -3,6 +3,10 @@ import { ActivatedRoute } from '@angular/router';
 import { ProductResponse, VariantResponse } from '../ProductResponse';
 import { ProductService } from '../product.service';
 import { Observable, tap, combineLatest, map, BehaviorSubject } from 'rxjs';
+import { AuthService } from '../AuthService';
+import { HttpClient } from '@angular/common/http';
+import { WishlistService } from '../wishlist.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-product-detail',
@@ -19,8 +23,13 @@ export class ProductDetailComponent implements OnInit {
   mainImageUrl: string | undefined; // URL of the currently displayed main image
   selectedVariantPrice: number = 0;
   latestProductDetail?: ProductResponse;
+  wishlist: any[] = [];
 
-  constructor(private route: ActivatedRoute, private productService: ProductService, private cdr: ChangeDetectorRef) {}
+
+  constructor(private authService:AuthService,private http: HttpClient,
+    private wishlistService:WishlistService, private snackBar: MatSnackBar,
+    private route: ActivatedRoute, private productService: ProductService,
+     private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -29,6 +38,7 @@ export class ProductDetailComponent implements OnInit {
       this.fetchProductDetail();
       this.productService.getProductBreadcrumb(this.productId).subscribe(data=>{
            this.breadcrumb = data;
+           this.reloadWishlist(); 
       })
     });
   }
@@ -278,4 +288,50 @@ export class ProductDetailComponent implements OnInit {
     }
     return ''; // Return empty string if no image
   }
+
+addToWishlist(productId: number): void {
+  const userId = this.authService.getLoggedInUserId();
+  if (userId === null) return;
+
+  if (this.wishlist.some(item => item.productId === productId)) {
+    this.snackBar.open('This product is already in your wishlist.', 'Close', { duration: 3000 });
+    return;
+  }
+
+  this.wishlistService.addWishlistItem(userId, productId).subscribe({
+    next: (res) => {
+      // ✅ Show the message from backend (res.message)
+      this.snackBar.open(res.message || 'Added to wishlist!', 'Close', { duration: 3000 });
+      this.reloadWishlist();
+    },
+    error: (err) => {
+      if (err.status === 409) {
+        // ✅ Show conflict message from backend
+        this.snackBar.open(err.error.message || 'Item already exists in wishlist.', 'Close', { duration: 3000 });
+      } else {
+        console.error('Failed to add to wishlist', err);
+        this.snackBar.open('Failed to add to wishlist. Try again.', 'Close', { duration: 3000 });
+      }
+    }
+  });
+}
+
+
+reloadWishlist(): void {
+  const userId = this.authService.getLoggedInUserId();
+  if (userId === null) {
+    console.error('User not logged in.');
+    return;
+  }
+
+  this.wishlistService.getWishlistByUser(userId).subscribe({
+    next: (data) => {
+      this.wishlist = data;
+    },
+    error: (err) => {
+      console.error('Failed to load wishlist', err);
+    }
+  });
+}
+
 }

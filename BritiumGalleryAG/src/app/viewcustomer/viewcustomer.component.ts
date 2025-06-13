@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { People } from '../People';
+import { Address, People } from '../People';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';  
 import { PeopleService } from '../people.service';
@@ -50,4 +50,20 @@ export class ViewcustomerComponent implements OnInit {
   getRowNumber(index: number): number {
     return this.pageIndex * this.pageSize + index + 1;
   }
+
+  getFullAddress(address: Address | null | undefined): string {
+    if (!address) return '';
+    
+    const addressParts = [
+      address.houseNumber,
+      address.wardName,  // Use wardName, not wardNumber
+      address.street,
+      address.township,
+      address.city,
+      address.state  // Use state, not stateOrRegion
+    ];
+  
+    return addressParts.filter(part => part != null && part.trim() !== '').join(', ');
+  }
+  
 }

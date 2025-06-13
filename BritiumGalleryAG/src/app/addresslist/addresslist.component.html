@@ -11,8 +11,16 @@
 
   <div *ngFor="let address of addresses" class="address-card">
     <h4>
-      {{ address.houseNumber }}, {{ address.street }}, {{ address.wardName }}
-    </h4>
+  {{ address.houseNumber }},
+  {{ address.street }},
+  {{ address.wardName }},
+  {{ address.township }},
+  {{ address.city }},
+  {{ address.state }},
+  {{ address.country }},
+  {{ address.postalCode || 'N/A' }}
+</h4>
+
 
     <div class="address-details">
       <p>

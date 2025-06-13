@@ -160,48 +160,55 @@ export class ShopaddressformComponent implements AfterViewInit {
     });
   }
 
-  submitForm(form: NgForm) {
-    this.formSubmitAttempted = true;
-    if (!form.valid || !this.userId) {
-      alert('Please fill in all required fields.');
-      return;
-    }
-
-    const payload = {
-      userId: this.userId,
-      country: this.country,
-      state: this.state,
-      city: this.city,
-      township: this.township,
-      street: this.street,
-      houseNumber: this.houseNumber,
-      wardName: this.wardName,
-      postalCode: this.postalCode,
-      latitude: this.center.lat,
-      longitude: this.center.lng
-    };
-
-    const url = this.editingId
-      ? `http://localhost:8080/api/shopaddresses/${this.editingId}`
-      : `http://localhost:8080/api/shopaddresses`;
-
-    const request = this.editingId
-      ? this.http.put(url, payload)
-      : this.http.post(url, payload);
-
-    request.subscribe({
-      next: () => {
-        alert(this.editingId ? 'Shop address updated successfully' : 'Shop address saved successfully');
-        this.resetForm();
-        this.loadShopAddresses();
-        this.router.navigate(['/shopaddresslist']);
-      },
-      error: err => {
-        console.error('Shop address save failed:', err);
-        alert('Something went wrong. Please try again.');
-      }
-    });
+ submitForm(form: NgForm) {
+  this.formSubmitAttempted = true;
+  if (!form.valid || !this.userId) {
+    alert('Please fill in all required fields.');
+    return;
   }
+
+  // Check if this is the first address for the user
+  this.http.get<any[]>(`http://localhost:8080/api/shopaddresses/user/${this.userId}`)
+    .subscribe(existingAddresses => {
+      const isFirst = existingAddresses.length === 0;
+
+      const payload = {
+        userId: this.userId,
+        country: this.country,
+        state: this.state,
+        city: this.city,
+        township: this.township,
+        street: this.street,
+        houseNumber: this.houseNumber,
+        wardName: this.wardName,
+        postalCode: this.postalCode,
+        latitude: this.center.lat,
+        longitude: this.center.lng,
+        mainAddress: isFirst // ✅ set to true if first address
+      };
+
+      const url = this.editingId
+        ? `http://localhost:8080/api/shopaddresses/${this.editingId}`
+        : `http://localhost:8080/api/shopaddresses`;
+
+      const request = this.editingId
+        ? this.http.put(url, payload)
+        : this.http.post(url, payload);
+
+      request.subscribe({
+        next: () => {
+          alert(this.editingId ? 'Shop address updated successfully' : 'Shop address saved successfully');
+          this.resetForm();
+          this.loadShopAddresses();
+          this.router.navigate(['/shopaddresslist']);
+        },
+        error: err => {
+          console.error('Shop address save failed:', err);
+          alert('Something went wrong. Please try again.');
+        }
+      });
+    });
+}
 
   loadShopAddresses() {
     if (!this.userId) return;

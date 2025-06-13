@@ -1,5 +1,6 @@
 package com.maven.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,9 +42,14 @@ public class ProductEntity {
     private String basePhotoUrl;
 
 
-
-
     // ✅ Add this to load variants from the product
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariantEntity> variants = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product")
+    @JsonIgnore
+    private List<WishlistEntity> wishlists;
+
+
+
 }

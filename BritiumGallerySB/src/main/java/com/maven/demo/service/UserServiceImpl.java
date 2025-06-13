@@ -1,10 +1,12 @@
 package com.maven.demo.service;
+
 import com.maven.demo.dto.UserResponseDTO;
+import com.maven.demo.dto.AddressDTO;
 import com.maven.demo.entity.AddressEntity;
+import com.maven.demo.entity.ShopAddressEntity;
 import com.maven.demo.entity.UserEntity;
+import com.maven.demo.repository.ShopAddressRepository;
 import com.maven.demo.repository.UserRepository;
-import com.maven.demo.service.UserService;
-import com.maven.demo.service.UserService1;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +17,17 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService1 {
 
-    private static final long ADMIN_ROLE_ID = 2L;
-    private static final long CUSTOMER_ROLE_ID = 3L;
+    private static final long ADMIN_ROLE_ID = 2L;  // Adjust to correct admin role id
+    private static final long CUSTOMER_ROLE_ID = 3L; // Adjust to correct customer role id
+
+    private final ShopAddressRepository shopAddressRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    public UserServiceImpl(ShopAddressRepository shopAddressRepository, UserRepository userRepository) {
+        this.shopAddressRepository = shopAddressRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public List<UserResponseDTO> getAdmins() {
@@ -37,6 +45,7 @@ public class UserServiceImpl implements UserService1 {
                 .collect(Collectors.toList());
     }
 
+    // Convert UserEntity to UserResponseDTO
     private UserResponseDTO convertToDto(UserEntity user) {
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(user.getId());
@@ -45,32 +54,69 @@ public class UserServiceImpl implements UserService1 {
         dto.setGender(user.getGender());
         dto.setPhoneNumber(user.getPhoneNumber());
 
-        Optional<AddressEntity> mainAddressOpt = user.getAddresses()
-                .stream()
-                .filter(AddressEntity::isMainAddress)
-                .findFirst();
+        Long roleId = user.getRole().getId(); // Assuming RoleEntity is associated
 
-        if (mainAddressOpt.isPresent()) {
-            AddressEntity addr = mainAddressOpt.get();
-            StringBuilder fullAddress = new StringBuilder();
+        // Handle Customer Role (get customer's main address)
+        if (roleId == CUSTOMER_ROLE_ID) {
+            Optional<AddressEntity> mainAddressOpt = user.getAddresses()
+                    .stream()
+                    .filter(AddressEntity::isMainAddress)
+                    .findFirst();
 
-            if (addr.getState() != null) fullAddress.append(addr.getState()).append(", ");
-            if (addr.getCity() != null) fullAddress.append(addr.getCity()).append(", ");
-            if (addr.getTownship() != null) fullAddress.append(addr.getTownship()).append(", ");
-            if (addr.getStreet() != null) fullAddress.append(addr.getStreet()).append(", ");
-            if (addr.getWardName() != null) fullAddress.append(addr.getWardName()).append(", ");
-            if (addr.getHouseNumber() != null) fullAddress.append(addr.getHouseNumber());
+            mainAddressOpt.ifPresent(address -> {
+                // Map AddressEntity to AddressDTO for customer
+                AddressDTO addressDTO = mapToAddressDTO(address);
+                dto.setAddress(addressDTO);
+            });
 
-
-            // Remove trailing comma and space if present
-            String addressString = fullAddress.toString().trim();
-            if (addressString.endsWith(",")) {
-                addressString = addressString.substring(0, addressString.length() - 1);
-            }
-
-            dto.setAddress(addressString);
+        } else if (roleId == ADMIN_ROLE_ID) {
+            // Handle Admin Role (get admin shop address)
+            shopAddressRepository.findByUserIdAndMainAddressTrue(user.getId())
+                    .ifPresent(address -> {
+                        // Map ShopAddressEntity to AddressDTO for admin
+                        AddressDTO addressDTO = mapToAddressDTOFromShopAddress(address);
+                        dto.setAddress(addressDTO);
+                    });
         }
 
+        return dto;
+    }
+
+    // Mapping AddressEntity to AddressDTO
+    private AddressDTO mapToAddressDTO(AddressEntity addr) {
+        AddressDTO dto = new AddressDTO();
+        dto.setId(addr.getId());
+        dto.setCity(addr.getCity());
+        dto.setTownship(addr.getTownship());
+        dto.setStreet(addr.getStreet());
+        dto.setHouseNumber(addr.getHouseNumber());
+        dto.setWardName(addr.getWardName());
+        dto.setLatitude(addr.getLatitude());
+        dto.setLongitude(addr.getLongitude());
+        dto.setState(addr.getState());
+        dto.setCountry(addr.getCountry());
+        dto.setPostalCode(addr.getPostalCode());
+        dto.setMainAddress(addr.isMainAddress());
+        dto.setUserId(addr.getUser().getId());
+        return dto;
+    }
+
+    // Mapping ShopAddressEntity to AddressDTO for admin
+    private AddressDTO mapToAddressDTOFromShopAddress(ShopAddressEntity addr) {
+        AddressDTO dto = new AddressDTO();
+        dto.setId(addr.getId());
+        dto.setCity(addr.getCity());
+        dto.setTownship(addr.getTownship());
+        dto.setStreet(addr.getStreet());
+        dto.setHouseNumber(addr.getHouseNumber());
+        dto.setWardName(addr.getWardName());
+        dto.setLatitude(addr.getLatitude());
+        dto.setLongitude(addr.getLongitude());
+        dto.setState(addr.getState());
+        dto.setCountry(addr.getCountry());
+        dto.setPostalCode(addr.getPostalCode());
+        dto.setMainAddress(addr.isMainAddress());
+        dto.setUserId(addr.getUser().getId());
         return dto;
     }
 }

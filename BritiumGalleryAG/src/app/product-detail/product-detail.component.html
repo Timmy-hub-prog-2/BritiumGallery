@@ -87,7 +87,10 @@
       <!-- Action Buttons -->
       <div class="action-buttons">
         <button class="send-inquiry-button">Add To Cart</button>
-        <button class="chat-now-button">Favourite</button>
+      <button class="chat-now-button" (click)="addToWishlist(pd.id)">Favourite</button>
+
+         <!-- <button (click)="addToWishlist()">Favourite</button> -->
+
       </div>
     </div>
   </div>

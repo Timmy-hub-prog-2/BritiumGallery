@@ -10,5 +10,5 @@ public class UserResponseDTO {
     private String gender;
     private String phoneNumber;
 
-    private String address; // Combined address field
+    private AddressDTO address; // Combined address field
 }
