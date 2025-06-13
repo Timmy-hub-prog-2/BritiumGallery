@@ -49,6 +49,8 @@ import { ShopaddresseditComponent } from './shopaddressedit/shopaddressedit.comp
 import { ShopaddresslistComponent } from './shopaddresslist/shopaddresslist.component';
 
 
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { CartPreviewComponent } from './cart-preview/cart-preview.component';
 
 @NgModule({
   declarations: [
@@ -84,7 +86,8 @@ import { ShopaddresslistComponent } from './shopaddresslist/shopaddresslist.comp
     ViewadminComponent,
     ShopaddressformComponent,
     ShopaddresseditComponent,
-    ShopaddresslistComponent
+    ShopaddresslistComponent,
+    CartPreviewComponent
   ],
   imports: [
     BrowserModule,
@@ -98,7 +101,9 @@ import { ShopaddresslistComponent } from './shopaddresslist/shopaddresslist.comp
     MatFormFieldModule,
     MatInputModule,
     ProductEditModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatSnackBarModule,
+
   ],
   providers: [],
   bootstrap: [AppComponent],

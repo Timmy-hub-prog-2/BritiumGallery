@@ -54,10 +54,6 @@ public class CategoryController {
         }
     }
 
-
-
-
-
     // ✅ Get all top-level categories (no parent)
     @GetMapping("/list")
     public ResponseEntity<List<CategoryDTO>> getAllCategories() {

@@ -16,6 +16,6 @@ export interface VariantResponse {
   price: number;
   stock: number;
   attributes: Record<string, string>;
-  imageUrls: string[];
+  imageUrls: string[] | string; // ✅ Can be array or string
   attributesString?: string; // For editing purposes
 }

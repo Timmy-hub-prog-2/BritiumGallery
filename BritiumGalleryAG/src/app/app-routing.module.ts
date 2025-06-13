@@ -24,6 +24,7 @@ import { ViewcustomerComponent } from './viewcustomer/viewcustomer.component';
 import { ShopaddressformComponent } from './shopaddressform/shopaddressform.component';
 import { ShopaddresslistComponent } from './shopaddresslist/shopaddresslist.component';
 import { ShopaddresseditComponent } from './shopaddressedit/shopaddressedit.component';
+import { CartPreviewComponent } from './cart-preview/cart-preview.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -50,7 +51,8 @@ const routes: Routes = [
 { path: 'viewcustomer', component:ViewcustomerComponent},
 { path: 'shopaddressform', component:ShopaddressformComponent},
  { path: 'shopaddresslist', component:ShopaddresslistComponent},
-  { path: 'shopaddressedit', component:ShopaddresseditComponent}
+  { path: 'shopaddressedit', component:ShopaddresseditComponent},
+  {path: 'cart', component: CartPreviewComponent}
 ];
 
 @NgModule({

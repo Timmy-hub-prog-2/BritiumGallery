@@ -1,18 +1,16 @@
 <div class="product-detail-page">
   <!-- Breadcrumb -->
   <div class="breadcrumb" *ngIf="breadcrumb.length > 0">
-  <ng-container *ngFor="let item of breadcrumb; let i = index">
-    <span [class.current]="i === breadcrumb.length - 1">{{ item }}</span>
-    <span class="separator" *ngIf="i !== breadcrumb.length - 1">></span>
-  </ng-container>
-</div>
-
+    <ng-container *ngFor="let item of breadcrumb; let i = index">
+      <span [class.current]="i === breadcrumb.length - 1">{{ item }}</span>
+      <span class="separator" *ngIf="i !== breadcrumb.length - 1">></span>
+    </ng-container>
+  </div>
 
   <!-- Product Title -->
   <h1 class="product-title" *ngIf="productDetail$ | async as pd">{{ pd.name }}</h1>
 
   <div class="product-description" *ngIf="productDetail$ | async as pd">
-
     <div class="description-content">
       <p>{{ pd.description }}</p>
     </div>
@@ -22,7 +20,6 @@
     <!-- Left Section: Images -->
     <div class="left-section">
       <div class="thumbnail-gallery">
-        <!-- Loop through productImages for thumbnails -->
         <img *ngFor="let imageUrl of productImages"
              [src]="imageUrl"
              alt="Product Thumbnail"
@@ -31,23 +28,18 @@
              class="thumbnail-image">
       </div>
       <div class="main-media">
-        <!-- Main product image/video -->
         <img [src]="mainImageUrl" alt="Product Image" class="main-image">
-        <!-- Add video element if applicable -->
       </div>
     </div>
 
     <!-- Right Section: Details, Variations, Actions -->
     <div class="right-section">
-      <!-- Company Info -->
       <div class="company-info">
         <div class="company-header">
           <span class="supplier-name">{{ pd.name }}</span>
-          
         </div>
       </div>
 
-      <!-- Price and Sample Info -->
       <div class="price-sample-section">
         <div class="product-tags">
           <div class="customizable-tag">Customizable</div>
@@ -57,11 +49,9 @@
           <div class="main-price">
             {{ selectedVariantPrice | number:'1.0-0' }} MMK
           </div>
-          
         </div>
       </div>
 
-      <!-- Variations Section -->
       <div class="variations-section">
         <div class="variations-header">
           <h3>Variations</h3>
@@ -86,11 +76,13 @@
 
       <!-- Action Buttons -->
       <div class="action-buttons">
-        <button class="send-inquiry-button">Add To Cart</button>
+       
       <button class="chat-now-button" (click)="addToWishlist(pd.id)">Favourite</button>
 
          <!-- <button (click)="addToWishlist()">Favourite</button> -->
 
+        <button class="send-inquiry-button" (click)="addToCart(selectedVariantId)">🛒 Add To Cart</button>
+       
       </div>
     </div>
   </div>
@@ -99,9 +91,7 @@
   <div class="recommendations-section">
     <h3>Other recommendations for your business</h3>
     <div class="recommendations-placeholder">
-      <!-- Placeholder for recommendation items -->
       <p>Recommendation items will be displayed here</p>
     </div>
   </div>
-
-
+</div>

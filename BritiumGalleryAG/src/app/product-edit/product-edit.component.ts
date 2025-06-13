@@ -331,7 +331,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         price: this.editingVariant.price,
         stock: this.editingVariant.stock,
         attributes: this.editingVariant.attributes,
-        imageUrls: this.editingVariant.imageUrls.filter(url => !this.removedExistingImageUrls.includes(url)),
+        imageUrls: (this.editingVariant.imageUrls as string[]).filter((url: string) => !this.removedExistingImageUrls.includes(url)),
         imageUrlsToDelete: this.removedExistingImageUrls
       };
       console.log('updateVariant: Sending variantData', variantData);

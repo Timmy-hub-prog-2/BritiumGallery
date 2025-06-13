@@ -1,9 +1,10 @@
 <div class="page-container">
-  <!-- Dynamic header based on role -->
-  <ng-container *ngIf="roleId === 3">
+  <!-- Show customer if not logged in or role is 3 -->
+  <ng-container *ngIf="!roleId || roleId === 3">
     <app-customer></app-customer>
   </ng-container>
 
+  <!-- Show admin only if role is 2 -->
   <ng-container *ngIf="roleId === 2">
     <app-admin></app-admin>
   </ng-container>
