@@ -29,7 +29,6 @@ export class ProductDetailComponent implements OnInit {
   latestProductDetail?: ProductResponse;
   wishlist: any[] = [];
 
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -37,9 +36,9 @@ export class ProductDetailComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private cartService: CartService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog,
     private authService:AuthService,private http: HttpClient,
     private wishlistService:WishlistService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
