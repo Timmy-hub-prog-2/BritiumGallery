@@ -1,0 +1,49 @@
+<!-- Modal -->
+<div class="modal" *ngIf="isVisible">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Manage Attribute Options</h3>
+      <button class="close-button" (click)="onClose()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div *ngFor="let attr of attributes" class="attribute-options-section">
+        <h4 class="attribute-label">{{ attr.name }}</h4>
+        
+        <!-- Existing Options -->
+        <div class="options-list">
+          <div *ngFor="let option of attributeOptions[attr.id!]; let i = index" class="option-item">
+            <span>{{ option }}</span>
+            <button class="remove-option" (click)="removeOption(attr.id!, i)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Add New Option -->
+        <div class="add-option">
+          <input 
+            type="text" 
+            [(ngModel)]="newOptions[attr.id!]" 
+            [placeholder]="'Add new ' + attr.name.toLowerCase() + ' option'"
+            (keyup.enter)="addOption(attr.id!)"
+            class="form-input"
+          />
+          <button class="btn-add" (click)="addOption(attr.id!)">
+            <i class="bi bi-plus"></i>
+            Add
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-register-options" (click)="onSave()">
+        <i class="bi bi-check-circle"></i>
+        Save Options
+      </button>
+    </div>
+  </div>
+</div> 

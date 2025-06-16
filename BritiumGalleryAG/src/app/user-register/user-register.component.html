@@ -1,0 +1,153 @@
+<div class="register-container">
+  <!-- Left side - Decorative panel -->
+  <div class="register-image">
+    <div class="image-content">
+      <h2>Join Our Community</h2>
+      <p>Create your account and start sharing your moments with the world. Connect with others and showcase your unique perspective.</p>
+    </div>
+  </div>
+
+  <!-- Right side - Registration form -->
+  <div class="register-form-container">
+    <div class="register-form-wrapper">
+      <div class="form-header">
+        <h1>Create Account</h1>
+        <p>Join us and start your journey</p>
+      </div>
+
+      <form [@fadeIn] (ngSubmit)="register()" #registerForm="ngForm">
+        <!-- Name -->
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <div class="input-wrapper">
+            <i class="input-icon"></i>
+            <input type="text" name="name" placeholder="Enter your full name" [(ngModel)]="user.name" #nameField="ngModel" required
+              class="form-input" />
+          </div>
+          <div *ngIf="nameField.invalid && (nameField.touched || registerForm.submitted)" class="error-message">
+            <i class="error-icon"></i>
+            Name is required
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-wrapper">
+            <i class="input-icon"></i>
+            <input type="email" name="email" placeholder="Enter your email" [(ngModel)]="user.email" #emailField="ngModel" required email
+              (input)="emailExists = false" class="form-input" />
+          </div>
+          <div *ngIf="emailField.invalid && (emailField.touched || registerForm.submitted)" class="error-message">
+            <i class="error-icon"></i>
+            <ng-container *ngIf="emailField.errors?.['required']">Email is required</ng-container>
+            <ng-container *ngIf="emailField.errors?.['email']">Invalid email format</ng-container>
+          </div>
+          <div *ngIf="emailExists" class="error-message">
+            <i class="error-icon"></i>
+            This email is already registered
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrapper">
+            <i class="input-icon"></i>
+            <input [type]="showPassword ? 'text' : 'password'" name="password" placeholder="Create a password"
+              [(ngModel)]="user.password" required (input)="checkPasswordStrength(user.password)" #passwordField="ngModel"
+              class="form-input" />
+            <button type="button" (click)="togglePasswordVisibility()" class="password-toggle">
+             
+            </button>
+          </div>
+          <div *ngIf="passwordField.invalid && (passwordField.touched || registerForm.submitted)" class="error-message">
+            <i class="error-icon"></i>
+            Password is required
+          </div>
+          <div *ngIf="user.password?.length" class="password-strength"
+            [ngClass]="{
+              'weak': passwordStrength === 'Weak',
+              'medium': passwordStrength === 'Medium',
+              'strong': passwordStrength === 'Strong'
+            }">
+            Password Strength: {{ passwordStrength }}
+          </div>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <div class="input-wrapper">
+            <i class="input-icon"></i>
+            <input type="text" name="phoneNumber" placeholder="Enter your phone number" [(ngModel)]="user.phoneNumber"
+              pattern="^(\+959|09)[0-9]{7,9}$" required #phoneField="ngModel" (input)="phoneExists = false"
+              class="form-input" />
+          </div>
+          <div *ngIf="phoneField.invalid && (phoneField.touched || registerForm.submitted)" class="error-message">
+            <i class="error-icon">⚠️</i>
+            <ng-container *ngIf="phoneField.errors?.['required']">Phone number is required</ng-container>
+            <ng-container *ngIf="phoneField.errors?.['pattern']">Format must start with +959 or 09 and be followed by 7–9 digits</ng-container>
+          </div>
+          <div *ngIf="phoneExists" class="error-message">
+            <i class="error-icon">⚠️</i>
+            This phone number is already registered
+          </div>
+        </div>
+
+        <!-- Gender -->
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          <div class="gender-options">
+            <label class="gender-option">
+              <input type="radio" name="gender" [(ngModel)]="user.gender" value="Male" required />
+              <span>Male</span>
+            </label>
+            <label class="gender-option">
+              <input type="radio" name="gender" [(ngModel)]="user.gender" value="Female" required />
+              <span>Female</span>
+            </label>
+          </div>
+          <div *ngIf="!user.gender && registerForm.submitted" class="error-message">
+            <i class="error-icon"></i>
+            Please select your gender
+          </div>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="form-group">
+          <label class="form-label">Profile Images</label>
+          <div class="image-upload">
+            <div class="upload-zone" (click)="fileInput.click()" (dragover)="$event.preventDefault()" (drop)="onFilesDropped($event)">
+              <div class="upload-zone-icon">📷</div>
+              <div class="upload-zone-text">Drag and drop images here or click to browse</div>
+              <input #fileInput type="file" name="images" accept="image/*" multiple (change)="onImagesSelected($event)" class="hidden" />
+            </div>
+            <div *ngIf="selectedFiles.length > 0" class="file-count">
+              <span>📁</span>
+              {{ selectedFiles.length }} file{{ selectedFiles.length === 1 ? '' : 's' }} chosen
+            </div>
+            <div class="image-previews" *ngIf="filePreviews.length > 0">
+              <div *ngFor="let preview of filePreviews; let i = index" class="preview-item">
+                <img [src]="preview" alt="Preview" />
+                <div class="preview-name">{{ selectedFiles[i].name }}</div>
+                <button type="button" (click)="removeImage(i)" class="remove-image" title="Remove image">×</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="register-button" [disabled]="isSubmitting">
+          <ng-container *ngIf="!isSubmitting">🚀 Create Account</ng-container>
+          <ng-container *ngIf="isSubmitting">⏳ Creating Account...</ng-container>
+        </button>
+
+        <!-- Login Link -->
+        <div class="login-prompt">
+          Already have an account? <a routerLink="/login" class="login-link">Sign In</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

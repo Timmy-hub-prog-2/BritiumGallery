@@ -1,0 +1,230 @@
+/* Search box styling */
+.search-box {
+  padding: 10px 14px;
+  width: 100%;
+  max-width: 400px; /* Increased max-width for better proportion */
+  font-size: 14px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.search-box:focus {
+  border-color: #007bff; /* Highlight border on focus */
+  outline: none;
+}
+
+/* Badge styles */
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  display: inline-block;
+  text-align: center;
+}
+
+.badge-active {
+  background-color: #e6f4ea;
+  color: #28a745;
+  border: 1px solid #28a745;
+}
+
+.badge-inactive {
+  background-color: #fbeaea;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+/* Action buttons */
+.edit-btn, .delete-btn {
+  font-size: 12px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.edit-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #0069d9;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
+
+/* Modal Styling */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background: #ffffff;
+  padding: 30px 25px;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+  color: #333;
+  text-align: center;
+}
+
+.modal-content label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #555;
+}
+
+.modal-content input,
+.modal-content select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.modal-content input:focus,
+.modal-content select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.modal-content button {
+  width: 48%;
+  padding: 10px;
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.modal-content button[type="submit"] {
+  background-color: #28a745;
+  color: white;
+  margin-right: 4%;
+}
+
+.modal-content button[type="submit"]:hover {
+  background-color: #218838;
+}
+
+.modal-content button[type="button"] {
+  background-color: #dc3545;
+  color: white;
+}
+
+.modal-content button[type="button"]:hover {
+  background-color: #c82333;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Coupon Table Styling */
+/* Coupon Table Styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+thead {
+  background-color: #007bff;
+  color: white;
+}
+
+th, td {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 14px;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tbody tr:hover {
+  background-color: #eef4ff;
+  transition: background-color 0.2s;
+}
+
+td {
+  color: #333;
+}
+
+td:nth-child(4) { /* Status Column */
+  font-weight: bold;
+}
+
+th {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 13px;
+}
+
+table td:last-child,
+table th:last-child {
+  white-space: nowrap;
+}
+
+/* Add specific styles for Start Date and End Date columns */
+th:nth-child(5), td:nth-child(5) { 
+  width: 150px; /* Adjust column width for better readability */
+}
+
+th:nth-child(6), td:nth-child(6) { 
+  width: 150px; /* Adjust column width for better readability */
+}
+
+/* Optional: Adjust hover and active row styles for the new columns */
+tbody tr:hover td:nth-child(5), tbody tr:hover td:nth-child(6) {
+  background-color: #eef4ff;
+}

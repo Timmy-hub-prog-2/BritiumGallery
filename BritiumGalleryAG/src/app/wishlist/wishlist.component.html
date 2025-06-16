@@ -1,0 +1,21 @@
+<div *ngIf="wishlist.length === 0" class="no-items">
+  No wishlist items found.
+</div>
+
+<div class="wishlist-grid">
+  <div class="wishlist-card" *ngFor="let item of wishlist">
+<img 
+  [src]="item.productPhotoUrl" 
+  alt="Product Image" 
+  class="wishlist-image" 
+  (click)="goToProductDetail(item.productId)"
+  style="cursor: pointer"
+/>
+
+    <div class="wishlist-card-body">
+      <div class="product-name">{{ item.productName }}</div>
+       <!-- <div class="product-box" (click)="goToProductDetail(item.id)"></div> -->
+      <!-- <div class="added-at">Added by: {{ item.userName }}</div> -->
+    </div>
+  </div>
+</div>

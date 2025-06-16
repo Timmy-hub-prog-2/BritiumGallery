@@ -1,0 +1,62 @@
+<div class="profile-container" *ngIf="user">
+  <div class="profile-header">
+    <h2>Your Profile</h2>
+  </div>
+
+  <div class="profile-content">
+    <div class="profile-section">
+      <div class="profile-image-section">
+        <img
+          [src]="profileImageUrlWithTimestamp"
+          alt="Profile Picture"
+          class="profile-img rounded"
+        />
+        <div class="file-input-wrapper">
+          <input
+            type="file"
+            (change)="onFileSelected($event)"
+            accept="image/*"
+            id="profile-upload"
+          />
+          <label for="profile-upload" class="upload-label">Change Photo</label>
+        </div>
+      </div>
+
+      <div class="profile-info">
+        <div class="info-row">
+          <label for="name">Name</label>
+          <input id="name" type="text" [(ngModel)]="user.name" />
+        </div>
+
+        <div class="info-row">
+          <label>Email</label>
+          <span class="read-only">{{ user.email }}</span>
+        </div>
+
+        <div class="info-row">
+          <label for="phone">Phone</label>
+          <input id="phone" type="text" [(ngModel)]="user.phoneNumber" />
+        </div>
+
+        <div class="info-row">
+          <label>Address</label>
+          <span class="read-only">{{
+            user.address || "123 Fake St, Springfield"
+          }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-actions">
+      <button (click)="saveProfile()" class="save-button">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<p class="change-password-link" (click)="goToChangePassword()">
+  Change Password
+</p>
+
+<div *ngIf="!user">
+  <p>Loading profile...</p>
+</div>

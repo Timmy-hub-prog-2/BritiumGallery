@@ -1,0 +1,124 @@
+<div class="product-detail-page">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" *ngIf="breadcrumb.length > 0">
+  <ng-container *ngFor="let item of breadcrumb; let i = index">
+    <span [class.current]="i === breadcrumb.length - 1">{{ item }}</span>
+    <span class="separator" *ngIf="i !== breadcrumb.length - 1">></span>
+  </ng-container>
+</div>
+
+  <div *ngIf="breadcrumb.length > 0"></div>
+
+  <!-- Product Title -->
+  
+
+  <div *ngIf="latestProductDetail" class="product-main-content">
+    <!-- Left Section: Images -->
+    <div class="left-section">
+      <div class="product-images-container">
+        <!-- Thumbnails Gallery (Left Side) -->
+        <div class="thumbnails-gallery">
+          <div *ngFor="let imageUrl of getVariantImages(latestProductDetail)"
+               class="thumbnail-item"
+               [class.active]="imageUrl === selectedVariantImage"
+               (click)="selectVariantImage(imageUrl)">
+            <img [src]="imageUrl"
+                 [alt]="latestProductDetail.name"
+                 class="thumbnail-image">
+          </div>
+        </div>
+
+        <!-- Main Image Display (Right Side) -->
+        <div class="main-image-container">
+          <button class="arrow-button left-arrow" (click)="previousImage()">&#x2329;</button>
+          <img [src]="selectedVariantImage || productImages[0]"
+               [alt]="latestProductDetail.name"
+               class="main-product-image">
+          <button class="arrow-button right-arrow" (click)="nextImage()">&#x232A;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section: Details, Variations, Actions -->
+    <div class="right-section">
+      <!-- Product Title -->
+     
+      
+      <!-- Company Info -->
+      <div class="company-info">
+        <div class="company-header">
+          <span class="supplier-name">{{ latestProductDetail.name }}</span>
+        </div>
+      </div>
+
+      <!-- Price and Sample Info -->
+      <div class="price-sample-section">
+        <div class="product-tags">
+          <div class="customizable-tag">Customizable</div>
+        
+        </div>
+        <div class="price-container">
+          <div class="main-price">
+            {{ selectedVariantPrice | number:'1.0-0' }} MMK
+          </div>
+        </div>
+      </div>
+
+      <!-- Variations Section -->
+      <div class="variations-section">
+        <div class="variations-header">
+          <h3>Variations</h3>
+          <a href="#" class="select-now-link">Size Guide ></a>
+        </div>
+        <div class="variation-groups">
+          <div class="variation-group" *ngFor="let variationType of getVariationTypes(latestProductDetail)">
+            <label class="variation-label">{{ variationType }}:</label>
+            <div class="variation-options">
+              <button class="variation-option"
+                      *ngFor="let option of getVariationOptions(latestProductDetail, variationType)"
+                      [class.selected]="isSelectedVariation(variationType, option)"
+                      [class.unavailable]="!isOptionSelectable(latestProductDetail, variationType, option)"
+                      (click)="selectVariation(variationType, option)">
+                {{ option }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        
+        <button class="send-inquiry-button" (click)="addProductToCart()">Add To Cart</button>
+      <button class="chat-now-button" (click)="addToWishlist(latestProductDetail!.id)">Favourite</button>
+
+         <!-- <button (click)="addToWishlist()">Favourite</button> -->
+
+      </div>
+
+      <!-- Product Description -->
+      <div class="product-description" *ngIf="latestProductDetail">
+        <div class="description-content">
+          <p>{{ latestProductDetail.description }}</p>
+        </div>
+      </div>
+
+      <!-- Product Description -->
+      <div class="product-description" *ngIf="latestProductDetail">
+        <div class="description-content">
+          <p>{{ latestProductDetail.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Other Recommendations Section -->
+  <div class="recommendations-section">
+    <h3>Other recommendations for your business</h3>
+    <div class="recommendations-placeholder">
+      <!-- Placeholder for recommendation items -->
+      <p>Recommendation items will be displayed here</p>
+    </div>
+  </div>
+
+

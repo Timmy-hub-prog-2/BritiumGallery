@@ -1,0 +1,123 @@
+.address-container {
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  height: 100%; /* Full height */
+  padding: 15px;
+  max-width: 50%; /* Reduce the width to 90% of the parent container */
+  margin: 0 auto; /* Center it horizontally */
+}
+
+/* Sidebar for address form/details */
+.left-panel {
+  width: 100%;
+  padding: 15px;
+  background-color: #f8f9fa; /* light gray */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Map section */
+.map-container {
+  width: 100%;
+  height: 300px; /* Set a height for the map */
+  margin: 20px 0; /* Space between map and form */
+  border: 1px solid #ddd; /* Border to define map area */
+  border-radius: 8px;
+}
+
+/* Search bar styling */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 5px 10px;
+  margin-bottom: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Input field inside search bar */
+.search-input {
+  border: none;
+  outline: none;
+  flex-grow: 1;
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 30px;
+  background-color: transparent;
+}
+
+/* Icon buttons for search and current location */
+.icon-button {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 20px;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.icon-button:hover {
+  background-color: #eaeaea;
+}
+
+/* Form Group Styling */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Form Actions (Save/Cancel) */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}

@@ -1,0 +1,138 @@
+<nav class="nav">
+  <div class="nav-left">
+    <div class="hover-wrapper" (mouseenter)="showMegaMenu()" (mouseleave)="hideMegaMenuWithDelay()">
+
+      <!-- All Categories Trigger -->
+      <div class="all-categories-trigger nav-link">
+      
+        <span>All Categories</span>
+      </div>
+
+      <!-- Mega Menu -->
+      <div class="categories-mega-menu" [class.visible]="isMegaMenuVisible" (mouseenter)="showMegaMenu()" (mouseleave)="hideMegaMenuWithDelay()">
+        <div class="mega-menu-content">
+
+          <!-- First Column - Main Categories -->
+          <div class="main-categories-list">
+            <div class="my-categories-header">Categories</div>
+            <div *ngFor="let category of categories"
+                 class="main-category-item"
+                 [class.active]="category === activeCategory"
+                 (mouseover)="setActiveCategory(category)">
+             
+              {{ category.name }}
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+
+          <!-- Second Column - Either subcategories or products -->
+          <div class="subcategories-list" *ngIf="activeCategory && secondColumnItems?.length">
+            <div class="subcategories-header">{{ activeCategory?.name }}</div>
+            
+            <!-- If category has subcategories, show them -->
+            <ng-container *ngIf="activeCategory.subcategories?.length">
+              <div *ngFor="let subcat of secondColumnItems"
+                   class="subcategory-item"
+                   [class.active]="subcat === activeSubcategory"
+                   (mouseover)="setActiveSubcategory(subcat)">
+                {{ subcat.name }}
+                <i class="fas fa-chevron-right" *ngIf="hasChildren(subcat)"></i>
+              </div>
+            </ng-container>
+
+            <!-- If category has no subcategories, show products -->
+            <ng-container *ngIf="!activeCategory.subcategories?.length">
+              <div class="product-grid">
+                <div *ngFor="let item of secondColumnItems">
+                  <ng-container *ngIf="isProduct(item)">
+                    <div class="product-box" (click)="goToProductDetail(item.id)">
+                      <img [src]="item.imageUrl || 'assets/img/iphone15.jpg'" alt="{{ item.name }}" />
+                      <span>{{ item.name }}</span>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- Third Column - Products (only shown if we have subcategories) -->
+          <div class="products-list" *ngIf="activeSubcategory && thirdColumnItems?.length">
+            <div class="products-header">{{ activeSubcategory?.name }}</div>
+            <div class="product-grid">
+              <div *ngFor="let item of thirdColumnItems">
+                <ng-container *ngIf="isProduct(item)">
+                  <div class="product-box" (click)="goToProductDetail(item.id)">
+                    <img [src]="item.imageUrl || 'assets/img/iphone15.jpg'" alt="{{ item.name }}" />
+                    <span>{{ item.name }}</span>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <div class="nav-center">
+    <a routerLink="/">Home</a>
+    <a href="#">Collections</a>
+    <a href="#">Shop</a>
+    <a href="#">About</a>
+    <a routerLink="/contact">Contact</a>
+  </div>  
+
+  <div class="nav-actions">
+    <button class="action-button favorite-button" (click)="goToWishlist()">
+  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" role="img" width="24px" height="24px" fill="none">
+    <path stroke="currentColor" stroke-width="1.5" d="M16.794 3.75c1.324 0 2.568.516 3.504 1.451a4.96 4.96 0 010 7.008L12 20.508l-8.299-8.299a4.96 4.96 0 010-7.007A4.923 4.923 0 017.205 3.75c1.324 0 2.568.516 3.504 1.451l.76.76.531.531.53-.531.76-.76a4.926 4.926 0 013.504-1.451"></path>
+  </svg>
+</button>
+
+
+      <button class="action-button cart-button" (click)="goToCart()">
+  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" role="img" width="24px" height="24px" fill="none">
+    <path stroke="currentColor" stroke-width="1.5"
+      d="M8.25 8.25V6a2.25 2.25 0 012.25-2.25h3a2.25 2.25 0 110 4.5H3.75v8.25a3.75 3.75 0 003.75 3.75h9a3.75 3.75 0 003.75-3.75V8.25H17.5">
+    </path>
+  </svg>
+</button>
+
+     <div class="profile-menu-container" *ngIf="user">
+       <button class="action-button profile-button" [class.active]="isProfileMenuVisible" (click)="toggleProfileMenu($event)">
+         <img *ngIf="user?.imageUrls?.length" 
+              [src]="user!.imageUrls![0]" 
+              alt="User Profile" 
+              class="profile-image" />
+         <svg *ngIf="!user?.imageUrls?.length" width="32" height="32" viewBox="0 0 32 32" focusable="false" class="fr-ec-icon fr-ec-icon--default" role="presentation">
+           <path d="M20.8129 13.7902C21.4753 12.8404 21.8667 11.6884 21.8667 10.4453C21.8667 7.20996 19.2349 4.57812 16 4.57812C12.7651 4.57812 10.1338 7.20996 10.1338 10.4453C10.1338 11.6884 10.5251 12.8404 11.1874 13.7903L6.9668 16.7676V25.6211H25.0332V16.7676L20.8129 13.7902ZM16 6.17773C18.3525 6.17773 20.2671 8.0918 20.2671 10.4453C20.2671 12.7979 18.3525 14.7119 16 14.7119C13.6475 14.7119 11.7334 12.7979 11.7334 10.4453C11.7334 8.0918 13.6475 6.17773 16 6.17773ZM23.4336 24.0215H8.56641V17.5977L12.28 14.9772C13.2932 15.8104 14.589 16.3115 16 16.3115C17.4111 16.3115 18.7071 15.8103 19.7203 14.9772L23.4336 17.5977V24.0215Z"></path>
+         </svg>
+       </button>
+
+       <div class="profile-dropdown-menu" [class.visible]="isProfileMenuVisible">
+         <div class="profile-info" *ngIf="user">
+           <p class="profile-name">Hi, {{ user?.name }}</p>
+           
+         </div>
+         <hr />
+         <a href="#" class="dropdown-item">My Alibaba</a>
+         <a href="#" class="dropdown-item">Orders</a>
+         <a href="#" class="dropdown-item">Messages</a>
+         <a href="#" class="dropdown-item">RFQs</a>
+         <a href="#" class="dropdown-item">Favorites</a>
+         <a href="/view-profile" class="dropdown-item">Account</a>
+         <hr />
+         <a href="#" class="dropdown-item" (click)="logout()">Sign out</a>
+       </div>
+     </div>
+     <button *ngIf="!user" class="action-button profile-button" [routerLink]="['/login']">
+        <svg width="32" height="32" viewBox="0 0 32 32" focusable="false" class="fr-ec-icon fr-ec-icon--default" role="presentation">
+          <path d="M20.8129 13.7902C21.4753 12.8404 21.8667 11.6884 21.8667 10.4453C21.8667 7.20996 19.2349 4.57812 16 4.57812C12.7651 4.57812 10.1338 7.20996 10.1338 10.4453C10.1338 11.6884 10.5251 12.8404 11.1874 13.7903L6.9668 16.7676V25.6211H25.0332V16.7676L20.8129 13.7902ZM16 6.17773C18.3525 6.17773 20.2671 8.0918 20.2671 10.4453C20.2671 12.7979 18.3525 14.7119 16 14.7119C13.6475 14.7119 11.7334 12.7979 11.7334 10.4453C11.7334 8.0918 13.6475 6.17773 16 6.17773ZM23.4336 24.0215H8.56641V17.5977L12.28 14.9772C13.2932 15.8104 14.589 16.3115 16 16.3115C17.4111 16.3115 18.7071 15.8103 19.7203 14.9772L23.4336 17.5977V24.0215Z"></path>
+        </svg>
+      </button>
+
+  </div>
+</nav>

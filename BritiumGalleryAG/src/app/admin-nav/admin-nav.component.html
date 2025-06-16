@@ -1,0 +1,38 @@
+<nav class="nav">
+<div class="nav-center">
+   <a [routerLink]="['/categoryList']">Category & Product</a>
+   
+    <div class="user-container" (click)="toggleUserBox()">
+  <a class="user-link" href="javascript:void(0)">User</a>
+  <div class="user-box" *ngIf="showUserBox">
+    
+    <a [routerLink]="['/viewcustomer']">
+      <span class="icon">👤</span> View Customer </a>
+   
+    <a [routerLink]="['/viewadmin']">
+      <span class="icon">🛡</span> View Admin</a>
+    
+  </div>
+</div>
+
+
+
+    <a [routerLink]="['/coupon']">Promotion & Discount</a>
+    <a href="#">Delivery</a>
+     <a href="#">Payment</a>
+    <a href="#">Order</a>
+    <a  [routerLink]="['/shopaddressform']">Shop</a>
+
+     <div class="nav2-actions">
+    
+     <button class="action-button profile-button" [routerLink]="['/login']">
+  <i class="fas fa-user"></i>
+</button>
+
+    </div>
+
+    
+
+
+  </div>  
+  </nav>

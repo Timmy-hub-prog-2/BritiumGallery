@@ -1,0 +1,97 @@
+/* Make the page take full height and layout with flexbox */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  background-color: rgb(253, 253, 253);
+}
+
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(255, 255, 255);
+ 
+}
+
+.content-wrap {
+  margin-top: 2em;
+  margin-left: 2em;
+  margin-right: 2em;
+  margin-bottom: 2em;
+
+  flex: 1;
+  
+}
+
+
+.custom-swal-close {
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 35px !important;
+  line-height: 20px !important;
+  top: 12px !important;
+  right: 12px !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7 !important;
+  transition: opacity 0.2s ease;
+}
+
+.custom-swal-close:hover {
+  opacity: 1 !important;
+}
+
+/* Global Modal Styles for MatDialog */
+.mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  border-radius: 12px; /* Consistent border radius */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+}
+
+/* Target the header specifically within the dialog */
+.mat-mdc-dialog-container .modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.mat-mdc-dialog-container .modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* More specific selector for the modal close button */
+.mat-mdc-dialog-container .mat-mdc-dialog-title button[mat-icon-button][aria-label="Close dialog"],
+.mat-mdc-dialog-container .modal-header button[mat-icon-button][aria-label="Close dialog"] {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  color: #6c757d;
+  z-index: 10;
+}
+
+/* Global Photo Removal Icon Styles - ensuring it's scoped under dialog for consistency */
+.mat-mdc-dialog-container .photo-thumb .remove-thumb {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  padding: 4px;
+  line-height: 1;
+  z-index: 5;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  color: #dc3545;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

@@ -1,0 +1,43 @@
+<div class="content">
+  <!-- 🔶 Hero Section -->
+  <!-- 🔶 Hero Section -->
+  <section class="hero fade-in">
+    <!-- <img
+      src="assets/img/hero-banner.jpg"
+      alt="Elegant decor"
+      class="hero-img"
+    /> -->
+
+    <h1>Discover Timeless Elegance</h1>
+    <p>Explore our exclusive golden collection curated for luxury lovers.</p>
+    <button>Shop Now</button>
+  </section>
+
+  <!-- 🔶 Feature Cards Section -->
+  <div class="feature-cards fade-in">
+    <div class="feature-card">
+      <h3>Curated Exclusively</h3>
+      <p>Handpicked luxury pieces from elite global designers.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Authenticity Guaranteed</h3>
+      <p>Certified products with provenance & full transparency.</p>
+    </div>
+    <div class="feature-card">
+      <h3>White-Glove Delivery</h3>
+      <p>Insured, high-touch delivery service tailored for you.</p>
+    </div>
+  </div>
+
+  <!-- 🔶 Product Grid Section -->
+  <div class="product-grid">
+    <app-product-card
+      *ngFor="let item of [1, 2, 3, 4, 5]; let i = index"
+      class="fade-in"
+      [ngStyle]="{ 'animation-delay': i * 0.2 + 's' }"
+    ></app-product-card>
+  </div>
+
+  <!-- 🔷 Lifestyle Visuals Section -->
+  <!-- Removed interior1.jpg and model1.jpg blocks -->
+</div>

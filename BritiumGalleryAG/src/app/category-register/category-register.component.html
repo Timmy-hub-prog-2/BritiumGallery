@@ -1,0 +1,86 @@
+<div class="category-container">
+  <div class="category-card">
+    <div class="card-header">
+      <h2>Create New Category</h2>
+      <p class="subtitle">Define a new category for your artwork collection</p>
+    </div>
+
+    <form (ngSubmit)="save()" #categoryForm="ngForm" class="category-form">
+      <div class="form-group">
+        <label for="name">Category Name</label>
+        <input
+          type="text"
+          id="name"
+          [(ngModel)]="category.name"
+          name="name"
+          required
+          placeholder="Enter category name"
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+  <label for="image">Category Image</label>
+  <input
+    type="file"
+    id="image"
+    (change)="onFileSelected($event)"
+    class="form-input"
+    accept="image/*"
+  />
+</div>
+
+
+
+      <div class="attributes-section">
+        <div class="section-header">
+          <h3>Attributes</h3>
+          <button type="button" class="add-button" (click)="addAttribute()">
+            <i class="fas fa-plus"></i> Add Attribute
+          </button>
+        </div>
+
+        <div class="attributes-list">
+          <div
+            *ngFor="let attr of category.attributes; let i = index"
+            class="attribute-item"
+          >
+            <div class="attribute-inputs">
+              <input
+                type="text"
+                placeholder="Attribute Name"
+                [(ngModel)]="attr.name"
+                name="name{{ i }}"
+                required
+                class="form-input"
+              />
+              <select
+                [(ngModel)]="attr.dataType"
+                name="type{{ i }}"
+                required
+                class="form-select"
+              >
+                <option value="STRING">Text</option>
+                <option value="NUMBER">Number</option>
+                <option value="BOOLEAN">Yes/No</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              class="remove-button"
+              (click)="removeAttribute(i)"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="submit-button" [disabled]="!categoryForm.form.valid">
+          <i class="fas fa-save"></i> Create Category
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

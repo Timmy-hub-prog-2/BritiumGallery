@@ -1,0 +1,1437 @@
+:root {
+  --primary-gradient: linear-gradient(135deg, var(--bs-primary) 0%, #2d5ca9 100%);
+  --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --hover-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* Main Container Styles */
+.product-register-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Header Styles */
+.header-section {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.main-title {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+/* Form Section Styles */
+.form-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header i {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+  color: #4a90e2;
+}
+
+.section-header h2 {
+  font-size: 1.25rem;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.section-subtitle {
+  color: #6c757d;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}
+
+/* Form Grid and Groups */
+.form-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+/* Input Styles */
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Base Variant Settings */
+.base-variant-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+/* Attributes Selection */
+.attributes-selection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.attribute-group {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+}
+
+.attribute-group h3 {
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.checkbox-group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.option-text {
+  color: #555;
+}
+
+/* Variants Table */
+.variants-table-container {
+  margin-top: 2rem;
+  overflow-x: auto;
+}
+
+.variants-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.variants-table th,
+.variants-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.variants-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.variants-table tr:hover {
+  background: #f8f9fa;
+}
+
+.variants-table input[type="number"] {
+  width: 100px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Photo Upload */
+.photo-upload-container {
+  margin-top: 0.5rem;
+}
+
+.photo-preview {
+  margin-top: 1rem;
+  max-width: 200px;
+}
+
+.photo-preview img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.photo-preview-item {
+  position: relative;
+}
+
+.photo-preview-item img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.remove-photo-btn:hover {
+  background: #f8f9fa;
+}
+
+/* Buttons */
+.btn-manage-options,
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.btn-manage-options {
+  background: #f8f9fa;
+  color: #333;
+}
+
+.btn-manage-options:hover {
+  background: #e9ecef;
+}
+
+.btn-submit {
+  background: #4a90e2;
+  color: white;
+}
+
+.btn-submit:hover {
+  background: #357abd;
+}
+
+.btn-submit:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 1rem;
+}
+
+.modal-footer {
+  padding: 1rem;
+  border-top: 1px solid #eee;
+  text-align: right;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+/* Attribute Options in Modal */
+.attribute-options-section {
+  margin-bottom: 1.5rem;
+}
+
+.attribute-label {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.options-list {
+  margin-bottom: 1rem;
+}
+
+.option-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.add-option {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-add {
+  padding: 0.5rem 1rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-add:hover {
+  background: #357abd;
+}
+
+.btn-register-options {
+  padding: 0.75rem 1.5rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-register-options:hover {
+  background: #357abd;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .product-register-container {
+    margin: 1rem auto;
+  }
+
+  .form-section {
+    padding: 1rem;
+  }
+
+  .variants-header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-add-variant {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.variant-card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Form Container */
+.form-container {
+  background: linear-gradient(135deg, #f5f0e6 0%, #ffffff 100%);
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  box-shadow: var(--card-shadow);
+  max-width: 1000px;
+  margin: 2rem auto;
+}
+
+/* Card Styling */
+.card {
+  border: none;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.card-header {
+  border-bottom: none;
+  padding: 1.5rem;
+}
+
+.card-header.bg-primary {
+  background: var(--primary-gradient) !important;
+}
+
+.card-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+/* Input Styling */
+.form-control {
+  border: 2px solid #e9ecef;
+  padding: 0.875rem 1.125rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border-radius: 0.75rem;
+  background-color: #f8f9fa;
+}
+
+.form-control:hover {
+  border-color: #dee2e6;
+  background-color: #ffffff;
+}
+
+.form-control:focus {
+  border-color: var(--bs-primary);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.form-control-lg {
+  font-size: 1.125rem;
+  padding: 1rem 1.25rem;
+}
+
+/* Label Styling */
+.form-label {
+  color: #344767;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Button Styling */
+.btn {
+  padding: 0.875rem 1.75rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border-radius: 0.75rem;
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(255,255,255,0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+.btn-primary:hover::after {
+  opacity: 1;
+}
+
+.btn-outline-danger {
+  border-width: 2px;
+  border-radius: 0.75rem;
+  font-weight: 500;
+}
+
+.btn-outline-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+}
+
+/* Input Group Styling */
+.input-group {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.input-group-text {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #e9ecef;
+  color: #495057;
+  font-weight: 600;
+  padding: 0 1.25rem;
+}
+
+/* Checkbox Styling */
+.form-check-input {
+  width: 1.3em;
+  height: 1.3em;
+  margin-top: 0.2em;
+  border: 2px solid #dee2e6;
+  cursor: pointer;
+}
+
+.form-check-input:checked {
+  background: var(--primary-gradient);
+  border-color: var(--bs-primary);
+}
+
+.form-switch .form-check-input {
+  height: 1.5em;
+}
+
+/* Textarea Styling */
+textarea.form-control {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* Section Title */
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #344767;
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: var(--primary-gradient);
+  border-radius: 2px;
+}
+
+/* Animation for adding/removing variants */
+.variant-card {
+  animation: slideIn 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading State */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.btn-loading::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.5em;
+  height: 1.5em;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #888 0%, #666 100%);
+  border-radius: 5px;
+  border: 2px solid #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #666 0%, #444 100%);
+}
+
+.attribute-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.btn-manage-options {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px auto;
+}
+
+.btn-manage-options:hover {
+  background-color: #5a6268;
+}
+
+.btn-manage-options i {
+  font-size: 1rem;
+}
+
+/* Select Dropdown Styles */
+select.form-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+  padding: 0.75rem 2.5rem 0.75rem 2rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #495057;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-height: 42px;
+}
+
+select.form-input:hover {
+  border-color: #4a90e2;
+  background-color: #f8f9fa;
+}
+
+select.form-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+select.form-input option {
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  background-color: white;
+  color: #495057;
+}
+
+select.form-input option:checked {
+  background-color: #4a90e2;
+  color: white;
+}
+
+select.form-input option:hover {
+  background-color: #f8f9fa;
+}
+
+/* Multiple Select Specific Styles */
+select.form-input[multiple] {
+  padding: 0.5rem;
+  height: auto;
+  min-height: 100px;
+}
+
+select.form-input[multiple] option {
+  padding: 0.5rem 0.75rem;
+  margin: 2px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+select.form-input[multiple] option:checked {
+  background-color: #4a90e2;
+  color: white;
+}
+
+select.form-input[multiple] option:hover:not(:checked) {
+  background-color: #f8f9fa;
+}
+
+/* Select Wrapper for Icon */
+.input-wrapper select.form-input {
+  padding-left: 2.5rem;
+}
+
+.input-wrapper i {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 0.875rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Select Focus State */
+.input-wrapper:focus-within i {
+  color: #4a90e2;
+}
+
+/* Select Disabled State */
+select.form-input:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Select Error State */
+select.form-input.ng-invalid.ng-touched {
+  border-color: #dc3545;
+}
+
+select.form-input.ng-invalid.ng-touched:focus {
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+}
+
+/* Select Placeholder Style */
+select.form-input option[value=""] {
+  color: #6c757d;
+}
+
+/* Select Group Style */
+select.form-input optgroup {
+  font-weight: 600;
+  color: #2c3e50;
+  background-color: #f8f9fa;
+  padding: 0.5rem;
+}
+
+/* Select Option Group Style */
+select.form-input optgroup option {
+  font-weight: normal;
+  padding-left: 1rem;
+}
+
+/* Photo Upload Styles */
+.photo-upload-container {
+  margin-top: 8px;
+}
+
+.photo-preview {
+  margin-top: 12px;
+  max-width: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.photo-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.photo-preview-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.photo-preview-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #dc3545;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.remove-photo-btn:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+/* Update existing form input styles for file inputs */
+input[type="file"].form-input {
+  padding: 8px;
+  border: 2px dashed #dee2e6;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+input[type="file"].form-input:hover {
+  border-color: #3498db;
+  background-color: #f1f8ff;
+}
+
+.variant-attributes {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.attribute-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.attribute-input label {
+  display: block;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.attribute-input .options-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.attribute-input .option-box {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease;
+  min-width: 50px;
+  text-align: center;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+.attribute-input .option-box:hover {
+  border-color: #4a90e2;
+  background-color: white;
+}
+
+/* Style for hidden radio/checkbox input */
+.attribute-input .options-container input[type="checkbox"] {
+  display: none;
+}
+
+/* Style for label when input is checked - Increased specificity */
+.attribute-input .options-container input[type="checkbox"]:checked + .option-box {
+  background-color: #4a90e2 !important;
+  color: white !important;
+  border-color: #4a90e2 !important;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3) !important;
+}
+
+.attribute-input select.form-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+}
+
+.attribute-input select.form-input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.attribute-input select.form-input option {
+  padding: 0.5rem;
+  background-color: white;
+}
+
+.attribute-input select.form-input option:checked {
+  background-color: #4a90e2;
+  color: white;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #343a40;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.attribute-options-section {
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.attribute-options-section:last-child {
+  margin-bottom: 0;
+}
+
+.attribute-label {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.options-list {
+  margin-bottom: 1rem;
+}
+
+.option-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.option-item:hover {
+  transform: translateX(4px);
+}
+
+.option-item span {
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.remove-option {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.2s;
+}
+
+.remove-option:hover {
+  color: #c82333;
+}
+
+.add-option {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.add-option input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.add-option input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.btn-add {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  transition: background-color 0.2s;
+}
+
+.btn-add:hover {
+  background: #218838;
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-register-options {
+  background: #4a90e2;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-register-options:hover {
+  background: #357abd;
+  transform: translateY(-1px);
+}
+
+/* Scrollbar Styles */
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* Attribute Options Selection Styles */
+.attributes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.attribute-input {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.attribute-input:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: #dee2e6;
+}
+
+.attribute-input label {
+  display: block;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.attribute-input .options-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.attribute-input .option-box {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease;
+  min-width: 50px;
+  text-align: center;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+.attribute-input .option-box:hover {
+  border-color: #4a90e2;
+  background-color: white;
+}
+
+/* Style for hidden radio/checkbox input */
+.attribute-input .options-container input[type="checkbox"] {
+  display: none;
+}
+
+/* Style for label when input is checked - Increased specificity */
+.attribute-input .options-container input[type="checkbox"]:checked + .option-box {
+  background-color: #4a90e2 !important;
+  color: white !important;
+  border-color: #4a90e2 !important;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3) !important;
+}
+
+/* Selected Options Display (if still needed for multi-select visualization) */
+.selected-options {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.selected-option {
+  background: #e9ecef;
+  padding: 0.375rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selected-option .remove-option {
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0.125rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.selected-option .remove-option:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Attribute Type Specific Styles */
+.attribute-input[data-type="BOOLEAN"] {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.attribute-input[data-type="BOOLEAN"] label {
+  margin-bottom: 0;
+}
+
+.attribute-input[data-type="BOOLEAN"] .switch {
+  margin-left: auto;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .attributes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .attribute-input {
+    padding: 1rem;
+  }
+}
+
+/* Attribute Options Selection Styles (Checkbox Group) */
+.attribute-input .checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.attribute-input .checkbox-group label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  color: #495057;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 50px;
+  text-align: center;
+  flex-grow: 1;
+  flex-shrink: 0;
+  justify-content: center;
+  user-select: none;
+}
+
+.attribute-input .checkbox-group label:hover {
+  border-color: #4a90e2;
+  background-color: white;
+}
+
+/* Hide the default checkbox input completely */
+.attribute-input .checkbox-group input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Style the custom checkbox indicator */
+.attribute-input .checkbox-group label .custom-checkbox {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ced4da;
+  border-radius: 3px;
+  margin-left: 0.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* Style the custom checkbox when the input is checked */
+.attribute-input .checkbox-group input[type="checkbox"]:checked + .option-text + .custom-checkbox {
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+}
+
+/* Add a checkmark to the custom checkbox when checked */
+.attribute-input .checkbox-group input[type="checkbox"]:checked + .option-text + .custom-checkbox::after {
+  content: '\2713';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  color: white;
+}
+
+/* Style the label background when the checkbox is checked */
+.attribute-input .checkbox-group label:has(input[type="checkbox"]:checked) {
+  background-color: #4a90e2;
+  color: white;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Adjust text margin if needed */
+.attribute-input .checkbox-group label .option-text {
+  margin-right: 0.5rem;
+}
+
+.btn-remove-variant {
+  padding: 0.5rem 1rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.btn-remove-variant:hover {
+  background: #c82333;
+}
+
+.btn-remove-variant i {
+  font-size: 1rem;
+}
+
+/* Update table styles to accommodate the new column */
+.variants-table th:last-child,
+.variants-table td:last-child {
+  text-align: center;
+  min-width: 100px;
+}

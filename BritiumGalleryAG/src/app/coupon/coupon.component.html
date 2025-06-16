@@ -1,0 +1,110 @@
+<button (click)="openModal()">Create Coupon</button>
+<br><br>
+<!-- Search box (placed below the 'Create Coupon' button) -->
+<input type="text" placeholder="Search coupon by code or type..." [(ngModel)]="searchTerm"
+  (ngModelChange)="filterCoupons()" class="search-box" />
+
+
+<!-- Modal -->
+<div class="modal" *ngIf="showModal">
+  <div class="modal-content">
+    <h2>Create Coupon</h2>
+    <form (ngSubmit)="createCoupon()">
+
+
+      <!-- Checkbox for manual code entry -->
+      <label>
+        <input type="checkbox" [(ngModel)]="customCodeEnabled" name="customCodeEnabled" />
+        Enter coupon code manually
+      </label>
+
+      <!-- Show input only if checkbox is selected -->
+      <div *ngIf="customCodeEnabled">
+        <label>Coupon Code:</label>
+        <input [(ngModel)]="newCoupon.code" name="code" required (input)="validateCouponCode()" />
+        <div *ngIf="codeError" style="color: red;">
+          Coupon code must be exactly 3 uppercase letters followed by 3 digits (e.g. ABC123).
+        </div>
+      </div>
+
+      <label>Type:</label>
+      <select [(ngModel)]="newCoupon.type" name="type" required>
+        <option value="Percentage">Percentage</option>
+        <option value="Fixed Amount">Fixed Amount</option>
+        <option value="Free-Shipping">Free-Shipping</option>
+      </select>
+
+      <label>Discount:</label>
+      <input [(ngModel)]="newCoupon.discount" name="discount" required />
+      <label>Start Date:</label>
+      <input type="date" [(ngModel)]="newCoupon.startDate" name="startDate" required [min]="todayDate" />
+
+      <label>End Date:</label>
+      <input type="date" [(ngModel)]="newCoupon.endDate" name="endDate" required [min]="todayDate" />
+
+
+
+      <!-- Status Dropdown (only for editing) -->
+      <div *ngIf="isEditMode">
+        <label>Status:</label>
+        <select [(ngModel)]="newCoupon.status" name="status" required>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+
+      <button type="submit" [disabled]="customCodeEnabled && codeError">Create</button>
+
+
+      <!-- <button type="submit">Create</button> -->
+      <button type="button" (click)="closeModal()">Cancel</button>
+    </form>
+  </div>
+</div>
+
+
+<!-- Coupon Table -->
+<table>
+  <thead>
+    <tr>
+      <th (click)="sortCoupons('code')">
+        Code
+        <span *ngIf="sortField === 'code'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+      </th>
+      <th (click)="sortCoupons('type')">
+        Type
+        <span *ngIf="sortField === 'type'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+      </th>
+      <th (click)="sortCoupons('discount')">
+        Discount
+        <span *ngIf="sortField === 'discount'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+      </th>
+      <th>Status</th>
+      <th (click)="sortCoupons('startDate')">
+        Start Date
+        <span *ngIf="sortField === 'startDate'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+      </th>
+      <th (click)="sortCoupons('endDate')">
+        End Date
+        <span *ngIf="sortField === 'endDate'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+      </th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let c of filteredCoupons">
+      <td>{{ c.code || 'N/A' }}</td> <!-- Show 'N/A' if code is undefined -->
+      <td>{{ c.type }}</td>
+      <td>{{ c.discount }}</td>
+      <td [ngStyle]="{ 'color': c.status === 'Active' ? 'green' : 'red' }">{{ c.status }}</td>
+      <td>{{ c.startDate | date }}</td> <!-- Display Start Date -->
+      <td>{{ c.endDate | date }}</td> <!-- Display End Date -->
+      <!-- Action Buttons -->
+      <td>
+        <button class="edit-btn" (click)="editCoupon(c)">Edit</button>
+        <button class="delete-btn" (click)="deleteCoupon(c.code)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

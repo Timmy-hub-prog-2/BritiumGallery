@@ -1,0 +1,85 @@
+.nav {
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 60px;
+  position: relative;
+  z-index: 1000;
+  font-family: Arial, sans-serif;
+}
+
+.nav-center {
+  margin: 0 auto;
+  display: flex;
+  gap: 60px;
+}
+
+.nav-center a {
+  text-decoration: none;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.user-container {
+  position: relative; /* NEW: Make it the positioned parent */
+  cursor: pointer;
+}
+
+.user-box {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-box a {
+  padding: 8px 12px;
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.user-box a:hover {
+  background-color: #f5f5f5;
+  color: #ff6a00;
+}
+
+.user-box .icon {
+  font-size: 16px;
+  display: inline-block;
+}
+
+
+.action-button {
+  background: none;
+  border: none;
+  color: #000000;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.action-button:hover {
+  color: #000000;
+}
+
+.nav2-actions {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  padding-left: 90px;
+}
+
+
