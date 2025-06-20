@@ -1,5 +1,6 @@
 <nav class="nav">
   <div class="nav-left">
+    <img src="assets/img/britiumGalleryBlack.png" alt="Britium Gallery Logo" class="nav-logo">
     <div class="hover-wrapper" (mouseenter)="showMegaMenu()" (mouseleave)="hideMegaMenuWithDelay()">
 
       <!-- All Categories Trigger -->
@@ -9,63 +10,29 @@
       </div>
 
       <!-- Mega Menu -->
-      <div class="categories-mega-menu" [class.visible]="isMegaMenuVisible" (mouseenter)="showMegaMenu()" (mouseleave)="hideMegaMenuWithDelay()">
-        <div class="mega-menu-content">
+      <div class="categories-mega-menu" [class.visible]="isMegaMenuVisible" (mouseenter)="showMegaMenu()" (mouseleave)="hideMegaMenu()">
+        <div class="mega-menu-content two-column-layout">
 
-          <!-- First Column - Main Categories -->
+          <!-- Left: Main Categories -->
           <div class="main-categories-list">
             <div class="my-categories-header">Categories</div>
             <div *ngFor="let category of categories"
                  class="main-category-item"
                  [class.active]="category === activeCategory"
                  (mouseover)="setActiveCategory(category)">
-             
               {{ category.name }}
-              <i class="fas fa-chevron-right"></i>
             </div>
           </div>
 
-          <!-- Second Column - Either subcategories or products -->
-          <div class="subcategories-list" *ngIf="activeCategory && secondColumnItems?.length">
+          <!-- Right: Subcategories with Photos -->
+          <div class="subcategories-list">
             <div class="subcategories-header">{{ activeCategory?.name }}</div>
-            
-            <!-- If category has subcategories, show them -->
-            <ng-container *ngIf="activeCategory.subcategories?.length">
-              <div *ngFor="let subcat of secondColumnItems"
+            <div class="subcategory-grid">
+              <div *ngFor="let subcat of activeCategory?.subcategories"
                    class="subcategory-item"
-                   [class.active]="subcat === activeSubcategory"
-                   (mouseover)="setActiveSubcategory(subcat)">
-                {{ subcat.name }}
-                <i class="fas fa-chevron-right" *ngIf="hasChildren(subcat)"></i>
-              </div>
-            </ng-container>
-
-            <!-- If category has no subcategories, show products -->
-            <ng-container *ngIf="!activeCategory.subcategories?.length">
-              <div class="product-grid">
-                <div *ngFor="let item of secondColumnItems">
-                  <ng-container *ngIf="isProduct(item)">
-                    <div class="product-box" (click)="goToProductDetail(item.id)">
-                      <img [src]="item.imageUrl || 'assets/img/iphone15.jpg'" alt="{{ item.name }}" />
-                      <span>{{ item.name }}</span>
-                    </div>
-                  </ng-container>
-                </div>
-              </div>
-            </ng-container>
-          </div>
-
-          <!-- Third Column - Products (only shown if we have subcategories) -->
-          <div class="products-list" *ngIf="activeSubcategory && thirdColumnItems?.length">
-            <div class="products-header">{{ activeSubcategory?.name }}</div>
-            <div class="product-grid">
-              <div *ngFor="let item of thirdColumnItems">
-                <ng-container *ngIf="isProduct(item)">
-                  <div class="product-box" (click)="goToProductDetail(item.id)">
-                    <img [src]="item.imageUrl || 'assets/img/iphone15.jpg'" alt="{{ item.name }}" />
-                    <span>{{ item.name }}</span>
-                  </div>
-                </ng-container>
+                   (click)="goToCategoryProduct(subcat.id)">
+                <img [src]="subcat.image_url || 'assets/img/default-subcat.jpg'" alt="{{ subcat.name }}" class="subcategory-photo"/>
+                <span class="subcategory-name">{{ subcat.name }}</span>
               </div>
             </div>
           </div>
@@ -99,7 +66,7 @@
       d="M8.25 8.25V6a2.25 2.25 0 012.25-2.25h3a2.25 2.25 0 110 4.5H3.75v8.25a3.75 3.75 0 003.75 3.75h9a3.75 3.75 0 003.75-3.75V8.25H17.5">
     </path>
   </svg>
-  <span class="cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
+  <!-- <span class="cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span> -->
 </button>
 
      <div class="profile-menu-container" *ngIf="user">

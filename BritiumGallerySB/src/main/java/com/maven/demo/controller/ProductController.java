@@ -2,7 +2,11 @@ package com.maven.demo.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +17,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.util.MultiValueMap;
 
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
@@ -180,6 +186,41 @@ public class ProductController {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+        try {
+            productService.deleteProduct(productId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/filtered/{categoryId}")
+    public ResponseEntity<List<ProductResponseDTO>> getFilteredProducts(
+            @PathVariable Long categoryId,
+            @RequestParam(required = false) MultiValueMap<String, String> filtersMap) {
+
+        System.out.println("filtersMap received in controller: " + filtersMap);
+
+        Map<String, List<String>> filters = new HashMap<>();
+        if (filtersMap != null) {
+            for (Map.Entry<String, List<String>> entry : filtersMap.entrySet()) {
+                System.out.println("Key: " + entry.getKey() + ", Value type: " + entry.getValue().getClass().getName() + ", Value: " + entry.getValue());
+                filters.put(entry.getKey(), entry.getValue());
+            }
+        }
+        
+        List<ProductResponseDTO> products = productService.getFilteredProducts(categoryId, filters);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/{categoryId}/attribute-options")
+    public ResponseEntity<Map<String, Set<String>>> getAttributeOptionsForCategory(@PathVariable Long categoryId) {
+        return ResponseEntity.ok(productService.getCategoryAttributeOptions(categoryId));
     }
 
     //        @GetMapping("/by-parent-category/{parentId}")

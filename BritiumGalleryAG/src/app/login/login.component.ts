@@ -44,4 +44,41 @@ export class LoginComponent {
   });
 }
 
+ private performLogin(): void {
+    // Simulate API call
+    setTimeout(() => {
+      // Example success/error handling
+      if (this.email === "demo@shophub.com" && this.password === "password") {
+        console.log("Login successful")
+        // Redirect to dashboard or home page
+        // this.router.navigate(['/dashboard']);
+      } else {
+        this.message = "Invalid email or password. Please try again."
+      }
+    }, 1000)
+  }
+
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword
+  }
+
+  // Social login methods (implement as needed)
+  loginWithGoogle(): void {
+    console.log("Google login initiated")
+    // Implement Google OAuth login
+  }
+
+  // Utility method for form reset
+  resetForm(): void {
+    this.email = ""
+    this.password = ""
+    this.showPassword = false
+    this.message = ""
+  }
+
 }

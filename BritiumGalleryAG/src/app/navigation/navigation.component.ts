@@ -144,7 +144,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   hideMegaMenuWithDelay(): void {
     this.hideMenuTimeout = setTimeout(() => {
       this.isMegaMenuVisible = false;
-    }, 100); // Delay in ms (adjust to 500 if you want it longer)
+    },100); // Delay in ms (adjust to 500 if you want it longer)
   }
 
   cancelHideMegaMenu(): void {
@@ -153,7 +153,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   // Optional: if you want to override immediate hide
   hideMegaMenu(): void {
-    clearTimeout(this.hideMenuTimeout);
+    
     this.isMegaMenuVisible = false;
   }
 
@@ -207,6 +207,11 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
   goToProductDetail(productId: number): void {
     this.router.navigate(['/product-detail', productId]);
+    this.hideMegaMenu();
+  }
+
+  goToCategoryProduct(categoryId: number): void {
+    this.router.navigate(['/category-products', categoryId]);
     this.hideMegaMenu();
   }
 

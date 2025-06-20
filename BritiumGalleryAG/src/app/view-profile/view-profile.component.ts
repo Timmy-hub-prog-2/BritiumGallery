@@ -3,6 +3,8 @@ import { ChangeDetectorRef, Component } from '@angular/core';
 import { User } from '../../user.model';
 import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
+import { AddressService } from '../address.service';
+import { AddressDTO } from '../../AddressDTO';
 
 @Component({
   selector: 'app-view-profile',
@@ -27,11 +29,13 @@ export class ViewProfileComponent {
 
   selectedFile?: File;
   profileImageUrlWithTimestamp: string = '';
+  mainAddress: string = 'Loading...';
 
   constructor(
     private userService: UserService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private addressService: AddressService
   ) {}
 
   ngOnInit(): void {
@@ -39,9 +43,21 @@ export class ViewProfileComponent {
     if (storedUser) {
       this.user = JSON.parse(storedUser);
       this.updateProfileImageUrl();
+      this.loadMainAddress(this.user.id);
     }
   }
 
+  loadMainAddress(userId: number): void {
+    this.addressService.getMainAddressByUserId(userId).subscribe({
+      next: (address: AddressDTO) => {
+      this.mainAddress =`${address.houseNumber}, ${address.wardName},${address.street}, ${address.township}, ${address.city},${address.state}`;
+      },
+      error: (err) => {
+        console.error('Error loading main address', err);
+        this.mainAddress = 'No address found';
+      }
+    });
+  }
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {

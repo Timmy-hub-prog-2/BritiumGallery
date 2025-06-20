@@ -38,18 +38,22 @@
           <input id="phone" type="text" [(ngModel)]="user.phoneNumber" />
         </div>
 
-        <div class="info-row">
-          <label>Address</label>
-          <span class="read-only">{{
-            user.address || "123 Fake St, Springfield"
-          }}</span>
-        </div>
+       <div class="info-row">
+  <label>Address</label>
+  <span class="read-only">{{ mainAddress }}</span>
+</div>
       </div>
     </div>
 
     <div class="profile-actions">
       <button (click)="saveProfile()" class="save-button">Save Changes</button>
     </div>
+
+    <!-- Link to Address List Page -->
+<button class="my-address-button" [routerLink]="['/addresslist']">
+  My Address
+</button>
+
   </div>
 </div>
 

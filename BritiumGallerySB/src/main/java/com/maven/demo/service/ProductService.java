@@ -4,8 +4,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,8 +52,8 @@ public class ProductService {
     @Autowired
     private AttributeOptionRepository attributeOptionRepository;
 
-
-
+    @Autowired
+    private CategoryService categoryService;
 
     @Transactional
     public void saveProductWithVariants(ProductRequestDTO dto) {
@@ -123,9 +127,7 @@ public class ProductService {
         }
     }
 
-
-
-    public List<ProductResponseDTO>getProductsByCategory(Long categoryId) {
+    public List<ProductResponseDTO> getProductsByCategory(Long categoryId) {
         List<ProductEntity> products = proRepo.findByCategoryId(categoryId);
 
         return products.stream().map(product -> {
@@ -143,7 +145,6 @@ public class ProductService {
                 varDTO.setId(variant.getId());
                 varDTO.setPrice(variant.getPrice());
                 varDTO.setStock(variant.getStock());
-
 
                 Map<String, String> attrMap = new HashMap<>();
                 for (VariantAttributeValueEntity vav : variant.getAttributeValues()) {
@@ -172,8 +173,6 @@ public class ProductService {
         dto.setAdminId(product.getAdmin_id());
         dto.setBasePhotoUrl(product.getBasePhotoUrl());
 
-
-
         List<VariantResponseDTO> variantDTOs = product.getVariants().stream().map(variant -> {
             VariantResponseDTO varDTO = new VariantResponseDTO();
             varDTO.setId(variant.getId());
@@ -200,10 +199,14 @@ public class ProductService {
         return dto;
     }
 
+    @Transactional
     public List<String> getProductBreadcrumb(Long productId) {
-        ProductEntity product = proRepo.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+        Optional<ProductEntity> productOpt = proRepo.findById(productId);
+        if (productOpt.isEmpty()) {
+            return new ArrayList<>();
+        }
 
+        ProductEntity product = productOpt.get();
         List<String> breadcrumb = new ArrayList<>();
 
         // Start with category path
@@ -372,5 +375,88 @@ public class ProductService {
 
         dto.setVariants(variantDTOs);
         return dto;
+    }
+
+    @Transactional
+    public void deleteProduct(Long productId) {
+        ProductEntity product = proRepo.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
+        
+        // Delete all variants and their associated data first
+        for (ProductVariantEntity variant : product.getVariants()) {
+            variantRepository.delete(variant);
+        }
+        
+        // Then delete the product
+        proRepo.delete(product);
+    }
+
+    @Transactional
+    public List<ProductResponseDTO> getFilteredProducts(Long categoryId, Map<String, List<String>> filters) {
+        System.out.println("Received filters: " + filters);
+        List<Long> categoryIds = new ArrayList<>();
+        categoryIds.add(categoryId);
+        categoryIds.addAll(categoryService.getAllDescendantCategoryIds(categoryId));
+
+        List<ProductEntity> products = proRepo.findByCategoryIdIn(categoryIds);
+
+        return products.stream()
+                .filter(product -> {
+                    // A product is included if at least one of its variants matches ALL selected filters
+                    return product.getVariants().stream().anyMatch(variant -> {
+                        if (filters == null || filters.isEmpty()) {
+                            return true; // No filters, so all variants are considered valid
+                        }
+                        // Check if this variant matches all selected filters
+                        return filters.entrySet().stream().allMatch(filterEntry -> {
+                            String attributeName = filterEntry.getKey();
+                            Object value = filterEntry.getValue();
+                            List<String> attributeValues;
+                            
+                            // Handle both single string and list of strings
+                            if (value instanceof String) {
+                                attributeValues = List.of((String) value);
+                            } else if (value instanceof List) {
+                                attributeValues = (List<String>) value;
+                            } else {
+                                return false;
+                            }
+
+                            // Check if this variant has an attribute matching the name AND one of the values
+                            return variant.getAttributeValues().stream()
+                                    .anyMatch(vav -> {
+                                        String attrName = vav.getAttribute().getName();
+                                        String attrValue = vav.getValue();
+                                        return attrName.equals(attributeName) && 
+                                               attributeValues != null && 
+                                               attributeValues.contains(attrValue);
+                                    });
+                        });
+                    });
+                })
+                .map(this::convertToProductResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Map<String, Set<String>> getCategoryAttributeOptions(Long categoryId) {
+        List<Long> categoryIds = new ArrayList<>();
+        categoryIds.add(categoryId);
+        categoryIds.addAll(categoryService.getAllDescendantCategoryIds(categoryId));
+
+        Map<String, Set<String>> attributeOptions = new HashMap<>();
+
+        // Get all products within the specified category and its descendants
+        List<ProductEntity> products = proRepo.findByCategoryIdIn(categoryIds);
+
+        // Iterate through all products and their variants to collect all distinct attribute values
+        for (ProductEntity product : products) {
+            for (ProductVariantEntity variant : product.getVariants()) {
+                for (VariantAttributeValueEntity vav : variant.getAttributeValues()) {
+                    attributeOptions.computeIfAbsent(vav.getAttribute().getName(), k -> new HashSet<>()).add(vav.getValue());
+                }
+            }
+        }
+        return attributeOptions;
     }
 }

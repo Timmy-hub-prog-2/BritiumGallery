@@ -29,6 +29,7 @@ import { CartPreviewComponent } from './cart-preview/cart-preview.component';
 import { CouponComponent } from './coupon/coupon.component';
 import { ViewProfileComponent } from './view-profile/view-profile.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
+import { CategoryProductComponent } from './category-product/category-product.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -60,7 +61,8 @@ const routes: Routes = [
   {path:'cart',component:CartPreviewComponent},
   {path:'coupon',component:CouponComponent},
   {path:'view-profile',component:ViewProfileComponent},
-  {path:'change-password',component:ChangePasswordComponent}
+  {path:'change-password',component:ChangePasswordComponent},
+  {path:'category-products/:categoryId',component:CategoryProductComponent}
 ];
 
 @NgModule({

@@ -1,5 +1,6 @@
 package com.maven.demo.service;
 
+import com.maven.demo.dto.AddressDTO;
 import com.maven.demo.dto.LoginResponseDTO;
 import com.maven.demo.dto.UserDTO;
 import com.maven.demo.dto.UserResponseDTO;
@@ -29,6 +30,9 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AddressService addressService;
 
     @Autowired
     private OtpService otpService;
@@ -146,6 +150,10 @@ public class UserService {
             // Save updated entity
             UserEntity updatedUser = userRepository.save(existingUser);
 
+            AddressDTO dto =  addressService.getMainAddressByUserId(id);
+
+
+
             // Manually map entity to response DTO
             UserResponseDTO response = new UserResponseDTO();
             response.setId(updatedUser.getId());
@@ -154,8 +162,10 @@ public class UserService {
             response.setPhoneNumber(updatedUser.getPhoneNumber());
             response.setImageUrls(updatedUser.getImageUrls());
             response.setGender(updatedUser.getGender());
-            // response.setStatus(updatedUser.getStatus());
-            // response.setRoleId(updatedUser.getRole() != null ? updatedUser.getRole().getId() : null);
+
+
+             response.setStatus(updatedUser.getStatus());
+             response.setRoleId(updatedUser.getRole() != null ? updatedUser.getRole().getId() : null);
 
             return response;
         });

@@ -12,6 +12,7 @@ public class UserResponseDTO {
     private String gender;
     private String phoneNumber;
     private List<String> ImageUrls;
-
-    private AddressDTO address;
+    private AddressDTO address; // Combined address field
+    private Integer status;
+    private Long roleId;
 }

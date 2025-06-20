@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ProductRequest } from '../product-request.model';
 import { Observable } from 'rxjs';
@@ -51,5 +51,25 @@ export class ProductService {
 
   deleteVariant(variantId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/variants/${variantId}`);
+  }
+
+  deleteProduct(productId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${productId}`);
+  }
+
+  getFilteredProducts(categoryId: number, filters: { [key: string]: string[] }): Observable<ProductResponse[]> {
+    let params = new HttpParams();
+    for (const key in filters) {
+      if (filters.hasOwnProperty(key)) {
+        filters[key].forEach(value => {
+          params = params.append(key, value);
+        });
+      }
+    }
+    return this.http.get<ProductResponse[]>(`${this.baseUrl}/filtered/${categoryId}`, { params });
+  }
+
+  getCategoryAttributeOptions(categoryId: number): Observable<{ [key: string]: string[] }> {
+    return this.http.get<{ [key: string]: string[] }>(`${this.baseUrl}/${categoryId}/attribute-options`);
   }
 }

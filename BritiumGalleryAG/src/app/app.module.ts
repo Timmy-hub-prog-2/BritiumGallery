@@ -9,6 +9,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CommonModule } from '@angular/common';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
@@ -41,7 +48,6 @@ import { OtpVerificationComponent } from './otp-verification/otp-verification.co
 import { CustomerDashboardComponent } from './customer-dashboard/customer-dashboard.component';
 import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
 import { ProductEditModule } from './product-edit/product-edit.module';
-import { MatPaginatorModule } from '@angular/material/paginator';
 import { ChooseVerificationComponent } from './choose-verification/choose-verification.component';
 import { ViewcustomerComponent } from './viewcustomer/viewcustomer.component';
 import { ViewadminComponent } from './viewadmin/viewadmin.component';
@@ -53,8 +59,7 @@ import { CartPreviewComponent } from './cart-preview/cart-preview.component';
 import { CouponComponent } from './coupon/coupon.component';
 import { ViewProfileComponent } from './view-profile/view-profile.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
-
-
+import { CategoryProductComponent } from './category-product/category-product.component';
 
 @NgModule({
   declarations: [
@@ -110,7 +115,14 @@ import { ChangePasswordComponent } from './change-password/change-password.compo
     MatInputModule,
     ProductEditModule,
     MatPaginatorModule,
-    CommonModule
+    CommonModule,
+    MatSnackBarModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSelectModule,
+    MatOptionModule,
+    CategoryProductComponent
   ],
   providers: [],
   bootstrap: [AppComponent],

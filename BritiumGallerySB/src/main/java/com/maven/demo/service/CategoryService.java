@@ -1,19 +1,27 @@
 package com.maven.demo.service;
 
-import com.maven.demo.dto.AttributeDTO;
-import com.maven.demo.dto.CategoryDTO;
-import com.maven.demo.entity.AttributeEntity;
-import com.maven.demo.entity.CategoryEntity;
-import com.maven.demo.entity.ProductEntity;
-import com.maven.demo.entity.ProductVariantEntity;
-import com.maven.demo.repository.*;
-import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import com.maven.demo.dto.AttributeDTO;
+import com.maven.demo.dto.CategoryDTO;
+import com.maven.demo.entity.AttributeEntity;
+import com.maven.demo.entity.CategoryEntity;
+import com.maven.demo.repository.AttributeOptionRepository;
+import com.maven.demo.repository.AttributeRepository;
+import com.maven.demo.repository.CategoryRepository;
+import com.maven.demo.repository.ProductRepository;
+import com.maven.demo.repository.ProductVariantRepository;
+import com.maven.demo.repository.VariantAttributeValueRepository;
+import com.maven.demo.repository.productVariantImageRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class CategoryService {
@@ -145,6 +153,14 @@ public class CategoryService {
         return dto;
     }
 
-
+    public Set<Long> getAllDescendantCategoryIds(Long categoryId) {
+        Set<Long> descendantIds = new HashSet<>();
+        List<CategoryEntity> directChildren = repo.findByParentCategoryId(categoryId);
+        for (CategoryEntity child : directChildren) {
+            descendantIds.add(child.getId());
+            descendantIds.addAll(getAllDescendantCategoryIds(child.getId())); // Recursive call
+        }
+        return descendantIds;
+    }
 
 }

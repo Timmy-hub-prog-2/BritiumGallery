@@ -1,0 +1,71 @@
+<div class="category-product-page">
+  <!-- Breadcrumb -->
+  <!-- <div class="breadcrumb" *ngIf="breadcrumb.length > 0">
+    <ng-container *ngFor="let item of breadcrumb; let i = index">
+      <span [class.current]="i === breadcrumb.length - 1">{{ item }}</span>
+      <span class="separator" *ngIf="i !== breadcrumb.length - 1">/</span>
+    </ng-container>
+  </div> -->
+
+  <div class="main-section">
+    <div class="sidebar">
+      <h3>Categories</h3>
+      <ul *ngIf="currentCategory" class="category-list-scroll">
+        <li *ngIf="currentCategory.parent_category_id" (click)="navigateToCategory(currentCategory.parent_category_id)" class="parent-category-link">
+          <i class="bi bi-arrow-left"></i> Back to {{ getParentCategoryName() }}
+        </li>
+        <li *ngFor="let cat of subCategories" (click)="navigateToCategory(cat.id!)"
+            [class.active]="cat.id === categoryId">
+          {{ cat.name }}
+        </li>
+      </ul>
+
+      <h3>Filters</h3>
+      <div *ngFor="let attribute of availableAttributes" class="filter-group">
+        <div class="filter-header" (click)="toggleFilterExpansion(attribute.name)">
+          <h4>{{ attribute.name }}</h4>
+          <i class="bi" [class.bi-chevron-up]="isFilterExpanded(attribute.name)" [class.bi-chevron-down]="!isFilterExpanded(attribute.name)"></i>
+        </div>
+        <div class="filter-options-container" *ngIf="isFilterExpanded(attribute.name)">
+          <div *ngFor="let option of attribute.options" class="filter-option">
+            <input type="checkbox" [id]="attribute.name + '-' + option" [value]="option"
+                   [checked]="selectedAttributeFilters[attribute.name]?.includes(option)"
+                   (change)="toggleAttributeFilter(attribute.name, option)">
+            <label [for]="attribute.name + '-' + option">{{ option }}</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="main-content-header">
+        <h2>{{ currentCategory?.name || 'All Products' }} ({{ products.length }})</h2>
+        <div class="filter-sort-options">
+          <button class="hide-filters-button" (click)="toggleAllFilters()">
+            <i class="bi bi-funnel"></i> Show Filters
+          </button>
+          <div class="sort-by-dropdown">
+            <span>Sort By <i class="bi bi-chevron-down"></i></span>
+            <!-- Add sorting options here later if needed -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="product-grid">
+        <a *ngFor="let product of products" class="product-card" [routerLink]="['/product-detail', product.id]">
+          <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" alt="Product Image">
+          <div class="product-info">
+            <p class="product-category">{{ currentCategory?.name }}</p>
+            <h3 class="product-name">{{ product.name }}</h3>
+            <!-- Assuming description or a custom field can be used for subtitle/model -->
+            <p class="product-subtitle">{{ product.description }}</p> 
+            <p class="product-price">{{ getPriceRange(product)  }}</p>
+          </div>
+        </a>
+      </div>
+      <div *ngIf="products.length === 0" class="no-products">
+        No products found for this category or selected filters.
+      </div>
+    </div>
+  </div>
+</div>

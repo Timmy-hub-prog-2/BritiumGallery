@@ -4,6 +4,7 @@ import { CategoryService } from '../category.service';
 import { category } from '../category';
 import { ProductService } from '../services/product.service';
 import { ProductResponse } from '../ProductResponse';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 interface CategoryWithCount extends category {
   productCount?: number;
@@ -28,7 +29,8 @@ export class SubCategoryComponent implements OnInit {
     private route: ActivatedRoute,
     private categoryService: CategoryService,
     private productService: ProductService,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -102,5 +104,42 @@ export class SubCategoryComponent implements OnInit {
 
   navigateToProductEdit(productId: number) {
     this.router.navigate(['/product-edit', productId]);
+  }
+
+  deleteProduct(productId: number): void {
+    if (confirm('Are you sure you want to delete this product?')) {
+      this.productService.deleteProduct(productId).subscribe({
+        next: () => {
+          this.snackBar.open('Product deleted successfully', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top'
+          });
+          // Refresh the product list
+          this.loadProducts();
+        },
+        error: (error) => {
+          console.error('Error deleting product:', error);
+          this.snackBar.open('Error deleting product', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top'
+          });
+        }
+      });
+    }
+  }
+
+  private loadProducts(): void {
+    if (this.urlParam) {
+      this.productService.getProductsByCategory(Number(this.urlParam)).subscribe({
+        next: (products) => {
+          this.productList = products;
+        },
+        error: (error) => {
+          console.error('Error loading products:', error);
+        }
+      });
+    }
   }
 }

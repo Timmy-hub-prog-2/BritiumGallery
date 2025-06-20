@@ -4,6 +4,7 @@
     import com.maven.demo.dto.LoginResponseDTO;
     import com.maven.demo.dto.UserDTO;
     import com.maven.demo.dto.UserResponseDTO;
+    import com.maven.demo.service.AddressService;
     import com.maven.demo.service.CloudinaryUploadService;
     import com.maven.demo.service.UserService;
     import com.maven.demo.service.UserService1;
@@ -26,6 +27,9 @@
 
         @Autowired
         private CloudinaryUploadService cloudinaryUploadService;
+
+        @Autowired
+        private AddressService addressService;
 
         @Autowired
         private UserService1 userService1;
