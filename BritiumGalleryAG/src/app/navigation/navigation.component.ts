@@ -8,7 +8,6 @@ import { forkJoin, Observable, of, Subscription } from 'rxjs';
 import { map, switchMap, catchError } from 'rxjs/operators';
 import { UserService } from '../services/user.service';
 import { User } from '../../user.model';
-import { CartItem, CartService } from '../services/cart.service';
 
 interface CategoryWithSubs extends category {
   subcategories?: CategoryWithSubs[];
@@ -33,43 +32,29 @@ export class NavigationComponent implements OnInit, OnDestroy {
   private hideMenuTimeout: any;
   private hoverTimeout: any;
   private userSubscription: Subscription | undefined;
-  cartCount: number = 0;
 
   constructor(
     private categoryService: CategoryService,
     private productService: ProductService,
     private router: Router,
-    private userService: UserService,
-    private cartService: CartService
+    private userService: UserService
   ) {}
 
- ngOnInit(): void {
-  this.categoryService.getAllCategories().subscribe((categories: CategoryWithSubs[]) => {
-    this.categories = categories.filter(cat => !cat.parent_category_id);
-    this.loadCategoryChildren(this.categories).subscribe(() => {
-      if (this.categories.length > 0) {
-        this.setActiveCategory(this.categories[0]);
-      }
+  ngOnInit(): void {
+    this.categoryService.getAllCategories().subscribe((categories: CategoryWithSubs[]) => {
+      this.categories = categories.filter(cat => !cat.parent_category_id); // Filter top-level categories
+      this.loadCategoryChildren(this.categories).subscribe(() => {
+        if (this.categories.length > 0) {
+          this.setActiveCategory(this.categories[0]);
+        }
+      });
     });
-  });
 
-  // Subscribe to user changes
-  this.userSubscription = this.userService.currentUser.subscribe((user: User | null) => {
-  this.user = user;
-
- if (this.user?.id) {
-  this.cartService.cartCount$.subscribe(count => {
-    this.cartCount = count;
-  });
-
-  // Initial load
-  const currentTotal = this.cartService.getTotalQuantity(this.user.id);
-  this.cartCount = currentTotal;
-}
-});
-
-}
-
+    // Subscribe to user changes from UserService
+    this.userSubscription = this.userService.currentUser.subscribe((user: User | null) => {
+      this.user = user;
+    });
+  }
 
   ngOnDestroy(): void {
     if (this.hoverTimeout) {
