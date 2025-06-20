@@ -13,7 +13,7 @@
 .search-box:focus {
   border-color: #007bff; /* Highlight border on focus */
   outline: none;
-}
+}                         
 
 /* Badge styles */
 .badge {
@@ -80,13 +80,16 @@
 
 .modal-content {
   background: #ffffff;
-  padding: 30px 25px;
+  padding: 18px 36px; /* less vertical, more horizontal padding */
   width: 100%;
-  max-width: 400px;
+  max-width: 650px;   /* wider modal */
+  min-width: 350px;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   animation: fadeIn 0.3s ease-in-out;
+  max-height: 90vh;   /* prevent overflow on very small screens */
+  overflow-y: auto;
 }
 
 .modal-content h2 {
@@ -99,7 +102,7 @@
 
 .modal-content label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 3px; /* less vertical space */
   font-weight: 600;
   color: #555;
 }
@@ -107,8 +110,8 @@
 .modal-content input,
 .modal-content select {
   width: 100%;
-  padding: 10px 12px;
-  margin-bottom: 16px;
+  padding: 8px 10px; /* slightly less padding */
+  margin-bottom: 10px; /* less vertical space */
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 14px;
@@ -227,4 +230,13 @@ th:nth-child(6), td:nth-child(6) {
 /* Optional: Adjust hover and active row styles for the new columns */
 tbody tr:hover td:nth-child(5), tbody tr:hover td:nth-child(6) {
   background-color: #eef4ff;
+}
+
+.customer-type-rules table {
+  width: 100%;
+  font-size: 13px;
+}
+
+.customer-type-rules th, .customer-type-rules td {
+  padding: 6px 8px; /* more compact table in modal */
 }

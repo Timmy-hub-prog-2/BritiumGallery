@@ -4,27 +4,67 @@
 <input type="text" placeholder="Search coupon by code or type..." [(ngModel)]="searchTerm"
   (ngModelChange)="filterCoupons()" class="search-box" />
 
-
 <!-- Modal -->
 <div class="modal" *ngIf="showModal">
   <div class="modal-content">
-    <h2>Create Coupon</h2>
-    <form (ngSubmit)="createCoupon()">
+    <h2>{{ isEditMode ? 'Edit Coupon' : 'Create Coupon' }}</h2>
 
-
-      <!-- Checkbox for manual code entry -->
-      <label>
-        <input type="checkbox" [(ngModel)]="customCodeEnabled" name="customCodeEnabled" />
-        Enter coupon code manually
-      </label>
-
-      <!-- Show input only if checkbox is selected -->
-      <div *ngIf="customCodeEnabled">
-        <label>Coupon Code:</label>
-        <input [(ngModel)]="newCoupon.code" name="code" required (input)="validateCouponCode()" />
-        <div *ngIf="codeError" style="color: red;">
-          Coupon code must be exactly 3 uppercase letters followed by 3 digits (e.g. ABC123).
-        </div>
+    <form (ngSubmit)="createCoupon()" #couponForm="ngForm">
+      <label>Coupon Code:</label><div style="display: flex; align-items: stretch; margin-bottom: 16px;">
+        <input
+          [(ngModel)]="newCoupon.code"
+          name="code"
+          required
+          (input)="validateCouponCode()"
+          placeholder="Enter coupon code"
+          style="
+            flex: 3 1 0%;
+            border: 1px solid #007bff;
+            border-right: none;
+            border-radius: 6px 0 0 6px;
+            font-size: 15px;
+            padding: 0 12px;
+            height: 44px;
+            box-sizing: border-box;
+            outline: none;
+            background: #fff;
+          "
+        />
+        <button
+          type="button"
+          (click)="generateAndSetCode()"
+          style="
+            flex: 1 1 0%;
+            border: 1px solid #007bff;
+            border-left: none;
+            border-radius: 0 6px 6px 0;
+            background: #fff;
+            color: #007bff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 0 8px;
+            height: 44px;
+            box-sizing: border-box;
+            cursor: pointer;
+            outline: none;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            min-width: 120px;
+            max-width: 200px;
+          "
+          onfocus="this.style.outline='none';"
+          onblur="this.style.outline='none';"
+          onmouseover="this.style.background='#f0f8ff'"
+          onmouseout="this.style.background='#fff'"
+        >
+          Auto Generate Code
+        </button>
+      </div>
+      <div *ngIf="codeError" style="color: red; margin-bottom: 16px;">
+        Coupon code must be exactly 3 uppercase letters followed by 3 digits (e.g. ABC123).
       </div>
 
       <label>Type:</label>
@@ -36,13 +76,95 @@
 
       <label>Discount:</label>
       <input [(ngModel)]="newCoupon.discount" name="discount" required />
+
       <label>Start Date:</label>
       <input type="date" [(ngModel)]="newCoupon.startDate" name="startDate" required [min]="todayDate" />
 
       <label>End Date:</label>
       <input type="date" [(ngModel)]="newCoupon.endDate" name="endDate" required [min]="todayDate" />
 
+      <!-- Customer Type Rules Section -->
+      <div class="customer-type-rules">
+        <h4>Customer Type Rules</h4>
+        
+        <!-- Customer Type Selection Dropdown -->
+        <label>Select Customer Type:</label>
+        <select [(ngModel)]="selectedCustomerType" (change)="onCustomerTypeSelectionChange()" name="customerTypeSelection" style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px;">
+          <option value="">-- Select Customer Type --</option>
+          <option value="all">All</option>
+          <option value="normal">Normal</option>
+          <option value="loyalty">Loyalty</option>
+          <option value="vip">VIP</option>
+        </select>
 
+        <!-- Customer Type Rules Table -->
+        <table class="customer-type-table" *ngIf="selectedCustomerType">
+          <thead>
+            <tr style="background: #f0f8ff; color: #007bff;">
+              <th>Customer Type</th>
+              <th>Allow</th>
+              <th>Usage Limit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Show all types when "All" is selected -->
+            <ng-container *ngIf="selectedCustomerType === 'all'">
+              <tr *ngFor="let type of customerTypes">
+                <td>{{ type.name }}</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="type.enabled"
+                    name="enabled-{{ type.id }}"
+                    (change)="onCustomerTypeChange()"
+                    style="accent-color: #007bff;"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    [disabled]="!type.enabled"
+                    [ngModel]="getUsageTimes(type.id)"
+                    (ngModelChange)="setUsageTimes(type.id, $event)"
+                    name="usage-{{ type.id }}"
+                    min="1"
+                    class="form-control"
+                  />
+                </td>
+              </tr>
+            </ng-container>
+            
+            <!-- Show only selected type -->
+            <ng-container *ngIf="selectedCustomerType !== 'all'">
+              <tr *ngFor="let type of customerTypes">
+                <ng-container *ngIf="type.name.toLowerCase() === selectedCustomerType">
+                  <td>{{ type.name }}</td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="type.enabled"
+                      name="enabled-{{ type.id }}"
+                      (change)="onCustomerTypeChange()"
+                      style="accent-color: #007bff;"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      [disabled]="!type.enabled"
+                      [ngModel]="getUsageTimes(type.id)"
+                      (ngModelChange)="setUsageTimes(type.id, $event)"
+                      name="usage-{{ type.id }}"
+                      min="1"
+                      class="form-control"
+                    />
+                  </td>
+                </ng-container>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
 
       <!-- Status Dropdown (only for editing) -->
       <div *ngIf="isEditMode">
@@ -53,15 +175,13 @@
         </select>
       </div>
 
-      <button type="submit" [disabled]="customCodeEnabled && codeError">Create</button>
-
-
-      <!-- <button type="submit">Create</button> -->
+      <button type="submit">
+        {{ isEditMode ? 'Update' : 'Create' }}
+      </button>
       <button type="button" (click)="closeModal()">Cancel</button>
     </form>
   </div>
 </div>
-
 
 <!-- Coupon Table -->
 <table>
@@ -91,16 +211,14 @@
       <th>Actions</th>
     </tr>
   </thead>
-
   <tbody>
     <tr *ngFor="let c of filteredCoupons">
-      <td>{{ c.code || 'N/A' }}</td> <!-- Show 'N/A' if code is undefined -->
+      <td>{{ c.code || 'N/A' }}</td>
       <td>{{ c.type }}</td>
       <td>{{ c.discount }}</td>
       <td [ngStyle]="{ 'color': c.status === 'Active' ? 'green' : 'red' }">{{ c.status }}</td>
-      <td>{{ c.startDate | date }}</td> <!-- Display Start Date -->
-      <td>{{ c.endDate | date }}</td> <!-- Display End Date -->
-      <!-- Action Buttons -->
+      <td>{{ c.startDate | date }}</td>
+      <td>{{ c.endDate | date }}</td>
       <td>
         <button class="edit-btn" (click)="editCoupon(c)">Edit</button>
         <button class="delete-btn" (click)="deleteCoupon(c.code)">Delete</button>

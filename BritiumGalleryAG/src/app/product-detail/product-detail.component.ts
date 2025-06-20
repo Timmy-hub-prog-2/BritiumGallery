@@ -383,6 +383,7 @@ export class ProductDetailComponent implements OnInit {
     }
 
     const item: CartItem = {
+      productId: this.latestProductDetail.id,  
       productVariantId: selectedVariant.id,
       productName: this.latestProductDetail.name,
       imageUrl: this.selectedVariantImage || this.latestProductDetail.basePhotoUrl || this.latestProductDetail.imageUrl || 'assets/img/default.jpg',

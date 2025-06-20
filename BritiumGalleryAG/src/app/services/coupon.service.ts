@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Coupon } from '../coupon';
+import { Coupon } from '../Coupon';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
@@ -34,4 +34,13 @@ export class CouponService {
   deleteCoupon(code: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${code}`);
   }
+
+  applyCoupon(code: string, userId: number, cartTotal: number): Observable<number> {
+    return this.http.post<number>(`${this.baseUrl}/apply-coupon`, {
+      couponCode: code,
+      userId: userId,
+      cartTotal: cartTotal
+    });
+  }
+  
 }

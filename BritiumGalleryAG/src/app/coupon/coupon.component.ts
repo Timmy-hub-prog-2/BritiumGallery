@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CouponService } from '../services/coupon.service';
-import { Coupon } from '../coupon';
+import { Coupon } from '../Coupon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -18,34 +18,44 @@ export class CouponComponent implements OnInit {
   sortField: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
-  customCodeEnabled: boolean = false;
-
   newCoupon: Coupon = {
     code: '',
     type: '',
     discount: '',
     status: 'Active',
     startDate: '',
-    endDate: ''
+    endDate: '',
+    rules: []
   };
+
+  customerTypes = [
+    { id: 1, name: 'Normal', enabled: false },
+    { id: 2, name: 'Loyalty', enabled: false },
+    { id: 3, name: 'VIP', enabled: false }
+  ];
+
+  usageRules: { customerTypeId: number, times: number }[] = [];
 
   todayDate: string;
   codeError: boolean = false;
   formSubmitted: boolean = false;
 
-  
-  constructor(private couponService: CouponService,private snackBar: MatSnackBar) {
+  showCustomerTypeRules: boolean = false;
+  allCustomerTypesEnabled: boolean = false;
+  selectedCustomerType: string = '';
+
+  constructor(private couponService: CouponService, private snackBar: MatSnackBar) {
     const today = new Date();
-    this.todayDate = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    this.todayDate = today.toISOString().split('T')[0];
   }
 
-showSuccess(msg: string) {
-  this.snackBar.open(msg, 'Close', {
-    duration: 3000,
-    horizontalPosition: 'center',
-    verticalPosition: 'top'
-  });
-}
+  showSuccess(msg: string) {
+    this.snackBar.open(msg, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top'
+    });
+  }
 
   ngOnInit(): void {
     this.loadCoupons();
@@ -74,12 +84,12 @@ showSuccess(msg: string) {
     this.resetForm();
     this.showModal = true;
     this.isEditMode = false;
-    this.customCodeEnabled = false;
+    this.showCustomerTypeRules = false;
+    this.selectedCustomerType = '';
   }
 
   closeModal(): void {
     this.showModal = false;
-    
   }
 
   resetForm(): void {
@@ -89,56 +99,65 @@ showSuccess(msg: string) {
       discount: '',
       status: 'Active',
       startDate: '',
-      endDate: ''
+      endDate: '',
+      rules: []
     };
- this.formSubmitted = false;
+    this.formSubmitted = false;
+    this.customerTypes.forEach(type => type.enabled = false);
+    this.usageRules = [];
+    this.showCustomerTypeRules = false;
+    this.selectedCustomerType = '';
   }
-  
- validateCouponCode(): void {
+
+  validateCouponCode(): void {
     const pattern = /^[A-Z]{3}[0-9]{3}$/;
     this.codeError = !pattern.test(this.newCoupon.code);
   }
 
- isFormValid(): boolean {
-  return (
-    !!this.newCoupon.code &&
-    !!this.newCoupon.type &&
-    !!this.newCoupon.discount &&
-    !!this.newCoupon.startDate &&
-    !!this.newCoupon.endDate &&
-    !this.codeError // Directly check for boolean value of codeError
-  );
-}
+  isFormValid(): boolean {
+    return (
+      !!this.newCoupon.code &&
+      !!this.newCoupon.type &&
+      !!this.newCoupon.discount &&
+      !!this.newCoupon.startDate &&
+      !!this.newCoupon.endDate &&
+      !this.codeError
+    );
+  }
 
   generateCouponCode(): string {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const numbers = '0123456789';
-
     let letterPart = '';
     let numberPart = '';
-
     for (let i = 0; i < 3; i++) {
       letterPart += letters.charAt(Math.floor(Math.random() * letters.length));
       numberPart += numbers.charAt(Math.floor(Math.random() * numbers.length));
     }
-
     return letterPart + numberPart;
   }
 
+  getUsageTimes(customerTypeId: number): number {
+    const rule = this.usageRules.find(r => r.customerTypeId === customerTypeId);
+    return rule ? rule.times : 1;
+  }
+
+  setUsageTimes(customerTypeId: number, value: number): void {
+    const rule = this.usageRules.find(r => r.customerTypeId === customerTypeId);
+    if (rule) {
+      rule.times = value;
+    } else {
+      this.usageRules.push({ customerTypeId, times: value });
+    }
+  }
+
   createCoupon(): void {
-    // Validate manual code entry
-    if (this.customCodeEnabled) {
-      this.validateCouponCode();
-      if (this.codeError) {
-        alert('Invalid coupon code format. Please correct it.');
-        return;
-      }
-    } else if (!this.isEditMode) {
-      // Only generate new code when creating
-      this.newCoupon.code = this.generateCouponCode();
+    this.validateCouponCode();
+    if (this.codeError) {
+      alert('Invalid coupon code format. Please correct it.');
+      return;
     }
 
-    // Optional: Validate date range if both provided
     if (this.newCoupon.startDate && this.newCoupon.endDate) {
       const start = new Date(this.newCoupon.startDate);
       const end = new Date(this.newCoupon.endDate);
@@ -147,48 +166,51 @@ showSuccess(msg: string) {
         return;
       }
     }
-    // Check if all required fields are filled
-    if (!this.newCoupon.code || !this.newCoupon.type || !this.newCoupon.discount || !this.newCoupon.startDate || !this.newCoupon.endDate) {
+
+    if (!this.isFormValid()) {
       alert('Please fill in all fields.');
       return;
     }
 
+    this.newCoupon.rules = this.customerTypes
+      .filter(type => type.enabled)
+      .map(type => {
+        const rule = this.usageRules.find(r => r.customerTypeId === type.id);
+        return { customerTypeId: type.id, times: rule?.times || 1 };
+      });
 
-    // Submit to backend
-    if (this.isEditMode) {
-      this.couponService.updateCoupon(this.newCoupon).subscribe(() => {
-        this.loadCoupons();
-        this.closeModal();
-        this.resetForm();
-        this.formSubmitted = true;
-          this.showSuccess('Coupon updated successfully!');
-      });
-    } else {
-      this.couponService.createCoupon(this.newCoupon).subscribe(() => {
-        this.loadCoupons();
-        this.closeModal();
-        this.resetForm();
-        this.formSubmitted = true;
-        this.showSuccess('Coupon created successfully!');
-      });
-    }
+    const request = this.isEditMode
+      ? this.couponService.updateCoupon(this.newCoupon)
+      : this.couponService.createCoupon(this.newCoupon);
+
+    request.subscribe(() => {
+      this.loadCoupons();
+      this.closeModal();
+      this.resetForm();
+      this.formSubmitted = true;
+      this.showSuccess(`Coupon ${this.isEditMode ? 'updated' : 'created'} successfully!`);
+    });
   }
-
-
 
   editCoupon(coupon: Coupon): void {
     this.newCoupon = { ...coupon };
     this.isEditMode = true;
     this.showModal = true;
-    this.customCodeEnabled = true;
 
+    this.customerTypes.forEach(type => {
+      const rule = coupon.rules?.find(r => r.customerTypeId === type.id);
+      type.enabled = !!rule;
+      if (rule) {
+        this.setUsageTimes(type.id, rule.times);
+      }
+    });
   }
 
   updateCoupon(): void {
     this.couponService.updateCoupon(this.newCoupon).subscribe(() => {
       this.loadCoupons();
       this.closeModal();
-       this.showSuccess('Coupon updated successfully!');
+      this.showSuccess('Coupon updated successfully!');
     });
   }
 
@@ -236,5 +258,46 @@ showSuccess(msg: string) {
       return 0;
     });
   }
- 
+
+  toggleCustomerTypeRules(): void {
+    this.showCustomerTypeRules = !this.showCustomerTypeRules;
+  }
+
+  toggleAllCustomerTypes(): void {
+    if (this.allCustomerTypesEnabled) {
+      this.customerTypes.forEach(type => type.enabled = true);
+    } else {
+      this.customerTypes.forEach(type => type.enabled = false);
+    }
+  }
+
+  onCustomerTypeChange(): void {
+    this.allCustomerTypesEnabled = this.customerTypes.every(type => type.enabled);
+  }
+
+  onCustomerTypeSelectionChange(): void {
+    this.customerTypes.forEach(type => type.enabled = false);
+    
+    if (this.selectedCustomerType === 'all') {
+      this.customerTypes.forEach(type => type.enabled = true);
+    } else if (this.selectedCustomerType) {
+      const selectedType = this.customerTypes.find(type => 
+        type.name.toLowerCase() === this.selectedCustomerType
+      );
+      if (selectedType) {
+        selectedType.enabled = true;
+      }
+    }
+  }
+
+  generateAndSetCode(): void {
+    this.newCoupon.code = this.generateCouponCode();
+    this.codeError = false;
+  }
+
+  onCouponCodeClick(): void {
+    if (!this.newCoupon.code || this.newCoupon.code.trim() === '') {
+      this.generateAndSetCode();
+    }
+  }
 }

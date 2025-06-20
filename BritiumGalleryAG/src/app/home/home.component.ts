@@ -16,58 +16,82 @@ export class HomeComponent implements OnInit {
   constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit(): void {
-  const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    console.log('👤 Loaded user:', user);
 
-  // ✅ Check only verified users (status 1)
-  if (user?.status === 1) {
-    // ✅ Only after login, check if address exists
-    this.http.get<any[]>(`http://localhost:8080/api/addresses/user/${user.id}`).subscribe({
+    if (user?.status === 1) {
+      console.log('✅ User is verified. Showing welcome sticker...');
+      this.showWelcomeSticker(user);
+
+      // 🕒 Delay address check to prevent alert overlap
+      setTimeout(() => {
+        console.log('📦 Checking address...');
+        this.checkAddress(user.id);
+      }, 3500); // show address alert after 3.5 sec
+    } else {
+      console.log('❌ User is not verified or missing.');
+    }
+  }
+
+ showWelcomeSticker(user: any) {
+  Swal.fire({
+    title: `👋 Welcome back!`,
+    html: `<strong style="color: #3498db; font-size: 16px;">Glad to see you again, ${user.name}</strong>`,
+    background: '#ffffff',
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3500,
+    iconHtml: `<div style="font-size: 30px;">👋</div>`,
+    customClass: {
+      popup: 'custom-swal-welcome',
+      title: 'swal-title-bold',
+      htmlContainer: 'swal-html-container'
+    }
+  });
+}
+
+  checkAddress(userId: number) {
+    this.http.get<any[]>(`http://localhost:8080/api/addresses/user/${userId}`).subscribe({
       next: (addresses) => {
+        console.log('📍 Address check result:', addresses);
         if (!addresses || addresses.length === 0) {
-          // ✅ Only prompt if no address exists
           this.promptToAddAddress();
         }
       },
-      error: () => {
-        // Optional fallback
+      error: (err) => {
+        console.warn('⚠️ Error fetching address:', err);
         this.promptToAddAddress();
       }
     });
   }
-}
 
-promptToAddAddress() {
-  Swal.fire({
-    html: `
-      <div style="display: flex; flex-direction: column; align-items: center;">
-        <img src="assets/img/google-maps.png" alt="Google Maps" width="160" style="margin-bottom: 24px;" />
-        
-        <div style="font-size: 18px; font-weight: normal; margin-bottom: 16px; text-align: center;">
-          📍 You haven't added any address yet
-        </div>
-
-        <a href="/addressform" style="color: #2563eb; font-weight: 500; text-decoration: underline; margin-bottom: 12px;">
-          Add address here
-        </a>
-
-        <a href="https://www.flaticon.com/free-icons/google-maps" title="google maps icons"
-           target="_blank" rel="noopener"
-           style="font-size: 11px; color: gray; text-align: center;">
+  promptToAddAddress() {
+    Swal.fire({
+      html: `
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <img src="assets/img/google-maps.png" alt="Google Maps" width="160" style="margin-bottom: 24px;" />
           
-        </a>
-      </div>
-    `,
-    showConfirmButton: false,
-    showCloseButton: true,
-    background: '#fff',
-    width: 420,
-    padding: '2.5em',
-    customClass: {
-      popup: 'rounded-xl custom-swal-popup',
-      closeButton: 'custom-swal-close'
-    }
-  });
-}
+          <div style="font-size: 18px; font-weight: normal; margin-bottom: 16px; text-align: center;">
+            📍 You haven't added any address yet
+          </div>
+
+          <a href="/addressform" style="color: #2563eb; font-weight: 500; text-decoration: underline; margin-bottom: 12px;">
+            Add address here
+          </a>
+        </div>
+      `,
+      showConfirmButton: false,
+      showCloseButton: true,
+      background: '#fff',
+      width: 420,
+      padding: '2.5em',
+      customClass: {
+        popup: 'rounded-xl custom-swal-popup',
+        closeButton: 'custom-swal-close'
+      }
+    });
+  }
 
   logout() {
     localStorage.removeItem('loggedInUser');

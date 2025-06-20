@@ -541,3 +541,21 @@
     padding: 2rem 1.5rem;
   }
 }
+
+::ng-deep .custom-swal-welcome {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2) !important;
+  padding: 1.5em !important;
+}
+
+::ng-deep .swal-title-bold {
+  font-weight: 700 !important;
+  font-size: 18px !important;
+  color: #2c3e50 !important;
+}
+
+::ng-deep .swal-html-container {
+  margin-top: 8px !important;
+  font-weight: 500 !important;
+}
+

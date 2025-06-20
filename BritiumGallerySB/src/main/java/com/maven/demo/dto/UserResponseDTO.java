@@ -13,5 +13,5 @@ public class UserResponseDTO {
     private String phoneNumber;
     private List<String> ImageUrls;
 
-    private AddressDTO address; // Combined address field
+    private AddressDTO address;
 }

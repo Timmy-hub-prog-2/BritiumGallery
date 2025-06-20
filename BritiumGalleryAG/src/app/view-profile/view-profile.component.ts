@@ -22,6 +22,7 @@ export class ViewProfileComponent {
     status: 0,
     roleId: 3,
     address: '',
+    customerType: '' 
   };
 
   selectedFile?: File;
@@ -62,7 +63,7 @@ export class ViewProfileComponent {
     this.userService.updateUserProfile(this.user, this.selectedFile).subscribe({
       next: (updatedUser) => {
         this.user = updatedUser;
-        localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+        this.userService.setLoggedInUser(updatedUser);
         this.updateProfileImageUrl();
         alert('Profile saved successfully!');
       },
@@ -74,14 +75,19 @@ export class ViewProfileComponent {
 
   updateProfileImageUrl(): void {
     if (this.user?.imageUrls && this.user.imageUrls.length > 0) {
-      this.profileImageUrlWithTimestamp =
-        this.user.imageUrls[0] + '?t=' + new Date().getTime();
+      const baseUrl = this.user.imageUrls[0];
+      const isBase64 = baseUrl.startsWith('data:image');
+  
+      this.profileImageUrlWithTimestamp = isBase64
+        ? baseUrl // no timestamp for preview
+        : baseUrl + '?t=' + new Date().getTime(); // for real URLs
     } else {
       this.profileImageUrlWithTimestamp = 'assets/default-profile.png';
     }
-
-    this.cdr.detectChanges(); // Fix for ExpressionChangedAfterItHasBeenCheckedError
+  
+    this.cdr.detectChanges();
   }
+    
 
   goToChangePassword() {
     this.router.navigate(['/change-password']);

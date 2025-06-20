@@ -45,6 +45,16 @@ public class UserEntity {
     @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity role;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_type_id", nullable = false)
+    private CustomerTypeEntity customerType;
+
+    @OneToMany(mappedBy = "user")
+    private List<TotalSpendEntity> totalSpends;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserCouponUsageEntity> usedCoupons;
+
     @OneToMany(mappedBy = "user" , cascade =  CascadeType.ALL)
     private List<OtpEntity> otpList;
 

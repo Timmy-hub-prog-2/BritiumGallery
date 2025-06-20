@@ -13,5 +13,5 @@ export interface People {
   email: string;
   gender: string;
   phoneNumber: string;
-  address: Address; // ✅ should NOT be a string
+  address: Address; 
 }

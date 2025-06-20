@@ -8,13 +8,13 @@ import { User } from '../../user.model';
   selector: 'app-login',
   standalone: false,
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'] // ✅ corrected from `styleUrl`
+  styleUrls: ['./login.component.css'] 
 })
 export class LoginComponent {
   email = '';
   password = '';
   message = '';
-  showPassword = false; // ✅ For toggle password visibility
+  showPassword = false;
 
   constructor(private http: HttpClient, private router: Router, private userService: UserService) {}
 
@@ -25,7 +25,8 @@ export class LoginComponent {
   }).subscribe({
     next: (user: User) => {
       console.log('User received from backend:', user); 
-      this.userService.setLoggedInUser(user); // Use UserService to set logged in user
+      this.userService.setLoggedInUser(user);
+      localStorage.setItem('loggedInUser', JSON.stringify(user));
 
       // Redirect based on role
       if (user.roleId === 3) {

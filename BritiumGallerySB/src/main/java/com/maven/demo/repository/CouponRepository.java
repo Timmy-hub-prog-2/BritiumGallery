@@ -11,5 +11,5 @@ public interface CouponRepository extends JpaRepository<CouponEntity, Long> {
     void deleteByCode(String code);
     Optional<CouponEntity> findByCode(String code);
 
-
+    boolean existsByCode(String code);
 }

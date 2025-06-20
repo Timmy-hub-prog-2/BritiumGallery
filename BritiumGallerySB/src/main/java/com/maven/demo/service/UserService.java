@@ -3,8 +3,10 @@ package com.maven.demo.service;
 import com.maven.demo.dto.LoginResponseDTO;
 import com.maven.demo.dto.UserDTO;
 import com.maven.demo.dto.UserResponseDTO;
+import com.maven.demo.entity.CustomerTypeEntity;
 import com.maven.demo.entity.RoleEntity;
 import com.maven.demo.entity.UserEntity;
+import com.maven.demo.repository.CustomerTypeRepository;
 import com.maven.demo.repository.RoleRepository;
 import com.maven.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,9 @@ public class UserService {
     @Autowired
     private OtpService otpService;
 
+    @Autowired
+    private CustomerTypeRepository customerTypeRepository;
+
     public String registerUser(UserDTO dto) {
         String phone = dto.getPhoneNumber().trim();
         if (phone.startsWith("+959")) {
@@ -52,6 +57,9 @@ public class UserService {
         RoleEntity role = roleRepository.findById(dto.getRoleId())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
+        CustomerTypeEntity defaultType = customerTypeRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Default customer type not found"));
+
         List<String> imageUrls = dto.getImageUrls();
         if (imageUrls == null || imageUrls.isEmpty()) {
             imageUrls = List.of("https://res.cloudinary.com/dmbwaqjta/image/upload/v1748967961/Default_Photo_k8ihoe.png");
@@ -67,6 +75,8 @@ public class UserService {
         user.setStatus(0);
         user.setRole(role);
 
+        user.setCustomerType(defaultType);
+
         userRepository.save(user);
 
         UserEntity savedUser = userRepository.findByEmail(user.getEmail())
@@ -78,6 +88,7 @@ public class UserService {
 
         return "User registered successfully";
     }
+
 
     public LoginResponseDTO login(String email, String password) {
         Optional<UserEntity> userOpt = userRepository.findByEmail(email);

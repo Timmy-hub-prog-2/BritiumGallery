@@ -5,6 +5,12 @@ export interface Coupon {
   discount: string;
   status?: string;
  
-  startDate?: string;  // Make startDate optional
-  endDate?: string;    // Make endDate optional
+  startDate?: string;  
+  endDate?: string;
+  rules?: CustomerRule[];  
+}
+
+export interface CustomerRule {
+  customerTypeId: number;
+  times: number;
 }

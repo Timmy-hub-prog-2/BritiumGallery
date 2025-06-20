@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
+
 @Getter
 @Setter
 @Table(name = "coupon")
@@ -20,11 +22,14 @@ public class CouponEntity {
     private String status;
 
     @Column(name = "start_date")
-    private LocalDate startDate;  // Start date of the coupon
+    private LocalDate startDate;
 
     @Column(name = "end_date")
     private LocalDate endDate;
-    //   private LocalDate validThrough;
 
-    // Getters and Setters
+    @OneToMany(mappedBy = "coupon")
+    private List<UserCouponUsageEntity> usages;
+
+    @OneToMany(mappedBy = "coupon")
+    private List<CouponCustomerTypeEntity> couponRules;
 }

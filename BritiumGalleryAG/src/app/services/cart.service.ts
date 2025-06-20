@@ -1,18 +1,23 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+
 export interface CartItem {
-    productVariantId: number;
-    productName: string;
-    imageUrl: string;
-    quantity: number;
-    price: number;
-    stock: number;
-  }
-  
+  productId: number;
+  productVariantId: number;
+  productName: string;
+  imageUrl: string;
+  quantity: number;
+  price: number;
+  stock: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class CartService {
+  private cartCountSubject = new BehaviorSubject<number>(0);
+  cartCount$ = this.cartCountSubject.asObservable();
+
   private getCartKey(userId: number): string {
     return `cartItems_${userId}`;
   }
@@ -24,34 +29,39 @@ export class CartService {
     return cart ? JSON.parse(cart) : [];
   }
 
+  private updateCartCount(userId: number): void {
+    const items = this.getCartItems(userId);
+    const total = items.reduce((sum, item) => sum + item.quantity, 0);
+    this.cartCountSubject.next(total);
+  }
+
   addToCart(item: CartItem, userId: number): boolean {
     const items = this.getCartItems(userId);
     const existingItem = items.find(i => i.productVariantId === item.productVariantId);
-    
+
     if (existingItem) {
       const newQuantity = existingItem.quantity + item.quantity;
-      if (newQuantity > existingItem.stock) {
-        return false; // Not enough stock
-      }
+      if (newQuantity > existingItem.stock) return false;
       existingItem.quantity = newQuantity;
     } else {
-      if (item.quantity > item.stock) {
-        return false; // Not enough stock for the initial add
-      }
+      if (item.quantity > item.stock) return false;
       items.push(item);
     }
 
     localStorage.setItem(this.getCartKey(userId), JSON.stringify(items));
+    this.updateCartCount(userId);
     return true;
   }
 
   removeFromCart(variantId: number, userId: number): void {
     const items = this.getCartItems(userId).filter(item => item.productVariantId !== variantId);
     localStorage.setItem(this.getCartKey(userId), JSON.stringify(items));
+    this.updateCartCount(userId);
   }
 
   clearCart(userId: number): void {
     localStorage.removeItem(this.getCartKey(userId));
+    this.updateCartCount(userId);
   }
 
   updateCartItem(item: CartItem, userId: number): void {
@@ -60,7 +70,12 @@ export class CartService {
     if (index !== -1) {
       items[index] = item;
       localStorage.setItem(this.getCartKey(userId), JSON.stringify(items));
+      this.updateCartCount(userId);
     }
   }
-  
+
+  getTotalQuantity(userId: number): number {
+    const items = this.getCartItems(userId);
+    return items.reduce((total, item) => total + item.quantity, 0);
+  }
 }

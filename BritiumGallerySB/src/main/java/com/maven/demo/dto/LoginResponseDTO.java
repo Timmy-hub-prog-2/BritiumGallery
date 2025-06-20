@@ -15,6 +15,7 @@ public class LoginResponseDTO {
     private Integer status;
     private Long roleId;
     private List<String> imageUrls;
+    private String customerType;
 
     public LoginResponseDTO(UserEntity user) {
         this.id = user.getId();
@@ -25,5 +26,6 @@ public class LoginResponseDTO {
         this.status = user.getStatus();
         this.roleId = user.getRole().getId();
         this.imageUrls = user.getImageUrls();
+        this.customerType = user.getCustomerType().getType();
     }
 }

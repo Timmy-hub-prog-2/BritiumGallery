@@ -39,7 +39,8 @@ export class UserRegisterComponent {
     imageUrls: [],
     gender: '',
     status: 0,
-    roleId: 3
+    roleId: 3,
+    customerType: ''
   };
 
   selectedFiles: File[] = [];
