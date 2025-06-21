@@ -3,7 +3,7 @@
       <h2>🛒 Your Shopping Cart</h2>
       <button class="close-btn" (click)="continueShopping()">&times;</button>
     </div>
-  
+
     <div class="empty-cart" *ngIf="items.length === 0">
       <div class="empty-cart-icon">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -14,7 +14,7 @@
       <p>Looks like you haven't added anything to your cart yet</p>
       <button class="continue-shopping" (click)="continueShopping()">Continue Shopping</button>
     </div>
-  
+
     <div class="cart-content" *ngIf="items.length > 0">
       <div class="cart-layout">
         <div class="cart-items-section">
@@ -31,7 +31,7 @@
             <tbody>
               <tr *ngFor="let item of items">
                 <td class="product-info">
-                  <a [routerLink]="['/product-detail', item.productId]">
+                  <a [routerLink]="['/product-detail',item.productId]">
                     <img [src]="item.imageUrl" alt="Product image" />
                   </a>
                   <span>{{ item.productName }}</span>
@@ -64,7 +64,7 @@
             </button>
           </div>
         </div>
-  
+
         <div class="cart-summary-section">
           <div class="promo-box">
             <h3>Promo Code</h3>
@@ -72,16 +72,16 @@
               <input type="text" [(ngModel)]="couponCode" placeholder="Enter promo code" [disabled]="couponApplied">
               <button class="apply-btn" (click)="applyCoupon()" [disabled]="couponApplied || !couponCode">Apply Code</button>
             </div>
-  
+
             <div *ngIf="couponError" style="color: red; margin-top: 5px;">
               {{ couponError }}
             </div>
-  
+
             <div *ngIf="discountAmount > 0" style="color: green; margin-top: 5px;">
               Coupon applied! Discount: MMK {{ discountAmount | number:'1.0-0' }}
             </div>
           </div>
-  
+
           <div class="order-summary-box">
             <h3>Order Summary</h3>
             <div class="summary-row">
@@ -101,11 +101,10 @@
               <span>MMK {{ getTotalCost() | number:'1.0-0' }}</span>
             </div>
           </div>
-  
+
           <button class="checkout-btn" (click)="proceedToCheckout()">Proceed to Checkout</button>
           <button class="continue-btn" (click)="continueShopping()">Continue Shopping</button>
         </div>
       </div>
     </div>
   </div>
-  

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { User } from '../../user.model';
@@ -8,7 +8,7 @@ import { User } from '../../user.model';
   selector: 'app-login',
   standalone: false,
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'] 
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
   email = '';
@@ -16,7 +16,7 @@ export class LoginComponent {
   message = '';
   showPassword = false;
 
-  constructor(private http: HttpClient, private router: Router, private userService: UserService) {}
+  constructor(private http: HttpClient, private router: Router, private userService: UserService,private cdr: ChangeDetectorRef) {}
 
  login() {
   this.http.post<any>('http://localhost:8080/gallery/users/login', {
@@ -24,15 +24,19 @@ export class LoginComponent {
     password: this.password
   }).subscribe({
     next: (user: User) => {
-      console.log('User received from backend:', user); 
+      console.log('User received from backend:', user);
       this.userService.setLoggedInUser(user);
       localStorage.setItem('loggedInUser', JSON.stringify(user));
 
       // Redirect based on role
       if (user.roleId === 3) {
+
         this.router.navigate(['/customer-dashboard']);
+
       } else if (user.roleId === 2) {
+
         this.router.navigate(['/admin-dashboard']);
+         this.cdr.detectChanges();
       } else {
         this.message = 'Unauthorized role. Please contact support.';
       }

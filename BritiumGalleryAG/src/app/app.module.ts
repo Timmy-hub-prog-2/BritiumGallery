@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule } from '@angular/forms';
+import { FormsModule} from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -16,7 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatPaginatorModule } from '@angular/material/paginator';
-
+import { ReactiveFormsModule} from '@angular/forms';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 
@@ -60,6 +60,8 @@ import { CouponComponent } from './coupon/coupon.component';
 import { ViewProfileComponent } from './view-profile/view-profile.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
 import { CategoryProductComponent } from './category-product/category-product.component';
+import { DeliveryComponent } from './delivery/delivery.component';
+import { CheckoutComponent } from './checkout/checkout.component';
 
 @NgModule({
   declarations: [
@@ -100,7 +102,9 @@ import { CategoryProductComponent } from './category-product/category-product.co
     CartPreviewComponent,
     CouponComponent,
     ViewProfileComponent,
-    ChangePasswordComponent
+    ChangePasswordComponent,
+    DeliveryComponent,
+    CheckoutComponent
   ],
   imports: [
     BrowserModule,
@@ -109,6 +113,7 @@ import { CategoryProductComponent } from './category-product/category-product.co
     FormsModule,
     BrowserAnimationsModule,
     HttpClientModule,
+    ReactiveFormsModule,
     MatTableModule,
     MatSortModule,
     MatFormFieldModule,

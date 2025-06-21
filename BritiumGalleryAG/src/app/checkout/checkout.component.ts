@@ -35,6 +35,7 @@ export class CheckoutComponent implements OnInit {
     status: 0,
     roleId: 3,
     address: '',
+    customerType:''
   };
 
   deliveryFee: number = 0;

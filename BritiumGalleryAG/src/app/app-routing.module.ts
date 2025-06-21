@@ -30,6 +30,8 @@ import { CouponComponent } from './coupon/coupon.component';
 import { ViewProfileComponent } from './view-profile/view-profile.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
 import { CategoryProductComponent } from './category-product/category-product.component';
+import { CheckoutComponent } from './checkout/checkout.component';
+import { DeliveryComponent } from './delivery/delivery.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -62,7 +64,10 @@ const routes: Routes = [
   {path:'coupon',component:CouponComponent},
   {path:'view-profile',component:ViewProfileComponent},
   {path:'change-password',component:ChangePasswordComponent},
-  {path:'category-products/:categoryId',component:CategoryProductComponent}
+  {path:'category-products/:categoryId',component:CategoryProductComponent},
+  {path:'checkout',component:CheckoutComponent},
+  {path:'delivery',component:DeliveryComponent}
+
 ];
 
 @NgModule({

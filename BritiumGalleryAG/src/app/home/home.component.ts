@@ -21,7 +21,7 @@ export class HomeComponent implements OnInit {
 
     if (user?.status === 1) {
       console.log('✅ User is verified. Showing welcome sticker...');
-      this.showWelcomeSticker(user);
+
 
       // 🕒 Delay address check to prevent alert overlap
       setTimeout(() => {
@@ -33,23 +33,7 @@ export class HomeComponent implements OnInit {
     }
   }
 
- showWelcomeSticker(user: any) {
-  Swal.fire({
-    title: `👋 Welcome back!`,
-    html: `<strong style="color: #3498db; font-size: 16px;">Glad to see you again, ${user.name}</strong>`,
-    background: '#ffffff',
-    toast: true,
-    position: 'top-end',
-    showConfirmButton: false,
-    timer: 3500,
-    iconHtml: `<div style="font-size: 30px;">👋</div>`,
-    customClass: {
-      popup: 'custom-swal-welcome',
-      title: 'swal-title-bold',
-      htmlContainer: 'swal-html-container'
-    }
-  });
-}
+
 
   checkAddress(userId: number) {
     this.http.get<any[]>(`http://localhost:8080/api/addresses/user/${userId}`).subscribe({
@@ -71,7 +55,7 @@ export class HomeComponent implements OnInit {
       html: `
         <div style="display: flex; flex-direction: column; align-items: center;">
           <img src="assets/img/google-maps.png" alt="Google Maps" width="160" style="margin-bottom: 24px;" />
-          
+
           <div style="font-size: 18px; font-weight: normal; margin-bottom: 16px; text-align: center;">
             📍 You haven't added any address yet
           </div>

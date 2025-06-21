@@ -90,6 +90,7 @@ export class UserService {
 
     return this.http.put<User>(`${this.userBase}/profile/${user.id}`, formData);
   }
+
   changePassword(
     id: number,
     currentPassword: string,

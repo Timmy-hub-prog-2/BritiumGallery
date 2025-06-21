@@ -1,93 +1,169 @@
 .address-list-container {
-  padding: 20px;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+h2 {
+  color: #1e293b;
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
 .address-card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 16px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin-bottom: 2rem;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.address-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .address-card h4 {
+  background: #f8fafc;
+  color: #1e293b;
+  padding: 1.25rem;
   margin: 0;
   font-size: 1.1rem;
-  font-weight: bold;
+  font-weight: 500;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .address-details {
-  margin-top: 8px;
-  color: #555;
-  font-size: 0.9rem;
+  padding: 1.5rem;
+  color: #475569;
+}
+
+.address-details p {
+  margin: 0;
+  line-height: 1.8;
+}
+
+.address-details strong {
+  color: #1e293b;
+  font-weight: 500;
+  display: inline-block;
+  min-width: 120px;
 }
 
 .address-map {
-  margin-top: 16px;
   height: 250px;
   width: 100%;
-  border-radius: 6px;
-  background-color: #f8f9fa;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .card-actions {
-  margin-top: 12px;
   display: flex;
-  gap: 10px;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #f8fafc;
   justify-content: flex-end;
 }
 
-.edit-btn,
-.delete-btn,
-.add-btn {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  color: white;
+.edit-btn, .add-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  font-size: 1rem;
+  transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-/* Edit Button */
 .edit-btn {
-  background-color: #007bff;
+  background-color: #3b82f6;
+  color: white;
 }
 
 .edit-btn:hover {
-  background-color: #0056b3;
+  background-color: #2563eb;
+  transform: translateY(-1px);
 }
 
-/* Delete Button */
-.delete-btn {
-  background-color: #dc3545;
-}
-
-.delete-btn:hover {
-  background-color: #c82333;
-}
-
-/* Add Button */
 .add-btn {
-  background-color: #28a745;
+  background-color: #10b981;
+  color: white;
+  font-size: 1.25rem;
+  padding: 0.75rem 1rem;
 }
 
 .add-btn:hover {
-  background-color: #218838;
+  background-color: #059669;
+  transform: translateY(-1px);
 }
 
-/* Responsive layout */
+/* Empty state styling */
+.no-addresses {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.no-addresses p {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .address-card {
-    padding: 12px;
+  .address-list-container {
+    padding: 0 1rem;
+    margin: 1rem auto;
+  }
+
+  .address-card h4 {
+    font-size: 1rem;
+    padding: 1rem;
+  }
+
+  .address-details {
+    padding: 1rem;
+  }
+
+  .address-details strong {
+    min-width: 100px;
   }
 
   .card-actions {
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: wrap;
+    justify-content: center;
   }
+
+  .edit-btn, .add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+.delete-btn {
+  background-color: #ef4444; /* Tailwind's red-500 equivalent */
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626; /* Darker red for hover */
+  transform: translateY(-1px);
 }

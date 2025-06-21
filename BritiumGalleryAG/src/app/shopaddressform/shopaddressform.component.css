@@ -3,7 +3,7 @@
   flex-direction: column;
   min-height: 100vh;
   padding: 2rem;
-  background-color: #ffffff;
+  background-color: #f8fafc;
 }
 
 /* Sidebar for address form/details */
@@ -14,7 +14,7 @@
   padding: 2rem;
   background-color: white;
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Map section */

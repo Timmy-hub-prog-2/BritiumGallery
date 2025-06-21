@@ -9,6 +9,6 @@ export interface User {
   status?: number;
   roleId: number;
   address?:string;
-  customerType: string;
+  customerType?: string;
 }
 

@@ -129,7 +129,7 @@ export class CartPreviewComponent implements OnInit {
         this.discountAmount = 0;
       }
     });
-    
+
   }
 
   private resetCoupon(): void {
