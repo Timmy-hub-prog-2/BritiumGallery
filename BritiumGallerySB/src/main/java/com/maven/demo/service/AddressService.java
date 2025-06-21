@@ -102,11 +102,14 @@ public class AddressService {
         }
         addressRepository.deleteById(id);
     }
+
     public AddressDTO getMainAddressByUserId(Long userId) {
         AddressEntity mainAddress = addressRepository.findByUserIdAndMainAddressTrue(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Main address not found for user ID: " + userId));
         return toDto(mainAddress);
     }
+
+
     /**
      * Convert Entity -> DTO
      */

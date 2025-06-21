@@ -5,6 +5,8 @@ export interface Address {
   township: string;
   city: string;
   state: string;
+   latitude?: number;     
+  longitude?: number;
 }
 
 export interface People {

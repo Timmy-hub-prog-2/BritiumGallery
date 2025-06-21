@@ -65,4 +65,8 @@ public class UserEntity {
     @JsonIgnore
     private List<WishlistEntity> wishlists;
 
+    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<DeliveryEntity> deliveries;
+
 }

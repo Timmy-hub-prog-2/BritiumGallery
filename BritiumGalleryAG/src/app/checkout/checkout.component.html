@@ -1,0 +1,136 @@
+<div class="checkout-container">
+    <!-- LEFT SIDE: Checkout Form -->
+    <div class="checkout-form-section">
+
+        <form [formGroup]="checkoutForm" (ngSubmit)="submitCheckout()">
+            <!-- Shipping Address -->
+            <h3>Shipping Address</h3>
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input id="name" [value]="checkoutForm.get('name')?.value" disabled class="read-only-input"
+                    placeholder="Name" />
+            </div>
+
+            <div class="form-group-row">
+                <div class="form-group" style="flex: 1; margin-right: 10px;">
+                    <label for="email">Email</label>
+                    <input id="email" [value]="checkoutForm.get('email')?.value" disabled class="read-only-input"
+                        placeholder="Email" />
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="phone">Phone Number</label>
+                    <input id="phone" [value]="checkoutForm.get('phone')?.value" disabled class="read-only-input"
+                        placeholder="Phone" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="mainAddress">Address</label>
+                <div class="form-group-row address-edit-group">
+                    <input id="mainAddress" type="text" [value]="mainAddress" readonly class="read-only-input" />
+                    <button type="button" class="edit-btn" (click)="editAddress()">Edit</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" formControlName="billingSameAsShipping" />
+                    Billing address same as shipping
+                </label>
+            </div>
+
+            <!-- Shipping Method -->
+            <h3>Shipping Method</h3>
+            <div class="form-group">
+                <label for="shippingMethod">Choose Shipping Method</label>
+                <select id="shippingMethod" formControlName="shippingMethod" class="shipping-select">
+                    <option value="Standard">Standard Shipping</option>
+                    <option value="Express">Express Shipping</option>
+                    <option value="Ship">Ship Shipping</option>
+                </select>
+            </div>
+
+            <!-- Show standard providers only if Standard is selected -->
+            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Standard'">
+                <label for="standardName">Choose Standard Provider</label>
+                <select id="standardName" formControlName="standardName" class="shipping-select">
+                    <option value="" disabled>Select a provider</option>
+                    <option *ngFor="let standard of standardOptions" [value]="standard.name">
+                        {{ standard.name }}
+                    </option>
+                </select>
+            </div>
+
+
+            <!-- Show express names only if Express is selected -->
+            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Express'">
+                <label for="expressName">Choose Express Provider</label>
+                <select id="expressName" formControlName="expressName" class="shipping-select">
+                    <option value="" disabled selected>Select a provider</option>
+                    <option *ngFor="let express of expressOptions" [value]="express.name">{{ express.name }}</option>
+                </select>
+            </div>
+
+            <!-- ✅ Show Ship Dropdown -->
+            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Ship'">
+                <label for="shipName">Choose Ship Provider</label>
+                <select id="shipName" formControlName="shipName" class="shipping-select">
+                    <option value="" disabled selected>Select a provider</option>
+                    <option *ngFor="let ship of shipOptions" [value]="ship.name">{{ ship.name }}</option>
+                </select>
+            </div>
+
+            <!-- Payment -->
+            <h3>Payment</h3>
+            <div class="form-group">
+                <label><input type="radio" formControlName="paymentType" value="CreditCard" /> Credit Card</label>
+            </div>
+            <input formControlName="cardNumber" placeholder="Card Number" />
+            <div class="form-group-row">
+                <input formControlName="expiry" placeholder="Expiry" />
+                <input formControlName="cvv" placeholder="CVV" />
+            </div>
+
+            <button type="submit" class="place-order-btn">Place Order</button>
+        </form>
+    </div>
+
+    <!-- RIGHT SIDE: Promo Code + Order Summary -->
+    <div class="cart-summary-section">
+        <div class="promo-box">
+            <h3>Promo Code</h3>
+            <div class="promo-input-group">
+                <input type="text" [(ngModel)]="promoCode" placeholder="Enter promo code">
+                <button class="apply-btn" (click)="applyPromo()">Apply Code</button>
+            </div>
+        </div>
+
+        <div class="order-summary-box">
+            <h3>Order Summary</h3>
+
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span>MMK {{ getSubtotal() | number:'1.0-0' }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Items</span>
+                <span>{{ getTotalItems() }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Delivery Fee</span>
+                <span>MMK {{ deliveryFee | number:'1.0-0' }}</span>
+            </div>
+            <div class="summary-row" *ngIf="selectedDelayRange">
+                <span>Estimated Delivery</span>
+                <span>{{ selectedDelayRange }}</span>
+            </div>
+
+
+            <div class="summary-row total">
+                <span>Total</span>
+                <span>MMK {{ getTotalCost() | number:'1.0-0' }}</span>
+            </div>
+        </div>
+
+    </div>
+</div>

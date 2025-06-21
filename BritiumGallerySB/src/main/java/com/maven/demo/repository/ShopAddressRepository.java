@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface ShopAddressRepository extends JpaRepository<ShopAddressEntity, Long> {
     List<ShopAddressEntity> findByUserId(Long userId);
     Optional<ShopAddressEntity> findByUserIdAndMainAddressTrue(Long userId);
+
+
 }

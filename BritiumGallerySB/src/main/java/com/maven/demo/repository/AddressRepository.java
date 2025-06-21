@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 
@@ -22,4 +21,6 @@ public interface AddressRepository extends JpaRepository<AddressEntity, Long> {
     void clearMainAddressForUser(@Param("userId") Long userId);
 
     Optional<AddressEntity> findByUserIdAndMainAddressTrue(Long userId);
+
+
 }
