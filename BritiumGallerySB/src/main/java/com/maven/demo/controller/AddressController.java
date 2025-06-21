@@ -54,4 +54,10 @@ public class AddressController {
         addressService.setMainAddress(userId, addressId);
         return ResponseEntity.ok().build();
     }
+    @GetMapping("/user/{userId}/main")
+    public ResponseEntity<AddressDTO> getMainAddressByUserId(@PathVariable Long userId) {
+        AddressDTO mainAddress = addressService.getMainAddressByUserId(userId);
+        return ResponseEntity.ok(mainAddress);
+    }
+
 }

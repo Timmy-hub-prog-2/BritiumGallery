@@ -30,4 +30,6 @@ public class ShopAddressEntity {
 
     @Column(name = "main_address")
     private boolean mainAddress;
+
+
 }

@@ -39,6 +39,10 @@ updateAddress(id: number, address: AddressDTO): Observable<AddressDTO> {
  setMainAddress(userId: number, addressId: number): Observable<any> {
   return this.http.put(`${this.apiUrl}/user/${userId}/main/${addressId}`, {});
 }
+// ✅ Add this method to AddressService
+getMainAddressByUserId(userId: number): Observable<AddressDTO> {
+  return this.http.get<AddressDTO>(`${this.apiUrl}/user/${userId}/main`);
+}
 
 
 }
