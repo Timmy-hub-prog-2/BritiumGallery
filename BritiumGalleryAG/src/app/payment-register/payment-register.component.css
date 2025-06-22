@@ -1,0 +1,40 @@
+form {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  margin: 0 auto;
+  color: black;
+  background-color: white;
+  border: 1px solid black;
+  padding: 16px;
+}
+
+label {
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+input {
+  border: 1px solid black;
+  padding: 6px;
+  margin-top: 4px;
+}
+
+button {
+  margin-top: 16px;
+  color: black;
+  background-color: white;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: black;
+  font-size: 0.85em;
+  margin-top: 4px;
+}
