@@ -1,0 +1,48 @@
+<p>payment-register works!</p>
+<h2>{{ isEdit ? "Edit" : "Create" }} Payment Register</h2>
+
+<form
+  [formGroup]="paymentForm"
+  (ngSubmit)="submit()"
+  enctype="multipart/form-data"
+  novalidate
+>
+  <label for="name">Name:</label>
+  <input id="name" formControlName="name" />
+  <div
+    *ngIf="paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched"
+    class="error"
+  >
+    Name is required
+  </div>
+
+  <label for="admin_id">Admin ID:</label>
+  <input id="admin_id" type="number" formControlName="admin_id" />
+  <div
+    *ngIf="
+      paymentForm.get('admin_id')?.invalid &&
+      paymentForm.get('admin_id')?.touched
+    "
+    class="error"
+  >
+    Admin ID must be a positive number
+  </div>
+
+  <label for="qrPhotos">Upload QR Code Images:</label>
+  <input
+    id="qrPhotos"
+    type="file"
+    (change)="onFileChange($event)"
+    multiple
+    accept="image/*"
+  />
+  <div *ngIf="fileError" class="error">{{ fileError }}</div>
+
+  <button
+    type="submit"
+    [disabled]="paymentForm.invalid || selectedFiles.length === 0"
+  >
+    {{ isEdit ? "Update" : "Create" }}
+  </button>
+  <button type="button" (click)="cancel()">Cancel</button>
+</form>

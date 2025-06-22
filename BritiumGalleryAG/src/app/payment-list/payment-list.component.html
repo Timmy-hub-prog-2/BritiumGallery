@@ -1,0 +1,36 @@
+<div class="payment-container">
+  <div class="top-bar">
+    <button class="create-button" (click)="create()">Create Payment</button>
+  </div>
+
+  <table class="payment-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Admin ID</th>
+        <th>QR Images</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let payment of payments">
+        <td>{{ payment.name }}</td>
+        <td>{{ payment.admin_id }}</td>
+        <td>
+          <div class="qr-images">
+            <img
+              *ngFor="let url of payment.qrPhotoUrls"
+              [src]="url"
+              alt="QR Code"
+              width="60"
+            />
+          </div>
+        </td>
+        <td>
+          <button (click)="edit(payment.id)">Edit</button>
+          <button (click)="delete(payment.id)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

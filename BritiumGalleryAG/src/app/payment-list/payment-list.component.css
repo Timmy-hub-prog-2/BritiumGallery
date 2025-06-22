@@ -1,0 +1,76 @@
+.payment-container {
+  max-width: 90%;
+  margin: 30px auto;
+  text-align: center;
+}
+
+.create-button {
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  background-color: #000; /* black */
+  color: #fff;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.create-button:hover {
+  background-color: #333; /* dark gray on hover */
+}
+
+.payment-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+}
+
+.payment-table th,
+.payment-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  vertical-align: middle;
+}
+
+.payment-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.qr-images {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.qr-images img {
+  width: 60px;
+  height: 60px;
+  border: 1px solid #ccc;
+  padding: 4px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+td button {
+  margin: 4px;
+  padding: 6px 12px;
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+td button:hover {
+  background-color: black;
+  color: white;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
