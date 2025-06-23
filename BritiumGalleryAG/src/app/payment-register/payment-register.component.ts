@@ -15,6 +15,7 @@ export class PaymentRegisterComponent implements OnInit {
   isEdit = false;
   selectedFiles: File[] = [];
   fileError: string | null = null;
+  loggedInAdminId: number | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -24,9 +25,22 @@ export class PaymentRegisterComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Retrieve the logged-in admin's ID
+    const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    this.loggedInAdminId = user?.id ?? null;
+
+    if (!this.loggedInAdminId) {
+      alert('No logged-in admin found.');
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.paymentForm = this.fb.group({
       name: ['', Validators.required],
-      admin_id: ['', [Validators.required, Validators.min(1)]],
+      admin_id: [
+        this.loggedInAdminId,
+        [Validators.required, Validators.min(1)],
+      ], // pre-fill and hide this in HTML
     });
 
     this.route.params.subscribe((params) => {
@@ -45,9 +59,8 @@ export class PaymentRegisterComponent implements OnInit {
         next: (data) => {
           this.paymentForm.patchValue({
             name: data.name,
-            admin_id: data.admin_id,
+            admin_id: this.loggedInAdminId, // keep admin_id from localStorage
           });
-          // You can optionally show existing QR images here
         },
         error: (err) => {
           console.error('Failed to load payment:', err);
@@ -67,7 +80,6 @@ export class PaymentRegisterComponent implements OnInit {
     } else {
       this.selectedFiles = [];
       this.fileError = 'Please select at least one QR image.';
-      console.log('No files selected');
     }
   }
 
@@ -77,22 +89,19 @@ export class PaymentRegisterComponent implements OnInit {
       return;
     }
 
-    // Validate file selection on create
     if (!this.isEdit && this.selectedFiles.length === 0) {
       this.fileError = 'Please select at least one QR image.';
       return;
     }
 
+    const name = this.paymentForm.get('name')?.value;
+    const admin_id = this.loggedInAdminId; // use admin_id from login session
+
     if (this.isEdit && this.id) {
       if (this.selectedFiles.length > 0) {
-        // Edit mode WITH new images - send multipart/form-data to PUT upload endpoint
         const formData = new FormData();
-        formData.append('name', this.paymentForm.get('name')?.value);
-        formData.append(
-          'admin_id',
-          this.paymentForm.get('admin_id')?.value.toString()
-        );
-
+        formData.append('name', name);
+        formData.append('admin_id', admin_id!.toString());
         this.selectedFiles.forEach((file) => {
           formData.append('qrPhotos', file, file.name);
         });
@@ -110,12 +119,7 @@ export class PaymentRegisterComponent implements OnInit {
             },
           });
       } else {
-        // Edit mode WITHOUT new images - send JSON PUT
-        const payload = {
-          name: this.paymentForm.get('name')?.value,
-          admin_id: +this.paymentForm.get('admin_id')?.value,
-        };
-
+        const payload = { name, admin_id };
         this.http
           .put(`http://localhost:8080/payment-register/${this.id}`, payload)
           .subscribe({
@@ -126,14 +130,9 @@ export class PaymentRegisterComponent implements OnInit {
           });
       }
     } else {
-      // Create mode with file upload (multipart/form-data)
       const formData = new FormData();
-      formData.append('name', this.paymentForm.get('name')?.value);
-      formData.append(
-        'admin_id',
-        this.paymentForm.get('admin_id')?.value.toString()
-      );
-
+      formData.append('name', name);
+      formData.append('admin_id', admin_id!.toString());
       this.selectedFiles.forEach((file) => {
         formData.append('qrPhotos', file, file.name);
       });

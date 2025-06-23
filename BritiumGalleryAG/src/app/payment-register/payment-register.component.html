@@ -1,14 +1,15 @@
-<p>payment-register works!</p>
-<h2>{{ isEdit ? "Edit" : "Create" }} Payment Register</h2>
+<h2 class="form-title">{{ isEdit ? "Edit" : "Create" }} Payment Register</h2>
 
 <form
   [formGroup]="paymentForm"
   (ngSubmit)="submit()"
   enctype="multipart/form-data"
   novalidate
+  class="payment-form"
 >
-  <label for="name">Name:</label>
-  <input id="name" formControlName="name" />
+  <!-- Name Field -->
+  <label for="name" class="form-label">Name:</label>
+  <input id="name" formControlName="name" class="form-input" />
   <div
     *ngIf="paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched"
     class="error"
@@ -16,8 +17,16 @@
     Name is required
   </div>
 
-  <label for="admin_id">Admin ID:</label>
-  <input id="admin_id" type="number" formControlName="admin_id" />
+  <!-- Admin ID Field -->
+  <label for="admin_id" class="form-label">Admin ID:</label>
+  <input
+    id="admin_id"
+    type="number"
+    formControlName="admin_id"
+    class="form-input"
+    readonly
+  />
+
   <div
     *ngIf="
       paymentForm.get('admin_id')?.invalid &&
@@ -28,21 +37,27 @@
     Admin ID must be a positive number
   </div>
 
-  <label for="qrPhotos">Upload QR Code Images:</label>
+  <!-- QR Code Upload -->
+  <label for="qrPhotos" class="form-label">Upload QR Code Images:</label>
   <input
     id="qrPhotos"
     type="file"
     (change)="onFileChange($event)"
     multiple
     accept="image/*"
+    class="file-input"
   />
   <div *ngIf="fileError" class="error">{{ fileError }}</div>
 
+  <!-- Buttons -->
   <button
     type="submit"
-    [disabled]="paymentForm.invalid || selectedFiles.length === 0"
+    [disabled]="paymentForm.invalid || (!isEdit && selectedFiles.length === 0)"
+    class="btn submit-btn"
   >
     {{ isEdit ? "Update" : "Create" }}
   </button>
-  <button type="button" (click)="cancel()">Cancel</button>
+  <button type="button" (click)="cancel()" class="btn cancel-btn">
+    Cancel
+  </button>
 </form>

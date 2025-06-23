@@ -1,36 +1,78 @@
 <div class="payment-container">
   <div class="top-bar">
-    <button class="create-button" (click)="create()">Create Payment</button>
+    <button class="create-button" (click)="openModal()">Create Payment</button>
   </div>
 
   <table class="payment-table">
     <thead>
       <tr>
+        <th>ID</th>
         <th>Name</th>
         <th>Admin ID</th>
-        <th>QR Images</th>
+        <th>QR Codes</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let payment of payments">
+        <td>{{ payment.id }}</td>
         <td>{{ payment.name }}</td>
         <td>{{ payment.admin_id }}</td>
-        <td>
-          <div class="qr-images">
-            <img
-              *ngFor="let url of payment.qrPhotoUrls"
-              [src]="url"
-              alt="QR Code"
-              width="60"
-            />
-          </div>
+        <td class="qr-images">
+          <img
+            *ngFor="let url of payment.qrPhotoUrls"
+            [src]="url"
+            alt="QR Code"
+          />
         </td>
         <td>
-          <button (click)="edit(payment.id)">Edit</button>
+          <button (click)="openModal(payment)">Edit</button>
           <button (click)="delete(payment.id)">Delete</button>
         </td>
       </tr>
     </tbody>
   </table>
+
+  <!-- Modal -->
+  <div class="modal" [class.show]="modalVisible">
+    <div class="modal-content">
+      <span class="close" (click)="closeModal()">&times;</span>
+
+      <h2>{{ editingPayment ? "Edit" : "Create" }} Payment Register</h2>
+
+      <form [formGroup]="paymentForm" (ngSubmit)="submit()">
+        <label for="name">Name:</label>
+        <input id="name" formControlName="name" />
+        <div
+          *ngIf="
+            paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched
+          "
+          class="error"
+        >
+          Name is required.
+        </div>
+
+        <label for="qrPhotos">Upload QR Code Images:</label>
+        <input
+          id="qrPhotos"
+          type="file"
+          (change)="onFileChange($event)"
+          multiple
+          accept="image/*"
+        />
+        <div *ngIf="fileError" class="error">{{ fileError }}</div>
+
+        <button
+          type="submit"
+          [disabled]="
+            paymentForm.invalid ||
+            (!editingPayment && selectedFiles.length === 0)
+          "
+        >
+          {{ editingPayment ? "Update" : "Create" }}
+        </button>
+        <button type="button" (click)="closeModal()">Cancel</button>
+      </form>
+    </div>
+  </div>
 </div>
