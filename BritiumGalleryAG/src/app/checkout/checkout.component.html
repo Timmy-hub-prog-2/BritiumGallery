@@ -1,154 +1,297 @@
 <div class="checkout-container">
 
-  <!-- LEFT SIDE: Checkout Form -->
-  <div class="checkout-form-section">
-    <form [formGroup]="checkoutForm" (ngSubmit)="submitCheckout()">
-      <!-- Shipping Address -->
-      <h3>Shipping Address</h3>
-      <div class="form-group">
-        <label for="name">Name</label>
-        <input id="name" [value]="checkoutForm.get('name')?.value" disabled class="read-only-input" placeholder="Name" />
-      </div>
+  <div class="checkout-content">
+    <!-- LEFT SIDE: Checkout Form -->
+    <div class="checkout-form-section">
+      <form [formGroup]="checkoutForm" (ngSubmit)="submitCheckout()">
+        
+        <!-- Contact Information -->
+        <div class="form-card">
+          <div class="card-header">
+            <div class="step-number">1</div>
+            <div class="step-info">
+              <h2 class="step-title">Contact Information</h2>
+              <p class="step-subtitle">Your personal details</p>
+            </div>
+          </div>
+          
+          <div class="form-content">
+            <div class="form-group">
+              <label for="name" class="form-label">Full Name</label>
+              <input id="name" [value]="checkoutForm.get('name')?.value" disabled class="form-input disabled" placeholder="Name" />
+            </div>
 
-      <div class="form-group-row">
-        <div class="form-group" style="flex: 1; margin-right: 10px;">
-          <label for="email">Email</label>
-          <input id="email" [value]="checkoutForm.get('email')?.value" disabled class="read-only-input" placeholder="Email" />
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input id="email" [value]="checkoutForm.get('email')?.value" disabled class="form-input disabled" placeholder="Email" />
+              </div>
+              <div class="form-group">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input id="phone" [value]="checkoutForm.get('phone')?.value" disabled class="form-input disabled" placeholder="Phone" />
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="form-group" style="flex: 1;">
-          <label for="phone">Phone Number</label>
-          <input id="phone" [value]="checkoutForm.get('phone')?.value" disabled class="read-only-input" placeholder="Phone" />
+
+        <!-- Shipping Address -->
+        <div class="form-card">
+          <div class="card-header">
+            <div class="step-number step-2">2</div>
+            <div class="step-info">
+              <h2 class="step-title">Delivery Address</h2>
+              <p class="step-subtitle">Where should we deliver your order?</p>
+            </div>
+          </div>
+
+          <div class="form-content">
+            <div class="form-group" *ngIf="mainAddressDTO">
+              <label for="mainAddress" class="form-label">Main Address</label>
+              <div class="address-display">
+                <input id="mainAddress" type="text" [value]="mainAddress" readonly class="form-input address-input" />
+                <button type="button" class="edit-btn" (click)="editAddress()">
+                  <span class="edit-icon">✏️</span>
+                  Edit
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <button type="button" class="address-toggle-btn" (click)="openAddressModal()">
+                <span class="address-icon">📍</span>
+                Show All Addresses
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- Main Address Display -->
-      <div class="form-group" *ngIf="mainAddressDTO">
-        <label for="mainAddress">Main Address</label>
-        <div class="form-group-row address-edit-group">
-          <input id="mainAddress" type="text" [value]="mainAddress" readonly class="read-only-input" />
-          <button type="button" class="edit-btn" (click)="editAddress()">Edit</button>
+        <!-- Shipping Method -->
+        <div class="form-card">
+          <div class="card-header">
+            <div class="step-number step-3">3</div>
+            <div class="step-info">
+              <h2 class="step-title">Shipping Method</h2>
+              <p class="step-subtitle">Choose your preferred delivery speed</p>
+            </div>
+          </div>
+
+          <div class="form-content">
+            <div class="form-group">
+              <label for="shippingMethod" class="form-label">Choose Shipping Method</label>
+              <select id="shippingMethod" formControlName="shippingMethod" class="form-select">
+                <option value="Standard" [disabled]="suggestedMethod !== 'Standard'">
+                  🚚 Standard Shipping (3-5 days • Free)
+                </option>
+                <option value="Express" [disabled]="suggestedMethod !== 'Express'">
+                  ⚡ Express Shipping (1-2 days • MMK 25)
+                </option>
+                <option value="Ship" [disabled]="suggestedMethod !== 'Ship'">
+                  🚢 Ship Shipping (7-14 days • MMK 10)
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value !== 'Standard' && selectedDelayRange">
+              <div class="shipping-notice">
+                <span class="notice-icon">📢</span>
+                <span class="notice-text">
+                  Delivery method changed to <strong>{{ checkoutForm.get('shippingMethod')?.value }}</strong>
+                  based on your address distance.
+                </span>
+              </div>
+            </div>
+
+            <!-- Standard Provider -->
+            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Standard'">
+              <label for="standardName" class="form-label">Choose Standard Provider</label>
+              <select id="standardName" formControlName="standardName" class="form-select">
+                <option value="" disabled>Select a provider</option>
+                <option *ngFor="let standard of standardOptions" [value]="standard.name">{{ standard.name }}</option>
+              </select>
+            </div>
+
+            <!-- Express Provider -->
+            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Express'">
+              <label for="expressName" class="form-label">Choose Express Provider</label>
+              <select id="expressName" formControlName="expressName" class="form-select">
+                <option value="" disabled selected>Select a provider</option>
+                <option *ngFor="let express of expressOptions" [value]="express.name">{{ express.name }}</option>
+              </select>
+            </div>
+
+            <!-- Ship Provider -->
+            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Ship'">
+              <label for="shipName" class="form-label">Choose Ship Provider</label>
+              <select id="shipName" formControlName="shipName" class="form-select">
+                <option value="" disabled selected>Select a provider</option>
+                <option *ngFor="let ship of shipOptions" [value]="ship.name">{{ ship.name }}</option>
+              </select>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- Toggle Modal -->
-      <div class="form-group">
-        <button type="button" class="btn-toggle" (click)="openAddressModal()">Show All Addresses</button>
-      </div>
+        <!-- Payment -->
+        <div class="form-card">
+          <div class="card-header">
+            <div class="step-number step-4">4</div>
+            <div class="step-info">
+              <h2 class="step-title">Payment Method</h2>
+              <p class="step-subtitle">Choose how you'd like to pay</p>
+            </div>
+          </div>
 
-      <!-- Shipping Method -->
-      <h3>Shipping Method</h3>
-      <div class="form-group">
-        <label for="shippingMethod">Choose Shipping Method</label>
-        <select id="shippingMethod" formControlName="shippingMethod" class="shipping-select">
-          <option value="Standard" [disabled]="suggestedMethod !== 'Standard'">Standard Shipping</option>
-          <option value="Express" [disabled]="suggestedMethod !== 'Express'">Express Shipping</option>
-          <option value="Ship" [disabled]="suggestedMethod !== 'Ship'">Ship Shipping</option>
-        </select>
-      </div>
+          <div class="form-content">
+            <div class="form-group">
+              <label class="form-label">Select Payment Method</label>
+              <div class="payment-options">
+                <label class="payment-option">
+                  <input type="radio" formControlName="paymentType" value="CreditCard" />
+                  <span class="payment-icon">💳</span>
+                  <span class="payment-text">Credit Card</span>
+                </label>
+                <label class="payment-option">
+                  <input type="radio" formControlName="paymentType" value="KPay" />
+                  <span class="payment-icon">📱</span>
+                  <span class="payment-text">KPay</span>
+                </label>
+                <label class="payment-option">
+                  <input type="radio" formControlName="paymentType" value="WaveMoney" />
+                  <span class="payment-icon">💰</span>
+                  <span class="payment-text">Wave Money</span>
+                </label>
+                <label class="payment-option">
+                  <input type="radio" formControlName="paymentType" value="CBPay" />
+                  <span class="payment-icon">🏦</span>
+                  <span class="payment-text">CB Pay</span>
+                </label>
+              </div>
+            </div>
 
-      <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value !== 'Standard' && selectedDelayRange">
-        <div class="method-notice"
-          style="padding: 8px; background-color: #fff7e6; border-left: 4px solid #ffc107; margin-top: 5px; border-radius: 4px;">
-          📢 Delivery method changed to <strong>{{ checkoutForm.get('shippingMethod')?.value }}</strong>
-          based on your address distance.
+            <!-- Credit Card Fields -->
+            <div class="payment-fields" *ngIf="checkoutForm.get('paymentType')?.value === 'CreditCard'">
+              <div class="form-group">
+                <label class="form-label">Card Number</label>
+                <input formControlName="cardNumber" placeholder="1234 5678 9012 3456" class="form-input" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Expiry Date</label>
+                  <input formControlName="expiry" placeholder="MM/YY" class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">CVV</label>
+                  <input formControlName="cvv" placeholder="123" class="form-input" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Mobile Payment Fields -->
+            <div class="payment-fields" *ngIf="checkoutForm.get('paymentType')?.value === 'KPay' || checkoutForm.get('paymentType')?.value === 'WaveMoney'">
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input formControlName="phoneNumber" placeholder="09xxxxxxxxx" class="form-input" />
+              </div>
+            </div>
+
+            <!-- Bank Payment Fields -->
+            <div class="payment-fields" *ngIf="checkoutForm.get('paymentType')?.value === 'CBPay'">
+              <div class="form-group">
+                <label class="form-label">Account Number</label>
+                <input formControlName="accountNumber" placeholder="Enter your account number" class="form-input" />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- Standard Provider -->
-      <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Standard'">
-        <label for="standardName">Choose Standard Provider</label>
-        <select id="standardName" formControlName="standardName" class="shipping-select">
-          <option value="" disabled>Select a provider</option>
-          <option *ngFor="let standard of standardOptions" [value]="standard.name">{{ standard.name }}</option>
-        </select>
-      </div>
-
-      <!-- Express Provider -->
-      <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Express'">
-        <label for="expressName">Choose Express Provider</label>
-        <select id="expressName" formControlName="expressName" class="shipping-select">
-          <option value="" disabled selected>Select a provider</option>
-          <option *ngFor="let express of expressOptions" [value]="express.name">{{ express.name }}</option>
-        </select>
-      </div>
-
-      <!-- Ship Provider -->
-      <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Ship'">
-        <label for="shipName">Choose Ship Provider</label>
-        <select id="shipName" formControlName="shipName" class="shipping-select">
-          <option value="" disabled selected>Select a provider</option>
-          <option *ngFor="let ship of shipOptions" [value]="ship.name">{{ ship.name }}</option>
-        </select>
-      </div>
-
-      <!-- Payment -->
-      <h3>Payment</h3>
-      <div class="form-group">
-        <label>
-          <input type="radio" formControlName="paymentType" value="CreditCard" /> Credit Card
-        </label>
-      </div>
-      <input formControlName="cardNumber" placeholder="Card Number" />
-      <div class="form-group-row">
-        <input formControlName="expiry" placeholder="Expiry" />
-        <input formControlName="cvv" placeholder="CVV" />
-      </div>
-
-      <button type="submit" class="place-order-btn">Place Order</button>
-    </form>
-  </div>
-
-  <!-- RIGHT SIDE: Summary -->
-  <div class="cart-summary-section">
-    <div class="promo-box">
-      <h3>Promo Code</h3>
-      <div class="promo-input-group">
-        <input type="text" [(ngModel)]="promoCode" placeholder="Enter promo code">
-        <button class="apply-btn" (click)="applyPromo()">Apply Code</button>
-      </div>
-    </div>
-
-    <div class="order-summary-box">
-      <h3>Order Summary</h3>
-      <div class="summary-row"><span>Subtotal</span><span>MMK {{ getSubtotal() | number:'1.0-0' }}</span></div>
-      <div class="summary-row"><span>Items</span><span>{{ getTotalItems() }}</span></div>
-      <div class="summary-row"><span>Delivery Fee</span><span>MMK {{ deliveryFee | number:'1.0-0' }}</span></div>
-      <div class="summary-row" *ngIf="selectedDelayRange">
-        <span>Estimated Delivery</span><span>{{ selectedDelayRange }}</span>
-      </div>
-      <div class="summary-row total">
-        <span>Total</span><span>MMK {{ getTotalCost() | number:'1.0-0' }}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 🧾 Modal for All Addresses -->
-<div class="modal-backdrop" *ngIf="isAddressModalOpen">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>My Addresses</h3>
-      <button class="close-btn" (click)="closeAddressModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div *ngFor="let address of addresses" class="address-card">
-        <p>
-          {{ address.houseNumber }}, {{ address.street }}, {{ address.wardName }}, {{ address.township }},
-          {{ address.city }}, {{ address.state }}, {{ address.country }},
-          {{ address.postalCode || 'N/A' }}
-        </p>
-
-        <!-- Use icon button to set as main -->
-        <button *ngIf="address.id !== mainAddressId"
-                class="icon-button"
-                (click)="setAsMain(address.id!)"
-                title="Set as Main Address">
-          ⭐
+        <button type="submit" class="place-order-btn">
+          <span class="btn-icon">🛒</span>
+          Complete Order
         </button>
+      </form>
+    </div>
 
-        <!-- Show icon label if it's main address -->
-        <span *ngIf="address.id === mainAddressId" class="main-label" title="Main Address">
-          🏠 Main
-        </span>
+    <!-- RIGHT SIDE: Summary -->
+    <div class="cart-summary-section">
+      <!-- Promo Code -->
+      <div class="summary-card promo-card">
+        <div class="card-header-small">
+          <div class="promo-icon">🏷️</div>
+          <div>
+            <h3 class="card-title">Promo Code</h3>
+            <p class="card-subtitle">Apply discount code</p>
+          </div>
+        </div>
+        <div class="promo-input-group">
+          <input type="text" [(ngModel)]="promoCode" placeholder="Enter discount code" class="promo-input">
+          <button class="apply-btn" (click)="applyPromo()">Apply Code</button>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="summary-card order-summary-card">
+        <div class="card-header-small">
+          <div class="summary-icon">🛍️</div>
+          <div>
+            <h3 class="card-title">Order Summary</h3>
+            <p class="card-subtitle">Review your order</p>
+          </div>
+        </div>
+        
+        <div class="summary-content">
+          <div class="summary-row">
+            <span class="summary-label">Subtotal</span>
+            <span class="summary-value">MMK {{ getSubtotal() | number:'1.0-0' }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Items</span>
+            <span class="summary-badge">{{ getTotalItems() }} items</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Delivery Fee</span>
+            <span class="summary-value">MMK {{ deliveryFee | number:'1.0-0' }}</span>
+          </div>
+          <div class="summary-row" *ngIf="selectedDelayRange">
+            <span class="summary-label">Estimated Delivery</span>
+            <span class="delivery-badge">{{ selectedDelayRange }}</span>
+          </div>
+          
+          <div class="summary-total">
+            <div class="total-row">
+              <span class="total-label">Total</span>
+              <span class="total-value">MMK {{ getTotalCost() | number:'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for All Addresses -->
+  <div class="modal-backdrop" *ngIf="isAddressModalOpen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">My Addresses</h3>
+        <button class="close-btn" (click)="closeAddressModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div *ngFor="let address of addresses" class="address-card">
+          <p class="address-text">
+            {{ address.houseNumber }}, {{ address.street }}, {{ address.wardName }}, {{ address.township }},
+            {{ address.city }}, {{ address.state }}, {{ address.country }},
+            {{ address.postalCode || 'N/A' }}
+          </p>
+
+          <button *ngIf="address.id !== mainAddressId"
+                  class="set-main-btn"
+                  (click)="setAsMain(address.id!)"
+                  title="Set as Main Address">
+            ⭐ Set as Main
+          </button>
+
+          <span *ngIf="address.id === mainAddressId" class="main-label" title="Main Address">
+            🏠 Main Address
+          </span>
+        </div>
       </div>
     </div>
   </div>
