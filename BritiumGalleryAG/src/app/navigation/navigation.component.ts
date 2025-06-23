@@ -8,6 +8,7 @@ import { forkJoin, Observable, of, Subscription } from 'rxjs';
 import { map, switchMap, catchError } from 'rxjs/operators';
 import { UserService } from '../services/user.service';
 import { User } from '../../user.model';
+import { CartService } from '../services/cart.service';
 
 interface CategoryWithSubs extends category {
   subcategories?: CategoryWithSubs[];
@@ -28,6 +29,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
   isMegaMenuVisible = false;
   user: User | null = null;
   isProfileMenuVisible = false;
+  cartItemCount = 0;
   
   private hideMenuTimeout: any;
   private hoverTimeout: any;
@@ -37,24 +39,32 @@ export class NavigationComponent implements OnInit, OnDestroy {
     private categoryService: CategoryService,
     private productService: ProductService,
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
+    private cartService: CartService
   ) {}
 
   ngOnInit(): void {
+    // Load top-level categories and their children
     this.categoryService.getAllCategories().subscribe((categories: CategoryWithSubs[]) => {
-      this.categories = categories.filter(cat => !cat.parent_category_id); // Filter top-level categories
+      this.categories = categories.filter(cat => !cat.parent_category_id);
       this.loadCategoryChildren(this.categories).subscribe(() => {
         if (this.categories.length > 0) {
           this.setActiveCategory(this.categories[0]);
         }
       });
     });
-
-    // Subscribe to user changes from UserService
+  
+    // Subscribe to user changes
     this.userSubscription = this.userService.currentUser.subscribe((user: User | null) => {
       this.user = user;
     });
+  
+    // ✅ Subscribe to cart count
+    this.cartService.cartCount$.subscribe(count => {
+      this.cartItemCount = count;
+    });
   }
+  
 
   ngOnDestroy(): void {
     if (this.hoverTimeout) {

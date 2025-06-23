@@ -43,6 +43,7 @@ export class CouponComponent implements OnInit {
   showCustomerTypeRules: boolean = false;
   allCustomerTypesEnabled: boolean = false;
   selectedCustomerType: string = '';
+  noExpiry: boolean = false;
 
   constructor(private couponService: CouponService, private snackBar: MatSnackBar) {
     const today = new Date();
@@ -107,6 +108,7 @@ export class CouponComponent implements OnInit {
     this.usageRules = [];
     this.showCustomerTypeRules = false;
     this.selectedCustomerType = '';
+    this.noExpiry = false;
   }
 
   validateCouponCode(): void {
@@ -120,7 +122,6 @@ export class CouponComponent implements OnInit {
       !!this.newCoupon.type &&
       !!this.newCoupon.discount &&
       !!this.newCoupon.startDate &&
-      !!this.newCoupon.endDate &&
       !this.codeError
     );
   }
@@ -151,6 +152,13 @@ export class CouponComponent implements OnInit {
     }
   }
 
+  toggleNoExpiry(event: any): void {
+    this.noExpiry = event.target.checked;
+    if (this.noExpiry) {
+      this.newCoupon.endDate = null;
+    }
+  }
+
   createCoupon(): void {
     this.validateCouponCode();
     if (this.codeError) {
@@ -168,7 +176,7 @@ export class CouponComponent implements OnInit {
     }
 
     if (!this.isFormValid()) {
-      alert('Please fill in all fields.');
+      alert('Please fill in all required fields.');
       return;
     }
 
@@ -178,6 +186,10 @@ export class CouponComponent implements OnInit {
         const rule = this.usageRules.find(r => r.customerTypeId === type.id);
         return { customerTypeId: type.id, times: rule?.times || 1 };
       });
+
+    if (this.noExpiry) {
+      this.newCoupon.endDate = null;
+    }
 
     const request = this.isEditMode
       ? this.couponService.updateCoupon(this.newCoupon)
@@ -277,11 +289,11 @@ export class CouponComponent implements OnInit {
 
   onCustomerTypeSelectionChange(): void {
     this.customerTypes.forEach(type => type.enabled = false);
-    
+
     if (this.selectedCustomerType === 'all') {
       this.customerTypes.forEach(type => type.enabled = true);
     } else if (this.selectedCustomerType) {
-      const selectedType = this.customerTypes.find(type => 
+      const selectedType = this.customerTypes.find(type =>
         type.name.toLowerCase() === this.selectedCustomerType
       );
       if (selectedType) {

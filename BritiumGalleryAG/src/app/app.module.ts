@@ -62,6 +62,8 @@ import { ChangePasswordComponent } from './change-password/change-password.compo
 import { CategoryProductComponent } from './category-product/category-product.component';
 import { DeliveryComponent } from './delivery/delivery.component';
 import { CheckoutComponent } from './checkout/checkout.component';
+import { PaymentListComponent } from './payment-list/payment-list.component';
+import { PaymentRegisterComponent } from './payment-register/payment-register.component';
 
 @NgModule({
   declarations: [
@@ -104,7 +106,9 @@ import { CheckoutComponent } from './checkout/checkout.component';
     ViewProfileComponent,
     ChangePasswordComponent,
     DeliveryComponent,
-    CheckoutComponent
+    CheckoutComponent,
+    PaymentListComponent,
+    PaymentRegisterComponent
   ],
   imports: [
     BrowserModule,

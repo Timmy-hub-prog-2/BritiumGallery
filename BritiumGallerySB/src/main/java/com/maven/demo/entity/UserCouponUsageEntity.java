@@ -1,5 +1,6 @@
 package com.maven.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import lombok.Setter;
 @Table(name = "user_has_coupon")
 @Getter
 @Setter
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class UserCouponUsageEntity {
 
     @Id
@@ -25,4 +27,3 @@ public class UserCouponUsageEntity {
     @Column(name = "date")
     private String date;
 }
-

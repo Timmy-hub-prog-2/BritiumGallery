@@ -98,7 +98,7 @@ export class CartPreviewComponent implements OnInit {
     if (this.currentUser) {
       this.cartService.clearCart(this.currentUser.id);
       this.items = [];
-      this.resetCoupon(); // ✅ clear coupon on cart clear
+      this.resetCoupon(); 
     } else {
       this.router.navigate(['/login']);
     }

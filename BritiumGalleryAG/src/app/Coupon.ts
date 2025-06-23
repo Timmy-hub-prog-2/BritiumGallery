@@ -6,7 +6,7 @@ export interface Coupon {
   status?: string;
  
   startDate?: string;  
-  endDate?: string;
+  endDate: string | null;
   rules?: CustomerRule[];  
 }
 

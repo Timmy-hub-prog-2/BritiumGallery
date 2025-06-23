@@ -49,20 +49,24 @@ public class UserEntity {
     @JoinColumn(name = "customer_type_id", nullable = false)
     private CustomerTypeEntity customerType;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<TotalSpendEntity> totalSpends;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<UserCouponUsageEntity> usedCoupons;
 
-    @OneToMany(mappedBy = "user" , cascade =  CascadeType.ALL)
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<OtpEntity> otpList;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<AddressEntity> addresses;
 
-    @OneToMany(mappedBy = "user")
     @JsonIgnore
+    @OneToMany(mappedBy = "user")
     private List<WishlistEntity> wishlists;
 
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)

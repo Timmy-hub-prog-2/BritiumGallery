@@ -385,7 +385,7 @@
 }
 
 .cart-button {
-  position: relative; /* Anchor for absolute positioning */
+  position: relative; 
 }
 
 .cart-badge {
