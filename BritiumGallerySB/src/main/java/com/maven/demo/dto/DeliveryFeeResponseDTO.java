@@ -7,4 +7,6 @@ public class DeliveryFeeResponseDTO {
     private double distance;
     private double fee;
     private String estimatedTime;
+    private String suggestedMethod;
+
 }
