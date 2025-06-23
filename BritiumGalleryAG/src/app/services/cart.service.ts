@@ -22,8 +22,14 @@ export class CartService {
     return `cartItems_${userId}`;
   }
 
-  constructor() {}
-
+  constructor() {
+    const loggedInUser = localStorage.getItem('loggedInUser');
+    if (loggedInUser) {
+      const user = JSON.parse(loggedInUser);
+      this.updateCartCount(user.id);  
+    }
+  }
+  
   getCartItems(userId: number): CartItem[] {
     const cart = localStorage.getItem(this.getCartKey(userId));
     return cart ? JSON.parse(cart) : [];

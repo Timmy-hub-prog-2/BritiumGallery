@@ -61,11 +61,14 @@ public class CouponController {
         CouponEntity coupon = couponOpt.get();
         LocalDate today = LocalDate.now();
 
-        if (coupon.getStatus().equalsIgnoreCase("Inactive") ||
-                coupon.getStartDate().isAfter(today) ||
-                coupon.getEndDate().isBefore(today)) {
+        if (coupon.getStatus().equalsIgnoreCase("Inactive") || coupon.getStartDate().isAfter(today)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Coupon is not valid today");
         }
+
+        if (coupon.getEndDate() != null && coupon.getEndDate().isBefore(today)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Coupon has expired");
+        }
+
 
         return ResponseEntity.ok(coupon);
     }

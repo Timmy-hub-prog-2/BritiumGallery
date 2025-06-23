@@ -140,10 +140,10 @@ public class CouponService {
 
         if (coupon.getStatus().equalsIgnoreCase("Inactive") ||
                 LocalDate.now().isBefore(coupon.getStartDate()) ||
-                LocalDate.now().isAfter(coupon.getEndDate())) {
+                (coupon.getEndDate() != null && LocalDate.now().isAfter(coupon.getEndDate()))) {
             throw new RuntimeException("Coupon is expired or inactive");
         }
-
+        
         double discountValue;
         try {
             discountValue = Double.parseDouble(coupon.getDiscount());
