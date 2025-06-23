@@ -23,5 +23,6 @@ export interface DeliveryFeeRequestDTO {
 export interface DeliveryFeeResponseDTO {
   fee: number;            // The calculated delivery fee
   distance: number;       // The distance between the user and the shop
-  estimatedTime: string;  // Estimated delivery time
+  estimatedTime: string; 
+  suggestedMethod?: string; // Estimated delivery time
 }
