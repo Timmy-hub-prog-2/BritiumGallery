@@ -4,6 +4,7 @@ import com.maven.demo.entity.DeliveryEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -11,5 +12,5 @@ public interface DeliveryRepository extends JpaRepository<DeliveryEntity, Intege
 
     Optional<DeliveryEntity> findByTypeIgnoreCaseAndNameIgnoreCase(String type, String name);
 
-    Optional<Object> findByTypeIgnoreCaseAndShopAddressId(String suggestedMethod, Long id);
+    List<DeliveryEntity> findByTypeIgnoreCaseAndShopAddressId(String type, Integer shopAddressId);
 }

@@ -135,6 +135,7 @@ export class CartPreviewComponent implements OnInit {
         this.cartService.setAppliedCouponCode(this.couponCode);
         this.cartService.setDiscountType(res.discountType);
         this.cartService.setDiscountValue(res.discountValue);
+        localStorage.setItem('couponApplied', 'true');
       },
       error: (err) => {
         this.couponError = err.error || 'Failed to apply coupon.';

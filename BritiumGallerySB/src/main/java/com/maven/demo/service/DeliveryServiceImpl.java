@@ -142,12 +142,9 @@ public class DeliveryServiceImpl implements DeliveryService {
         } else {
             suggestedMethod = "SHIP";
         }
-
-        // Fetch the correct delivery entity for the suggested method
-        DeliveryEntity delivery = (DeliveryEntity) deliveryRepository.findByTypeIgnoreCaseAndShopAddressId(
-                suggestedMethod, shopAddress.getId()
-        ).orElseThrow(() -> new RuntimeException("Delivery not found for method: " + suggestedMethod +
-                " and shop address id: " + shopAddress.getId()));
+        
+        // Use the selected provider (anyDelivery) for fee calculation
+        DeliveryEntity delivery = anyDelivery;
 
         double fee;
         if ("STANDARD".equalsIgnoreCase(suggestedMethod)) {
