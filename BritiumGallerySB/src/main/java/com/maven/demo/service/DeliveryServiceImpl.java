@@ -98,72 +98,76 @@ public class DeliveryServiceImpl implements DeliveryService {
         deliveryRepository.deleteById(id);
     }
 
-
+    // DeliveryServiceImpl.java (updated calculateFee method)
     @Override
     public DeliveryFeeResponseDTO calculateFee(DeliveryFeeRequestDTO request) {
-        // 1. Get user's main address
         AddressEntity address = addressRepo.findByUserIdAndMainAddressTrue(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("Main address not found for user"));
 
-        // 2. Get delivery
-        DeliveryEntity delivery;
+        DeliveryEntity anyDelivery;
         if (request.getDeliveryId() != null) {
-            delivery = deliveryRepository.findById(request.getDeliveryId().intValue())
+            anyDelivery = deliveryRepository.findById(request.getDeliveryId().intValue())
                     .orElseThrow(() -> new RuntimeException("Delivery not found with ID: " + request.getDeliveryId()));
         } else {
-            delivery = deliveryRepository.findByTypeIgnoreCaseAndNameIgnoreCase(
+            anyDelivery = deliveryRepository.findByTypeIgnoreCaseAndNameIgnoreCase(
                     request.getMethod(), request.getName()
             ).orElseThrow(() -> new RuntimeException("Delivery not found for method: " + request.getMethod() +
                     " and name: " + request.getName()));
         }
 
-        // 3. Get shop address
-        ShopAddressEntity shopAddress = delivery.getShopAddress();
+        ShopAddressEntity shopAddress = anyDelivery.getShopAddress();
         if (shopAddress == null) {
             throw new RuntimeException("Shop address not associated with delivery");
         }
-
         if (shopAddress.getLatitude() == null || shopAddress.getLongitude() == null) {
             throw new RuntimeException("Shop location (latitude/longitude) is missing.");
         }
 
-        // 4. Distance Calculation
         double userLat = address.getLatitude();
         double userLng = address.getLongitude();
         double shopLat = shopAddress.getLatitude();
         double shopLng = shopAddress.getLongitude();
         double distance = haversine(userLat, userLng, shopLat, shopLng);
 
-        final double YANGON_STANDARD_KM = 300.0; // Updated value
-        final double YANGON_EXPRESS_KM = 1500.0; // Updated value
-        String suggestedMethod;
-        double fee;
-        String time = delivery.getMinDelayTime();
+        String userCity = address.getCity().trim().toLowerCase();
+        String userCountry = address.getCountry().trim().toLowerCase();
+        String shopCity = shopAddress.getCity().trim().toLowerCase();
+        String shopCountry = shopAddress.getCountry().trim().toLowerCase();
 
-        if (distance <= YANGON_STANDARD_KM) {
-            suggestedMethod = "Standard";
-            fee = Math.ceil(distance) * (delivery.getFeesPer1km() != null ? delivery.getFeesPer1km() : 0);
-        } else if (distance <= YANGON_EXPRESS_KM) {
-            suggestedMethod = "Express";
-            fee = delivery.getFixAmount() != null ? Double.parseDouble(delivery.getFixAmount()) : 0;
+        String suggestedMethod;
+        if (userCity.equals(shopCity)) {
+            suggestedMethod = "STANDARD";
+        } else if (userCountry.equals(shopCountry)) {
+            suggestedMethod = "EXPRESS";
         } else {
-            suggestedMethod = "Ship";
-            fee = delivery.getFixAmount() != null ? Double.parseDouble(delivery.getFixAmount()) : 0;
+            suggestedMethod = "SHIP";
         }
 
-        // 6. Response
+        // Fetch the correct delivery entity for the suggested method
+        DeliveryEntity delivery = (DeliveryEntity) deliveryRepository.findByTypeIgnoreCaseAndShopAddressId(
+                suggestedMethod, shopAddress.getId()
+        ).orElseThrow(() -> new RuntimeException("Delivery not found for method: " + suggestedMethod +
+                " and shop address id: " + shopAddress.getId()));
+
+        double fee;
+        if ("STANDARD".equalsIgnoreCase(suggestedMethod)) {
+            fee = Math.ceil(distance) * (delivery.getFeesPer1km() != null ? delivery.getFeesPer1km() : 0);
+        } else {
+            fee = delivery.getFixAmount() != null ? Double.parseDouble(delivery.getFixAmount()) : 0;
+        }
+        String time = delivery.getMinDelayTime();
+
         DeliveryFeeResponseDTO response = new DeliveryFeeResponseDTO();
         response.setDistance(distance);
         response.setFee(fee);
         response.setEstimatedTime(time);
-        response.setSuggestedMethod(suggestedMethod); // ✅ new logic applied
+        response.setSuggestedMethod(suggestedMethod);
 
         return response;
     }
 
-    // Haversine formula for distance calculation
     private double haversine(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371; // Earth radius in kilometers
+        final int R = 6371;
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
@@ -172,4 +176,5 @@ public class DeliveryServiceImpl implements DeliveryService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     }
+
 }

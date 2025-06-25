@@ -1,6 +1,5 @@
 package com.maven.demo.service;
 
-
 import com.maven.demo.entity.PaymentEntity;
 import com.maven.demo.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,7 @@ public class PaymentService {
 
     public PaymentEntity update(Long id, PaymentEntity newData) {
         PaymentEntity existing = repository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Not found"));
+                .orElseThrow(() -> new RuntimeException("Not found"));
 
         existing.setName(newData.getName());
         existing.setAdmin_id(newData.getAdmin_id());
@@ -40,10 +39,12 @@ public class PaymentService {
         return repository.save(existing);
     }
 
-
-
-
     public void delete(Long id) {
         repository.deleteById(id);
+    }
+
+    // ✅ NEW METHOD: Get by name
+    public PaymentEntity findByName(String name) {
+        return repository.findByName(name);
     }
 }

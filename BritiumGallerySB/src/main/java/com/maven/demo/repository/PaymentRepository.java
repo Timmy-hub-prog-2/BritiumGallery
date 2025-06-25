@@ -8,4 +8,5 @@ import com.maven.demo.entity.PaymentEntity;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
+    PaymentEntity findByName(String name);
 }

@@ -18,6 +18,43 @@ export class CartService {
   private cartCountSubject = new BehaviorSubject<number>(0);
   cartCount$ = this.cartCountSubject.asObservable();
 
+  private discountAmount: number = 0;
+  private appliedCouponCode: string = '';
+  private discountType: string = '';
+  private discountValue: string = '';
+
+  setDiscount(amount: number): void {
+    this.discountAmount = amount;
+  }
+
+  getDiscount(): number {
+    return this.discountAmount;
+  }
+
+  setAppliedCouponCode(code: string): void {
+    this.appliedCouponCode = code;
+  }
+
+  getAppliedCouponCode(): string {
+    return this.appliedCouponCode;
+  }
+
+  setDiscountType(type: string): void {
+    this.discountType = type;
+  }
+
+  getDiscountType(): string {
+    return this.discountType;
+  }
+
+  setDiscountValue(value: string): void {
+    this.discountValue = value;
+  }
+
+  getDiscountValue(): string {
+    return this.discountValue;
+  }
+
   private getCartKey(userId: number): string {
     return `cartItems_${userId}`;
   }

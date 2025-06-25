@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface DeliveryRepository extends JpaRepository<DeliveryEntity, Integer> {
 
     Optional<DeliveryEntity> findByTypeIgnoreCaseAndNameIgnoreCase(String type, String name);
+
+    Optional<Object> findByTypeIgnoreCaseAndShopAddressId(String suggestedMethod, Long id);
 }
