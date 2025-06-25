@@ -35,8 +35,8 @@ export class CouponService {
     return this.http.delete<void>(`${this.baseUrl}/${code}`);
   }
 
-  applyCoupon(code: string, userId: number, cartTotal: number): Observable<number> {
-    return this.http.post<number>(`${this.baseUrl}/apply-coupon`, {
+  applyCoupon(code: string, userId: number, cartTotal: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/apply-coupon`, {
       couponCode: code,
       userId: userId,
       cartTotal: cartTotal

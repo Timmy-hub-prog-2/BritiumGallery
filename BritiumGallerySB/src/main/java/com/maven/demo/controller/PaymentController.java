@@ -39,6 +39,13 @@ public class PaymentController {
         return register != null ? ResponseEntity.ok(register) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/by-name/{name}")
+    public ResponseEntity<PaymentEntity> getByName(@PathVariable String name) {
+        PaymentEntity payment = service.findByName(name);
+        return payment != null ? ResponseEntity.ok(payment) : ResponseEntity.notFound().build();
+    }
+
+
     @PostMapping
     public ResponseEntity<PaymentEntity> create(@RequestBody PaymentEntity register) {
         PaymentEntity created = service.create(register);

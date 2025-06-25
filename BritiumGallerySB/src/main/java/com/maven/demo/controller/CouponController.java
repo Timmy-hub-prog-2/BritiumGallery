@@ -76,8 +76,23 @@ public class CouponController {
     @PostMapping("/apply-coupon")
     public ResponseEntity<?> applyCoupon(@RequestBody ApplyCouponRequestDTO dto) {
         try {
-            double discount = couponService.applyCouponToAmount(dto.getCouponCode(), dto.getUserId(), dto.getCartTotal());
-            return ResponseEntity.ok(discount);
+            // Get the coupon entity
+            Optional<CouponEntity> couponOpt = couponService.findByCode(dto.getCouponCode());
+            if (couponOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Coupon not found");
+            }
+            CouponEntity coupon = couponOpt.get();
+
+            // Calculate the discount amount
+            double discountAmount = couponService.applyCouponToAmount(dto.getCouponCode(), dto.getUserId(), dto.getCartTotal());
+
+            // Return all info as a map
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("discountAmount", discountAmount);
+            response.put("discountType", coupon.getType());
+            response.put("discountValue", coupon.getDiscount());
+
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
