@@ -10,6 +10,7 @@ import { DeliveryService } from '../delivery.service';
 import { Delivery, DeliveryFeeRequestDTO } from '../Delivery';
 import { CouponService } from '../services/coupon.service';
 import { Payment, PaymentService } from '../payment.service';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-checkout',
@@ -57,6 +58,8 @@ export class CheckoutComponent implements OnInit {
   methodAutoChanged = false;
   showCouponAppliedPopup = false;
 
+  private isCalculatingDeliveryFee = false;
+
   constructor(
     private fb: FormBuilder,
     private cartService: CartService,
@@ -84,11 +87,6 @@ export class CheckoutComponent implements OnInit {
       localStorage.removeItem('couponApplied');
       setTimeout(() => this.showCouponAppliedPopup = false, 3000); // Hide after 3 seconds
     }
-
-    this.checkoutForm.get('shippingMethod')?.valueChanges.subscribe(() => this.calculateDeliveryFee());
-    this.checkoutForm.get('standardName')?.valueChanges.subscribe(() => this.calculateDeliveryFee());
-    this.checkoutForm.get('expressName')?.valueChanges.subscribe(() => this.calculateDeliveryFee());
-    this.checkoutForm.get('shipName')?.valueChanges.subscribe(() => this.calculateDeliveryFee());
 
     this.paymentService.getAll().subscribe({
       next: (data) => {
@@ -206,6 +204,17 @@ export class CheckoutComponent implements OnInit {
         const ship = this.shipOptions[0];
         if (ship?.fixAmount) this.shipFee = ship.fixAmount;
         this.calculateDeliveryFee();
+
+        // Set up valueChanges subscriptions after options are loaded
+        this.checkoutForm.get('standardName')?.valueChanges
+          .pipe(distinctUntilChanged())
+          .subscribe(() => this.calculateDeliveryFee());
+        this.checkoutForm.get('expressName')?.valueChanges
+          .pipe(distinctUntilChanged())
+          .subscribe(() => this.calculateDeliveryFee());
+        this.checkoutForm.get('shipName')?.valueChanges
+          .pipe(distinctUntilChanged())
+          .subscribe(() => this.calculateDeliveryFee());
       },
       error: err => console.error('Error loading delivery types', err)
     });
@@ -229,56 +238,85 @@ export class CheckoutComponent implements OnInit {
 
     this.deliveryService.calculateStandardFee(dto).subscribe({
       next: (res) => {
-        this.suggestedMethod = res.suggestedMethod || 'Standard';
+        // Ensure suggestedMethod is always set to a valid value
+        const validMethods = ['Standard', 'Express', 'Ship'];
+        const backendMethod = (res.suggestedMethod ?? '').toLowerCase();
+        const normalizedMethod = validMethods.find(m => m.toLowerCase() === backendMethod);
+        this.suggestedMethod = normalizedMethod ? normalizedMethod : 'Standard';
         this.deliveryFee = res.fee;
         this.selectedDelayTime = res.estimatedTime || null;
         this.selectedDelayRange = this.getEstimatedDateRange(this.selectedDelayTime);
 
-        if (res.suggestedMethod !== 'Standard') {
-          this.checkoutForm.patchValue({ shippingMethod: res.suggestedMethod });
+        if (this.suggestedMethod !== 'Standard') {
+          this.checkoutForm.patchValue({ shippingMethod: this.suggestedMethod });
         }
       },
       error: () => {
         this.deliveryFee = 0;
+        this.suggestedMethod = 'Standard';
       }
     });
   }
 
   calculateDeliveryFee(): void {
+    if (this.isCalculatingDeliveryFee) return;
+    this.isCalculatingDeliveryFee = true;
     console.log('calculateDeliveryFee called');
-    if (!this.currentUser) return;
+    if (!this.currentUser) {
+      this.isCalculatingDeliveryFee = false;
+      return;
+    }
 
     const method = this.checkoutForm.get('shippingMethod')?.value;
     let selectedOption: Delivery | undefined;
     let providerPatched = false;
 
     if (method === 'Standard') {
-      if (!this.checkoutForm.get('standardName')?.value && this.standardOptions.length > 0) {
+      const current = this.checkoutForm.get('standardName')?.value;
+      console.log('Selected Standard Provider:', current);
+      console.log('Standard Options:', this.standardOptions.map(opt => opt.name));
+      selectedOption = this.standardOptions.find(opt => opt.name === current);
+      console.log('Matched Standard Option:', selectedOption);
+      if ((!current || current === '') && this.standardOptions.length > 0) {
         this.checkoutForm.patchValue({ standardName: this.standardOptions[0].name });
         providerPatched = true;
       }
-      selectedOption = this.standardOptions.find(opt => opt.name === this.checkoutForm.get('standardName')?.value);
     } else if (method === 'Express') {
-      if (!this.checkoutForm.get('expressName')?.value && this.expressOptions.length > 0) {
+      const current = this.checkoutForm.get('expressName')?.value;
+      console.log('Selected Express Provider:', current);
+      console.log('Express Options:', this.expressOptions.map(opt => opt.name));
+      selectedOption = this.expressOptions.find(opt => opt.name === current);
+      console.log('Matched Express Option:', selectedOption);
+      if ((!current || current === '') && this.expressOptions.length > 0) {
         this.checkoutForm.patchValue({ expressName: this.expressOptions[0].name });
         providerPatched = true;
       }
-      selectedOption = this.expressOptions.find(opt => opt.name === this.checkoutForm.get('expressName')?.value);
     } else if (method === 'Ship') {
-      if (!this.checkoutForm.get('shipName')?.value && this.shipOptions.length > 0) {
+      const current = this.checkoutForm.get('shipName')?.value;
+      console.log('Selected Ship Provider:', current);
+      console.log('Ship Options:', this.shipOptions.map(opt => opt.name));
+      selectedOption = this.shipOptions.find(opt => opt.name === current);
+      console.log('Matched Ship Option:', selectedOption);
+      if ((!current || current === '') && this.shipOptions.length > 0) {
         this.checkoutForm.patchValue({ shipName: this.shipOptions[0].name });
         providerPatched = true;
       }
-      selectedOption = this.shipOptions.find(opt => opt.name === this.checkoutForm.get('shipName')?.value);
     }
 
     // If we just patched the provider, re-run the calculation after the form updates
     if (providerPatched) {
-      setTimeout(() => this.calculateDeliveryFee(), 0);
+      setTimeout(() => {
+        this.isCalculatingDeliveryFee = false;
+        this.calculateDeliveryFee();
+      }, 0);
       return;
     }
 
-    if (!selectedOption) return;
+    if (!selectedOption) {
+      console.log('No provider matched.');
+      this.isCalculatingDeliveryFee = false;
+      return;
+    }
 
     const dto: DeliveryFeeRequestDTO = {
       userId: this.currentUser.id,
@@ -286,21 +324,27 @@ export class CheckoutComponent implements OnInit {
       method: method,
       name: selectedOption.name
     };
+    console.log('DTO sent to backend:', dto);
 
     this.deliveryService.calculateStandardFee(dto).subscribe({
       next: (res) => {
+        console.log('Backend response:', res);
+        const validMethods = ['Standard', 'Express', 'Ship'];
+        const backendMethod = (res.suggestedMethod ?? '').toLowerCase();
+        const normalizedMethod = validMethods.find(m => m.toLowerCase() === backendMethod);
+        // Only set methodAutoChanged if the shipping method (not provider) is auto-changed
         const prevMethod = this.checkoutForm.get('shippingMethod')?.value;
-        this.suggestedMethod = res.suggestedMethod || method;
+        this.suggestedMethod = normalizedMethod ? normalizedMethod : method;
         this.deliveryFee = res.fee;
         this.selectedDelayTime = res.estimatedTime || null;
         this.selectedDelayRange = this.getEstimatedDateRange(this.selectedDelayTime);
-        if (res.suggestedMethod && res.suggestedMethod !== method) {
+        if (normalizedMethod && normalizedMethod !== prevMethod) {
           this.methodAutoChanged = true;
-          this.checkoutForm.patchValue({ shippingMethod: res.suggestedMethod });
+          this.checkoutForm.patchValue({ shippingMethod: this.suggestedMethod });
           setTimeout(() => {
             this.methodAutoChanged = false;
           }, 8000); // Show notice for 8 seconds
-        } else if (!res.suggestedMethod || res.suggestedMethod === method) {
+        } else if (!normalizedMethod || normalizedMethod === prevMethod) {
           // Only set to false if it was never set to true
           if (!this.methodAutoChanged) {
             this.methodAutoChanged = false;
@@ -310,9 +354,12 @@ export class CheckoutComponent implements OnInit {
         console.log('methodAutoChanged:', this.methodAutoChanged);
         console.log('selectedDelayRange:', this.selectedDelayRange);
         console.log('shippingMethod:', this.checkoutForm.get('shippingMethod')?.value);
+        this.isCalculatingDeliveryFee = false;
       },
       error: () => {
         this.deliveryFee = 0;
+        this.suggestedMethod = 'Standard';
+        this.isCalculatingDeliveryFee = false;
       }
     });
   }

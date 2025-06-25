@@ -76,6 +76,7 @@
           </div>
 
           <div class="form-content">
+            <div>suggestedMethod: {{ suggestedMethod }}</div>
             <div class="form-group">
               <label for="shippingMethod" class="form-label">Choose Shipping Method</label>
               <select id="shippingMethod" formControlName="shippingMethod" class="form-select">
@@ -88,7 +89,14 @@
                 <option value="Ship" [disabled]="suggestedMethod !== 'Ship'">
                    Ship Shipping 
                 </option>
+                <option *ngIf="!suggestedMethod" disabled selected>No shipping method available</option>
               </select>
+              <div *ngIf="suggestedMethod">
+                <small>Suggested: {{ suggestedMethod }} Shipping</small>
+              </div>
+              <div *ngIf="!suggestedMethod">
+                <small class="text-danger">No shipping method could be suggested. Please check your address or try again.</small>
+              </div>
             </div>
 
             <!-- Auto-selected Shipping Notice -->
@@ -106,7 +114,7 @@
             <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Standard'">
               <label for="standardName" class="form-label">Choose Standard Provider</label>
               <select id="standardName" formControlName="standardName" class="form-select">
-                <option value="" disabled selected>Select a provider</option>
+                <option value="" disabled>Select a provider</option>
                 <option *ngFor="let standard of standardOptions" [value]="standard.name">{{ standard.name }}</option>
               </select>
             </div>
@@ -115,7 +123,7 @@
             <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Express'">
               <label for="expressName" class="form-label">Choose Express Provider</label>
               <select id="expressName" formControlName="expressName" class="form-select">
-                <option value="" disabled selected>Select a provider</option>
+                <option value="" disabled>Select a provider</option>
                 <option *ngFor="let express of expressOptions" [value]="express.name">{{ express.name }}</option>
               </select>
             </div>
@@ -124,7 +132,7 @@
             <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Ship'">
               <label for="shipName" class="form-label">Choose Ship Provider</label>
               <select id="shipName" formControlName="shipName" class="form-select">
-                <option value="" disabled selected>Select a provider</option>
+                <option value="" disabled>Select a provider</option>
                 <option *ngFor="let ship of shipOptions" [value]="ship.name">{{ ship.name }}</option>
               </select>
             </div>
