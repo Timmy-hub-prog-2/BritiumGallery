@@ -30,26 +30,41 @@
 
         <!-- Main Image Display (Right Side) -->
         <div class="main-image-container">
-          <button class="arrow-button left-arrow" (click)="previousImage()">&#x2329;</button>
-          <img [src]="selectedVariantImage || productImages[0]"
-               [alt]="latestProductDetail.name"
-               class="main-product-image">
-          <button class="arrow-button right-arrow" (click)="nextImage()">&#x232A;</button>
+          <div class="main-image-wrapper">
+            <button class="arrow-button left-arrow" (click)="previousImage()">&#x2329;</button>
+            <img [src]="selectedVariantImage || productImages[0]"
+                 [alt]="latestProductDetail.name"
+                 class="main-product-image">
+            <button class="arrow-button right-arrow" (click)="nextImage()">&#x232A;</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Right Section: Details, Variations, Actions -->
     <div class="right-section">
-      <!-- Product Title -->
-     
-      
-      <!-- Company Info -->
-      <div class="company-info">
-        <div class="company-header">
+      <!-- Product Header Block -->
+      <div class="product-header-block">
+        <div class="product-title-row">
           <span class="supplier-name">{{ latestProductDetail.name }}</span>
+          <span class="variant-sku" *ngIf="getSelectedVariant()?.sku">
+            <span class="sku-label">SKU:</span>
+            <span class="sku-value">{{ getSelectedVariant()?.sku }}</span>
+          </span>
+        </div>
+        <div class="product-rating" *ngIf="latestProductDetail.rating !== undefined">
+          <span class="stars">
+            <ng-container *ngFor="let star of [1,2,3,4,5]">
+              <mat-icon *ngIf="latestProductDetail.rating >= star">star</mat-icon>
+              <mat-icon *ngIf="latestProductDetail.rating < star && latestProductDetail.rating >= star - 0.5">star_half</mat-icon>
+              <mat-icon *ngIf="latestProductDetail.rating < star - 0.5">star_border</mat-icon>
+            </ng-container>
+          </span>
+        
         </div>
       </div>
+
+    
 
       <!-- Price and Sample Info -->
       <div class="price-sample-section">

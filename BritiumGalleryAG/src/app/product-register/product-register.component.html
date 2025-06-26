@@ -40,6 +40,19 @@
             </div>
           </div>
 
+          <div class="form-group full-width">
+            <label class="form-label">Product Rating (0-5)</label>
+            <div class="input-wrapper">
+              <i class="bi bi-star-fill"></i>
+              <input type="number"
+                     [(ngModel)]="product.rating"
+                     name="rating"
+                     class="form-input"
+                     min="0" max="5" step="0.1"
+                     required>
+            </div>
+          </div>
+
           <!-- Base photo file input -->
           <div class="form-group">
             <label for="basePhoto">Product Base Photo</label>
@@ -99,6 +112,21 @@
                     required>
             </div>
           </div>
+
+          <div class="form-group">
+            <label class="form-label">Base Purchase Price</label>
+            <div class="input-wrapper">
+              <i class="bi bi-cash-coin"></i>
+              <input type="number" 
+                     [(ngModel)]="basePurchasePrice" 
+                     name="basePurchasePrice" 
+                     class="form-input" 
+                     placeholder="0.00" 
+                     step="0.01"
+                     (ngModelChange)="updateAllVariants('purchasePrice', $event)">
+            </div>
+           
+          </div>
         </div>
 
         <!-- Attribute Selection -->
@@ -129,6 +157,7 @@
                 <th *ngFor="let attr of attributes">{{ attr.name }}</th>
                 <th>Price</th>
                 <th>Stock</th>
+                <th>Purchase Price</th>
                 <th>Photos</th>
                 <th>Actions</th>
               </tr>
@@ -150,6 +179,13 @@
                         [(ngModel)]="variant.stock" 
                         [name]="'stock_' + i"
                         class="form-input">
+                </td>
+                <td>
+                  <input type="number" 
+                         [(ngModel)]="variant.purchasePrice" 
+                         [name]="'purchasePrice_' + i" 
+                         class="form-input" 
+                         step="0.01">
                 </td>
                 <td>
                   <div class="variant-photos">

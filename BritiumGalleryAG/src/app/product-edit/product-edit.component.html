@@ -112,6 +112,12 @@
             <button mat-icon-button (click)="editVariant(variant)" matTooltip="Edit">
               <mat-icon>edit</mat-icon>
             </button>
+            <button mat-icon-button color="accent" (click)="addStock(variant)" matTooltip="Add Stock">
+              <mat-icon>add_shopping_cart</mat-icon>
+            </button>
+            <button mat-icon-button color="primary" (click)="showHistory(variant)" matTooltip="History">
+              <mat-icon>history</mat-icon>
+            </button>
             <button mat-icon-button color="warn" (click)="deleteVariant(variant)" matTooltip="Delete">
               <mat-icon>delete</mat-icon>
             </button>
@@ -131,6 +137,73 @@
     <!-- Pagination -->
     <mat-paginator [pageSizeOptions]="[6, 12, 24]" [pageSize]="12" class="compact-paginator"></mat-paginator>
       </div>
+
+  <!-- Add Stock Modal -->
+  <ng-template #addStockModal>
+    <div class="modal-header">
+      <h2>Add Stock for Variant #{{selectedVariant?.id}}</h2>
+      <button mat-icon-button mat-dialog-close aria-label="Close dialog">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-content">
+      <form [formGroup]="stockForm" (ngSubmit)="saveStock()" class="compact-form">
+        <!-- Stock Info Section -->
+        <div class="form-section">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Current Stock</mat-label>
+              <input matInput type="number" [value]="selectedVariant?.stock" disabled>
+            </mat-form-field>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Previous Purchase Price (MMK)</mat-label>
+              <input matInput type="number" [value]="previousPurchasePrice" disabled>
+            </mat-form-field>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>New Purchase Price (MMK)</mat-label>
+              <input matInput type="number" formControlName="purchasePrice" required>
+              <mat-error *ngIf="stockForm.get('purchasePrice')?.hasError('required')">Purchase price is required</mat-error>
+              <mat-error *ngIf="stockForm.get('purchasePrice')?.hasError('min')">Purchase price must be positive</mat-error>
+            </mat-form-field>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>New Selling Price (MMK)</mat-label>
+              <input matInput type="number" formControlName="sellingPrice" required>
+              <mat-error *ngIf="stockForm.get('sellingPrice')?.hasError('required')">Selling price is required</mat-error>
+              <mat-error *ngIf="stockForm.get('sellingPrice')?.hasError('min')">Selling price must be positive</mat-error>
+            </mat-form-field>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Additional Stock Quantity</mat-label>
+              <input matInput type="number" formControlName="quantity" required>
+              <mat-error *ngIf="stockForm.get('quantity')?.hasError('required')">Quantity is required</mat-error>
+              <mat-error *ngIf="stockForm.get('quantity')?.hasError('min')">Quantity must be positive</mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="modal-actions">
+          <button mat-button mat-dialog-close type="button">Cancel</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="stockForm.invalid || isUpdating">
+            <ng-container *ngIf="isUpdating">
+              <mat-spinner diameter="20" class="spinner"></mat-spinner>
+              <span>Saving...</span>
+            </ng-container>
+            <ng-container *ngIf="!isUpdating">
+              <span>Save</span>
+            </ng-container>
+          </button>
+        </div>
+      </form>
+    </div>
+  </ng-template>
 
   <!-- Add Variant Modal -->
   <ng-template #addVariantModal>
@@ -228,12 +301,19 @@
           <mat-label>Product Description</mat-label>
           <textarea matInput formControlName="description" rows="4"></textarea>
         </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Product Rating (0-5)</mat-label>
+          <input matInput type="number" formControlName="rating" min="0" max="5" step="0.1">
+          <mat-error *ngIf="productForm.get('rating')?.hasError('required')">Rating is required</mat-error>
+          <mat-error *ngIf="productForm.get('rating')?.hasError('min')">Minimum rating is 0</mat-error>
+          <mat-error *ngIf="productForm.get('rating')?.hasError('max')">Maximum rating is 5</mat-error>
+        </mat-form-field>
         <div class="modal-actions">
           <button mat-button type="button" mat-dialog-close>Cancel</button>
           <button mat-raised-button color="primary" type="submit">Save Product</button>
-              </div>
+        </div>
       </form>
-              </div>
+    </div>
   </ng-template>
 
   <!-- Edit Variant Modal Content (Hidden, shown in dialog) -->
@@ -315,6 +395,77 @@
           </button>
         </div>
       </form>
+    </div>
+  </ng-template>
+
+  <!-- History Modal -->
+  <ng-template #historyModal>
+    <div class="modal-header">
+      <h4 class="modal-title">Variant History - #{{selectedVariantForHistory?.id}}</h4>
+      <button type="button" class="btn-close" aria-label="Close" (click)="closeHistoryModal()"></button>
+    </div>
+    <div class="modal-body history-flex">
+      <!-- Selling Price History Table -->
+      <div class="history-table-block">
+        <div class="history-table-title">Selling Price History</div>
+        <table mat-table [dataSource]="priceHistoryDataSource" matSort #priceSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="mat-elevation-z1 history-mat-table">
+          <!-- Price Column -->
+          <ng-container matColumnDef="price">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Price</th>
+            <td mat-cell *matCellDef="let row">{{ row.price }} MMK</td>
+          </ng-container>
+          <!-- Date Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+            <td mat-cell *matCellDef="let row">{{ row.priceDate | date:'MMM dd, yyyy HH:mm' }}</td>
+          </ng-container>
+          <!-- Admin Column -->
+          <ng-container matColumnDef="admin">
+            <th mat-header-cell *matHeaderCellDef>Admin</th>
+            <td mat-cell *matCellDef="let row">{{ row.adminName || 'N/A' }} ({{row.adminId}})</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['price', 'date', 'admin']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['price', 'date', 'admin'];"></tr>
+          <tr *ngIf="priceHistoryDataSource.data.length === 0">
+            <td colspan="3" class="text-center text-muted">No price history available</td>
+          </tr>
+        </table>
+      </div>
+      <div class="history-divider"></div>
+      <!-- Purchase History Table -->
+      <div class="history-table-block">
+        <div class="history-table-title">Purchase History</div>
+        <table mat-table [dataSource]="purchaseHistoryDataSource" matSort #purchaseSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="mat-elevation-z1 history-mat-table">
+          <!-- Purchase Price Column -->
+          <ng-container matColumnDef="purchasePrice">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Purchase Price</th>
+            <td mat-cell *matCellDef="let row">{{ row.purchasePrice }} MMK</td>
+          </ng-container>
+          <!-- Quantity Column -->
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef>Quantity</th>
+            <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
+          </ng-container>
+          <!-- Remaining Column -->
+          <ng-container matColumnDef="remaining">
+            <th mat-header-cell *matHeaderCellDef>Remaining</th>
+            <td mat-cell *matCellDef="let row">{{ row.remainingQuantity }}</td>
+          </ng-container>
+          <!-- Date Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+            <td mat-cell *matCellDef="let row">{{ row.purchaseDate | date:'MMM dd, yyyy HH:mm' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['purchasePrice', 'quantity', 'remaining', 'date']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['purchasePrice', 'quantity', 'remaining', 'date'];"></tr>
+          <tr *ngIf="purchaseHistoryDataSource.data.length === 0">
+            <td colspan="4" class="text-center text-muted">No purchase history available</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      
     </div>
   </ng-template>
 </div>

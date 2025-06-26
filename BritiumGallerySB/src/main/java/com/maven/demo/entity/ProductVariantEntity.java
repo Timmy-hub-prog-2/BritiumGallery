@@ -46,6 +46,15 @@ public class ProductVariantEntity {
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ProductVariantImage> images = new ArrayList<>();
 
+    @Column(name = "sku", unique = true, nullable = false, length = 32)
+    private String sku;
+
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<PurchaseHistoryEntity> purchaseHistories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ProductVariantPriceHistoryEntity> priceHistories = new ArrayList<>();
+
     public ProductVariantEntity() {
         this.images = new ArrayList<>();
         this.attributeValues = new ArrayList<>();
@@ -67,4 +76,5 @@ public class ProductVariantEntity {
             removeAttributeValue(value);
         }
     }
+
 }

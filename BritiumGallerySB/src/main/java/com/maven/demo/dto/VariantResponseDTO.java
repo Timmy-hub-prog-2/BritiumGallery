@@ -15,4 +15,5 @@ public class VariantResponseDTO {
     private List<String> imageUrls;
     // key = attribute name (e.g., "Color"), value = "Black"
     private Map<String, String> attributes;
+    private String sku;
 }

@@ -18,4 +18,5 @@ export interface VariantResponse {
   attributes: Record<string, string>;
   imageUrls: string[];
   attributesString?: string; // For editing purposes
+  sku?: string;
 }
