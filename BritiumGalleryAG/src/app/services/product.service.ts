@@ -14,7 +14,7 @@ export class ProductService {
 
   constructor(private http: HttpClient) {}
 
-  saveProduct(formData: FormData): Observable<any> {
+  saveProductWithFiles(formData: FormData): Observable<any> {
     return this.http.post(`${this.baseUrl}/saveWithFiles`, formData, {
       responseType: 'text' as 'json',
     });
@@ -71,5 +71,30 @@ export class ProductService {
 
   getCategoryAttributeOptions(categoryId: number): Observable<{ [key: string]: string[] }> {
     return this.http.get<{ [key: string]: string[] }>(`${this.baseUrl}/${categoryId}/attribute-options`);
+  }
+
+  getLatestPurchasePrice(variantId: number): Observable<number> {
+    return this.http.get<number>(`${this.baseUrl}/variants/${variantId}/latest-purchase-price`);
+  }
+
+  getPriceHistory(variantId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/variants/${variantId}/price-history`);
+  }
+
+  getPurchaseHistory(variantId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/variants/${variantId}/purchase-history`);
+  }
+
+  addStock(stockData: {
+    variantId: number;
+    purchasePrice: number;
+    sellingPrice: number;
+    quantity: number;
+  }, adminId?: number): Observable<VariantResponse> {
+    let params = new HttpParams();
+    if (adminId) {
+      params = params.set('adminId', adminId.toString());
+    }
+    return this.http.post<VariantResponse>(`${this.baseUrl}/variants/${stockData.variantId}/add-stock`, stockData, { params });
   }
 }

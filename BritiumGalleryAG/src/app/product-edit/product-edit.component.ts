@@ -11,6 +11,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { PhotoDialogComponent } from './photo-dialog.component';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-product-edit',
@@ -29,8 +30,11 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
   product: ProductResponse | null = null;
   productForm: FormGroup;
   variantForm: FormGroup;
+  stockForm: FormGroup;
   isAddingVariant = false;
   editingVariant: VariantResponse | null = null;
+  selectedVariant: VariantResponse | null = null;
+  previousPurchasePrice = 0;
   dataSource: MatTableDataSource<VariantResponse>;
   displayedColumns: string[] = ['id', 'price', 'stock', 'attributes', 'photos', 'actions'];
   isLoading = false;
@@ -48,6 +52,17 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
   @ViewChild('editProductModal') editProductModal!: TemplateRef<any>;
   @ViewChild('addVariantModal') addVariantModal!: TemplateRef<any>;
   @ViewChild('editVariantModal') editVariantModal!: TemplateRef<any>;
+  @ViewChild('addStockModal') addStockModal!: TemplateRef<any>;
+  @ViewChild('historyModal') historyModal!: TemplateRef<any>;
+  @ViewChild('priceSort') priceSort!: MatSort;
+  @ViewChild('purchaseSort') purchaseSort!: MatSort;
+
+  priceHistory: any[] = [];
+  purchaseHistory: any[] = [];
+  selectedVariantForHistory: VariantResponse | null = null;
+
+  priceHistoryDataSource = new MatTableDataSource<any>();
+  purchaseHistoryDataSource = new MatTableDataSource<any>();
 
   constructor(
     private route: ActivatedRoute,
@@ -59,7 +74,8 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
   ) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
-      description: ['', Validators.maxLength(500)]
+      description: ['', Validators.maxLength(500)],
+      rating: [0, [Validators.required, Validators.min(0), Validators.max(5)]]
     });
 
     this.variantForm = this.fb.group({
@@ -67,6 +83,12 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
       stock: ['', [Validators.required, Validators.min(0)]],
       attributes: this.fb.array<FormGroup>([]),
       photos: [[]]
+    });
+
+    this.stockForm = this.fb.group({
+      purchasePrice: ['', [Validators.required, Validators.min(0.01)]],
+      sellingPrice: ['', [Validators.required, Validators.min(0.01)]],
+      quantity: ['', [Validators.required, Validators.min(1)]]
     });
 
     this.dataSource = new MatTableDataSource<VariantResponse>([]);
@@ -113,6 +135,26 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
       }
     };
 
+    // Custom sorting for price history and purchase history tables
+    this.priceHistoryDataSource.sortingDataAccessor = (item, property) => {
+      if (property === 'date') {
+        return item.priceDate ? new Date(item.priceDate).getTime() : 0;
+      }
+      if (property === 'price') {
+        return item.price || 0;
+      }
+      return item[property];
+    };
+    this.purchaseHistoryDataSource.sortingDataAccessor = (item, property) => {
+      if (property === 'date') {
+        return item.purchaseDate ? new Date(item.purchaseDate).getTime() : 0;
+      }
+      if (property === 'purchasePrice') {
+        return item.purchasePrice || 0;
+      }
+      return item[property];
+    };
+
     this.dataSource.data.forEach((variant, index) => {
       console.log(`Variant ${index} - ID: ${variant.id}, Price: ${variant.price} (Type: ${typeof variant.price}), Stock: ${variant.stock} (Type: ${typeof variant.stock})`);
     });
@@ -128,7 +170,8 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         this.product = product;
         this.productForm.patchValue({
           name: product.name,
-          description: product.description
+          description: product.description,
+          rating: product.rating
         });
         this.dataSource.data = product.variants.map(variant => ({
           ...variant,
@@ -273,7 +316,8 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         description: this.productForm.value.description,
         categoryId: this.product.categoryId,
         adminId: this.product.adminId,
-        basePhotoUrl: this.product.basePhotoUrl
+        basePhotoUrl: this.product.basePhotoUrl,
+        rating: this.productForm.value.rating
       };
 
       formData.append('product', new Blob([JSON.stringify(productPayload)], { type: 'application/json' }));
@@ -388,6 +432,12 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
       };
       console.log('updateVariant: Sending variantData', variantData);
       formData.append('variant', new Blob([JSON.stringify(variantData)], { type: 'application/json' }));
+      
+      // Get logged-in user from localStorage
+      const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+      if (loggedInUser && loggedInUser.id) {
+        formData.append('adminId', loggedInUser.id.toString());
+      }
       
       this.selectedFiles.forEach(file => {
         formData.append('photos', file);
@@ -614,6 +664,132 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
       control.markAsTouched();
       if (control instanceof FormGroup) {
         this.markFormGroupTouched(control);
+      }
+    });
+  }
+
+  addStock(variant: VariantResponse): void {
+    this.selectedVariant = variant;
+    
+    // Get the previous purchase price from the latest purchase history
+    this.productService.getLatestPurchasePrice(variant.id).subscribe({
+      next: (price: number) => {
+        this.previousPurchasePrice = price;
+        
+        // Pre-fill the form with current values
+        this.stockForm.patchValue({
+          purchasePrice: price, // Use previous purchase price as default
+          sellingPrice: variant.price,
+          quantity: 0
+        });
+
+        // Open the dialog
+        const dialogRef = this.dialog.open(this.addStockModal, {
+          width: '500px',
+          disableClose: true
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+          if (result === true) {
+            this.saveStock();
+          }
+          this.selectedVariant = null;
+          this.previousPurchasePrice = 0;
+          this.stockForm.reset();
+        });
+      },
+      error: (error: Error) => {
+        console.error('Error fetching previous purchase price:', error);
+        this.showError('Failed to fetch previous purchase price');
+      }
+    });
+  }
+
+  saveStock(): void {
+    if (this.stockForm.valid && this.selectedVariant) {
+      this.isUpdating = true;
+      
+      const stockData = {
+        variantId: this.selectedVariant.id,
+        purchasePrice: this.stockForm.value.purchasePrice,
+        sellingPrice: this.stockForm.value.sellingPrice,
+        quantity: this.stockForm.value.quantity
+      };
+
+      // Get logged-in user from localStorage
+      const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+      const adminId = loggedInUser && loggedInUser.id ? loggedInUser.id : null;
+
+      this.productService.addStock(stockData, adminId).subscribe({
+        next: (response: VariantResponse) => {
+          this.showSuccess('Stock added successfully');
+          this.loadProduct(this.product!.id);
+          this.isUpdating = false;
+          this.dialog.closeAll();
+        },
+        error: (error: Error) => {
+          console.error('Error adding stock:', error);
+          this.showError('Failed to add stock');
+          this.isUpdating = false;
+        }
+      });
+    }
+  }
+
+  showHistory(variant: VariantResponse): void {
+    this.selectedVariantForHistory = variant;
+    this.loadHistoryData(variant.id);
+
+    const dialogRef = this.dialog.open(this.historyModal, {
+      width: '92vw',
+      maxWidth: '1500px',
+      maxHeight: '100vh',
+      disableClose: true,
+      panelClass: 'history-modal'
+    });
+
+    dialogRef.afterOpened().subscribe(() => {
+      if (this.priceSort) this.priceHistoryDataSource.sort = this.priceSort;
+      if (this.purchaseSort) this.purchaseHistoryDataSource.sort = this.purchaseSort;
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.selectedVariantForHistory = null;
+      this.priceHistory = [];
+      this.purchaseHistory = [];
+      this.priceHistoryDataSource.data = [];
+      this.purchaseHistoryDataSource.data = [];
+    });
+  }
+
+  closeHistoryModal(): void {
+    this.dialog.closeAll();
+  }
+
+  private loadHistoryData(variantId: number): void {
+    // Load price history
+    this.productService.getPriceHistory(variantId).subscribe({
+      next: (data: any[]) => {
+        data.forEach(row => row.priceDate = new Date(row.priceDate));
+        this.priceHistory = data;
+        this.priceHistoryDataSource.data = data;
+      },
+      error: (error: Error) => {
+        console.error('Error loading price history:', error);
+        this.showError('Failed to load price history');
+      }
+    });
+
+    // Load purchase history
+    this.productService.getPurchaseHistory(variantId).subscribe({
+      next: (data: any[]) => {
+        data.forEach(row => row.purchaseDate = new Date(row.purchaseDate));
+        this.purchaseHistory = data;
+        this.purchaseHistoryDataSource.data = data;
+      },
+      error: (error: Error) => {
+        console.error('Error loading purchase history:', error);
+        this.showError('Failed to load purchase history');
       }
     });
   }

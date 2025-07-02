@@ -19,6 +19,9 @@ import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
+import com.maven.demo.dto.AddStockRequestDTO;
+import com.maven.demo.dto.PriceHistoryResponseDTO;
+import com.maven.demo.dto.PurchaseHistoryResponseDTO;
 import com.maven.demo.entity.AttributeEntity;
 import com.maven.demo.entity.AttributeOptions;
 import com.maven.demo.entity.CategoryEntity;
@@ -26,11 +29,17 @@ import com.maven.demo.entity.ProductEntity;
 import com.maven.demo.entity.ProductVariantEntity;
 import com.maven.demo.entity.ProductVariantImage;
 import com.maven.demo.entity.VariantAttributeValueEntity;
+import com.maven.demo.entity.PurchaseHistoryEntity;
+import com.maven.demo.entity.ProductVariantPriceHistoryEntity;
+import com.maven.demo.entity.UserEntity;
 import com.maven.demo.repository.AttributeOptionRepository;
 import com.maven.demo.repository.AttributeRepository;
 import com.maven.demo.repository.CategoryRepository;
 import com.maven.demo.repository.ProductRepository;
 import com.maven.demo.repository.ProductVariantRepository;
+import com.maven.demo.repository.PurchaseHistoryRepository;
+import com.maven.demo.repository.ProductVariantPriceHistoryRepository;
+import com.maven.demo.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -53,6 +62,15 @@ public class ProductService {
     private AttributeOptionRepository attributeOptionRepository;
 
     @Autowired
+    private PurchaseHistoryRepository purchaseHistoryRepository;
+
+    @Autowired
+    private ProductVariantPriceHistoryRepository priceHistoryRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private CategoryService categoryService;
 
     @Transactional
@@ -65,10 +83,16 @@ public class ProductService {
         product.setAdmin_id(dto.getAdminId());
         product.setBasePhotoUrl(dto.getBasePhotoUrl());
         product.setCreated_at(LocalDateTime.now());
+        product.setRating(dto.getRating());
 
         proRepo.save(product);
 
         // Handle Variants
+        String prefix = product.getName().replaceAll("\\s+", "").toUpperCase();
+        prefix = prefix.length() > 4 ? prefix.substring(0, 4) : prefix;
+        Long productId = product.getId(); // after save
+        int skuCounter = 1;
+
         for (VariantDTO varDto : dto.getVariants()) {
             ProductVariantEntity variant = new ProductVariantEntity();
             variant.setProduct(product);
@@ -91,8 +115,35 @@ public class ProductService {
             }
             variant.setAttributeValues(attrValues);
 
+            // Set SKU
+            String sku = String.format("%s%d%03d", prefix, productId, skuCounter++);
+            variant.setSku(sku);
+
             // Save variant first to get the ID
             variantRepository.save(variant);
+            
+            // Create a record in the purchase history for initial stock
+            PurchaseHistoryEntity purchase = new PurchaseHistoryEntity();
+            purchase.setVariant(variant);
+            purchase.setPurchasePrice(varDto.getPurchasePrice());
+            purchase.setQuantity(varDto.getStock());
+            purchase.setRemainingQuantity(varDto.getStock());
+            purchaseHistoryRepository.save(purchase);
+
+            // Create initial price history record for the selling price
+            ProductVariantPriceHistoryEntity priceHistory = new ProductVariantPriceHistoryEntity();
+            priceHistory.setVariant(variant);
+            priceHistory.setPrice(varDto.getPrice()); // Store the initial selling price
+            priceHistory.setPriceDate(LocalDateTime.now());
+            
+            // Set the admin who created the product
+            if (dto.getAdminId() != null) {
+                UserEntity admin = userRepository.findById(dto.getAdminId())
+                        .orElseThrow(() -> new RuntimeException("Admin not found"));
+                priceHistory.setAdmin(admin);
+            }
+            
+            priceHistoryRepository.save(priceHistory);
 
             // Save image if provided
             if (varDto.getImageUrls() != null && !varDto.getImageUrls().isEmpty()) {
@@ -178,6 +229,7 @@ public class ProductService {
             varDTO.setId(variant.getId());
             varDTO.setPrice(variant.getPrice());
             varDTO.setStock(variant.getStock());
+            varDTO.setSku(variant.getSku());
             // Attributes
             Map<String, String> attrMap = new HashMap<>();
             for (VariantAttributeValueEntity vav : variant.getAttributeValues()) {
@@ -235,6 +287,7 @@ public class ProductService {
         if (dto.getBasePhotoUrl() != null) {
             product.setBasePhotoUrl(dto.getBasePhotoUrl());
         }
+        product.setRating(dto.getRating());
 
         proRepo.save(product);
 
@@ -243,13 +296,34 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponseDTO updateVariant(Long variantId, VariantDTO dto, List<String> newPhotoUrls) {
+    public ProductResponseDTO updateVariant(Long variantId, VariantDTO dto, List<String> newPhotoUrls, Long adminId) {
         ProductVariantEntity variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new RuntimeException("Variant not found"));
+
+        // Check if price has changed
+        boolean priceChanged = variant.getPrice() != dto.getPrice();
+        Integer oldPrice = variant.getPrice();
 
         // Update basic variant details
         variant.setPrice(dto.getPrice());
         variant.setStock(dto.getStock());
+
+        // If price changed, create a price history record
+        if (priceChanged) {
+            ProductVariantPriceHistoryEntity priceHistory = new ProductVariantPriceHistoryEntity();
+            priceHistory.setVariant(variant);
+            priceHistory.setPrice(dto.getPrice()); // Store the old price
+            priceHistory.setPriceDate(LocalDateTime.now());
+            
+            // Set the admin who made the change
+            if (adminId != null) {
+                UserEntity admin = userRepository.findById(adminId)
+                        .orElseThrow(() -> new RuntimeException("Admin not found"));
+                priceHistory.setAdmin(admin);
+            }
+            
+            priceHistoryRepository.save(priceHistory);
+        }
 
         // Handle image updates
         // 1. Delete images marked for removal
@@ -269,9 +343,6 @@ public class ProductService {
                 variant.getImages().add(image);
             }
         }
-
-        // Note: Existing images that are not in imageUrlsToDelete will automatically be retained
-        // due to the persistent collection management by JPA/Hibernate.
 
         // Update attributes
         if (dto.getAttributes() != null) {
@@ -358,6 +429,7 @@ public class ProductService {
             varDTO.setId(variant.getId());
             varDTO.setPrice(variant.getPrice());
             varDTO.setStock(variant.getStock());
+            varDTO.setSku(variant.getSku());
 
             Map<String, String> attrMap = new HashMap<>();
             for (VariantAttributeValueEntity vav : variant.getAttributeValues()) {
@@ -458,5 +530,119 @@ public class ProductService {
             }
         }
         return attributeOptions;
+    }
+
+    public Integer getLatestPurchasePrice(Long variantId) {
+        Optional<PurchaseHistoryEntity> latestPurchase = purchaseHistoryRepository.findTopByVariantIdOrderByPurchaseDateDesc(variantId);
+        return latestPurchase.map(PurchaseHistoryEntity::getPurchasePrice).orElse(0);
+    }
+
+    @Transactional
+    public VariantResponseDTO addStock(Long variantId, AddStockRequestDTO request, Long adminId) {
+        ProductVariantEntity variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+
+        // Check if selling price has changed
+        boolean priceChanged = variant.getPrice() != request.getSellingPrice();
+        Integer oldPrice = variant.getPrice();
+
+        // Create new purchase history record
+        PurchaseHistoryEntity purchase = new PurchaseHistoryEntity();
+        purchase.setVariant(variant);
+        purchase.setPurchasePrice(request.getPurchasePrice());
+        purchase.setQuantity(request.getQuantity());
+        purchase.setRemainingQuantity(request.getQuantity());
+        purchaseHistoryRepository.save(purchase);
+
+        // If selling price changed, create a price history record
+        if (priceChanged) {
+            ProductVariantPriceHistoryEntity priceHistory = new ProductVariantPriceHistoryEntity();
+            priceHistory.setVariant(variant);
+            priceHistory.setPrice(oldPrice); // Store the old price
+            priceHistory.setPriceDate(LocalDateTime.now());
+            
+            // Set the admin who made the change
+            if (adminId != null) {
+                UserEntity admin = userRepository.findById(adminId)
+                        .orElseThrow(() -> new RuntimeException("Admin not found"));
+                priceHistory.setAdmin(admin);
+            }
+            
+            priceHistoryRepository.save(priceHistory);
+        }
+
+        // Update variant stock and price
+        variant.setStock(variant.getStock() + request.getQuantity());
+        variant.setPrice(request.getSellingPrice());
+        variantRepository.save(variant);
+
+        // Convert to response DTO
+        return convertToVariantResponseDTO(variant);
+    }
+
+    private VariantResponseDTO convertToVariantResponseDTO(ProductVariantEntity variant) {
+        VariantResponseDTO dto = new VariantResponseDTO();
+        dto.setId(variant.getId());
+        dto.setPrice(variant.getPrice());
+        dto.setStock(variant.getStock());
+        dto.setSku(variant.getSku());
+
+        // Convert attributes
+        Map<String, String> attributes = new HashMap<>();
+        for (VariantAttributeValueEntity value : variant.getAttributeValues()) {
+            attributes.put(value.getAttribute().getName(), value.getValue());
+        }
+        dto.setAttributes(attributes);
+
+        // Convert images
+        List<String> imageUrls = variant.getImages().stream()
+                .map(ProductVariantImage::getImageUrl)
+                .collect(Collectors.toList());
+        dto.setImageUrls(imageUrls);
+
+        return dto;
+    }
+
+    @Transactional
+    public List<PriceHistoryResponseDTO> getPriceHistory(Long variantId) {
+        ProductVariantEntity variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+        
+        return priceHistoryRepository.findByVariantOrderByPriceDateDesc(variant).stream()
+                .map(this::convertToPriceHistoryResponseDTO)
+                .toList();
+    }
+
+    @Transactional
+    public List<PurchaseHistoryResponseDTO> getPurchaseHistory(Long variantId) {
+        ProductVariantEntity variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+        
+        return purchaseHistoryRepository.findByVariantOrderByPurchaseDateDesc(variant).stream()
+                .map(this::convertToPurchaseHistoryResponseDTO)
+                .toList();
+    }
+
+    private PriceHistoryResponseDTO convertToPriceHistoryResponseDTO(ProductVariantPriceHistoryEntity entity) {
+        PriceHistoryResponseDTO dto = new PriceHistoryResponseDTO();
+        dto.setId(entity.getId());
+        dto.setPrice(entity.getPrice());
+        dto.setPriceDate(entity.getPriceDate());
+        if (entity.getAdmin() != null) {
+            dto.setAdminId(entity.getAdmin().getId());
+            dto.setAdminName(entity.getAdmin().getName());
+        }
+        return dto;
+    }
+
+    private PurchaseHistoryResponseDTO convertToPurchaseHistoryResponseDTO(PurchaseHistoryEntity entity) {
+        PurchaseHistoryResponseDTO dto = new PurchaseHistoryResponseDTO();
+        dto.setId(entity.getId());
+        dto.setPurchasePrice(entity.getPurchasePrice());
+        dto.setQuantity(entity.getQuantity());
+        dto.setRemainingQuantity(entity.getRemainingQuantity());
+        dto.setPurchaseDate(entity.getPurchaseDate());
+        // Note: PurchaseHistoryEntity doesn't have admin field, so we'll leave admin info null
+        return dto;
     }
 }

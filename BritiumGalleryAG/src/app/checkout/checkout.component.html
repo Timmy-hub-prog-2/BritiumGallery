@@ -76,22 +76,31 @@
           </div>
 
           <div class="form-content">
+            <div>suggestedMethod: {{ suggestedMethod }}</div>
             <div class="form-group">
               <label for="shippingMethod" class="form-label">Choose Shipping Method</label>
               <select id="shippingMethod" formControlName="shippingMethod" class="form-select">
                 <option value="Standard" [disabled]="suggestedMethod !== 'Standard'">
-                  🚚 Standard Shipping (3-5 days • Free)
+                   Standard Shipping 
                 </option>
                 <option value="Express" [disabled]="suggestedMethod !== 'Express'">
-                  ⚡ Express Shipping (1-2 days • MMK 25)
+                   Express Shipping 
                 </option>
                 <option value="Ship" [disabled]="suggestedMethod !== 'Ship'">
-                  🚢 Ship Shipping (7-14 days • MMK 10)
+                   Ship Shipping 
                 </option>
+                <option *ngIf="!suggestedMethod" disabled selected>No shipping method available</option>
               </select>
+              <div *ngIf="suggestedMethod">
+                <small>Suggested: {{ suggestedMethod }} Shipping</small>
+              </div>
+              <div *ngIf="!suggestedMethod">
+                <small class="text-danger">No shipping method could be suggested. Please check your address or try again.</small>
+              </div>
             </div>
 
-            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value !== 'Standard' && selectedDelayRange">
+            <!-- Auto-selected Shipping Notice -->
+            <div class="form-group" *ngIf="methodAutoChanged">
               <div class="shipping-notice">
                 <span class="notice-icon">📢</span>
                 <span class="notice-text">
@@ -114,7 +123,7 @@
             <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Express'">
               <label for="expressName" class="form-label">Choose Express Provider</label>
               <select id="expressName" formControlName="expressName" class="form-select">
-                <option value="" disabled selected>Select a provider</option>
+                <option value="" disabled>Select a provider</option>
                 <option *ngFor="let express of expressOptions" [value]="express.name">{{ express.name }}</option>
               </select>
             </div>
@@ -123,7 +132,7 @@
             <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Ship'">
               <label for="shipName" class="form-label">Choose Ship Provider</label>
               <select id="shipName" formControlName="shipName" class="form-select">
-                <option value="" disabled selected>Select a provider</option>
+                <option value="" disabled>Select a provider</option>
                 <option *ngFor="let ship of shipOptions" [value]="ship.name">{{ ship.name }}</option>
               </select>
             </div>
@@ -142,29 +151,11 @@
 
           <div class="form-content">
             <div class="form-group">
-              <label class="form-label">Select Payment Method</label>
-              <div class="payment-options">
-                <label class="payment-option">
-                  <input type="radio" formControlName="paymentType" value="CreditCard" />
-                  <span class="payment-icon">💳</span>
-                  <span class="payment-text">Credit Card</span>
-                </label>
-                <label class="payment-option">
-                  <input type="radio" formControlName="paymentType" value="KPay" />
-                  <span class="payment-icon">📱</span>
-                  <span class="payment-text">KPay</span>
-                </label>
-                <label class="payment-option">
-                  <input type="radio" formControlName="paymentType" value="WaveMoney" />
-                  <span class="payment-icon">💰</span>
-                  <span class="payment-text">Wave Money</span>
-                </label>
-                <label class="payment-option">
-                  <input type="radio" formControlName="paymentType" value="CBPay" />
-                  <span class="payment-icon">🏦</span>
-                  <span class="payment-text">CB Pay</span>
-                </label>
-              </div>
+              <label for="paymentType" class="form-label">Select Payment Method</label>
+              <select id="paymentType" formControlName="paymentType" class="form-select payment-method-select">
+                <option value="CreditCard">Credit Card</option>
+                <option *ngFor="let payment of payments" [value]="payment.name">{{ payment.name }}</option>
+              </select>
             </div>
 
             <!-- Credit Card Fields -->
@@ -185,27 +176,125 @@
               </div>
             </div>
 
-            <!-- Mobile Payment Fields -->
-            <div class="payment-fields" *ngIf="checkoutForm.get('paymentType')?.value === 'KPay' || checkoutForm.get('paymentType')?.value === 'WaveMoney'">
-              <div class="form-group">
-                <label class="form-label">Phone Number</label>
-                <input formControlName="phoneNumber" placeholder="09xxxxxxxxx" class="form-input" />
-              </div>
-            </div>
+            <!-- QR Code & Payment Instructions -->
+            <div class="payment-instructions" *ngIf="checkoutForm.get('paymentType')?.value && checkoutForm.get('paymentType')?.value !== 'CreditCard'">
+              
+              <!-- QR Code Section -->
+              <div class="qr-code-section">
+                <div class="qr-header">
+                  <span class="qr-icon">📱</span>
+                  <div>
+                    <h4 class="qr-title">Scan QR Code to Pay</h4>
+                    <p class="qr-subtitle">Use your {{ checkoutForm.get('paymentType')?.value }} app to scan and pay</p>
+                  </div>
+                </div>
 
-            <!-- Bank Payment Fields -->
-            <div class="payment-fields" *ngIf="checkoutForm.get('paymentType')?.value === 'CBPay'">
-              <div class="form-group">
-                <label class="form-label">Account Number</label>
-                <input formControlName="accountNumber" placeholder="Enter your account number" class="form-input" />
+                <div class="qr-container">
+                  <div class="qr-code-display">
+                    <!-- QR Code Image -->
+                    <div class="qr-code-wrapper">
+                      <img [src]="getQRCodeUrl()" [alt]="checkoutForm.get('paymentType')?.value + ' QR Code'" class="qr-code-image" />
+                    </div>
+                    
+                    <!-- Payment Details -->
+                    <div class="payment-details">
+                      <div class="detail-row">
+                        <span class="detail-label">Amount:</span>
+                        <span class="detail-value amount">MMK {{ getTotalCost() | number:'1.0-0' }}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Method:</span>
+                        <span class="detail-value">{{ checkoutForm.get('paymentType')?.value }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Payment Steps -->
+                  <div class="payment-steps">
+                    <div class="step-header">
+                      <span class="steps-icon">📋</span>
+                      <h4 class="steps-title">Payment Steps</h4>
+                    </div>
+                    
+                    <div class="instruction-steps">
+                      <div class="step-item">
+                        <span class="step-number-small">1</span>
+                        <span class="step-text">Open your {{ checkoutForm.get('paymentType')?.value }} app</span>
+                      </div>
+                      
+                      <div class="step-item">
+                        <span class="step-number-small">2</span>
+                        <span class="step-text">Scan the QR code above</span>
+                      </div>
+                      
+                      <div class="step-item">
+                        <span class="step-number-small">3</span>
+                        <span class="step-text">Complete the payment of <strong>MMK {{ getTotalCost() | number:'1.0-0' }}</strong></span>
+                      </div>
+                      
+                      <div class="step-item">
+                        <span class="step-number-small">4</span>
+                        <span class="step-text">Take a screenshot of the successful transaction</span>
+                      </div>
+                      
+                      <div class="step-item">
+                        <span class="step-number-small">5</span>
+                        <span class="step-text">Upload the receipt below for verification</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Receipt Upload Section -->
+              <div class="receipt-upload-section">
+                <div class="upload-header">
+                  <span class="upload-icon">📄</span>
+                  <div>
+                    <h4 class="upload-title">Upload Payment Receipt</h4>
+                    <p class="upload-subtitle">Upload screenshot of your payment transaction</p>
+                  </div>
+                </div>
+
+                <div class="upload-area" (click)="triggerFileInput()" [class.has-file]="selectedReceiptFile">
+                  <input type="file" #fileInput (change)="onReceiptFileSelected($event)" accept="image/*" style="display: none;">
+                  
+                  <div class="upload-content" *ngIf="!selectedReceiptFile">
+                    <div class="upload-icon-large">📁</div>
+                    <div class="upload-text">
+                      <p class="upload-main-text">Click to upload receipt</p>
+                      <p class="upload-sub-text">PNG, JPG up to 5MB</p>
+                    </div>
+                  </div>
+
+                  <div class="uploaded-file" *ngIf="selectedReceiptFile">
+                    <div class="file-info">
+                      <span class="file-icon">✅</span>
+                      <div class="file-details">
+                        <p class="file-name">{{ selectedReceiptFile.name }}</p>
+                        <p class="file-size">{{ selectedReceiptFile.size | number:'1.0-0' }} bytes</p>
+                      </div>
+                    </div>
+                    <button type="button" class="remove-file-btn" (click)="removeReceiptFile($event)">
+                      <span>🗑️</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="verification-notice">
+                  <span class="notice-icon">⏳</span>
+                  <span class="notice-text">Your order will be processed after admin verifies the payment receipt</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <button type="submit" class="place-order-btn">
+        <button type="submit" class="place-order-btn" [disabled]="!isFormValid()">
           <span class="btn-icon">🛒</span>
-          Complete Order
+          <span *ngIf="checkoutForm.get('paymentType')?.value === 'CreditCard'">Complete Order</span>
+          <span *ngIf="checkoutForm.get('paymentType')?.value !== 'CreditCard' && checkoutForm.get('paymentType')?.value">Submit Order for Verification</span>
+          <span *ngIf="!checkoutForm.get('paymentType')?.value">Complete Order</span>
         </button>
       </form>
     </div>
@@ -213,53 +302,117 @@
     <!-- RIGHT SIDE: Summary -->
     <div class="cart-summary-section">
       <!-- Promo Code -->
-      <div class="summary-card promo-card">
-        <div class="card-header-small">
-          <div class="promo-icon">🏷️</div>
-          <div>
-            <h3 class="card-title">Promo Code</h3>
-            <p class="card-subtitle">Apply discount code</p>
-          </div>
-        </div>
-        <div class="promo-input-group">
-          <input type="text" [(ngModel)]="promoCode" placeholder="Enter discount code" class="promo-input">
-          <button class="apply-btn" (click)="applyPromo()">Apply Code</button>
+    <div class="summary-card promo-card">
+      <div class="card-header-small">
+        <div class="promo-icon">🏷️</div>
+        <div>
+          <h3 class="card-title">Promo Code</h3>
+          <p class="card-subtitle">Apply discount code</p>
         </div>
       </div>
+      <div class="promo-input-group">
+        <input type="text" [(ngModel)]="promoCode" placeholder="Enter discount code" class="promo-input">
+        <button class="apply-btn" (click)="applyPromo()">Apply Code</button>
+      </div>
+      <!-- Feedback messages -->
+      <p class="text-success" *ngIf="couponSuccess">
+        Coupon applied.
+        <span *ngIf="discountType === 'Percentage'">
+          Discount: {{ discountValue }}% (MMK {{ appliedDiscount | number:'1.0-0' }})
+        </span>
+        <span *ngIf="discountType === 'Fixed Amount'">
+          Discount: MMK {{ appliedDiscount | number:'1.0-0' }}
+        </span>
+      </p>
+      <p class="text-danger" *ngIf="couponError">{{ couponError }}</p>
+    </div>
 
-      <!-- Order Summary -->
-      <div class="summary-card order-summary-card">
+    <!-- Order Summary -->
+    <div class="summary-card order-summary-card">
+      <div class="card-header-small">
+        <div class="summary-icon">🛍️</div>
+        <div>
+          <h3 class="card-title">Order Summary</h3>
+          <p class="card-subtitle">Review your order</p>
+        </div>
+      </div>
+      
+      <div class="summary-content">
+        <div class="summary-row">
+          <span class="summary-label">Subtotal</span>
+          <span class="summary-value">MMK {{ getSubtotal() | number:'1.0-0' }}</span>
+        </div>
+
+        <!-- Discount line if applied -->
+        <div class="summary-row text-success" *ngIf="appliedDiscount > 0">
+          <span class="summary-label">Discount</span>
+          <span class="summary-value">
+            <ng-container *ngIf="discountType === 'Percentage'">
+              - {{ discountValue }}% (MMK {{ appliedDiscount | number:'1.0-0' }})
+            </ng-container>
+            <ng-container *ngIf="discountType === 'Fixed Amount'">
+              - MMK {{ appliedDiscount | number:'1.0-0' }}
+            </ng-container>
+          </span>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-label">Items</span>
+          <span class="summary-badge">{{ getTotalItems() }} items</span>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-label">Delivery Fee</span>
+          <span class="summary-value">MMK {{ deliveryFee | number:'1.0-0' }}</span>
+        </div>
+
+        <div class="summary-row" *ngIf="selectedDelayRange">
+          <span class="summary-label">Estimated Delivery</span>
+          <span class="delivery-badge">{{ selectedDelayRange }}</span>
+        </div>
+
+        <div class="summary-total">
+          <div class="total-row">
+            <span class="total-label">Total</span>
+            <span class="total-value">MMK {{ getTotalCost() | number:'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <!-- Admin Verification Panel (Show only if receipt uploaded) -->
+      <div class="summary-card admin-panel" *ngIf="selectedReceiptFile && isAdminView">
         <div class="card-header-small">
-          <div class="summary-icon">🛍️</div>
+          <div class="admin-icon">👨‍💼</div>
           <div>
-            <h3 class="card-title">Order Summary</h3>
-            <p class="card-subtitle">Review your order</p>
+            <h3 class="card-title">Admin Verification</h3>
+            <p class="card-subtitle">Payment verification required</p>
           </div>
         </div>
         
-        <div class="summary-content">
-          <div class="summary-row">
-            <span class="summary-label">Subtotal</span>
-            <span class="summary-value">MMK {{ getSubtotal() | number:'1.0-0' }}</span>
-          </div>
-          <div class="summary-row">
-            <span class="summary-label">Items</span>
-            <span class="summary-badge">{{ getTotalItems() }} items</span>
-          </div>
-          <div class="summary-row">
-            <span class="summary-label">Delivery Fee</span>
-            <span class="summary-value">MMK {{ deliveryFee | number:'1.0-0' }}</span>
-          </div>
-          <div class="summary-row" *ngIf="selectedDelayRange">
-            <span class="summary-label">Estimated Delivery</span>
-            <span class="delivery-badge">{{ selectedDelayRange }}</span>
+        <div class="admin-content">
+          <div class="verification-item">
+            <span class="verification-label">Expected Amount:</span>
+            <span class="verification-amount">MMK {{ getTotalCost() | number:'1.0-0' }}</span>
           </div>
           
-          <div class="summary-total">
-            <div class="total-row">
-              <span class="total-label">Total</span>
-              <span class="total-value">MMK {{ getTotalCost() | number:'1.0-0' }}</span>
-            </div>
+          <div class="verification-item">
+            <span class="verification-label">Payment Method:</span>
+            <span class="verification-method">{{ checkoutForm.get('paymentType')?.value }}</span>
+          </div>
+          
+          <div class="verification-item">
+            <span class="verification-label">Receipt Status:</span>
+            <span class="verification-status pending">Pending Review</span>
+          </div>
+
+          <div class="admin-actions">
+            <button type="button" class="verify-btn approve" (click)="approvePayment()">
+              ✅ Approve Payment
+            </button>
+            <button type="button" class="verify-btn reject" (click)="rejectPayment()">
+              ❌ Reject Payment
+            </button>
           </div>
         </div>
       </div>
@@ -294,5 +447,30 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Receipt Preview Modal -->
+  <div class="modal-backdrop" *ngIf="showReceiptPreview">
+    <div class="modal-content receipt-modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Payment Receipt</h3>
+        <button class="close-btn" (click)="closeReceiptPreview()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="receipt-preview">
+          <img [src]="receiptPreviewUrl" alt="Payment Receipt" class="receipt-image">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showCouponAppliedPopup" class="success-message" style="margin-bottom: 16px;">
+    Coupon applied! Discount: 
+    <span *ngIf="discountType === 'Percentage'">
+      {{ discountValue }}% (MMK {{ appliedDiscount | number:'1.0-0' }})
+    </span>
+    <span *ngIf="discountType === 'Fixed Amount'">
+      MMK {{ appliedDiscount | number:'1.0-0' }}
+    </span>
   </div>
 </div>

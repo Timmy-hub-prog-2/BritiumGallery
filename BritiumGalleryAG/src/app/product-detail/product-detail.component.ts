@@ -425,6 +425,15 @@ export class ProductDetailComponent implements OnInit {
       this.quantity--;
     }
   }
+
+  // Returns the currently selected variant based on selectedVariations
+  getSelectedVariant(): VariantResponse | undefined {
+    if (!this.latestProductDetail || !this.latestProductDetail.variants) return undefined;
+    return this.latestProductDetail.variants.find(variant => {
+      if (!variant.attributes) return false;
+      return Object.entries(this.selectedVariations).every(([type, value]) => variant.attributes[type] === value);
+    }) || this.latestProductDetail.variants[0];
+  }
 }
 
 

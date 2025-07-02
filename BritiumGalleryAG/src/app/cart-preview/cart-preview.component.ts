@@ -20,6 +20,9 @@ export class CartPreviewComponent implements OnInit {
   couponError: string = '';
   couponApplied: boolean = false;
 
+  discountType: string = '';
+  discountValue: string = '';
+
   constructor(
     private cartService: CartService,
     private router: Router,
@@ -105,6 +108,9 @@ export class CartPreviewComponent implements OnInit {
   }
 
   proceedToCheckout(): void {
+    if (this.discountAmount > 0) {
+      localStorage.setItem('couponApplied', 'true');
+    }
     this.router.navigate(['/checkout']);
   }
 
@@ -120,16 +126,28 @@ export class CartPreviewComponent implements OnInit {
     }
 
     this.couponService.applyCoupon(this.couponCode, this.currentUser.id, this.getSubtotal()).subscribe({
-      next: (discount: number) => {
-        this.discountAmount = discount;
+      next: (res: any) => {
+        this.discountAmount = res.discountAmount;
+        this.discountType = res.discountType;
+        this.discountValue = res.discountValue;
         this.couponError = '';
+        this.cartService.setDiscount(res.discountAmount);
+        this.cartService.setAppliedCouponCode(this.couponCode);
+        this.cartService.setDiscountType(res.discountType);
+        this.cartService.setDiscountValue(res.discountValue);
+        localStorage.setItem('couponApplied', 'true');
       },
       error: (err) => {
         this.couponError = err.error || 'Failed to apply coupon.';
         this.discountAmount = 0;
+        this.discountType = '';
+        this.discountValue = '';
+        this.cartService.setDiscount(0);
+        this.cartService.setAppliedCouponCode('');
+        this.cartService.setDiscountType('');
+        this.cartService.setDiscountValue('');
       }
     });
-
   }
 
   private resetCoupon(): void {
@@ -137,5 +155,11 @@ export class CartPreviewComponent implements OnInit {
     this.discountAmount = 0;
     this.couponError = '';
     this.couponApplied = false;
+    this.discountType = '';
+    this.discountValue = '';
+    this.cartService.setDiscount(0);
+    this.cartService.setAppliedCouponCode('');
+    this.cartService.setDiscountType('');
+    this.cartService.setDiscountValue('');
   }
 }

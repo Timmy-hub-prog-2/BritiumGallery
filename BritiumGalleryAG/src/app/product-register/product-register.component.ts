@@ -10,6 +10,7 @@ interface VariantCombination {
   attributes: { [key: string]: string };
   price: number;
   stock: number;
+  purchasePrice: number;
   photoUrl?: string;
 }
 
@@ -29,6 +30,8 @@ export class ProductRegisterComponent implements OnInit {
   // Base product information
   basePrice: number = 0;
   baseStock: number = 0;
+  basePurchasePrice: number = 0;
+  previousPurchasePrice: number = 0;
   selectedAttributeOptions: { [attributeId: number]: string[] } = {};
   variantCombinations: VariantCombination[] = [];
 
@@ -41,7 +44,8 @@ export class ProductRegisterComponent implements OnInit {
   product = {
     name: '',
     description: '',
-    basePhotoUrl: ''
+    basePhotoUrl: '',
+    rating: 0
   };
 
   constructor(
@@ -143,13 +147,14 @@ export class ProductRegisterComponent implements OnInit {
       attributes: combination,
       price: this.basePrice,
       stock: this.baseStock,
+      purchasePrice: this.basePurchasePrice,
       photoUrl: ''
     }));
   }
 
-  updateAllVariants(property: 'price' | 'stock', value: number): void {
+  updateAllVariants(property: 'price' | 'stock' | 'purchasePrice', value: number): void {
     this.variantCombinations.forEach(variant => {
-      variant[property] = value;
+      (variant as any)[property] = value;
     });
   }
 
@@ -159,6 +164,7 @@ export class ProductRegisterComponent implements OnInit {
     const variantsPayload = this.variantCombinations.map(variant => ({
       price: variant.price,
       stock: variant.stock,
+      purchasePrice: variant.purchasePrice,
       attributes: Object.entries(variant.attributes).reduce((acc, [attrId, value]) => {
         const attr = this.attributes.find(a => a.id === Number(attrId));
         if (attr) {
@@ -169,11 +175,16 @@ export class ProductRegisterComponent implements OnInit {
       photoUrl: variant.photoUrl
     }));
 
+    // Get logged-in user from localStorage
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const adminId = loggedInUser && loggedInUser.id ? loggedInUser.id : 1; // Fallback to 1 if not found
+
     const productPayload = {
       name: this.product.name,
       description: this.product.description,
       categoryId: this.categoryId,
-      adminId: 1,
+      adminId: adminId,
+      rating: this.product.rating,
       variants: variantsPayload,
       attributeOptions: Object.entries(this.attributeOptions).map(([attributeId, options]) => ({
         attributeId: +attributeId,
@@ -190,23 +201,23 @@ export class ProductRegisterComponent implements OnInit {
       return;
     }
 
+    // Append variant photos with their corresponding variant keys
     Object.entries(this.variantFiles).forEach(([variantKey, files]) => {
       files.forEach(file => {
-        formData.append('variantPhotos', file);
+        formData.append(variantKey, file);
       });
     });
 
-    this.productService.saveProduct(formData).subscribe({
-      next: (response) => {
-        console.log('Save response:', response);
-        alert('Product and variants saved!');
+    this.productService.saveProductWithFiles(formData).subscribe(
+      (response: string) => {
+        this.snackBar.open('Product saved successfully!', 'Close', { duration: 3000 });
         this.router.navigate(['/sub-category', this.categoryId]);
       },
-      error: (error) => {
-        console.error('Save error:', error);
-        alert('Failed to save product');
-      },
-    });
+      (error: Error) => {
+        console.error('Error saving product:', error);
+        this.snackBar.open('Error saving product. Please try again.', 'Close', { duration: 3000 });
+      }
+    );
   }
 
   // Base photo selected handler

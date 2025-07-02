@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AddressService } from '../address.service';
 import { NgForm } from '@angular/forms';
 import * as L from 'leaflet'; // Import Leaflet
-import { HttpClient } from '@angular/common/http'; 
+import { HttpClient } from '@angular/common/http';
 import { AddressDTO } from '../../AddressDTO';
 
 
@@ -67,8 +67,8 @@ export class AddresseditComponent implements OnInit {
   initMap(): void {
     this.map = L.map('map').setView([16.775, 96.1575], 13); // Center map to a default location (e.g., Myanmar)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(this.map);
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(this.map);
 
     // Add a default marker with the custom location icon
     this.marker = L.marker([16.775, 96.1575], { icon: this.locationIcon }).addTo(this.map);
@@ -81,6 +81,9 @@ export class AddresseditComponent implements OnInit {
   onMapClick(event: any): void {
     const { lat, lng } = event.latlng;
 
+    this.address.latitude = lat;
+    this.address.longitude = lng;
+
     // Set marker to new position with custom icon
     this.marker?.setLatLng([lat, lng]);
 
@@ -90,15 +93,15 @@ export class AddresseditComponent implements OnInit {
 
 
   // Get address from latitude and longitude using reverse geocoding (Nominatim API)
- getAddressFromLatLng(lat: number, lng: number): void {
-  if (this.map && this.marker) {
-    // Update map view and marker position
-    this.map.setView([lat, lng], 15);
-    this.marker.setLatLng([lat, lng]);
-  }
+  getAddressFromLatLng(lat: number, lng: number): void {
+    if (this.map && this.marker) {
+      // Update map view and marker position
+      this.map.setView([lat, lng], 15);
+      this.marker.setLatLng([lat, lng]);
+    }
 
-  this.reverseGeocode(lat, lng);  // Call reverse geocoding method
-}
+    this.reverseGeocode(lat, lng);  // Call reverse geocoding method
+  }
 
   searchLocation() {
     const query = this.searchQuery.trim();
@@ -113,7 +116,8 @@ export class AddresseditComponent implements OnInit {
         const lat = parseFloat(result.lat);
         const lng = parseFloat(result.lon);
         const addr = result.address || {};
-
+        this.address.latitude = lat;
+        this.address.longitude = lng;
         // this.center = { lat, lng };
         const zoom = addr.state && !addr.city ? 8 : 15;
 
@@ -142,7 +146,8 @@ export class AddresseditComponent implements OnInit {
         position => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-
+          this.address.latitude = lat;
+          this.address.longitude = lng;
           //  this.center = { lat, lng };
 
           if (this.map) this.map.setView([lat, lng], 15);
@@ -161,19 +166,21 @@ export class AddresseditComponent implements OnInit {
   }
 
   reverseGeocode(lat: number, lng: number) {
+    this.address.latitude = lat;
+    this.address.longitude = lng;
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`;
 
     this.http.get<any>(url).subscribe(res => {
       const addr = res.address || {};
 
       this.address.city = addr.city || addr.town || addr.village || '';
-     this.address.township = addr.suburb
-         addr.neighbourhood
-         addr.village
-         addr.hamlet
-         addr.quarter
-         addr.town
-         addr.city_district
+      this.address.township = addr.suburb
+      addr.neighbourhood
+      addr.village
+      addr.hamlet
+      addr.quarter
+      addr.town
+      addr.city_district
         || '';
       this.address.street = addr.road || addr.street || '';
       this.address.state = addr.state || '';
@@ -210,11 +217,11 @@ export class AddresseditComponent implements OnInit {
   }
 
   // Cancel edit
- cancelEdit(): void {
-  if (confirm('Are you sure you want to cancel editing?')) {
-    this.router.navigate(['/addresslist']);
+  cancelEdit(): void {
+    if (confirm('Are you sure you want to cancel editing?')) {
+      this.router.navigate(['/addresslist']);
+    }
   }
-}
 
 
   resetForm(): void {
