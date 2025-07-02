@@ -12,6 +12,7 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { User } from '../../user.model';
+import { Terms, TermsService } from '../terms.service';
 
 @Component({
   selector: 'app-user-register',
@@ -52,7 +53,13 @@ export class UserRegisterComponent {
   passwordStrength = '';
   isSubmitting = false;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  latestTerms: Terms | null = null;
+   latestPrivacyPolicy: any = null;
+   showTermsModal = false;
+   showPrivacyPolicyModal = false;
+  acceptedTerms = false;
+
+  constructor(private http: HttpClient, private router: Router,private termsService:TermsService) {}
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -88,7 +95,43 @@ export class UserRegisterComponent {
       this.onImagesSelected({ target: { files } } as any);
     }
   }
+ openTermsModal(event: Event): void {
+    event.preventDefault();
+    this.termsService.getLatestTerms().subscribe({
+      next: (terms) => {
+        this.latestTerms = terms;
+        this.showTermsModal = true;
+      },
+      error: () => {
+        alert("Unable to load latest terms.");
+      }
+    });
+  }
 
+  closeTermsModal(): void {
+    this.showTermsModal = false;
+  }
+
+ openPrivacyPolicyModal(event: Event): void {
+  event.preventDefault();
+  this.http.get('http://localhost:8080/api/privacy-policy/latest')
+    .subscribe({
+      next: (policy) => {
+        this.latestPrivacyPolicy = policy;
+        this.showPrivacyPolicyModal = true;
+      },
+      error: () => {
+        alert('Unable to load latest privacy policy.');
+      }
+    });
+}
+
+
+  // Close the privacy policy modal
+  closePrivacyPolicyModal(): void {
+    this.showPrivacyPolicyModal = false;
+  }
+  
   register(): void {
     if (!this.registerForm.valid) {
       this.registerForm.control.markAllAsTouched();
