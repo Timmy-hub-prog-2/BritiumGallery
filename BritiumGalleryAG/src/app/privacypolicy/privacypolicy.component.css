@@ -1,0 +1,93 @@
+.admin-policy-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', sans-serif;
+  color: #333;
+}
+
+.admin-policy-container h2 {
+  margin-bottom: 20px;
+  font-size: 1.75rem;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.policy-textarea {
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+  line-height: 1.6;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 250px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+.policy-textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button[type="submit"] {
+  background-color: #007bff;
+  color: white;
+  margin-right: 10px;
+}
+
+button[type="submit"]:hover {
+  background-color: #0056b3;
+}
+
+button[type="button"] {
+  background-color: #dc3545;
+  color: white;
+}
+
+button[type="button"]:hover {
+  background-color: #b02a37;
+}
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+li {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+.btn-simple {
+  background-color: transparent;
+  color: #007bff;
+  border: none;
+  padding: 4px 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  text-decoration: underline;
+}
+
+.btn-simple:hover {
+  color: #0056b3;
+  text-decoration: none;
+}

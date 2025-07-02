@@ -29,7 +29,13 @@
       </div>
     </div>
     <div class="wishlist-actions">
-      <span class="wishlist-heart">&#10084;</span>
+     <span class="wishlist-heart"
+      (click)="removeFromWishlist(item.productId)"
+      title="Remove from wishlist"
+      style="cursor: pointer; color: red;">
+  &#10084;
+</span>
+
 
     </div>
   </div>

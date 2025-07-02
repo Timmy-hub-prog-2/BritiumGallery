@@ -7,11 +7,13 @@ import com.maven.demo.entity.WishlistEntity;
 import com.maven.demo.repository.ProductRepository;
 import com.maven.demo.repository.UserRepository;
 import com.maven.demo.repository.WishlistRepository;
+import com.maven.demo.service.WishlistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,6 +31,9 @@ public class WishlistController {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private WishlistService wishlistService;
 
     @PostMapping("/add")
     public ResponseEntity<Map<String, String>> addToWishlist(@RequestParam Long userId, @RequestParam Long productId) {
@@ -53,6 +58,24 @@ public class WishlistController {
     public ResponseEntity<List<WishlistEntity>> getAllWishlist() {
         return ResponseEntity.ok(wishlistRepository.findAll());
     }
+
+    @DeleteMapping("/remove")
+    public ResponseEntity<Map<String, Object>> removeFromWishlist(@RequestParam Long userId,
+                                                                  @RequestParam Long productId) {
+        boolean removed = wishlistService.remove(userId, productId);
+
+        Map<String, Object> response = new HashMap<>();
+        if (removed) {
+            response.put("success", true);
+            response.put("message", "Removed from wishlist.");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("success", false);
+            response.put("message", "Wishlist entry not found.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
 
 
     // ✅ Get wishlist for a user

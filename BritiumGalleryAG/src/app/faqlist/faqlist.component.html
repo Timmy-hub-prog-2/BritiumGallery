@@ -1,0 +1,23 @@
+<div class="faq-user-view">
+  <h2>FAQs</h2>
+  <p>Welcome to our Frequently Asked Questions page. Here you’ll find answers about our products, orders, shipping, and more.</p>
+
+  <!-- <mat-form-field appearance="outline" class="search-bar">
+    <mat-label>Search FAQ</mat-label>
+    <input matInput placeholder="Search..." [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()" />
+  </mat-form-field> -->
+
+  <div *ngFor="let category of objectKeys(groupedFaqs)">
+    <h3 class="faq-category">{{ category }}</h3>
+
+    <div class="faq-item" *ngFor="let faq of groupedFaqs[category]">
+      <div class="faq-question" (click)="toggleAnswer(faq.id!)">
+        <span class="faq-toggle">{{ isExpanded(faq.id!) ? '−' : '+' }}</span>
+        {{ faq.question }}
+      </div>
+      <div class="faq-answer" *ngIf="isExpanded(faq.id!)">
+        {{ faq.answer }}
+      </div>
+    </div>
+  </div>
+</div>

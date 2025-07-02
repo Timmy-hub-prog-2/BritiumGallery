@@ -1,0 +1,53 @@
+<div class="admin-policy-container">
+    <h2>🛡️ Privacy Policy Editor</h2>
+
+    <form [formGroup]="form" (ngSubmit)="savePolicy()">
+        <label>Content</label>
+        <textarea formControlName="content" rows="8" class="form-control"></textarea>
+
+        <label style="margin-top: 10px;">
+            <input type="checkbox" formControlName="active" /> Active
+        </label>
+
+        <div style="margin-top: 10px;">
+            <button type="submit" class="btn btn-primary">
+                {{ policyId ? 'Update' : 'Create' }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="cancelEdit()" *ngIf="policyId">
+                Cancel
+            </button>
+        </div>
+    </form>
+
+</div>
+
+<hr />
+
+<h3>📜 Privacy Policy History</h3>
+<div *ngIf="allPolicies.length > 0; else noData">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Content</th>
+                <th>Active</th>
+                <th>Actions</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let policy of allPolicies; let i = index">
+                <td style="white-space: pre-wrap;">{{ policy.content }}</td>
+                <td>{{ policy.active ? 'Yes' : 'No' }}</td>
+                <td>
+                    <button class="btn-simple" (click)="editPolicy(policy)">Edit</button>
+                    <button class="btn-simple" (click)="deletePolicy(policy.id)">Delete</button>
+                </td>
+
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<ng-template #noData>
+    <p>No privacy policies found.</p>
+</ng-template>

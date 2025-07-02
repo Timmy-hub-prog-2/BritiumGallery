@@ -1,0 +1,26 @@
+<div class="faq-container">
+  <h2>📋 FAQ Manager</h2>
+
+  <form (ngSubmit)="saveFaq()" #faqForm="ngForm">
+
+     
+    <!-- Category Input -->
+    <input type="text" name="category" [(ngModel)]="faq.category" required placeholder="Category" />
+    
+    <input type="text" name="question" [(ngModel)]="faq.question" required placeholder="Question" />
+    <textarea name="answer" [(ngModel)]="faq.answer" required placeholder="Answer"></textarea>
+    <button type="submit">{{ faq.id ? 'Update' : 'Create' }}</button>
+    <button type="button" (click)="resetForm()">Cancel</button>
+  </form>
+
+  <hr />
+
+  <ul>
+    <li *ngFor="let f of faqs">
+      <strong>{{ f.question }}</strong><br />
+      <em>{{ f.answer }}</em><br />
+      <button (click)="editFaq(f)">Edit</button>
+      <button (click)="deleteFaq(f.id)">Delete</button>
+    </li>
+  </ul>
+</div>
