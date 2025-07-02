@@ -96,4 +96,27 @@ export class WishlistComponent implements OnInit {
     const max = Math.max(...prices);
     return min === max ? `${min} MMK` : `${min} MMK - ${max} MMK`;
   }
+
+  removeFromWishlist(productId: number): void {
+  const userId = this.authService.getLoggedInUserId();
+  if (userId === null) {
+    console.error('User not logged in.');
+    return;
+  }
+
+  this.wishlistService.removeWishlistItem(userId, productId).subscribe({
+    next: (res: any) => {
+      if (res && res.success !== false) {
+        this.wishlist = this.wishlist.filter(item => item.productId !== productId);
+        delete this.productDetails[productId];
+      } else {
+        console.error(res.message || 'Failed to remove from wishlist.');
+      }
+    },
+    error: (err) => {
+      console.error('Failed to remove from wishlist:', err);
+    }
+  });
+}
+
 }
