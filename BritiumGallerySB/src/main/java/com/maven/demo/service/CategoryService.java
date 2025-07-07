@@ -80,13 +80,21 @@ public class CategoryService {
     }
 
     public List<CategoryDTO> getAllCategories() {
-        List<CategoryEntity> cateList = repo.findByParentCategoryIsNull();
-        return cateList.stream().map(c -> mapper.map(c, CategoryDTO.class)).toList();
+        List<CategoryEntity> cateList = repo.findAll();
+        return cateList.stream().map(entity -> {
+            CategoryDTO dto = mapper.map(entity, CategoryDTO.class);
+            dto.setParent_category_id(entity.getParentCategory() != null ? entity.getParentCategory().getId() : null);
+            return dto;
+        }).toList();
     }
 
     public List<CategoryDTO> getSubCategories(Long id) {
         List<CategoryEntity> cateList = repo.findByParentCategoryId(id);
-        return cateList.stream().map(c -> mapper.map(c, CategoryDTO.class)).toList();
+        return cateList.stream().map(entity -> {
+            CategoryDTO dto = mapper.map(entity, CategoryDTO.class);
+            dto.setParent_category_id(entity.getParentCategory() != null ? entity.getParentCategory().getId() : null);
+            return dto;
+        }).toList();
     }
 
     // ✅ Update Category
@@ -135,7 +143,7 @@ public class CategoryService {
         if (entity == null) return null;
 
         CategoryDTO dto = mapper.map(entity, CategoryDTO.class);
-
+        dto.setParent_category_id(entity.getParentCategory() != null ? entity.getParentCategory().getId() : null);
         // Manually map attributes since ModelMapper may skip them depending on config
         dto.setAttributes(
                 entity.getAttributes().stream().map(attr -> {
@@ -145,11 +153,6 @@ public class CategoryService {
                     return attrDto;
                 }).toList()
         );
-
-        if (entity.getParentCategory() != null) {
-            dto.setParent_category_id(entity.getParentCategory().getId());
-        }
-
         return dto;
     }
 

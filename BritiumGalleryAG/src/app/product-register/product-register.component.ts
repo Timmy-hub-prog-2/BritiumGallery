@@ -5,6 +5,8 @@ import { ProductService } from '../services/product.service';
 import { ProductRequest, VariantRequest } from '../product-request.model';
 import { CategoryAttribute } from '../category';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Brand } from '../models/product.model';
+import { BrandService } from '../services/brand.service';
 
 interface VariantCombination {
   attributes: { [key: string]: string };
@@ -48,12 +50,16 @@ export class ProductRegisterComponent implements OnInit {
     rating: 0
   };
 
+  brands: Brand[] = [];
+  selectedBrandId: number | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private categoryService: CategoryService,
     private productService: ProductService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private brandService: BrandService
   ) {}
 
   ngOnInit(): void {
@@ -66,6 +72,10 @@ export class ProductRegisterComponent implements OnInit {
           this.selectedAttributeOptions[attr.id] = [];
         }
       });
+    });
+    // Fetch brands
+    this.brandService.getAllBrands().subscribe(brands => {
+      this.brands = brands;
     });
   }
 
@@ -189,7 +199,8 @@ export class ProductRegisterComponent implements OnInit {
       attributeOptions: Object.entries(this.attributeOptions).map(([attributeId, options]) => ({
         attributeId: +attributeId,
         options: options
-      }))
+      })),
+      brandId: this.selectedBrandId
     };
 
     formData.append('product', new Blob([JSON.stringify(productPayload)], { type: 'application/json' }));

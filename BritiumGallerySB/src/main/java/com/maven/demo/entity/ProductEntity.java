@@ -18,6 +18,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import com.maven.demo.entity.BrandEntity;
 
 @Entity
 @Getter
@@ -60,7 +61,7 @@ public class ProductEntity {
     @JsonIgnore
     private List<WishlistEntity> wishlists;
 
-
-
-
+    @ManyToOne
+    @JoinColumn(name = "brand_id")
+    private BrandEntity brand;
 }
