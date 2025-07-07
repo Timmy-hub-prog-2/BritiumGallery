@@ -219,6 +219,7 @@ public class ProductService {
         dto.setId(product.getId());
         dto.setName(product.getName());
         dto.setDescription(product.getDescription());
+
         dto.setRating(product.getRating());
         dto.setCategoryId(product.getCategory().getId());
         dto.setAdminId(product.getAdmin_id());
@@ -248,6 +249,11 @@ public class ProductService {
         }).toList();
 
         dto.setVariants(variantDTOs);
+        if (product.getBrand() != null) {
+            dto.setBrand(product.getBrand().getName());
+        } else {
+            dto.setBrand(null);
+        }
         return dto;
     }
 
@@ -446,6 +452,11 @@ public class ProductService {
         }).toList();
 
         dto.setVariants(variantDTOs);
+        if (product.getBrand() != null) {
+            dto.setBrand(product.getBrand().getName());
+        } else {
+            dto.setBrand(null);
+        }
         return dto;
     }
 
@@ -474,18 +485,44 @@ public class ProductService {
 
         return products.stream()
                 .filter(product -> {
-                    // A product is included if at least one of its variants matches ALL selected filters
+                    // Brand filter
+                    if (filters != null && filters.containsKey("brand")) {
+                        List<String> brandFilters = filters.get("brand");
+                        String productBrand = product.getBrand() != null ? product.getBrand().getName() : null;
+                        if (brandFilters != null && !brandFilters.isEmpty() && (productBrand == null || !brandFilters.contains(productBrand))) {
+                            return false;
+                        }
+                    }
+                    // Price filter (minPrice, maxPrice)
+                    Integer minPrice = null, maxPrice = null;
+                    if (filters != null && filters.containsKey("minPrice")) {
+                        try {
+                            minPrice = Integer.parseInt(filters.get("minPrice").get(0));
+                        } catch (Exception ignored) {}
+                    }
+                    if (filters != null && filters.containsKey("maxPrice")) {
+                        try {
+                            maxPrice = Integer.parseInt(filters.get("maxPrice").get(0));
+                        } catch (Exception ignored) {}
+                    }
+                    final Integer finalMinPrice = minPrice;
+                    final Integer finalMaxPrice = maxPrice;
+                    // A product is included if at least one of its variants matches ALL selected attribute filters and price
                     return product.getVariants().stream().anyMatch(variant -> {
+                        // Price check
+                        if (finalMinPrice != null && variant.getPrice() < finalMinPrice) return false;
+                        if (finalMaxPrice != null && variant.getPrice() > finalMaxPrice) return false;
                         if (filters == null || filters.isEmpty()) {
                             return true; // No filters, so all variants are considered valid
                         }
-                        // Check if this variant matches all selected filters
+                        // Check if this variant matches all selected attribute filters (excluding brand and price)
                         return filters.entrySet().stream().allMatch(filterEntry -> {
                             String attributeName = filterEntry.getKey();
+                            if (attributeName.equals("brand") || attributeName.equals("minPrice") || attributeName.equals("maxPrice")) {
+                                return true; // Already handled
+                            }
                             Object value = filterEntry.getValue();
                             List<String> attributeValues;
-                            
-                            // Handle both single string and list of strings
                             if (value instanceof String) {
                                 attributeValues = List.of((String) value);
                             } else if (value instanceof List) {
@@ -493,8 +530,6 @@ public class ProductService {
                             } else {
                                 return false;
                             }
-
-                            // Check if this variant has an attribute matching the name AND one of the values
                             return variant.getAttributeValues().stream()
                                     .anyMatch(vav -> {
                                         String attrName = vav.getAttribute().getName();
@@ -657,5 +692,42 @@ public class ProductService {
     public List<ProductResponseDTO> getAllProducts() {
         List<ProductEntity> products = proRepo.findAll();
         return products.stream().map(this::convertToProductResponseDTO).collect(Collectors.toList());
+    }
+
+    // Get all unique brands for a category
+    public List<String> getBrandsForCategory(Long categoryId) {
+        List<Long> categoryIds = new ArrayList<>();
+        categoryIds.add(categoryId);
+        categoryIds.addAll(categoryService.getAllDescendantCategoryIds(categoryId));
+        List<ProductEntity> products = proRepo.findByCategoryIdIn(categoryIds);
+        Set<String> brands = new HashSet<>();
+        for (ProductEntity product : products) {
+            if (product.getBrand() != null && product.getBrand().getName() != null) {
+                brands.add(product.getBrand().getName());
+            }
+        }
+        return new ArrayList<>(brands);
+    }
+
+    public Map<String, Integer> getMinMaxPriceForCategory(Long categoryId) {
+        List<Long> categoryIds = new ArrayList<>();
+        categoryIds.add(categoryId);
+        categoryIds.addAll(categoryService.getAllDescendantCategoryIds(categoryId));
+        List<ProductEntity> products = proRepo.findByCategoryIdIn(categoryIds);
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        for (ProductEntity product : products) {
+            for (ProductVariantEntity variant : product.getVariants()) {
+                int price = variant.getPrice();
+                if (price < min) min = price;
+                if (price > max) max = price;
+            }
+        }
+        if (min == Integer.MAX_VALUE) min = 0;
+        if (max == Integer.MIN_VALUE) max = 0;
+        Map<String, Integer> result = new HashMap<>();
+        result.put("min", min);
+        result.put("max", max);
+        return result;
     }
 }

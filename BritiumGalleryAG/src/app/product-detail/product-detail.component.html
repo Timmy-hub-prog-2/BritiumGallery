@@ -60,7 +60,6 @@
               <mat-icon *ngIf="latestProductDetail.rating < star - 0.5">star_border</mat-icon>
             </ng-container>
           </span>
-        
         </div>
       </div>
 
@@ -69,8 +68,8 @@
       <!-- Price and Sample Info -->
       <div class="price-sample-section">
         <div class="product-tags">
-          <div class="customizable-tag">Customizable</div>
-        
+          <div *ngIf="latestProductDetail.brand" class="customizable-tag">{{ latestProductDetail.brand }}</div>
+         
         </div>
         <div class="price-container">
           <div class="main-price">

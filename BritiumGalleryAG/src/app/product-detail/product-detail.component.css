@@ -265,6 +265,20 @@
   font-weight: 500;
 }
 
+.brand-badge {
+  display: inline-block;
+  background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 6px 18px;
+  border-radius: 16px;
+  margin-bottom: 10px;
+  margin-right: 10px;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+}
+
 /* Price and Sample Section */
 .price-sample-section {
   border-bottom: 1px solid #e0e0e0;

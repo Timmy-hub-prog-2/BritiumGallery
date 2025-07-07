@@ -332,4 +332,15 @@ public class ProductController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/{categoryId}/brands")
+    public ResponseEntity<List<String>> getBrandsForCategory(@PathVariable Long categoryId) {
+        List<String> brands = productService.getBrandsForCategory(categoryId);
+        return ResponseEntity.ok(brands);
+    }
+
+    @GetMapping("/{categoryId}/price-range")
+    public ResponseEntity<Map<String, Integer>> getMinMaxPriceForCategory(@PathVariable Long categoryId) {
+        return ResponseEntity.ok(productService.getMinMaxPriceForCategory(categoryId));
+    }
+
 }

@@ -21,6 +21,47 @@
       </ul>
 
       <h3>Filters</h3>
+      <!-- Brand Filter -->
+      <div class="filter-group">
+        <div class="filter-header" (click)="toggleFilterExpansion('Brand')">
+          <h4>Brand</h4>
+          <i class="bi" [class.bi-chevron-up]="isFilterExpanded('Brand')" [class.bi-chevron-down]="!isFilterExpanded('Brand')"></i>
+        </div>
+        <div class="filter-options-container" *ngIf="isFilterExpanded('Brand')">
+          <div *ngFor="let brand of brands" class="filter-option">
+            <input type="checkbox" [id]="'brand-' + brand" [value]="brand"
+                   [checked]="selectedBrands.includes(brand)"
+                   (change)="toggleBrandFilter(brand)">
+            <label [for]="'brand-' + brand">{{ brand }}</label>
+          </div>
+        </div>
+      </div>
+      <!-- Price Range Filter -->
+      <div class="filter-group">
+        <div class="filter-header" (click)="toggleFilterExpansion('Price')">
+          <h4>Price Range</h4>
+          <i class="bi" [class.bi-chevron-up]="isFilterExpanded('Price')" [class.bi-chevron-down]="!isFilterExpanded('Price')"></i>
+        </div>
+        <div class="filter-options-container" *ngIf="isFilterExpanded('Price')">
+          <div class="price-slider-container">
+            <div class="price-slider-labels">
+              <span>{{ priceRangeMin }} MMK</span>
+              <span>{{ priceRangeMax }} MMK</span>
+            </div>
+            <div class="price-slider-inputs">
+              <input type="range" [min]="priceRangeMin" [max]="priceRangeMax" [(ngModel)]="minPrice" (input)="onMinPriceInput()">
+              <input type="range" [min]="priceRangeMin" [max]="priceRangeMax" [(ngModel)]="maxPrice" (input)="onMaxPriceInput()">
+              <div class="price-slider-highlight" [ngStyle]="{
+                left: (((minPrice ?? priceRangeMin) - priceRangeMin) / (priceRangeMax - priceRangeMin) * 100) + '%',
+                width: (((maxPrice ?? priceRangeMax) - (minPrice ?? priceRangeMin)) / (priceRangeMax - priceRangeMin) * 100) + '%'
+              }"></div>
+            </div>
+            <div class="price-slider-values">
+              <span>Selected: {{ minPrice }} - {{ maxPrice }} MMK</span>
+            </div>
+          </div>
+        </div>
+      </div>
       <div *ngFor="let attribute of availableAttributes" class="filter-group">
         <div class="filter-header" (click)="toggleFilterExpansion(attribute.name)">
           <h4>{{ attribute.name }}</h4>

@@ -24,8 +24,14 @@ public class LoginResponseDTO {
         this.phoneNumber = user.getPhoneNumber();
         this.gender = user.getGender();
         this.status = user.getStatus();
-        this.roleId = user.getRole().getId();
+        this.roleId = user.getRole() != null ? user.getRole().getId() : null;
         this.imageUrls = user.getImageUrls();
-        this.customerType = user.getCustomerType().getType();
+        if (user.getCustomerType() != null) {
+            this.customerType = user.getCustomerType().getType();
+        } else if (user.getRole() != null && user.getRole().getType() != null) {
+            this.customerType = user.getRole().getType();
+        } else {
+            this.customerType = null;
+        }
     }
 }

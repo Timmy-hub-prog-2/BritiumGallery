@@ -9,6 +9,7 @@ export interface ProductResponse {
   adminId?:number;
   variants: VariantResponse[];
   imageUrl?: string; // optional fallback
+  brand?: string;
 }
 
 export interface VariantResponse {

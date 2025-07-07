@@ -105,4 +105,12 @@ export class ProductService {
   getAllProducts(): Observable<Product[]> {
     return this.http.get<Product[]>(`${this.baseUrl}/all`);
   }
+
+  getBrandsForCategory(categoryId: number): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/${categoryId}/brands`);
+  }
+
+  getMinMaxPriceForCategory(categoryId: number): Observable<{ min: number, max: number }> {
+    return this.http.get<{ min: number, max: number }>(`${this.baseUrl}/${categoryId}/price-range`);
+  }
 }

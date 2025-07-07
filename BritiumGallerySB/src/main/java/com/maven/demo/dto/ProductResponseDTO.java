@@ -1,8 +1,9 @@
 package com.maven.demo.dto;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
 
 @Getter
 @Setter
@@ -14,5 +15,6 @@ public class ProductResponseDTO {
     private Long categoryId;
     private Long adminId;
     private String basePhotoUrl;
+    private String brand;
     private List<VariantResponseDTO> variants;
 }

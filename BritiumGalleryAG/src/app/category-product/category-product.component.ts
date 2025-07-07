@@ -6,13 +6,14 @@ import { ProductResponse } from '../ProductResponse';
 import { category, CategoryAttribute } from '../category';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-category-product',
   templateUrl: './category-product.component.html',
   styleUrls: ['./category-product.component.css'],
   standalone: true,
-  imports: [RouterModule, CommonModule]
+  imports: [RouterModule, CommonModule, FormsModule]
 })
 export class CategoryProductComponent implements OnInit {
   categoryId: number | null = null;
@@ -25,6 +26,12 @@ export class CategoryProductComponent implements OnInit {
   breadcrumb: string[] = [];
   parentCategoryName: string = '';
   areAllFiltersHidden: boolean = false;
+  brands: string[] = [];
+  selectedBrands: string[] = [];
+  minPrice: number | null = null;
+  maxPrice: number | null = null;
+  priceRangeMin: number = 0;
+  priceRangeMax: number = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -45,6 +52,8 @@ export class CategoryProductComponent implements OnInit {
         this.loadProducts();
         this.loadAvailableAttributes();
         this.loadBreadcrumb();
+        this.loadBrands();
+        this.updatePriceRange();
       }
     });
   }
@@ -101,6 +110,14 @@ export class CategoryProductComponent implements OnInit {
     }
   }
 
+  loadBrands(): void {
+    if (this.categoryId) {
+      this.productService.getBrandsForCategory(this.categoryId).subscribe(brands => {
+        this.brands = brands;
+      });
+    }
+  }
+
   loadBreadcrumb(): void {
     if (this.categoryId) {
       this.productService.getProductBreadcrumb(this.categoryId).subscribe(breadcrumb => {
@@ -132,8 +149,29 @@ export class CategoryProductComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.loadProducts();
-    console.log('Applying filters:', this.selectedAttributeFilters);
+    const filters = { ...this.selectedAttributeFilters };
+    if (this.selectedBrands.length > 0) {
+      filters['brand'] = this.selectedBrands;
+    }
+    if (this.minPrice !== null) {
+      filters['minPrice'] = [this.minPrice.toString()];
+    }
+    if (this.maxPrice !== null) {
+      filters['maxPrice'] = [this.maxPrice.toString()];
+    }
+    this.productService.getFilteredProducts(this.categoryId!, filters).subscribe(products => {
+      this.products = products;
+    });
+    console.log('Applying filters:', filters);
+  }
+
+  toggleBrandFilter(brand: string): void {
+    if (this.selectedBrands.includes(brand)) {
+      this.selectedBrands = this.selectedBrands.filter(b => b !== brand);
+    } else {
+      this.selectedBrands.push(brand);
+    }
+    this.applyFilters();
   }
 
   toggleAllFilters(): void {
@@ -160,5 +198,39 @@ export class CategoryProductComponent implements OnInit {
     } else {
       return `${minPrice} - ${maxPrice} MMK`;
     }
+  }
+
+  updatePriceRange(): void {
+    if (this.categoryId) {
+      this.productService.getMinMaxPriceForCategory(this.categoryId).subscribe(range => {
+        this.priceRangeMin = range.min;
+        this.priceRangeMax = range.max;
+        // Set minPrice and maxPrice to full range if not already set
+        if (this.minPrice === null || this.minPrice < this.priceRangeMin) {
+          this.minPrice = this.priceRangeMin;
+        }
+        if (this.maxPrice === null || this.maxPrice > this.priceRangeMax) {
+          this.maxPrice = this.priceRangeMax;
+        }
+      });
+    }
+  }
+
+  onMinPriceInput(): void {
+    if (this.minPrice === null) this.minPrice = this.priceRangeMin;
+    if (this.maxPrice === null) this.maxPrice = this.priceRangeMax;
+    if (this.minPrice > this.maxPrice) {
+      this.minPrice = this.maxPrice;
+    }
+    this.applyFilters();
+  }
+
+  onMaxPriceInput(): void {
+    if (this.minPrice === null) this.minPrice = this.priceRangeMin;
+    if (this.maxPrice === null) this.maxPrice = this.priceRangeMax;
+    if (this.maxPrice < this.minPrice) {
+      this.maxPrice = this.minPrice;
+    }
+    this.applyFilters();
   }
 } 
