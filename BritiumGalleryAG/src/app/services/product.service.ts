@@ -97,4 +97,8 @@ export class ProductService {
     }
     return this.http.post<VariantResponse>(`${this.baseUrl}/variants/${stockData.variantId}/add-stock`, stockData, { params });
   }
+
+  getAllProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.baseUrl}/all`);
+  }
 }

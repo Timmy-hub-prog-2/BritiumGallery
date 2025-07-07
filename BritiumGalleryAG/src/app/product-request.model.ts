@@ -5,6 +5,7 @@ export interface ProductRequest {
   adminId: number;
   basePhotoUrl: string,
   variants: VariantRequest[];
+  brandId?: number;
 }
 
 export interface VariantRequest {

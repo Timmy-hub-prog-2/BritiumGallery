@@ -6,6 +6,7 @@ export interface Product {
   categoryId: number;
   variants: ProductVariant[];
   basePhotoUrl: string;
+  brand?: Brand;
 }
 
 export interface ProductVariant {
@@ -15,4 +16,11 @@ export interface ProductVariant {
   attributes: Record<string, string>;
   imageUrls?: string;
   attributesString?: string; // For editing purposes
+}
+
+export interface Brand {
+  id: number;
+  name: string;
+  discount?: number;
+  type: 'brand';
 } 

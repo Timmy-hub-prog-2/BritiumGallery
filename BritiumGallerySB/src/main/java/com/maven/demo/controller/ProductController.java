@@ -33,6 +33,8 @@ import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.PurchaseHistoryResponseDTO;
 import com.maven.demo.service.CloudinaryUploadService;
 import com.maven.demo.service.ProductService;
+import com.maven.demo.repository.ProductVariantRepository;
+import com.maven.demo.entity.ProductVariantEntity;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -44,6 +46,9 @@ public class ProductController {
 
     @Autowired
     private CloudinaryUploadService cloudinaryService;
+
+    @Autowired
+    private ProductVariantRepository variantRepository;
 
     @PostMapping("/saveWithFiles")
     public ResponseEntity<String> saveProductWithFiles(
@@ -251,5 +256,73 @@ public class ProductController {
     //            return productService.getProductsByParentCategory(parentId);
     //        }
 
+    @GetMapping("/variants")
+    public ResponseEntity<List<Map<String, Object>>> getAllVariants() {
+        List<ProductVariantEntity> variants = variantRepository.findAll();
+        List<Map<String, Object>> dtos = variants.stream().map(variant -> {
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("id", variant.getId());
+            StringBuilder nameBuilder = new StringBuilder();
+            if (variant.getProduct() != null) {
+                nameBuilder.append(variant.getProduct().getName());
+            }
+            if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
+                nameBuilder.append(" - ");
+                nameBuilder.append(
+                    variant.getAttributeValues().stream()
+                        .map(attr -> attr.getAttribute().getName() + ": " + attr.getValue())
+                        .reduce((a, b) -> a + ", " + b).orElse("")
+                );
+            }
+            dto.put("name", nameBuilder.toString());
+            dto.put("price", variant.getPrice());
+            dto.put("stock", variant.getStock());
+            dto.put("sku", variant.getSku());
+            return dto;
+        }).toList();
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
+        return ResponseEntity.ok(productService.getAllProducts());
+    }
+
+    @GetMapping("/{productId}/variants")
+    public ResponseEntity<List<Map<String, Object>>> getVariantsByProduct(@PathVariable Long productId) {
+        List<ProductVariantEntity> variants = variantRepository.findByProductId(productId);
+        System.out.println("Variants for productId " + productId + ": " + variants.size());
+        for (ProductVariantEntity variant : variants) {
+            System.out.println("Variant id: " + variant.getId());
+            if (variant.getAttributeValues() != null) {
+                for (var attr : variant.getAttributeValues()) {
+                    System.out.println("  Attribute: " + attr.getAttribute().getName() + " = " + attr.getValue());
+                }
+            }
+        }
+        List<Map<String, Object>> dtos = variants.stream().map(variant -> {
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("id", variant.getId());
+            StringBuilder nameBuilder = new StringBuilder();
+            if (variant.getProduct() != null) {
+                nameBuilder.append(variant.getProduct().getName());
+            }
+            // Only add Brand attribute
+            if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
+                variant.getAttributeValues().stream()
+                    .filter(attr -> "Brand".equalsIgnoreCase(attr.getAttribute().getName()))
+                    .findFirst()
+                    .ifPresent(brandAttr -> nameBuilder.append(" - Brand: ").append(brandAttr.getValue()));
+            }
+            dto.put("name", nameBuilder.toString());
+            dto.put("price", variant.getPrice());
+            dto.put("stock", variant.getStock());
+            dto.put("sku", variant.getSku());
+            System.out.println("Variant DTO: " + dto);
+            return dto;
+        }).toList();
+        System.out.println("Returning DTOs: " + dtos);
+        return ResponseEntity.ok(dtos);
+    }
 
 }

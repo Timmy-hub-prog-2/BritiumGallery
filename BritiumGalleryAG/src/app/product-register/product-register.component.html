@@ -17,6 +17,17 @@
         
         <div class="form-grid">
           <div class="form-group full-width">
+            <label class="form-label">Brand</label>
+            <div class="input-wrapper">
+              <i class="bi bi-award"></i>
+              <select [(ngModel)]="selectedBrandId" name="brand" class="form-input" required>
+                <option [ngValue]="null" disabled selected>Select a brand</option>
+                <option *ngFor="let brand of brands" [ngValue]="brand.id">{{ brand.name }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
             <label class="form-label">Product Name</label>
             <div class="input-wrapper">
               <i class="bi bi-tag"></i>

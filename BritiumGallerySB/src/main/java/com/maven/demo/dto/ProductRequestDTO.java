@@ -16,4 +16,5 @@ public class ProductRequestDTO {
     private String basePhotoUrl;
     private List<AttributeOptionDTO> attributeOptions;
     private List<VariantDTO> variants;
+    private Long brandId; // Add this line
 }

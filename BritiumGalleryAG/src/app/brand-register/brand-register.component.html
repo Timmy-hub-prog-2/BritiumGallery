@@ -1,0 +1,109 @@
+<div class="brand-register-container">
+  <div class="header-section">
+    <button class="btn-back" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+      Back to Admin
+    </button>
+    <h1 class="main-title">Brand Management</h1>
+    <p class="subtitle">Add new brands and manage existing ones</p>
+  </div>
+
+  <!-- Add New Brand Section -->
+  <div class="form-section">
+    <div class="section-header">
+      <i class="bi bi-plus-circle"></i>
+      <h2>Add New Brand</h2>
+    </div>
+    
+    <form (ngSubmit)="onSubmit()" class="brand-form" #brandForm="ngForm">
+      <div class="form-group">
+        <label class="form-label">Brand Name</label>
+        <div class="input-wrapper">
+          <i class="bi bi-award"></i>
+          <input 
+            [(ngModel)]="newBrand.name" 
+            name="brandName" 
+            placeholder="Enter brand name" 
+            class="form-input" 
+            [class.input-error]="isDuplicate"
+            required
+            (ngModelChange)="onBrandNameChange()"
+            [disabled]="isSubmitting">
+        </div>
+        <div class="error-message" *ngIf="isDuplicate">
+          <i class="bi bi-exclamation-triangle"></i>
+          Brand name already exists
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button 
+          type="submit" 
+          class="btn-submit" 
+          [disabled]="brandForm.invalid || isSubmitting || isDuplicate">
+          <i class="bi bi-check-circle-fill"></i>
+          {{ isSubmitting ? 'Adding...' : 'Add Brand' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Existing Brands Section -->
+  <div class="brands-section">
+    <div class="section-header">
+      <i class="bi bi-list-ul"></i>
+      <h2>Existing Brands ({{ brands.length }})</h2>
+    </div>
+    
+    <div class="brands-table-container">
+      <table class="brands-table" *ngIf="brands.length > 0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Brand Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let brand of brands" [ngClass]="{'editing-row': editingBrandId === brand.id}">
+            <td>{{ brand.id }}</td>
+            <td>
+              <ng-container *ngIf="editingBrandId === brand.id; else showName">
+                <input [(ngModel)]="editBrandName" class="form-input edit-input" name="editBrandName{{brand.id}}" required />
+              </ng-container>
+              <ng-template #showName>{{ brand.name }}</ng-template>
+            </td>
+            <td>
+              <div class="brand-actions">
+                <ng-container *ngIf="editingBrandId === brand.id; else actionButtons">
+                  <button class="btn-submit" (click)="saveEdit(brand)" [disabled]="!editBrandName.trim() || editBrandName.trim() === brand.name">
+                    <i class="bi bi-check-circle"></i> Save
+                  </button>
+                  <button class="btn-cancel" (click)="cancelEdit()">
+                    <i class="bi bi-x-circle"></i> Cancel
+                  </button>
+                </ng-container>
+                <ng-template #actionButtons>
+                  <button class="btn-edit" (click)="startEdit(brand)" title="Edit brand">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button 
+                    class="btn-delete" 
+                    (click)="deleteBrand(brand.id)"
+                    title="Delete brand">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </ng-template>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div class="no-brands" *ngIf="brands.length === 0">
+        <i class="bi bi-inbox"></i>
+        <p>No brands found. Add your first brand above.</p>
+      </div>
+    </div>
+  </div>
+</div> 
