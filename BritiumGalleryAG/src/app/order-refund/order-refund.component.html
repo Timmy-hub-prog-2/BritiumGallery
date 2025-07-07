@@ -1,0 +1,418 @@
+<div class="refund-container">
+  <!-- Header Section -->
+  <div class="refund-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 6h18l-2 13H5L3 6z"/>
+          <path d="M3 6L2.25 3H1"/>
+          <path d="M16 10a4 4 0 01-8 0"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="refund-title">Order Refund Request</h1>
+        <p class="refund-subtitle">Request a refund for your order quickly and easily</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <div class="search-card">
+      <div class="search-header">
+        <h3>Find Your Order</h3>
+        <p>Enter your tracking code to begin the refund process</p>
+      </div>
+      
+      <form [formGroup]="searchForm" (ngSubmit)="searchOrder()" class="search-form">
+        <div class="search-input-group">
+          <div class="input-wrapper">
+            <div class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+              </svg>
+            </div>
+            <input 
+              formControlName="trackingCode" 
+              placeholder="Enter your order tracking code" 
+              class="tracking-input"
+              [class.error]="searchForm.get('trackingCode')?.invalid && searchForm.get('trackingCode')?.touched"
+            />
+          </div>
+          <button 
+            type="submit" 
+            [disabled]="loading || searchForm.invalid" 
+            class="search-btn">
+            <span *ngIf="!loading" class="btn-content">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+              </svg>
+              Search Order
+            </span>
+            <span *ngIf="loading" class="btn-loading">
+              <div class="spinner"></div>
+              Searching...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-section">
+    <div class="error-card">
+      <div class="error-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <div class="error-content">
+        <h4>Order Not Found</h4>
+        <p>{{ error }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Refund Form Section -->
+  <div *ngIf="order && !loading" class="refund-form-section">
+    
+    <!-- Order Summary -->
+    <div class="order-summary-card">
+      <div class="summary-header">
+        <div class="order-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          </svg>
+        </div>
+        <div class="order-details">
+          <h3 class="order-number">Order #{{ order.trackingCode }}</h3>
+          <div class="order-meta">
+            <span class="order-date">{{ order.orderDate | date:'mediumDate' }}</span>
+            <span class="order-total">{{ order.total | number:'1.0-0' }} MMK</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Refund Type Selection -->
+    <div class="refund-type-card">
+      <div class="type-header">
+        <h4>Select Refund Type</h4>
+        <p>Choose how you'd like to process your refund</p>
+      </div>
+      
+      <div class="refund-type-options">
+        <label class="radio-option" [class.selected]="refundType==='whole'">
+          <input type="radio" name="refundType" (change)="setRefundType('whole')" [checked]="refundType==='whole'" />
+          <div class="radio-custom"></div>
+          <div class="option-content">
+            <div class="option-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 6h18l-2 13H5L3 6z"/>
+                <path d="M3 6L2.25 3H1"/>
+              </svg>
+            </div>
+            <div class="option-text">
+              <span class="option-title">Refund Whole Order</span>
+              <span class="option-desc">Return all items in this order</span>
+            </div>
+          </div>
+        </label>
+
+        <label class="radio-option" [class.selected]="refundType==='partial'">
+          <input type="radio" name="refundType" (change)="setRefundType('partial')" [checked]="refundType==='partial'" />
+          <div class="radio-custom"></div>
+          <div class="option-content">
+            <div class="option-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M9 12l2 2 4-4"/>
+                <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/>
+              </svg>
+            </div>
+            <div class="option-text">
+              <span class="option-title">Refund Specific Items</span>
+              <span class="option-desc">Select individual items to return</span>
+            </div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Whole Order Refund Form -->
+    <form *ngIf="refundType==='whole'" [formGroup]="refundForm" (ngSubmit)="submitRefund()" class="refund-form-card">
+      <div class="form-header">
+        <h4>Whole Order Refund</h4>
+        <p>Please provide details for your refund request</p>
+      </div>
+
+      <div class="form-content">
+        <div class="form-group">
+          <label class="form-label">Reason for Refund <span class="required">*</span></label>
+          <textarea 
+            formControlName="reason" 
+            rows="4" 
+            placeholder="Please explain why you want to refund the entire order" 
+            class="form-textarea"
+            [class.error]="refundForm.get('reason')?.touched && refundForm.get('reason')?.invalid"
+          ></textarea>
+          <div *ngIf="refundForm.get('reason')?.touched && refundForm.get('reason')?.invalid" class="error-text">
+            Reason is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Proof Photo <span class="optional">(optional)</span></label>
+          <div class="file-upload-area">
+            <input type="file" (change)="onProofChange($event)" accept="image/*" class="file-input" id="proof-upload" />
+            <label for="proof-upload" class="file-upload-label">
+              <div class="upload-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                  <polyline points="17,8 12,3 7,8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </div>
+              <span class="upload-text">Click to upload or drag and drop</span>
+              <span class="upload-hint">PNG, JPG up to 10MB</span>
+            </label>
+          </div>
+          
+          <div *ngIf="refundForm.get('proofPreview')?.value" class="proof-preview">
+            <img [src]="refundForm.get('proofPreview')?.value" alt="Proof preview" />
+            <button type="button" (click)="removeProof()" class="remove-proof">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="refund-summary">
+          <div class="summary-row">
+            <span class="summary-label">Refund Amount:</span>
+            <span class="summary-value">{{ order.total | number:'1.0-0' }} MMK</span>
+          </div>
+          <div *ngIf="order.discountAmount && order.discountAmount > 0" class="coupon-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4"/>
+              <path d="M12 8h.01"/>
+            </svg>
+            Coupon applied: refund is proportional to what you paid
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="!isFormValid() || submitting" class="submit-btn">
+          <span *ngIf="!submitting" class="btn-content">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+              <polyline points="22,4 12,14.01 9,11.01"/>
+            </svg>
+            Submit Refund Request
+          </span>
+          <span *ngIf="submitting" class="btn-loading">
+            <div class="spinner"></div>
+            Processing...
+          </span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Partial Refund Form -->
+    <form *ngIf="refundType==='partial'" [formGroup]="refundForm" (ngSubmit)="submitRefund()" class="refund-form-card">
+      <div class="form-header">
+        <h4>Select Items to Refund</h4>
+        <p>Choose the specific items you'd like to return</p>
+      </div>
+
+      <div class="items-container" formArrayName="items">
+        <div class="item-card" *ngFor="let item of itemFormGroups; let i = index" [formGroupName]="i">
+          
+          <div class="item-header">
+            <label class="item-checkbox" [class.checked]="item.get('selected')?.value">
+              <input type="checkbox" formControlName="selected" (change)="onItemSelect(i)" />
+              <div class="checkbox-custom">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="20,6 9,17 4,12"/>
+                </svg>
+              </div>
+            </label>
+
+            <div class="item-content">
+              <div class="item-image-wrapper">
+                <img [src]="item.value.variant.imageUrl" [alt]="item.value.variant.name" class="item-image" />
+              </div>
+              
+              <div class="item-details">
+                <h5 class="item-name">{{ item.value.variant.name }}</h5>
+                
+                <div class="item-attributes">
+                  <span *ngFor="let attr of item.value.variant.attributes | keyvalue" class="attribute-tag">
+                    {{ attr.key }}: {{ attr.value }}
+                  </span>
+                </div>
+                
+                <div class="item-meta">
+                  <span class="item-sku">SKU: {{ item.value.variant.sku }}</span>
+                  <span class="item-quantity">Qty: {{ item.value.quantity }}</span>
+                  <span class="item-available">Available: {{ item.value.remainingQty }}</span>
+                </div>
+
+                <div class="price-info">
+                  <div class="price-row">
+                    <span class="price-label">Original Price:</span>
+                    <span class="price-value">{{ item.value.price | number:'1.0-0' }} MMK each</span>
+                  </div>
+                  
+                  <ng-container *ngIf="item.value.actualRefundableAmount != null && (item.value.price > (item.value.actualRefundableAmount / item.value.quantity))">
+                    <div class="price-row discount">
+                      <span class="price-label">Discount:</span>
+                      <span class="price-value">-{{ (item.value.price - (item.value.actualRefundableAmount / item.value.quantity)) | number:'1.0-0' }} MMK each</span>
+                    </div>
+                    <div class="price-row final">
+                      <span class="price-label">You Paid:</span>
+                      <span class="price-value">{{ (item.value.actualRefundableAmount / item.value.quantity) | number:'1.0-0' }} MMK each</span>
+                    </div>
+                  </ng-container>
+                </div>
+
+                <div *ngIf="item.get('selected')?.value" class="refund-amount-display">
+                  <div class="refund-amount">
+                    <span class="amount-label">Refund Amount:</span>
+                    <span class="amount-value">
+                      {{ item.value.actualRefundableAmount != null ? (item.value.actualRefundableAmount / item.value.quantity) * (item.get('refundQuantity')?.value || 1) : '' | number:'1.0-0' }} MMK
+                    </span>
+                  </div>
+                  <div *ngIf="order.discountAmount && order.discountAmount > 0" class="coupon-note-small">
+                    Proportional to amount paid
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="item.get('selected')?.value" class="item-refund-form" [@slideInOut]>
+            <div class="refund-fields">
+              
+              <div class="field-group">
+                <label class="field-label">Quantity to Refund <span class="required">*</span></label>
+                <div class="quantity-input-wrapper">
+                  <input 
+                    type="number" 
+                    formControlName="refundQuantity" 
+                    min="1" 
+                    [max]="item.value.remainingQty" 
+                    class="quantity-input"
+                    [class.error]="item.get('refundQuantity')?.touched && item.get('refundQuantity')?.invalid"
+                  />
+                  <span class="quantity-max">/ {{ item.value.remainingQty }}</span>
+                </div>
+                <div *ngIf="item.get('refundQuantity')?.touched && item.get('refundQuantity')?.invalid" class="error-text">
+                  <span *ngIf="item.get('refundQuantity')?.errors?.['required']">Quantity is required</span>
+                  <span *ngIf="item.get('refundQuantity')?.errors?.['min']">Minimum quantity is 1</span>
+                  <span *ngIf="item.get('refundQuantity')?.errors?.['max']">Maximum quantity is {{ item.value.remainingQty }}</span>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Reason for Refund <span class="required">*</span></label>
+                <textarea 
+                  formControlName="reason" 
+                  placeholder="Why are you refunding this item?" 
+                  class="reason-textarea"
+                  rows="3"
+                  (input)="onReasonInput(i)"
+                  [class.error]="item.get('reason')?.touched && item.get('reason')?.invalid"
+                ></textarea>
+                <div *ngIf="item.get('reason')?.touched && item.get('reason')?.invalid" class="error-text">
+                  Reason is required
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Proof Photo <span class="optional">(optional)</span></label>
+                <div class="file-upload-area-small">
+                  <input type="file" (change)="onProofChange($event, i)" accept="image/*" class="file-input" [id]="'proof-upload-' + i" />
+                  <label [for]="'proof-upload-' + i" class="file-upload-label-small">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                      <polyline points="17,8 12,3 7,8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Upload Photo
+                  </label>
+                </div>
+                
+                <div *ngIf="item.get('proofPreview')?.value" class="proof-preview-small">
+                  <img [src]="item.get('proofPreview')?.value" alt="Proof preview" />
+                  <button type="button" (click)="removeProof(i)" class="remove-proof-small">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="getSelectedItemsCount() === 0" class="no-items-message">
+        <div class="no-items-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4"/>
+            <path d="M12 8h.01"/>
+          </svg>
+        </div>
+        <p>Please select at least one item to refund</p>
+      </div>
+
+      <div class="refund-summary" *ngIf="getSelectedItemsCount() > 0">
+        <div class="summary-header">
+          <h5>Refund Summary</h5>
+          <span class="items-count">{{ getSelectedItemsCount() }} item(s) selected</span>
+        </div>
+        <div class="summary-row total">
+          <span class="summary-label">Total Refund Amount:</span>
+          <span class="summary-value">{{ getTotalRefundAmount() | number:'1.0-0' }} MMK</span>
+        </div>
+        <div *ngIf="order.discountAmount && order.discountAmount > 0" class="coupon-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4"/>
+            <path d="M12 8h.01"/>
+          </svg>
+          Coupon applied: refund is proportional to what you paid
+        </div>
+      </div>
+
+      <button 
+        type="submit" 
+        [disabled]="!isFormValid() || submitting" 
+        class="submit-btn">
+        <span *ngIf="!submitting" class="btn-content">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+            <polyline points="22,4 12,14.01 9,11.01"/>
+          </svg>
+          Submit Refund Request
+        </span>
+        <span *ngIf="submitting" class="btn-loading">
+          <div class="spinner"></div>
+          Processing...
+        </span>
+      </button>
+    </form>
+
+  </div>
+</div>

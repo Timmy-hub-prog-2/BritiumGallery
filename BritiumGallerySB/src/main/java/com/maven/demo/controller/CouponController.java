@@ -1,17 +1,26 @@
 package com.maven.demo.controller;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.maven.demo.dto.ApplyCouponRequestDTO;
 import com.maven.demo.dto.CouponWithRulesDTO;
 import com.maven.demo.entity.CouponEntity;
 import com.maven.demo.service.CouponService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/coupons")
@@ -27,9 +36,9 @@ public class CouponController {
             return new ResponseEntity<>(couponService.createCouponWithRules(couponDto), HttpStatus.CREATED);
         } catch (RuntimeException e) {
             if (e.getMessage().contains("Coupon code already exists")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Coupon code already exists. Please use a different code.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(java.util.Collections.singletonMap("message", "Coupon code already exists. Please use a different code."));
             }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Collections.singletonMap("message", e.getMessage()));
         }
     }
 
@@ -55,20 +64,19 @@ public class CouponController {
     public ResponseEntity<?> validateCoupon(@PathVariable String code) {
         Optional<CouponEntity> couponOpt = couponService.findByCode(code);
         if (couponOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Coupon not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Collections.singletonMap("message", "Coupon not found"));
         }
 
         CouponEntity coupon = couponOpt.get();
         LocalDate today = LocalDate.now();
 
         if (coupon.getStatus().equalsIgnoreCase("Inactive") || coupon.getStartDate().isAfter(today)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Coupon is not valid today");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(java.util.Collections.singletonMap("message", "Coupon is not valid today"));
         }
 
         if (coupon.getEndDate() != null && coupon.getEndDate().isBefore(today)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Coupon has expired");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(java.util.Collections.singletonMap("message", "Coupon has expired"));
         }
-
 
         return ResponseEntity.ok(coupon);
     }
@@ -79,7 +87,7 @@ public class CouponController {
             // Get the coupon entity
             Optional<CouponEntity> couponOpt = couponService.findByCode(dto.getCouponCode());
             if (couponOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Coupon not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Collections.singletonMap("message", "Coupon not found"));
             }
             CouponEntity coupon = couponOpt.get();
 
@@ -94,7 +102,7 @@ public class CouponController {
 
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(java.util.Collections.singletonMap("message", e.getMessage()));
         }
     }
 

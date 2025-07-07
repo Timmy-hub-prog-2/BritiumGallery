@@ -19,4 +19,5 @@ export interface VariantResponse {
   imageUrls: string[];
   attributesString?: string; // For editing purposes
   sku?: string;
+  productName?: string;
 }

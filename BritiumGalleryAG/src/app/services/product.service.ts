@@ -85,6 +85,10 @@ export class ProductService {
     return this.http.get<any[]>(`${this.baseUrl}/variants/${variantId}/purchase-history`);
   }
 
+  getVariantById(variantId: number): Observable<VariantResponse> {
+    return this.http.get<VariantResponse>(`${this.baseUrl}/variants/${variantId}`);
+  }
+
   addStock(stockData: {
     variantId: number;
     purchasePrice: number;

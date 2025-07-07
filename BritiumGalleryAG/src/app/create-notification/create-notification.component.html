@@ -1,0 +1,446 @@
+<div class="notification-management-container">
+  
+  <!-- Header Section -->
+  <div class="management-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">Notification Management</h1>
+        <p class="page-subtitle">Create and manage system notifications</p>
+      </div>
+    </div>
+    
+    <div class="header-actions">
+      <div class="stats-cards">
+        <div class="stat-card">
+          <div class="stat-number">{{ scheduledNotifications.length }}</div>
+          <div class="stat-label">Scheduled</div>
+    </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ getActiveCount() }}</div>
+          <div class="stat-label">Active</div>
+    </div>
+    </div>
+      
+      <button class="create-btn primary" (click)="openModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Create Notification
+      </button>
+    </div>
+    </div>
+
+  <!-- Quick Actions Bar -->
+  <div class="quick-actions-bar">
+    <div class="action-group">
+      <button class="quick-action-btn" 
+              [class.active]="filterStatus === 'all'"
+              (click)="setFilter('all')">
+        All ({{ scheduledNotifications.length }})
+      </button>
+      <button class="quick-action-btn" 
+              [class.active]="filterStatus === 'active'"
+              (click)="setFilter('active')">
+        Active ({{ getActiveCount() }})
+      </button>
+      <button class="quick-action-btn" 
+              [class.active]="filterStatus === 'inactive'"
+              (click)="setFilter('inactive')">
+        Inactive ({{ getInactiveCount() }})
+      </button>
+    </div>
+    
+    <div class="search-group">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <input type="text" 
+               class="search-input" 
+               placeholder="Search notifications..."
+               [(ngModel)]="searchTerm"
+               (input)="onSearch()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications Table -->
+  <div class="notifications-table-wrapper">
+    <table class="notifications-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Status</th>
+          <th>Cron Expression</th>
+          <th>Roles</th>
+          <th>Customer Types</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let notification of filteredNotifications; trackBy: trackByNotificationId" [class.inactive]="notification.active === false">
+          <td>{{ notification.title }}</td>
+          <td>{{ notification.type }}</td>
+          <td>{{ notification.startDate | date:'MMM d, y h:mm a' }}</td>
+          <td>{{ notification.endDate ? (notification.endDate | date:'MMM d, y h:mm a') : '-' }}</td>
+          <td>
+            <label class="toggle-switch">
+              <input type="checkbox" [checked]="notification.active !== false" (change)="toggleNotificationStatus(notification)">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="status-label">{{ notification.active !== false ? 'Active' : 'Inactive' }}</span>
+          </td>
+          <td>{{ notification.cronExpression || '-' }}</td>
+          <td>
+            <span *ngFor="let roleId of notification.roleIds; let last = last">
+              {{ getRoleName(roleId) }}<span *ngIf="!last">, </span>
+            </span>
+          </td>
+          <td>
+            <span *ngFor="let ctId of notification.customerTypeIds; let last = last">
+              {{ getCustomerTypeName(ctId) }}<span *ngIf="!last">, </span>
+            </span>
+          </td>
+          <td>
+            <div class="action-btn-group">
+              <button class="action-btn icon" (click)="editNotification(notification)" title="Edit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button class="action-btn icon" (click)="duplicateNotification(notification)" title="Duplicate">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+              </button>
+              <button class="action-btn icon" (click)="toggleNotificationStatus(notification)" [title]="notification.active !== false ? 'Set Inactive' : 'Set Active'">
+                <svg *ngIf="notification.active !== false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="20,6 9,17 4,12"/>
+                </svg>
+                <svg *ngIf="notification.active === false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+              <button class="action-btn icon danger" (click)="deleteNotification(notification)" title="Delete">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="3,6 5,6 21,6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+      </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="empty-state" *ngIf="filteredNotifications.length === 0">
+      <div class="empty-icon">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          <line x1="1" y1="1" x2="23" y2="23"/>
+        </svg>
+      </div>
+      <h3 class="empty-title">No notifications found</h3>
+      <p class="empty-message">Create your first notification to get started</p>
+      <button class="empty-action-btn" (click)="openModal()">Create Notification</button>
+    </div>
+  </div>
+
+  <!-- Enhanced Modal -->
+  <div class="modal-overlay" *ngIf="showModal" [@fadeIn] (click)="closeModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()" [@slideUp]>
+      
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="modal-title-section">
+          <h2 class="modal-title">{{ editMode ? 'Edit' : 'Create' }} Notification</h2>
+          <p class="modal-subtitle">{{ editMode ? 'Update notification settings' : 'Set up a new notification' }}</p>
+        </div>
+        <button class="modal-close" (click)="closeModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+      </button>
+    </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <form [formGroup]="notificationForm" (ngSubmit)="onSubmit()" class="notification-form">
+          
+          <!-- Mode Selection -->
+          <div class="form-section">
+            <div class="section-header">
+              <h3 class="section-title">Delivery Mode</h3>
+              <p class="section-description">Choose when to send this notification</p>
+            </div>
+            
+            <div class="mode-selector">
+              <label class="mode-option" [class.selected]="notificationForm.get('mode')?.value === 'INSTANT'">
+                <input type="radio" formControlName="mode" value="INSTANT">
+                <div class="mode-content">
+                  <div class="mode-icon instant">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"/>
+                    </svg>
+                  </div>
+                  <div class="mode-text">
+                    <span class="mode-name">Instant</span>
+                    <span class="mode-desc">Send immediately</span>
+                  </div>
+                </div>
+              </label>
+              
+              <label class="mode-option" [class.selected]="notificationForm.get('mode')?.value === 'SCHEDULED'">
+                <input type="radio" formControlName="mode" value="SCHEDULED">
+                <div class="mode-content">
+                  <div class="mode-icon scheduled">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                  </div>
+                  <div class="mode-text">
+                    <span class="mode-name">Scheduled</span>
+                    <span class="mode-desc">Send at specific times</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Basic Information -->
+          <div class="form-section">
+            <div class="section-header">
+              <h3 class="section-title">Basic Information</h3>
+            </div>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="title">
+                  Title <span class="required">*</span>
+                </label>
+                <input id="title" 
+                       class="form-input" 
+                       formControlName="title" 
+                       type="text" 
+                       placeholder="Enter notification title">
+                <div class="form-error" *ngIf="notificationForm.get('title')?.errors?.['required'] && notificationForm.get('title')?.touched">
+                  Title is required
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="type">
+                  Type <span class="required">*</span>
+                </label>
+                <div class="select-wrapper">
+                  <select id="type" class="form-select" formControlName="type">
+                    <option value="">Select notification type</option>
+                    <option value="ORDER">Order Updates</option>
+                    <option value="STOCK">Stock Alerts</option>
+                    <option value="SYSTEM">System Messages</option>
+                    <option value="REFUND">Refund Updates</option>
+                    <option value="MESSAGE">General Messages</option>
+                  </select>
+                  <svg class="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="6,9 12,15 18,9"/>
+                  </svg>
+                </div>
+                <div class="form-error" *ngIf="notificationForm.get('type')?.errors?.['required'] && notificationForm.get('type')?.touched">
+                  Please select a notification type
+                </div>
+              </div>
+
+              <!-- Status Toggle -->
+              <div class="form-group">
+                <label class="form-label" for="active">
+                  Status
+                </label>
+                <label class="toggle-switch" style="margin-top: 6px;">
+                  <input type="checkbox" formControlName="active">
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="status-label" style="margin-left: 10px;">{{ notificationForm.get('active')?.value ? 'Active' : 'Inactive' }}</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="message">
+                Message <span class="required">*</span>
+              </label>
+              <div class="editor-wrapper">
+                <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+                <ngx-editor [editor]="editor" 
+                           formControlName="message" 
+                           placeholder="Enter your notification message..."
+                           class="form-editor">
+                </ngx-editor>
+              </div>
+              <div class="form-error" *ngIf="notificationForm.get('message')?.errors?.['required'] && notificationForm.get('message')?.touched">
+                Message is required
+              </div>
+            </div>
+          </div>
+
+          <!-- Targeting -->
+          <div class="form-section">
+            <div class="section-header">
+              <h3 class="section-title">Target Audience</h3>
+              <p class="section-description">Select who should receive this notification</p>
+            </div>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="roles">
+                  Target Roles <span class="required">*</span>
+                </label>
+                <div class="multi-select-wrapper">
+                  <select id="roles" class="form-select multi" formControlName="roleIds" multiple>
+                    <option *ngFor="let role of roles" [value]="role.id">{{ role.type }}</option>
+                  </select>
+                </div>
+                <div class="form-error" *ngIf="notificationForm.get('roleIds')?.errors?.['required'] && notificationForm.get('roleIds')?.touched">
+                  Please select at least one role
+                </div>
+              </div>
+
+              <div class="form-group" *ngIf="showCustomerTypes">
+                <label class="form-label" for="customerTypes">Customer Types <span class="required">*</span></label>
+                <div class="multi-select-wrapper">
+                  <select id="customerTypes" class="form-select multi" formControlName="customerTypeIds" multiple>
+                    <option *ngFor="let ct of customerTypes" [value]="ct.id">{{ ct.name }}</option>
+                  </select>
+                </div>
+                <div class="form-error" *ngIf="notificationForm.get('customerTypeIds')?.errors?.['required'] && notificationForm.get('customerTypeIds')?.touched">
+                  Please select at least one customer type
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scheduling (if scheduled mode) -->
+          <div class="form-section" *ngIf="isScheduled">
+            <div class="section-header">
+              <h3 class="section-title">Schedule Settings</h3>
+              <p class="section-description">Configure when and how often to send</p>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="cronExpression">
+                Cron Expression <span class="required">*</span>
+              </label>
+              <input id="cronExpression" 
+                     class="form-input" 
+                     formControlName="cronExpression" 
+                     type="text" 
+                     placeholder="e.g., 0 0 9 ? * SUN (Every Sunday at 9 AM)">
+              <div class="form-error" *ngIf="isScheduled && notificationForm.get('cronExpression')?.errors?.['required'] && notificationForm.get('cronExpression')?.touched">
+                Cron expression is required for scheduled notifications
+              </div>
+              <div class="form-help">
+                <a href="https://crontab.guru/" target="_blank" class="help-link">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  Need help with cron expressions?
+                </a>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="startDate">
+                  Start Date <span class="required">*</span>
+                </label>
+                <input id="startDate" 
+                       class="form-input" 
+                       formControlName="startDate" 
+                       type="datetime-local">
+                <div class="form-error" *ngIf="isScheduled && notificationForm.get('startDate')?.errors?.['required'] && notificationForm.get('startDate')?.touched">
+                  Start date is required for scheduled notifications
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="endDate">End Date</label>
+                <input id="endDate" 
+                       class="form-input" 
+                       formControlName="endDate" 
+                       type="datetime-local">
+              </div>
+            </div>
+          </div>
+
+          <!-- Optional Settings -->
+          <div class="form-section">
+            <div class="section-header">
+              <h3 class="section-title">Optional Settings</h3>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="actionLink">Action Link</label>
+              <input id="actionLink" 
+                     class="form-input" 
+                     formControlName="actionLink" 
+                     type="url" 
+                     placeholder="https://example.com/action">
+              <div class="form-help">Add a link for users to take action on this notification</div>
+            </div>
+    </div>
+  </form>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <div class="footer-feedback">
+          <div class="success-message" *ngIf="submitSuccess">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="20,6 9,17 4,12"/>
+            </svg>
+            {{ submitSuccess }}
+          </div>
+          <div class="error-message" *ngIf="submitError">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            {{ submitError }}
+          </div>
+        </div>
+        
+        <div class="footer-actions">
+          <button type="button" class="btn secondary" (click)="closeModal()">
+            Cancel
+          </button>
+          <button type="submit" 
+                  class="btn primary" 
+                  [disabled]="notificationForm.invalid || isSubmitting"
+                  (click)="onSubmit()">
+            <svg *ngIf="isSubmitting" class="loading-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21 12a9 9 0 11-6.219-8.56"/>
+            </svg>
+            {{ isSubmitting ? (editMode ? 'Updating...' : 'Creating...') : (editMode ? 'Update Notification' : 'Create Notification') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

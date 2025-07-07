@@ -1,0 +1,499 @@
+<div class="payment-wrapper">
+  <!-- Progress Header -->
+  
+
+  <!-- Main Content -->
+  <div class="payment-main">
+    <div class="payment-grid">
+      
+      <!-- Left Column: Payment Form -->
+      <div class="payment-column">
+        <div class="payment-card">
+          <!-- Header Section -->
+          <div class="payment-card-header">
+            <div class="header-badge">
+              <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                <line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+            </div>
+            <div class="header-content">
+              <h1 class="payment-title">Secure Payment</h1>
+              <p class="payment-subtitle">Order #{{ orderId }} • {{ formatDate(order?.orderDate) }}</p>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-state" *ngIf="loading">
+            <div class="loading-animation">
+              <div class="loading-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+              </div>
+            </div>
+            <h3 class="loading-title">Processing Payment</h3>
+            <p class="loading-text">Please wait while we secure your transaction...</p>
+          </div>
+
+          <!-- Error State -->
+          <div class="error-state" *ngIf="error">
+            <div class="error-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <h3 class="error-title">Payment Error</h3>
+            <p class="error-message">{{ error }}</p>
+          </div>
+
+          <!-- Payment Form -->
+          <form [formGroup]="paymentForm" (ngSubmit)="submitPayment()" *ngIf="!loading" class="payment-form">
+            
+            <!-- Payment Method Section -->
+            <div class="form-section">
+              <div class="section-header">
+                <div class="section-number">01</div>
+                <div class="section-info">
+                  <h3 class="section-title">Choose Payment Method</h3>
+                  <p class="section-description">Select your preferred payment option</p>
+                </div>
+              </div>
+
+              <div class="payment-methods">
+                <div class="method-selector">
+                  <select id="paymentType" formControlName="paymentType" class="method-select">
+                    <option value="">Select payment method</option>
+                    <option value="CreditCard">Credit Card</option>
+                    <option *ngFor="let payment of payments" [value]="payment.name">{{ payment.name }}</option>
+                  </select>
+                  <div class="select-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <polyline points="6,9 12,15 18,9"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Credit Card Form -->
+                <div class="credit-card-form" *ngIf="paymentForm.get('paymentType')?.value === 'CreditCard'">
+                  <div class="card-visual">
+                    <div class="card-mockup">
+                      <div class="card-chip"></div>
+                      <div class="card-number">•••• •••• •••• ••••</div>
+                      <div class="card-details">
+                        <div class="card-holder">CARD HOLDER</div>
+                        <div class="card-expiry">MM/YY</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="card-inputs">
+                    <div class="input-group">
+                      <label class="input-label">Card Number</label>
+                      <div class="input-wrapper">
+                        <input formControlName="cardNumber" placeholder="1234 5678 9012 3456" class="card-input" />
+                        <div class="card-brands">
+                          <div class="brand-icon visa"></div>
+                          <div class="brand-icon mastercard"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="input-row">
+                      <div class="input-group">
+                        <label class="input-label">Expiry Date</label>
+                        <input formControlName="expiry" placeholder="MM/YY" class="card-input" />
+                      </div>
+                      <div class="input-group">
+                        <label class="input-label">CVV</label>
+                        <input formControlName="cvv" placeholder="123" class="card-input" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- QR Payment Section -->
+                <div class="qr-payment-section" *ngIf="paymentForm.get('paymentType')?.value && paymentForm.get('paymentType')?.value !== 'CreditCard'">
+                  
+                  <div class="qr-payment-grid">
+                    <!-- QR Code Display -->
+                    <div class="qr-display-card">
+                      <div class="qr-header">
+                        <div class="qr-badge">
+                          <svg class="qr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 class="qr-title">Scan to Pay</h4>
+                          <p class="qr-subtitle">{{ paymentForm.get('paymentType')?.value }}</p>
+                        </div>
+                      </div>
+
+                      <div class="qr-code-container">
+                        <div class="qr-frame">
+                          <img 
+                            [src]="selectedQrUrl" 
+                            [alt]="paymentForm.get('paymentType')?.value + ' QR Code'" 
+                            class="qr-image"
+                            (error)="onQRCodeError($event)"
+                            *ngIf="selectedQrUrl"
+                          />
+                          <div class="qr-placeholder" *ngIf="!selectedQrUrl">
+                            <div class="qr-loading">
+                              <div class="qr-spinner"></div>
+                            </div>
+                            <p>Generating QR Code...</p>
+                          </div>
+                        </div>
+
+                        <div class="payment-amount">
+                          <span class="amount-label">Amount to Pay</span>
+                          <span class="amount-value">MMK {{ getTotalAmount() | number:'1.0-0' }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Instructions Card -->
+                    <div class="instructions-card">
+                      <div class="instructions-header">
+                        <div class="instructions-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M9 11l3 3L22 4"/>
+                            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                          </svg>
+                        </div>
+                        <h4 class="instructions-title">How to Pay</h4>
+                      </div>
+
+                      <div class="instruction-list">
+                        <div class="instruction-item">
+                          <div class="instruction-step">1</div>
+                          <span class="instruction-text">Open {{ paymentForm.get('paymentType')?.value }} app</span>
+                        </div>
+                        <div class="instruction-item">
+                          <div class="instruction-step">2</div>
+                          <span class="instruction-text">Scan QR code</span>
+                        </div>
+                        <div class="instruction-item">
+                          <div class="instruction-step">3</div>
+                          <span class="instruction-text">Confirm payment</span>
+                        </div>
+                        <div class="instruction-item">
+                          <div class="instruction-step">4</div>
+                          <span class="instruction-text">Upload receipt</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Receipt Upload -->
+                  <div class="receipt-section">
+                    <div class="section-header">
+                      <div class="section-number">02</div>
+                      <div class="section-info">
+                        <h3 class="section-title">Upload Receipt</h3>
+                        <p class="section-description">Upload your payment confirmation</p>
+                      </div>
+                    </div>
+
+                    <div class="upload-zone" (click)="triggerFileInput()" [class.uploaded]="selectedReceiptFile">
+                      <input type="file" id="receiptFile" (change)="onReceiptFileSelected($event)" accept="image/*" style="display: none;">
+                      
+                      <div class="upload-empty" *ngIf="!selectedReceiptFile">
+                        <div class="upload-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                          </svg>
+                        </div>
+                        <h4 class="upload-title">Drop your receipt here</h4>
+                        <p class="upload-subtitle">or click to browse files</p>
+                        <div class="upload-formats">PNG, JPG up to 5MB</div>
+                      </div>
+
+                      <div class="upload-success" *ngIf="selectedReceiptFile">
+                        <div class="success-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                            <polyline points="22,4 12,14.01 9,11.01"/>
+                          </svg>
+                        </div>
+                        <div class="file-info">
+                          <h4 class="file-name">{{ selectedReceiptFile.name }}</h4>
+                          <p class="file-size">{{ selectedReceiptFile.size | number:'1.0-0' }} bytes</p>
+                        </div>
+                        <button type="button" class="remove-file" (click)="removeReceiptFile($event)">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="3,6 5,6 21,6"/>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="verification-info">
+                      <div class="info-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <circle cx="12" cy="12" r="10"/>
+                          <path d="M12 6v6l4 2"/>
+                        </svg>
+                      </div>
+                      <span class="info-text">Payment will be verified within 24 hours</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+              <button type="submit" class="pay-button" [disabled]="!isFormValid()">
+                <div class="button-content">
+                  <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                    <line x1="1" y1="10" x2="23" y2="10"/>
+                  </svg>
+                  <span class="button-text">
+                    <span *ngIf="paymentForm.get('paymentType')?.value === 'CreditCard'">Complete Payment</span>
+                    <span *ngIf="paymentForm.get('paymentType')?.value !== 'CreditCard' && paymentForm.get('paymentType')?.value">Submit for Verification</span>
+                    <span *ngIf="!paymentForm.get('paymentType')?.value">Continue</span>
+                  </span>
+                </div>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right Column: Order Summary -->
+      <div class="summary-column">
+        <div class="summary-card">
+          
+          <!-- Loading Summary -->
+          <div class="summary-loading" *ngIf="loading">
+            <div class="summary-skeleton">
+              <div class="skeleton-header"></div>
+              <div class="skeleton-lines">
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line short"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line medium"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Summary -->
+          <div class="summary-error" *ngIf="error && !loading">
+            <div class="error-graphic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <h3 class="error-heading">Unable to load order</h3>
+            <p class="error-desc">{{ error }}</p>
+            <button class="retry-button" (click)="fetchOrder()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="23,4 23,10 17,10"/>
+                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+              </svg>
+              Try Again
+            </button>
+          </div>
+
+          <!-- Order Summary Content -->
+          <div class="summary-content" *ngIf="order && !loading && !error">
+            
+            <!-- Summary Header -->
+            <div class="summary-header">
+              <div class="summary-badge">
+                <svg class="summary-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="9" cy="21" r="1"/>
+                  <circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                </svg>
+              </div>
+              <div class="summary-info">
+                <h3 class="summary-title">Order Summary</h3>
+                <p class="summary-order-id">Order #{{ order.id }}</p>
+              </div>
+            </div>
+
+            <!-- Delivery Info -->
+            <div class="delivery-card" *ngIf="order.deliveryAddress">
+              <div class="delivery-header">
+                <div class="delivery-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                </div>
+                <div class="delivery-info">
+                  <h4 class="delivery-title">Delivery Address</h4>
+                  <p class="delivery-method">{{ order.deliveryMethod }} - {{ order.deliveryProvider }}</p>
+                </div>
+                <button class="view-address" (click)="showAddressModal = true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="items-section">
+              <div class="items-header">
+                <h4 class="items-title">Items ({{ getOrderItemsCount() }})</h4>
+                <button class="view-all-items" (click)="showAllOrderItems = true">
+                  <span>View All</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="9,18 15,12 9,6"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Price Breakdown -->
+            <div class="price-breakdown">
+              <div class="price-item">
+                <span class="price-label">Subtotal</span>
+                <span class="price-value">MMK {{ order.subtotal | number:'1.0-0' }}</span>
+              </div>
+              
+              <div class="price-item">
+                <span class="price-label">Delivery Fee</span>
+                <span class="price-value">MMK {{ order.deliveryFee | number:'1.0-0' }}</span>
+              </div>
+              
+              <div class="price-item discount" *ngIf="order.discountAmount > 0">
+                <span class="price-label">Discount</span>
+                <span class="price-value">
+                  <ng-container *ngIf="order.discountType === 'Percentage'">
+                    -{{ order.discountValue }}% (MMK {{ order.discountAmount | number:'1.0-0' }})
+                  </ng-container>
+                  <ng-container *ngIf="order.discountType === 'Fixed Amount'">
+                    -MMK {{ order.discountAmount | number:'1.0-0' }}
+                  </ng-container>
+                </span>
+              </div>
+              
+              <div class="price-item" *ngIf="order.selectedDelayTime">
+                <span class="price-label">Estimated Delivery</span>
+                <span class="price-value delivery-time">{{ order.selectedDelayTime }}</span>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <div class="total-section">
+              <div class="total-item">
+                <span class="total-label">Total Amount</span>
+                <span class="total-value">MMK {{ getTotalAmount() | number:'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  
+  <!-- Receipt Preview Modal -->
+  <div class="modal-overlay" *ngIf="showReceiptPreview" (click)="closeReceiptPreview()">
+    <div class="modal-container receipt-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Payment Receipt</h3>
+        <button class="modal-close" (click)="closeReceiptPreview()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="receipt-display">
+          <img [src]="receiptPreviewUrl" alt="Payment Receipt" class="receipt-img">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Items Modal -->
+  <div class="modal-overlay" *ngIf="showAllOrderItems" (click)="showAllOrderItems = false">
+    <div class="modal-container items-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Order Items</h3>
+        <button class="modal-close" (click)="showAllOrderItems = false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="items-list" *ngIf="order?.orderDetails">
+          <div class="item-card" *ngFor="let item of order.orderDetails">
+            <div class="item-image" *ngIf="item.variant && item.variant.imageUrls && item.variant.imageUrls.length > 0">
+              <img [src]="item.variant.imageUrls[0]" [alt]="item.variant.productName">
+            </div>
+            <div class="item-content">
+              <h5 class="item-title">{{ item.variant?.productName || 'Product' }}</h5>
+              <p class="item-sku" *ngIf="item.variant?.sku">{{ item.variant.sku }}</p>
+              <div class="item-attrs" *ngIf="item.variant?.attributes">
+                <span class="attr-tag" *ngFor="let attr of item.variant.attributes | keyvalue">
+                  {{ attr.key }}: {{ attr.value }}
+                </span>
+              </div>
+              <div class="item-pricing">
+                <span class="item-qty">Qty: {{ item.quantity }}</span>
+                <span class="item-price">MMK {{ item.price | number:'1.0-0' }}</span>
+                <span class="item-total">Total: MMK {{ (item.quantity * item.price) | number:'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Address Modal -->
+  <div class="modal-overlay" *ngIf="showAddressModal" (click)="showAddressModal = false">
+    <div class="modal-container address-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Delivery Address</h3>
+        <button class="modal-close" (click)="showAddressModal = false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="address-content" *ngIf="order?.deliveryAddress">
+          <div class="address-field">
+            <label class="address-label">Delivery Method</label>
+            <p class="address-value">{{ order.deliveryMethod }} - {{ order.deliveryProvider }}</p>
+          </div>
+          <div class="address-field">
+            <label class="address-label">Full Address</label>
+            <p class="address-value">
+              {{ order.deliveryAddress.houseNumber }}, {{ order.deliveryAddress.street }},
+              {{ order.deliveryAddress.wardName }}, {{ order.deliveryAddress.township }},
+              {{ order.deliveryAddress.city }}, {{ order.deliveryAddress.state }},
+              {{ order.deliveryAddress.country }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

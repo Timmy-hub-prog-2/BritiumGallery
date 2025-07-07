@@ -3,7 +3,10 @@ package com.maven.demo.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -21,4 +24,8 @@ public class RoleEntity {
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     private List<UserEntity> users;
+
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<NotificationTargetRoleEntity> notifications = new HashSet();
+
 }

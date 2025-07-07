@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CartItem, CartService } from '../services/cart.service';
 import { UserService } from '../services/user.service';
 import { People } from '../People';
@@ -9,7 +9,8 @@ import { AddressDTO } from '../../AddressDTO';
 import { DeliveryService } from '../delivery.service';
 import { Delivery, DeliveryFeeRequestDTO } from '../Delivery';
 import { CouponService } from '../services/coupon.service';
-import { Payment, PaymentService } from '../payment.service';
+import { OrderService } from '../services/order.service';
+import { ProductService } from '../services/product.service';
 import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -19,6 +20,7 @@ import { distinctUntilChanged } from 'rxjs/operators';
   styleUrls: ['./checkout.component.css']
 })
 export class CheckoutComponent implements OnInit {
+  showOrderItemsModal = false;
   checkoutForm!: FormGroup;
   items: CartItem[] = [];
   currentUser: People | null = null;
@@ -42,23 +44,18 @@ export class CheckoutComponent implements OnInit {
   expressOptions: Delivery[] = [];
   shipOptions: Delivery[] = [];
 
-  payments: Payment[] = [];
-  selectedQrUrl: string = '';
-
   selectedDelayTime: string | null = null;
   selectedDelayRange: string | null = null;
 
   suggestedMethod: string = 'Standard';
   isAddressModalOpen = false;
-  selectedReceiptFile: File | null = null;
-  receiptPreviewUrl = '';
-  showReceiptPreview = false;
-  showManualPayment = false;
-  isAdminView = false;
   methodAutoChanged = false;
   showCouponAppliedPopup = false;
 
   private isCalculatingDeliveryFee = false;
+
+  // Store detailed variant information
+  variantDetails: { [key: number]: any } = {};
 
   constructor(
     private fb: FormBuilder,
@@ -68,7 +65,9 @@ export class CheckoutComponent implements OnInit {
     private addressService: AddressService,
     private deliveryService: DeliveryService,
     private couponService: CouponService,
-    private paymentService: PaymentService
+    private route: ActivatedRoute,
+    private orderService: OrderService,
+    private productService: ProductService
   ) {}
 
   ngOnInit(): void {
@@ -81,27 +80,41 @@ export class CheckoutComponent implements OnInit {
     this.discountType = this.cartService.getDiscountType();
     this.discountValue = this.cartService.getDiscountValue();
 
-    // Show popup if coupon was applied in cart
     if (localStorage.getItem('couponApplied') === 'true') {
       this.showCouponAppliedPopup = true;
       localStorage.removeItem('couponApplied');
-      setTimeout(() => this.showCouponAppliedPopup = false, 3000); // Hide after 3 seconds
+      setTimeout(() => this.showCouponAppliedPopup = false, 3000);
     }
 
-    this.paymentService.getAll().subscribe({
-      next: (data) => {
-        this.payments = (data as any[]).map(p => ({
-          ...p,
-          qrPhotoUrl: Array.isArray(p.qrPhotoUrls) && p.qrPhotoUrls.length > 0 ? p.qrPhotoUrls[0] : ''
-        }));
-        this.updateSelectedQrUrl();
-      },
-      error: (err) => console.error('❌ Error loading payment data', err)
-    });
+    // Always recalculate delivery fee when shipping method changes
+    this.checkoutForm.get('shippingMethod')?.valueChanges
+      .pipe(distinctUntilChanged())
+      .subscribe(() => {
+        this.calculateDeliveryFee();
+      });
 
-    this.checkoutForm.get('paymentType')?.valueChanges.subscribe(() => {
-      this.updateSelectedQrUrl();
-    });
+    // Always recalculate delivery fee when provider changes
+    this.checkoutForm.get('standardName')?.valueChanges
+      .pipe(distinctUntilChanged())
+      .subscribe(() => {
+        if (this.checkoutForm.get('shippingMethod')?.value === 'Standard') {
+          this.calculateDeliveryFee();
+        }
+      });
+    this.checkoutForm.get('expressName')?.valueChanges
+      .pipe(distinctUntilChanged())
+      .subscribe(() => {
+        if (this.checkoutForm.get('shippingMethod')?.value === 'Express') {
+          this.calculateDeliveryFee();
+        }
+      });
+    this.checkoutForm.get('shipName')?.valueChanges
+      .pipe(distinctUntilChanged())
+      .subscribe(() => {
+        if (this.checkoutForm.get('shippingMethod')?.value === 'Ship') {
+          this.calculateDeliveryFee();
+        }
+      });
   }
 
   private initForm(): void {
@@ -120,22 +133,8 @@ export class CheckoutComponent implements OnInit {
       shippingMethod: ['Standard', Validators.required],
       standardName: ['', Validators.required],
       expressName: [''],
-      shipName: [''],
-      paymentType: ['CreditCard', Validators.required],
-      cardNumber: ['', Validators.required],
-      expiry: ['', Validators.required],
-      cvv: ['', Validators.required]
+      shipName: ['']
     });
-  }
-
-  updateSelectedQrUrl(): void {
-    const selected = this.checkoutForm.get('paymentType')?.value;
-    const match = this.payments.find(p => p.name.toLowerCase() === selected?.toLowerCase());
-    if (match && match.qrPhotoUrl) {
-      this.selectedQrUrl = match.qrPhotoUrl;
-    } else {
-      this.selectedQrUrl = '';
-    }
   }
 
   loadCurrentUser(): void {
@@ -148,6 +147,7 @@ export class CheckoutComponent implements OnInit {
         phone: this.currentUser.phoneNumber
       });
       this.loadMainAddress(this.currentUser.id);
+      this.loadCartItems();
     }
   }
 
@@ -203,18 +203,44 @@ export class CheckoutComponent implements OnInit {
         this.shipOptions = types.filter(t => t.type === 'SHIP');
         const ship = this.shipOptions[0];
         if (ship?.fixAmount) this.shipFee = ship.fixAmount;
-        this.calculateDeliveryFee();
 
-        // Set up valueChanges subscriptions after options are loaded
-        this.checkoutForm.get('standardName')?.valueChanges
-          .pipe(distinctUntilChanged())
-          .subscribe(() => this.calculateDeliveryFee());
-        this.checkoutForm.get('expressName')?.valueChanges
-          .pipe(distinctUntilChanged())
-          .subscribe(() => this.calculateDeliveryFee());
-        this.checkoutForm.get('shipName')?.valueChanges
-          .pipe(distinctUntilChanged())
-          .subscribe(() => this.calculateDeliveryFee());
+        // --- Auto-select shipping method and provider if not set or invalid ---
+        let method = this.checkoutForm.get('shippingMethod')?.value;
+        let validMethod = method;
+        if (!['Standard', 'Express', 'Ship'].includes(method) || (
+          method === 'Standard' && this.standardOptions.length === 0
+        ) || (
+          method === 'Express' && this.expressOptions.length === 0
+        ) || (
+          method === 'Ship' && this.shipOptions.length === 0
+        )) {
+          // Pick the first available method with options
+          if (this.standardOptions.length > 0) validMethod = 'Standard';
+          else if (this.expressOptions.length > 0) validMethod = 'Express';
+          else if (this.shipOptions.length > 0) validMethod = 'Ship';
+          else validMethod = '';
+          this.checkoutForm.patchValue({ shippingMethod: validMethod });
+        }
+
+        // Auto-select provider for the selected method if not set
+        if (validMethod === 'Standard' && this.standardOptions.length > 0) {
+          const current = this.checkoutForm.get('standardName')?.value;
+          if (!current || !this.standardOptions.some(opt => opt.name === current)) {
+            this.checkoutForm.patchValue({ standardName: this.standardOptions[0].name });
+          }
+        } else if (validMethod === 'Express' && this.expressOptions.length > 0) {
+          const current = this.checkoutForm.get('expressName')?.value;
+          if (!current || !this.expressOptions.some(opt => opt.name === current)) {
+            this.checkoutForm.patchValue({ expressName: this.expressOptions[0].name });
+          }
+        } else if (validMethod === 'Ship' && this.shipOptions.length > 0) {
+          const current = this.checkoutForm.get('shipName')?.value;
+          if (!current || !this.shipOptions.some(opt => opt.name === current)) {
+            this.checkoutForm.patchValue({ shipName: this.shipOptions[0].name });
+          }
+        }
+
+        this.calculateDeliveryFee();
       },
       error: err => console.error('Error loading delivery types', err)
     });
@@ -246,6 +272,7 @@ export class CheckoutComponent implements OnInit {
         this.deliveryFee = res.fee;
         this.selectedDelayTime = res.estimatedTime || null;
         this.selectedDelayRange = this.getEstimatedDateRange(this.selectedDelayTime);
+        this.reapplyCouponIfNeeded();
 
         if (this.suggestedMethod !== 'Standard') {
           this.checkoutForm.patchValue({ shippingMethod: this.suggestedMethod });
@@ -261,7 +288,6 @@ export class CheckoutComponent implements OnInit {
   calculateDeliveryFee(): void {
     if (this.isCalculatingDeliveryFee) return;
     this.isCalculatingDeliveryFee = true;
-    console.log('calculateDeliveryFee called');
     if (!this.currentUser) {
       this.isCalculatingDeliveryFee = false;
       return;
@@ -273,47 +299,36 @@ export class CheckoutComponent implements OnInit {
 
     if (method === 'Standard') {
       const current = this.checkoutForm.get('standardName')?.value;
-      console.log('Selected Standard Provider:', current);
-      console.log('Standard Options:', this.standardOptions.map(opt => opt.name));
       selectedOption = this.standardOptions.find(opt => opt.name === current);
-      console.log('Matched Standard Option:', selectedOption);
       if ((!current || current === '') && this.standardOptions.length > 0) {
         this.checkoutForm.patchValue({ standardName: this.standardOptions[0].name });
         providerPatched = true;
       }
     } else if (method === 'Express') {
       const current = this.checkoutForm.get('expressName')?.value;
-      console.log('Selected Express Provider:', current);
-      console.log('Express Options:', this.expressOptions.map(opt => opt.name));
       selectedOption = this.expressOptions.find(opt => opt.name === current);
-      console.log('Matched Express Option:', selectedOption);
       if ((!current || current === '') && this.expressOptions.length > 0) {
         this.checkoutForm.patchValue({ expressName: this.expressOptions[0].name });
         providerPatched = true;
       }
     } else if (method === 'Ship') {
       const current = this.checkoutForm.get('shipName')?.value;
-      console.log('Selected Ship Provider:', current);
-      console.log('Ship Options:', this.shipOptions.map(opt => opt.name));
       selectedOption = this.shipOptions.find(opt => opt.name === current);
-      console.log('Matched Ship Option:', selectedOption);
       if ((!current || current === '') && this.shipOptions.length > 0) {
         this.checkoutForm.patchValue({ shipName: this.shipOptions[0].name });
         providerPatched = true;
       }
     }
 
-    // If we just patched the provider, re-run the calculation after the form updates
+    // If we just patched the provider, return and let the next value change trigger calculation
     if (providerPatched) {
-      setTimeout(() => {
-        this.isCalculatingDeliveryFee = false;
-        this.calculateDeliveryFee();
-      }, 0);
+      this.isCalculatingDeliveryFee = false;
       return;
     }
 
     if (!selectedOption) {
-      console.log('No provider matched.');
+      this.selectedDelayTime = null;
+      this.selectedDelayRange = null;
       this.isCalculatingDeliveryFee = false;
       return;
     }
@@ -324,20 +339,18 @@ export class CheckoutComponent implements OnInit {
       method: method,
       name: selectedOption.name
     };
-    console.log('DTO sent to backend:', dto);
 
     this.deliveryService.calculateStandardFee(dto).subscribe({
       next: (res) => {
-        console.log('Backend response:', res);
         const validMethods = ['Standard', 'Express', 'Ship'];
         const backendMethod = (res.suggestedMethod ?? '').toLowerCase();
         const normalizedMethod = validMethods.find(m => m.toLowerCase() === backendMethod);
-        // Only set methodAutoChanged if the shipping method (not provider) is auto-changed
         const prevMethod = this.checkoutForm.get('shippingMethod')?.value;
         this.suggestedMethod = normalizedMethod ? normalizedMethod : method;
         this.deliveryFee = res.fee;
         this.selectedDelayTime = res.estimatedTime || null;
         this.selectedDelayRange = this.getEstimatedDateRange(this.selectedDelayTime);
+        this.reapplyCouponIfNeeded();
         if (normalizedMethod && normalizedMethod !== prevMethod) {
           this.methodAutoChanged = true;
           this.checkoutForm.patchValue({ shippingMethod: this.suggestedMethod });
@@ -345,20 +358,17 @@ export class CheckoutComponent implements OnInit {
             this.methodAutoChanged = false;
           }, 8000); // Show notice for 8 seconds
         } else if (!normalizedMethod || normalizedMethod === prevMethod) {
-          // Only set to false if it was never set to true
           if (!this.methodAutoChanged) {
             this.methodAutoChanged = false;
           }
         }
-        // Debug logs
-        console.log('methodAutoChanged:', this.methodAutoChanged);
-        console.log('selectedDelayRange:', this.selectedDelayRange);
-        console.log('shippingMethod:', this.checkoutForm.get('shippingMethod')?.value);
         this.isCalculatingDeliveryFee = false;
       },
       error: () => {
         this.deliveryFee = 0;
         this.suggestedMethod = 'Standard';
+        this.selectedDelayTime = null;
+        this.selectedDelayRange = null;
         this.isCalculatingDeliveryFee = false;
       }
     });
@@ -393,7 +403,22 @@ export class CheckoutComponent implements OnInit {
   }
 
   private loadCartItems(): void {
-    this.items = this.currentUser ? this.cartService.getCartItems(this.currentUser.id) : [];
+    if (this.currentUser) {
+      this.items = this.cartService.getCartItems(this.currentUser.id);
+      // Fetch detailed variant information for each cart item
+      this.items.forEach(item => {
+        this.productService.getVariantById(item.productVariantId).subscribe({
+          next: (variant) => {
+            this.variantDetails[item.productVariantId] = variant;
+          },
+          error: (err) => {
+            console.error(`Failed to fetch variant ${item.productVariantId}:`, err);
+          }
+        });
+      });
+    } else {
+      this.items = [];
+    }
   }
 
   getSubtotal(): number {
@@ -405,7 +430,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   getTotalCost(): number {
-    return this.getSubtotal() + this.deliveryFee - this.appliedDiscount;
+    return this.getSubtotal() - this.appliedDiscount + this.deliveryFee;
   }
 
   applyPromo(): void {
@@ -418,7 +443,7 @@ export class CheckoutComponent implements OnInit {
       return;
     }
 
-    this.couponService.applyCoupon(code, this.currentUser.id, this.getSubtotal()).subscribe({
+    this.couponService.applyCoupon(code, this.currentUser.id, this.getSubtotal() + this.deliveryFee).subscribe({
       next: (res) => {
         this.appliedDiscount = res.discountAmount;
         this.discountType = res.discountType;
@@ -439,7 +464,7 @@ export class CheckoutComponent implements OnInit {
         this.cartService.setDiscountType('');
         this.cartService.setDiscountValue('');
         this.couponSuccess = false;
-        this.couponError = err.error?.message || 'Invalid or expired promo code.';
+        this.couponError = err.error?.message || err.error || err.message || 'Invalid or expired promo code.';
       }
     });
   }
@@ -450,20 +475,43 @@ export class CheckoutComponent implements OnInit {
     const method = this.checkoutForm.value.shippingMethod;
     const provider = this.checkoutForm.value[`${method.toLowerCase()}Name`];
 
+    // Map cart items to the format expected by the backend
+    const mappedItems = this.items.map(item => ({
+      variantId: item.productVariantId,
+      quantity: item.quantity,
+      price: item.price
+    }));
+
     const orderData = {
       userId: this.currentUser.id,
-      shippingDetails: this.checkoutForm.value,
-      items: this.items,
+      items: mappedItems,
+      subtotal: this.getSubtotal(),
+      discountAmount: this.appliedDiscount,
+      discountType: this.discountType,
+      discountValue: this.discountValue,
+      appliedCouponCode: this.promoCode || null,
       total: this.getTotalCost(),
-      promoCode: this.promoCode || null,
-      shippingMethod: method,
-      providerName: provider
+      deliveryFee: this.deliveryFee,
+      deliveryMethod: method,
+      deliveryProvider: provider,
+      deliveryAddressId: this.mainAddressId
     };
 
-    console.log('Order placed:', orderData);
-    alert('Your order has been placed!');
-    this.cartService.clearCart(this.currentUser.id);
-    this.router.navigate(['/order-confirmation']);
+    console.log('Placing order:', orderData);
+    
+    this.orderService.placeOrder(orderData).subscribe({
+      next: (order) => {
+        console.log('Order placed successfully:', order);
+        // Clear cart after successful order creation
+        this.cartService.clearCart(this.currentUser!.id);
+        // Navigate to payment page with the new order ID
+        this.router.navigate(['/payment', order.id]);
+      },
+      error: (err) => {
+        console.error('Failed to place order:', err);
+        alert('Failed to place order. Please try again.');
+      }
+    });
   }
 
   continueShopping(): void {
@@ -478,90 +526,36 @@ export class CheckoutComponent implements OnInit {
     return `${address.houseNumber || ''}, ${address.street || ''}, ${address.wardName || ''}, ${address.township || ''}, ${address.city || ''}, ${address.state || ''}, ${address.country || ''}, ${address.postalCode || 'N/A'}`;
   }
 
-  triggerFileInput(): void {
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    fileInput?.click();
-  }
-
-  getQRCodeUrl(): string {
-    if (this.selectedQrUrl) return this.selectedQrUrl;
-    const amount = this.getTotalCost();
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Payment Amount: MMK ${amount}`;
-  }
-
   isFormValid(): boolean {
-    const paymentType = this.checkoutForm.get("paymentType")?.value;
-    if (paymentType && paymentType !== "CreditCard") {
-      return this.selectedReceiptFile !== null;
+    // Check if form is valid and user is logged in
+    if (!this.currentUser || this.checkoutForm.invalid) {
+      return false;
     }
-    if (paymentType === "CreditCard") {
-      const cardNumber = this.checkoutForm.get("cardNumber")?.value;
-      const expiry = this.checkoutForm.get("expiry")?.value;
-      const cvv = this.checkoutForm.get("cvv")?.value;
-      return cardNumber && expiry && cvv;
+
+    // Check if shipping method is selected
+    const shippingMethod = this.checkoutForm.get('shippingMethod')?.value;
+    if (!shippingMethod) {
+      return false;
     }
-    return false;
-  }
 
-  onReceiptFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        alert("Please select an image file");
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB");
-        return;
-      }
-
-      this.selectedReceiptFile = file;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.receiptPreviewUrl = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
+    // Check if provider is selected for the shipping method
+    const providerField = `${shippingMethod.toLowerCase()}Name`;
+    const provider = this.checkoutForm.get(providerField)?.value;
+    if (!provider) {
+      return false;
     }
-  }
 
-  removeReceiptFile(event: Event): void {
-    event.stopPropagation();
-    this.selectedReceiptFile = null;
-    this.receiptPreviewUrl = '';
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
-  }
-
-  closeReceiptPreview(): void {
-    this.showReceiptPreview = false;
-  }
-
-  approvePayment(): void {
-    console.log("Payment approved");
-  }
-
-  rejectPayment(): void {
-    console.log("Payment rejected");
-  }
-
-  getPaymentLogoClass(): string {
-    const paymentType = this.checkoutForm.get('paymentType')?.value;
-    switch ((paymentType || '').toLowerCase()) {
-      case 'kpay': return 'kpay';
-      case 'wavemoney': return 'wavemoney';
-      case 'cbpay': return 'cbpay';
-      default: return '';
+    // Check if cart has items
+    if (this.items.length === 0) {
+      return false;
     }
-  }
 
-  getPaymentIcon(): string {
-    const paymentType = this.checkoutForm.get('paymentType')?.value;
-    switch ((paymentType || '').toLowerCase()) {
-      case 'kpay': return '💸';
-      case 'wavemoney': return '🌊';
-      case 'cbpay': return '🏦';
-      default: return '💳';
+    // Check if delivery fee is calculated
+    if (this.deliveryFee <= 0) {
+      return false;
     }
+
+    return true;
   }
 
   proceedToCheckout(): void {
@@ -569,5 +563,16 @@ export class CheckoutComponent implements OnInit {
       localStorage.setItem('couponApplied', 'true');
     }
     this.router.navigate(['/checkout']);
+  }
+
+  shippingMethodProviderField(): string {
+    const method = this.checkoutForm.get('shippingMethod')?.value;
+    return method ? `${method.toLowerCase()}Name` : '';
+  }
+
+  private reapplyCouponIfNeeded(): void {
+    if (this.promoCode && this.promoCode.trim() !== '') {
+      this.applyPromo();
+    }
   }
 }

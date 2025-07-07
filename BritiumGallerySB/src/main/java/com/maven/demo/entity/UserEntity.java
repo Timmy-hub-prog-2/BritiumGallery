@@ -1,11 +1,24 @@
 package com.maven.demo.entity;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 @Getter
 @Setter
@@ -46,7 +59,7 @@ public class UserEntity {
     private RoleEntity role;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "customer_type_id", nullable = false)
+    @JoinColumn(name = "customer_type_id")
     private CustomerTypeEntity customerType;
 
     @JsonIgnore
@@ -72,5 +85,13 @@ public class UserEntity {
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<DeliveryEntity> deliveries;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<OrderEntity> orders;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "recipient")
+    private List<NotificationEntity> notifications;
 
 }

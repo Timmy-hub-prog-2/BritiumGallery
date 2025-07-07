@@ -14,11 +14,10 @@ export class CouponService {
   createCoupon(coupon: Coupon): Observable<Coupon> {
     return this.http.post<Coupon>(this.baseUrl, coupon).pipe(
       catchError(error => {
-        // Handle the error here, show a meaningful message
-        if (error.status === 500 && error.error.message.includes("Coupon code already exists")) {
-          alert("Coupon code already exists. Please use a different code.");
-        }
-        return throwError(() => new Error(error.message));
+        // Show the real backend error message if available
+        const msg = error.error?.message || error.error || error.message;
+        alert(msg);
+        return throwError(() => new Error(msg));
       })
     );
   }
@@ -40,7 +39,13 @@ export class CouponService {
       couponCode: code,
       userId: userId,
       cartTotal: cartTotal
-    });
+    }).pipe(
+      catchError(error => {
+        // Show the real backend error message if available
+        const msg = error.error?.message || error.error || error.message;
+        return throwError(() => new Error(msg));
+      })
+    );
   }
   
 }

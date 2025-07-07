@@ -1,0 +1,25 @@
+﻿
+
+StatusCode        : 200
+StatusDescription : 
+Content           : [{"id":1,"recipient":{"id":15,"name":"Kaung Myaw Zaw","email":"kaungmyatzaw2004@gm
+                    ail.com","password":"$2a$10$uC2D76/1ZesdBx.NSHUOQuTuT5uPw1QT29dGIxVkVqcEg.XiU.Q.i"
+                    ,"phoneNumber":"09978222000","imageU...
+RawContent        : HTTP/1.1 200 
+                    Vary: Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+                    X-Content-Type-Options: nosniff
+                    X-XSS-Protection: 0
+                    Pragma: no-cache
+                    X-Frame-Options: DENY
+                    Transfer-Encodi...
+Forms             : {}
+Headers           : {[Vary, Origin,Access-Control-Request-Method,Access-Control-Request-Headers], 
+                    [X-Content-Type-Options, nosniff], [X-XSS-Protection, 0], [Pragma, no-cache]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : System.__ComObject
+RawContentLength  : 122566
+
+
+

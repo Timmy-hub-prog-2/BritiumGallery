@@ -73,7 +73,7 @@
 
       <div class="cart-summary-section">
         <!-- Promo Code Section -->
-        <div class="promo-card">
+        <!-- <div class="promo-card">
           <div class="card-header-small">
             <div class="promo-icon">🏷️</div>
             <div>
@@ -99,7 +99,7 @@
               Discount: MMK {{ discountAmount | number:'1.0-0' }}
             </span>
           </div>
-        </div>
+        </div> -->
 
         <!-- Enhanced Order Summary Section -->
         <div class="order-summary-card">
@@ -116,7 +116,7 @@
               <span class="summary-label">Subtotal</span>
               <span class="summary-value">MMK {{ getSubtotal() | number:'1.0-0' }}</span>
             </div>
-            <div class="summary-row" *ngIf="discountAmount > 0">
+            <!-- <div class="summary-row" *ngIf="discountAmount > 0">
               <span class="summary-label">Discount</span>
               <span class="summary-value discount">
                 <ng-container *ngIf="discountType === 'Percentage'">
@@ -126,7 +126,7 @@
                   - MMK {{ discountAmount | number:'1.0-0' }}
                 </ng-container>
               </span>
-            </div>
+            </div> -->
             <div class="summary-row">
               <span class="summary-label">Items</span>
               <span class="summary-badge">{{ getTotalItems() }} items</span>

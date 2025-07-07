@@ -33,7 +33,6 @@ import { ProductCardComponent } from './product-card/product-card.component';
 import { ContactComponent } from './contact/contact.component';
 import { CategoryEditComponent } from './category-edit/category-edit.component';
 import { ProductRegisterComponent } from './product-register/product-register.component';
-import { HeaderComponent } from './header/header.component';
 import { CustomerComponent } from './customer/customer.component';
 import { AdminHeaderComponent } from './admin-header/admin-header.component';
 import { AdminComponent } from './admin/admin.component';
@@ -64,11 +63,36 @@ import { DeliveryComponent } from './delivery/delivery.component';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { PaymentListComponent } from './payment-list/payment-list.component';
 import { PaymentRegisterComponent } from './payment-register/payment-register.component';
+import { CustomerOrderListComponent } from './customer-order-list/customer-order-list.component';
+import { PaymentComponent } from './payment/payment.component';
+import { CustomerOrderDetailComponent } from './customer-order-detail/customer-order-detail.component';
+import { AdminOrderListComponent } from './admin-order-list/admin-order-list.component';
+import { AdminOrderDetailComponent } from './admin-order-detail/admin-order-detail.component';
+  import { NgChartsModule } from 'ng2-charts';
+import { NgApexchartsModule } from 'ng-apexcharts';
+import { OrderTrackingComponent } from './order-tracking/order-tracking.component';
+import { OrderRefundComponent } from './order-refund/order-refund.component';
+import { AdminOrderRefundComponent } from './admin-order-refund/admin-order-refund.component';
+import { AdminOrderRefundListComponent } from './admin-order-refund-list/admin-order-refund-list.component';
+import { CustomerComponentOrderRefundListComponent } from './customer-order-refund-list/customer-order-refund-list.component';
+import { CustomerOrderRefundComponent } from './customer-order-refund/customer-order-refund.component';
+import { TermsComponent } from './terms/terms.component';
+import { PrivacypolicyComponent } from './privacypolicy/privacypolicy.component';
+import { FAQComponent } from './faq/faq.component';
+import { FAQListComponent } from './faqlist/faqlist.component';
+import { NotificationComponent } from './notification/notification.component';
+import { NgxEditorModule } from 'ngx-editor';
+import { SidebarComponent } from './sidebar/sidebar.component';
+import { ManagerComponent } from './manager/manager.component';
+import { ManagerSidebarComponent } from './manager-sidebar/manager-sidebar.component';
+import { CreateNotificationComponent } from './create-notification/create-notification.component';
+import { DiscountEventsComponent } from './discount-events/discount-events.component';
+import { MapToAttributeLinePipe } from './map-to-attribute-line.pipe';
+import { BrandRegisterComponent } from './brand-register/brand-register.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    HeaderComponent,
     NavigationComponent,
     ContentComponent,
     FooterComponent,
@@ -108,7 +132,27 @@ import { PaymentRegisterComponent } from './payment-register/payment-register.co
     DeliveryComponent,
     CheckoutComponent,
     PaymentListComponent,
-    PaymentRegisterComponent
+    PaymentRegisterComponent,
+    CustomerOrderListComponent,
+    PaymentComponent,
+    CustomerOrderDetailComponent,
+    AdminOrderListComponent,
+    AdminOrderDetailComponent,
+    OrderTrackingComponent,
+    OrderRefundComponent,
+    AdminOrderRefundComponent,
+    AdminOrderRefundListComponent,
+    CustomerComponentOrderRefundListComponent,
+    CustomerOrderRefundComponent,TermsComponent,
+    PrivacypolicyComponent,
+    FAQComponent,
+    FAQListComponent,
+    NotificationComponent,
+    CreateNotificationComponent,
+    SidebarComponent,
+    DiscountEventsComponent,
+    ManagerComponent,
+    ManagerSidebarComponent
   ],
   imports: [
     BrowserModule,
@@ -130,8 +174,14 @@ import { PaymentRegisterComponent } from './payment-register/payment-register.co
     MatButtonModule,
     MatIconModule,
     MatSelectModule,
+    NgChartsModule,
     MatOptionModule,
-    CategoryProductComponent
+    CategoryProductComponent,
+    NgApexchartsModule,
+    NgxEditorModule,
+    MapToAttributeLinePipe,
+    BrandRegisterComponent
+    
   ],
   providers: [],
   bootstrap: [AppComponent],

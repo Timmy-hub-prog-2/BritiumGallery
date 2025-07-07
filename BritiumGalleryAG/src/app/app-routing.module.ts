@@ -34,6 +34,24 @@ import { CheckoutComponent } from './checkout/checkout.component';
 import { DeliveryComponent } from './delivery/delivery.component';
 import { PaymentListComponent } from './payment-list/payment-list.component';
 import { PaymentRegisterComponent } from './payment-register/payment-register.component';
+import { CustomerOrderListComponent } from './customer-order-list/customer-order-list.component';
+import { PaymentComponent } from './payment/payment.component';
+import { CustomerOrderDetailComponent } from './customer-order-detail/customer-order-detail.component';
+import { AdminOrderListComponent } from './admin-order-list/admin-order-list.component';
+import { AdminOrderDetailComponent } from './admin-order-detail/admin-order-detail.component';
+import { OrderTrackingComponent } from './order-tracking/order-tracking.component';
+import { OrderRefundComponent } from './order-refund/order-refund.component';
+import { AdminOrderRefundComponent } from './admin-order-refund/admin-order-refund.component';
+import { AdminOrderRefundListComponent } from './admin-order-refund-list/admin-order-refund-list.component';
+import { CustomerComponentOrderRefundListComponent } from './customer-order-refund-list/customer-order-refund-list.component';
+import { CustomerOrderRefundComponent } from './customer-order-refund/customer-order-refund.component';
+import { TermsComponent } from './terms/terms.component';
+import { PrivacypolicyComponent } from './privacypolicy/privacypolicy.component';
+import { FAQComponent } from './faq/faq.component';
+import { FAQListComponent } from './faqlist/faqlist.component';
+import { CreateNotificationComponent } from './create-notification/create-notification.component';
+import { DiscountEventsComponent } from './discount-events/discount-events.component';
+import { BrandRegisterComponent } from './brand-register/brand-register.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -53,7 +71,6 @@ const routes: Routes = [
   { path: 'verify-email', component: OtpVerificationComponent },
   { path: 'addressedit', component: AddresseditComponent },
   { path: 'customer-dashboard', component: CustomerDashboardComponent },
-  { path: 'admin-dashboard', component: AdminDashboardComponent },
   {path:'choose-verification',component: ChooseVerificationComponent},
   {path: 'otp-verification',component: OtpVerificationComponent},
   { path: 'viewadmin', component:ViewadminComponent},
@@ -62,17 +79,35 @@ const routes: Routes = [
  { path: 'shopaddresslist', component:ShopaddresslistComponent},
   { path: 'shopaddressedit', component:ShopaddresseditComponent},
   { path: 'wishlist', component: WishlistComponent },
-  {path:'cart',component:CartPreviewComponent},
+  {path:'cart-preview',component:CartPreviewComponent},
   {path:'coupon',component:CouponComponent},
   {path:'view-profile',component:ViewProfileComponent},
   {path:'change-password',component:ChangePasswordComponent},
   {path:'category-products/:categoryId',component:CategoryProductComponent},
-  { path: 'checkout/:orderId', component: CheckoutComponent },
   { path: 'checkout', component: CheckoutComponent },
   {path:'delivery',component:DeliveryComponent},
   {path:'payment-register',component:PaymentRegisterComponent},
   {path:'payment-list',component:PaymentListComponent},
-  {path:'payment-register/:id',component:PaymentRegisterComponent}
+  {path:'payment-register/:id',component:PaymentRegisterComponent},
+  {path:'customer-order-list',component:CustomerOrderListComponent},
+  {path:'payment/:orderId',component:PaymentComponent},
+  {path:'customer-order-detail/:orderId',component:CustomerOrderDetailComponent},
+  {path:'admin-order-list',component:AdminOrderListComponent},
+  {path:'admin-order-detail/:orderId',component:AdminOrderDetailComponent},
+  {path:'admin-dashboard',component:AdminDashboardComponent},
+  {path:'order-tracking',component:OrderTrackingComponent},
+  {path:'order-refund',component:OrderRefundComponent},
+  {path:'admin-order-refund/:refundId',component:AdminOrderRefundComponent},
+   {path:'customer-order-refund/:refundId',component:CustomerOrderRefundComponent},
+  {path:'admin-order-refund-list',component:AdminOrderRefundListComponent},
+  {path:'customer-order-refund-list',component:CustomerComponentOrderRefundListComponent},
+  {path:'terms',component:TermsComponent},
+   {path:'privacypolicy',component:PrivacypolicyComponent},
+    {path:'FAQ',component:FAQComponent},
+{path:'FAQList',component:FAQListComponent},
+{path:'create-notification',component:CreateNotificationComponent},
+{ path: 'events', component: DiscountEventsComponent },
+  { path: 'brand-register', component: BrandRegisterComponent },
 
 ];
 

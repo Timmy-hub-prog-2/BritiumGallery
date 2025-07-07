@@ -1,18 +1,27 @@
 package com.maven.demo.service;
 
-import com.maven.demo.dto.CouponWithRulesDTO;
-import com.maven.demo.dto.CustomerRuleDTO;
-import com.maven.demo.entity.*;
-import com.maven.demo.repository.*;
-import jakarta.transaction.Transactional;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.maven.demo.dto.CouponWithRulesDTO;
+import com.maven.demo.dto.CustomerRuleDTO;
+import com.maven.demo.entity.CouponCustomerTypeEntity;
+import com.maven.demo.entity.CouponEntity;
+import com.maven.demo.entity.CustomerTypeEntity;
+import com.maven.demo.entity.UserEntity;
+import com.maven.demo.repository.CouponCustomerTypeRepository;
+import com.maven.demo.repository.CouponRepository;
+import com.maven.demo.repository.CustomerTypeRepository;
+import com.maven.demo.repository.UserCouponUsageRepository;
+import com.maven.demo.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class CouponService {
@@ -143,7 +152,27 @@ public class CouponService {
                 (coupon.getEndDate() != null && LocalDate.now().isAfter(coupon.getEndDate()))) {
             throw new RuntimeException("Coupon is expired or inactive");
         }
-        
+
+        // Fetch user and their customer type
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        CustomerTypeEntity userType = user.getCustomerType();
+
+        // Fetch coupon rule for this customer type
+        CouponCustomerTypeEntity rule = couponCustomerTypeRepository
+                .findByCouponAndCustomerType(coupon, userType)
+                .orElse(null);
+        if (rule == null) {
+            throw new RuntimeException("Coupon not found for your customer type");
+        }
+
+        // Check usage count
+        long usageCount = userCouponUsageRepository.countByUserAndCoupon(user, coupon);
+        if (usageCount >= rule.getTimes()) {
+            throw new RuntimeException("Coupon usage limit reached for your customer type");
+        }
+
+        // Calculate discount
         double discountValue;
         try {
             discountValue = Double.parseDouble(coupon.getDiscount());

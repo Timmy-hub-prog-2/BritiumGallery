@@ -1,0 +1,295 @@
+<div class="admin-order-list-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <div class="header-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 6h18l-2 13H5L3 6z"/>
+            <path d="M3 6L2.25 3H1"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+            <path d="M12 2v4"/>
+            <path d="M2 2l20 20"/>
+          </svg>
+        </div>
+        <div class="title-content">
+          <h1 class="page-title">Refund Order Management</h1>
+          <p class="page-subtitle">{{ filteredRefundOrders && filteredRefundOrders.length }} pending refund orders</p>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-card">
+          <div class="stat-number">{{ filteredRefundOrders?.length || 0 }}</div>
+        <div class="stat-label" style="color: white;">Total Refunds</div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filters-content">
+      <div style="display: flex; flex: 2; gap: 24px; flex-wrap: wrap; align-items: flex-end;">
+        <div class="filter-group">
+          <label class="filter-label">
+            <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            Order ID Search
+          </label>
+          <div class="search-wrapper">
+            <div class="search-input-container">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input 
+                type="text" 
+                [(ngModel)]="searchOrderId" 
+                (keyup.enter)="onOrderSearch()" 
+                class="search-input" 
+                placeholder="Search by Order ID (e.g., ORD123456)"
+              />
+              <button 
+                class="clear-btn" 
+                *ngIf="searchOrderId" 
+                (click)="searchOrderId=''; onOrderSearch()"
+                type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <button class="search-btn" (click)="onOrderSearch()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              Search
+            </button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="selectedStatus" class="status-select" (change)="onFilter()">
+              <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: flex-end;">
+        <div class="filter-group" style="min-width: 220px;">
+          <label class="filter-label">Date Range</label>
+          <div class="date-inputs">
+            <input type="date" [(ngModel)]="startDate" class="date-input" placeholder="Start Date" (change)="onFilter()">
+            <span class="date-separator">to</span>
+            <input type="date" [(ngModel)]="endDate" class="date-input" placeholder="End Date" (change)="onFilter()">
+          </div>
+        </div>
+        <button class="clear-filters-btn" (click)="clearFilters()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 6h18"/>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+          </svg>
+          Clear Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loadingRefunds">
+    <div class="loading-content">
+      <div class="loading-animation">
+        <div class="loading-spinner"></div>
+        <div class="loading-pulse"></div>
+      </div>
+      <h3 class="loading-title">Loading Refund Orders</h3>
+      <p class="loading-text">Please wait while we fetch the refund data...</p>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="refundError && !loadingRefunds">
+    <div class="error-content">
+      <div class="error-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <h3 class="error-title">Unable to Load Refund Orders</h3>
+      <p class="error-message">{{ refundError }}</p>
+      <div class="error-actions">
+        <button class="retry-btn" (click)="loadRefundsByStatus()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="23,4 23,10 17,10"/>
+            <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+          </svg>
+          Try Again
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Refund Orders -->
+  <div class="orders-section" *ngIf="!loadingRefunds && !refundError">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filteredRefundOrders && filteredRefundOrders.length === 0">
+      <div class="empty-content">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+            <polyline points="3.27,6.96 12,12.01 20.73,6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <h3 class="empty-title">No Refund Orders Found</h3>
+        <p class="empty-message">No refund orders match the current filters.</p>
+        <div class="empty-actions">
+          <button class="browse-btn" (click)="searchOrderId=''; onOrderSearch()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M3 6h18l-2 13H5L3 6z"/>
+              <path d="M3 6L2.25 3H1"/>
+            </svg>
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Refund Orders List -->
+    <div class="orders-list" *ngIf="filteredRefundOrders && filteredRefundOrders.length > 0">
+      <div class="list-header">
+        <div class="list-title">
+          <svg class="list-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M9 12l2 2 4-4"/>
+            <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/>
+          </svg>
+          Refund Requests
+        </div>
+        <div class="list-count">{{ filteredRefundOrders.length }} orders</div>
+      </div>
+
+      <div class="order-card" *ngFor="let refund of filteredRefundOrders; let i = index">
+        <div class="card-number">{{ i + 1 }}</div>
+        <ng-container *ngIf="refund.type === 'FULL'"></ng-container>
+        <div class="order-header">
+          <div class="order-meta">
+            <div class="order-id-section">
+              <span class="order-label">Tracking Code</span>
+              <h3 class="order-id">#{{ refund.trackingCode }}</h3>
+              <span class="order-real-id" style="font-size: 12px; color: #888; font-weight: 500;">Order ID: {{ refund.orderId }}</span>
+            </div>
+            <div class="order-date-section">
+              <span class="date-label">Delivered At</span>
+              <span class="order-date">{{ formatDate(refund.deliveredAt) }}</span>
+            </div>
+            <div class="customer-section">
+              <span class="customer-label">Customer</span>
+              <span class="customer-name">{{ refund.customerName || 'N/A' }}</span>
+            </div>
+          </div>
+          <div class="order-status-section">
+            <span class="refund-status-badge"
+              [ngClass]="{
+                'pending': refund.status === 'REQUESTED',
+                'approved': refund.status === 'APPROVED',
+                'rejected': refund.status === 'REJECTED',
+                'processing': refund.status === 'PROCESSING',
+                'completed': refund.status === 'COMPLETED'
+              }">
+              {{ refund.status === 'REQUESTED' ? 'Pending' :
+                 refund.status === 'APPROVED' ? 'Approved' :
+                 refund.status === 'REJECTED' ? 'Rejected' :
+                 refund.status === 'PROCESSING' ? 'Processing' :
+                 refund.status === 'COMPLETED' ? 'Completed' : refund.status }}
+            </span>
+          </div>
+        </div>
+
+        <div class="order-summary">
+          <div class="summary-stats">
+            <div class="stat-item">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              <div class="stat-content">
+                <div class="stat-label">Request Date</div>
+                <div class="stat-value">{{ formatDate(refund.requestedAt) }}</div>
+              </div>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                <circle cx="8.5" cy="7" r="4"/>
+                <line x1="20" y1="8" x2="20" y2="14"/>
+                <line x1="23" y1="11" x2="17" y2="11"/>
+              </svg>
+              <div class="stat-content">
+                <div class="stat-label">Customer</div>
+                <div class="stat-value">{{ refund.customerName || 'Anonymous' }}</div>
+              </div>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item" *ngIf="refund.type === 'FULL'">
+              <div class="stat-content">
+                <span class="full-order-badge-inline">
+                  <svg class="full-order-badge-icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                    <path d="M8 12l2 2 4-4" stroke-width="2"/>
+                  </svg>
+                  Full Order Refund
+                </span>
+              </div>
+            </div>
+            <div class="stat-item" *ngIf="refund.type !== 'FULL'">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+              </svg>
+              <div class="stat-content">
+                <div class="stat-label">Refund Count</div>
+                <div class="stat-value">{{ refund.allRefunds.length }} requests</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="order-actions">
+          <div class="actions-left">
+            <div class="priority-indicator" *ngIf="needsReview(refund)">
+              <svg class="priority-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span class="priority-text">Requires Review</span>
+            </div>
+          </div>
+          
+          <div class="actions-right">
+            <button class="action-btn primary" (click)="viewRefundDetails(refund)">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              View Details
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -4,6 +4,7 @@ import { CartItem, CartService } from '../services/cart.service';
 import { User } from '../../user.model';
 import { UserService } from '../services/user.service';
 import { CouponService } from '../services/coupon.service';
+import { OrderService } from '../services/order.service';
 
 @Component({
   selector: 'app-cart-preview',
@@ -15,19 +16,12 @@ export class CartPreviewComponent implements OnInit {
   items: CartItem[] = [];
   currentUser: User | null = null;
 
-  couponCode: string = '';
-  discountAmount: number = 0;
-  couponError: string = '';
-  couponApplied: boolean = false;
-
-  discountType: string = '';
-  discountValue: string = '';
-
   constructor(
     private cartService: CartService,
     private router: Router,
     private userService: UserService,
-    private couponService: CouponService
+    private couponService: CouponService,
+    private orderService: OrderService
   ) {}
 
   ngOnInit(): void {
@@ -86,7 +80,7 @@ export class CartPreviewComponent implements OnInit {
   }
 
   getTotalCost(): number {
-    return this.getSubtotal() - this.discountAmount;
+    return this.getSubtotal();
   }
 
   getTotalItems(): number {
@@ -101,65 +95,18 @@ export class CartPreviewComponent implements OnInit {
     if (this.currentUser) {
       this.cartService.clearCart(this.currentUser.id);
       this.items = [];
-      this.resetCoupon(); 
     } else {
       this.router.navigate(['/login']);
     }
   }
 
   proceedToCheckout(): void {
-    if (this.discountAmount > 0) {
-      localStorage.setItem('couponApplied', 'true');
-    }
-    this.router.navigate(['/checkout']);
-  }
-
-  applyCoupon(): void {
-    if (!this.couponCode) {
-      this.couponError = 'Please enter a coupon code.';
-      return;
-    }
-
     if (!this.currentUser) {
       this.router.navigate(['/login']);
       return;
     }
-
-    this.couponService.applyCoupon(this.couponCode, this.currentUser.id, this.getSubtotal()).subscribe({
-      next: (res: any) => {
-        this.discountAmount = res.discountAmount;
-        this.discountType = res.discountType;
-        this.discountValue = res.discountValue;
-        this.couponError = '';
-        this.cartService.setDiscount(res.discountAmount);
-        this.cartService.setAppliedCouponCode(this.couponCode);
-        this.cartService.setDiscountType(res.discountType);
-        this.cartService.setDiscountValue(res.discountValue);
-        localStorage.setItem('couponApplied', 'true');
-      },
-      error: (err) => {
-        this.couponError = err.error || 'Failed to apply coupon.';
-        this.discountAmount = 0;
-        this.discountType = '';
-        this.discountValue = '';
-        this.cartService.setDiscount(0);
-        this.cartService.setAppliedCouponCode('');
-        this.cartService.setDiscountType('');
-        this.cartService.setDiscountValue('');
-      }
-    });
-  }
-
-  private resetCoupon(): void {
-    this.couponCode = '';
-    this.discountAmount = 0;
-    this.couponError = '';
-    this.couponApplied = false;
-    this.discountType = '';
-    this.discountValue = '';
-    this.cartService.setDiscount(0);
-    this.cartService.setAppliedCouponCode('');
-    this.cartService.setDiscountType('');
-    this.cartService.setDiscountValue('');
+    
+    // Simply navigate to checkout page - don't create order or clear cart yet
+    this.router.navigate(['/checkout']);
   }
 }

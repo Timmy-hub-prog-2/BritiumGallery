@@ -1,0 +1,62 @@
+<div class="sidebar" [class.expanded]="expanded">
+  <button class="sidebar-toggle" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+    <span *ngIf="!expanded">&#9776;</span>
+    <span *ngIf="expanded">&times;</span>
+  </button>
+  <nav *ngIf="expanded" class="sidebar-nav scrollable-nav">
+    <div class="sidebar-title">Admin Panel</div>
+    <a routerLink="/admin-dashboard" routerLinkActive="active" aria-label="Dashboard">
+      <i class="fas fa-tachometer-alt"></i>
+      <span class="sidebar-link-label">Dashboard</span>
+    </a>
+    <a routerLink="/categoryList" routerLinkActive="active" aria-label="Category & Product">
+      <i class="fas fa-th-list"></i>
+      <span class="sidebar-link-label">Category & Product</span>
+    </a>
+    <div class="sidebar-user-group">
+      <span class="sidebar-user-label"><i class="fas fa-users"></i> User</span>
+      <div class="sidebar-user-links">
+        <a routerLink="/viewcustomer" routerLinkActive="active" aria-label="View Customer">
+          <i class="fas fa-user"></i>
+          <span class="sidebar-link-label">View Customer</span>
+        </a>
+        <a routerLink="/viewadmin" routerLinkActive="active" aria-label="View Admin">
+          <i class="fas fa-user-shield"></i>
+          <span class="sidebar-link-label">View Admin</span>
+        </a>
+      </div>
+    </div>
+    <a routerLink="/coupon" routerLinkActive="active" aria-label="Promotion & Discount">
+      <i class="fas fa-tags"></i>
+      <span class="sidebar-link-label">Promotion & Discount</span>
+    </a>
+    <a routerLink="/events" routerLinkActive="active" aria-label="Events">
+      <i class="fas fa-event"></i>
+      <span class="sidebar-link-label">Event</span>
+    </a>
+    <a routerLink="/delivery" routerLinkActive="active" aria-label="Delivery">
+      <i class="fas fa-truck"></i>
+      <span class="sidebar-link-label">Delivery</span>
+    </a>
+    <a routerLink="/payment-list" routerLinkActive="active" aria-label="Payment">
+      <i class="fas fa-credit-card"></i>
+      <span class="sidebar-link-label">Payment</span>
+    </a>
+    <a routerLink="/admin-order-list" routerLinkActive="active" aria-label="Order">
+      <i class="fas fa-shopping-cart"></i>
+      <span class="sidebar-link-label">Order</span>
+    </a>
+    <a routerLink="/admin-order-refund-list" routerLinkActive="active" aria-label="Refund Order">
+      <i class="fas fa-undo-alt"></i>
+      <span class="sidebar-link-label">Refund Order</span>
+    </a>
+    <a routerLink="/shopaddressform" routerLinkActive="active" aria-label="Shop">
+      <i class="fas fa-store"></i>
+      <span class="sidebar-link-label">Shop</span>
+    </a>
+    <a routerLink="/create-notification" routerLinkActive="active" aria-label="Notification">
+      <i class="fas fa-bell"></i>
+      <span class="sidebar-link-label">Notification</span>
+    </a>
+  </nav>
+</div>

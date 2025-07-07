@@ -8,6 +8,9 @@
     <app-admin></app-admin>
   </ng-container>
 
+  <ng-container *ngIf="roleId === 4">
+    <app-manager></app-manager>
+  </ng-container>
   <main class="content-wrap">
     <router-outlet></router-outlet>
   </main>

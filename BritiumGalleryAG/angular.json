@@ -42,7 +42,7 @@
               "node_modules/leaflet/dist/leaflet.css",
               "node_modules/leaflet-control-geocoder/dist/Control.Geocoder.css"
             ],
-            "scripts": []
+            "scripts": ["src/define.global.js"]
           },
           "configurations": {
             "production": {
@@ -103,7 +103,7 @@
               "node_modules/leaflet/dist/leaflet.css",
               "node_modules/leaflet-control-geocoder/dist/Control.Geocoder.css"
             ],
-            "scripts": []
+            "scripts": ["src/define.global.js"]
           }
         }
       }

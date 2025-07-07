@@ -1,0 +1,435 @@
+<div class="order-tracking-container">
+  <!-- Header Section -->
+  <div class="tracking-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M9 11H1l2-2m0 0l2 2m-2-2v6a2 2 0 002 2h18a2 2 0 002-2V7a2 2 0 00-2-2H3a2 2 0 00-2 2v2"/>
+          <path d="M21 12l-8 8-4-4"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="tracking-title">Order Tracking</h1>
+        <p class="tracking-subtitle">Track your order status and delivery progress in real-time</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Section -->
+  <div class="tracking-search-section">
+    <div class="search-container">
+      <form [formGroup]="trackingForm" (ngSubmit)="search()" class="tracking-form">
+        <div class="search-input-group">
+          <div class="input-wrapper">
+            <div class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+              </svg>
+            </div>
+            <input 
+              formControlName="trackingCode" 
+              placeholder="Enter your tracking code (e.g., TRK123456789)" 
+              class="tracking-input"
+              [class.error]="trackingForm.get('trackingCode')?.invalid && trackingForm.get('trackingCode')?.touched"
+            />
+            <button 
+              type="button" 
+              class="clear-btn" 
+              *ngIf="trackingForm.get('trackingCode')?.value"
+              (click)="clearSearch()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <button 
+            type="submit" 
+            [disabled]="loading || trackingForm.invalid" 
+            class="tracking-btn">
+            <span *ngIf="!loading" class="btn-content">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+              </svg>
+              Track Order
+            </span>
+            <span *ngIf="loading" class="btn-loading">
+              <div class="spinner"></div>
+              Searching...
+            </span>
+          </button>
+        </div>
+        
+        <!-- Quick Examples -->
+        <div class="tracking-examples">
+          <span class="examples-label">Try these examples:</span>
+          <button type="button" class="example-btn" (click)="setExample('TRK123456789')">TRK123456789</button>
+          <button type="button" class="example-btn" (click)="setExample('ORD987654321')">ORD987654321</button>
+          <button type="button" class="example-btn" (click)="setExample('SHP555444333')">SHP555444333</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-section">
+    <div class="loading-container">
+      <div class="loading-animation">
+        <div class="loading-spinner"></div>
+        <div class="loading-dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+      <h3 class="loading-title">Searching for your order...</h3>
+      <p class="loading-text">Please wait while we locate your tracking information</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-section">
+    <div class="error-container">
+      <div class="error-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <h3 class="error-title">Order Not Found</h3>
+      <p class="error-message">{{ error }}</p>
+      <div class="error-suggestions">
+        <h4>Please check:</h4>
+        <ul>
+          <li>Your tracking code is entered correctly</li>
+          <li>The tracking code is complete (usually 10-15 characters)</li>
+          <li>You received the tracking code via email or SMS</li>
+          <li>The order was placed within the last 90 days</li>
+        </ul>
+      </div>
+      <button class="retry-btn" (click)="clearError()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="23,4 23,10 17,10"/>
+          <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+        </svg>
+        Try Again
+      </button>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div *ngIf="result && !loading && !error" class="results-section">
+    
+    <!-- Order Summary Card -->
+    <div class="order-summary-card">
+      <div class="summary-header">
+        <div class="order-info">
+          <h2 class="order-title">Order Details</h2>
+          <div class="order-meta">
+            <div class="meta-item">
+              <span class="meta-label">Tracking Code:</span>
+              <span class="meta-value tracking-code">{{ result.trackingCode }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Order Date:</span>
+              <span class="meta-value">{{ result.orderDate | date:'mediumDate' }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Estimated Delivery:</span>
+              <span class="meta-value estimated-date">{{ result.estimatedDelivery | date:'mediumDate' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="current-status">
+          <div class="status-badge" [class]="getCurrentStatusClass(result.currentStatus)">
+            <div class="status-icon">
+              <svg *ngIf="result.currentStatus?.toUpperCase() === 'PENDING'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              <svg *ngIf="result.currentStatus?.toUpperCase() === 'PAID'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              <svg *ngIf="result.currentStatus?.toUpperCase() === 'ACCEPTED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <svg *ngIf="result.currentStatus?.toUpperCase() === 'SHIPPED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="1" y="7" width="15" height="13" rx="2" ry="2"/>
+                <path d="M16 7h3l4 5v5a2 2 0 0 1-2 2h-1"/>
+                <circle cx="5.5" cy="20.5" r="1.5"/>
+                <circle cx="18.5" cy="20.5" r="1.5"/>
+              </svg>
+              <svg *ngIf="result.currentStatus?.toUpperCase() === 'DELIVERED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M9 12l2 2 4-4"/>
+                <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/>
+              </svg>
+              <svg *ngIf="result.currentStatus?.toUpperCase() === 'COMPLETED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+            </div>
+            <div class="status-text">
+              <div class="status-name">{{ result.currentStatus.replace('_', ' ') | titlecase }}</div>
+              <div class="status-description">{{ getStatusDescription(result.currentStatus) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-section">
+        <div class="progress-header">
+          <h3 class="progress-title">Delivery Progress</h3>
+          <div class="progress-percentage">{{ getProgressPercentage(result.currentStatus) }}% Complete</div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="getProgressPercentage(result.currentStatus)"></div>
+        </div>
+        <div class="progress-steps">
+          <ng-container *ngFor="let step of statusSteps">
+            <div class="step"
+                 [class.completed]="isStepCompleted(step, result.currentStatus) || isStepActive(step, result.currentStatus)">
+              <div class="step-icon">
+                <svg *ngIf="step === 'PENDING'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+                <svg *ngIf="step === 'PAID'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9 12l2 2 4-4"/>
+                </svg>
+                <svg *ngIf="step === 'ACCEPTED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <svg *ngIf="step === 'SHIPPED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="1" y="7" width="15" height="13" rx="2" ry="2"/>
+                  <path d="M16 7h3l4 5v5a2 2 0 0 1-2 2h-1"/>
+                  <circle cx="5.5" cy="20.5" r="1.5"/>
+                  <circle cx="18.5" cy="20.5" r="1.5"/>
+                </svg>
+                <svg *ngIf="step === 'DELIVERED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 12l2 2 4-4"/>
+                  <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/>
+                </svg>
+                <svg *ngIf="step === 'COMPLETED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9 12l2 2 4-4"/>
+                </svg>
+              </div>
+              <div class="step-label">{{ step.replace('_', ' ') | titlecase }}</div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Details List (show after order summary, before timeline) -->
+    <!-- <div class="order-details-list" *ngIf="result.orderDetails && result.orderDetails.length">
+      <h3>Items in this Order</h3>
+      <div *ngFor="let item of result.orderDetails" class="order-detail-item" [class.disabled]="item.adjustedQuantity <= 0">
+        <span>
+          Item #{{ item.id }}
+          <span *ngIf="item.productName">- {{ item.productName }}</span>
+        </span>
+        <span>Quantity: {{ item.adjustedQuantity }}<span *ngIf="item.pendingRefundQuantity > 0"> ({{ item.pendingRefundQuantity }} pending refund)</span></span>
+        <span>Price: {{ item.price | currency }}</span>
+        <span *ngIf="item.adjustedQuantity <= 0" class="badge refunded">Refund Requested</span>
+        <button *ngIf="item.adjustedQuantity > 0" class="select-btn">Select</button>
+      </div>
+    </div> -->
+
+    <!-- Tracking Timeline -->
+    <div class="timeline-section">
+      <div class="timeline-header">
+        <h3 class="timeline-title">
+          <svg class="timeline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12,6 12,12 16,14"/>
+          </svg>
+          Tracking History
+        </h3>
+        <div class="timeline-count">{{ result.history.length }} updates</div>
+      </div>
+
+      <div class="timeline-container">
+        <div class="timeline">
+          <div class="timeline-item" 
+               *ngFor="let h of result.history.slice().reverse(); let i = index; let first = first; let last = last" 
+               [class.latest]="first"
+               [class]="getTimelineItemClass(h.status)">
+            
+            <div class="timeline-marker">
+              <div class="marker-icon">
+                <svg *ngIf="h.status?.toUpperCase() === 'PENDING'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+                <svg *ngIf="h.status?.toUpperCase() === 'ACCEPTED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <svg *ngIf="h.status?.toUpperCase() === 'PAID'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9 12l2 2 4-4"/>
+                </svg>
+                <svg *ngIf="h.status?.toUpperCase() === 'SHIPPED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="1" y="7" width="15" height="13" rx="2" ry="2"/>
+                  <path d="M16 7h3l4 5v5a2 2 0 0 1-2 2h-1"/>
+                  <circle cx="5.5" cy="20.5" r="1.5"/>
+                  <circle cx="18.5" cy="20.5" r="1.5"/>
+                </svg>
+                <svg *ngIf="h.status?.toUpperCase() === 'DELIVERED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M9 12l2 2 4-4"/>
+                  <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/>
+                </svg>
+                <svg *ngIf="h.status?.toUpperCase() === 'COMPLETED'" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9 12l2 2 4-4"/>
+                </svg>
+              </div>
+              <div class="marker-line" *ngIf="!last"></div>
+            </div>
+
+            <div class="timeline-content">
+              <div class="timeline-main">
+                <div class="timeline-status">
+                  <h4 class="status-title">{{ getStatusDisplayName(h.status) }}</h4>
+                  <div class="status-badge-small" [class]="getStatusClass(h.status)">
+                    {{ h.status.replace('_', ' ') | titlecase }}
+                  </div>
+                </div>
+                <p class="timeline-description" *ngIf="h.description">{{ h.description }}</p>
+                <div class="timeline-location" *ngIf="h.location">
+                  <svg class="location-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  <span class="location-text">{{ h.location }}</span>
+                </div>
+              </div>
+              
+              <div class="timeline-meta">
+                <div class="timeline-timestamp">
+                  <svg class="time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12,6 12,12 16,14"/>
+                  </svg>
+                  <span class="timestamp-text">{{ h.timestamp | date:'medium' }}</span>
+                </div>
+                <div class="timeline-relative-time">{{ getRelativeTime(h.timestamp) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Information -->
+    <div class="additional-info-section">
+      <div class="info-cards">
+        
+        <!-- Delivery Information -->
+        <div class="info-card delivery-info-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                <polyline points="9,22 9,12 15,12 15,22"/>
+              </svg>
+            </div>
+            <h4 class="card-title">Delivery Information</h4>
+          </div>
+          <div class="card-content">
+            <div class="info-item">
+              <span class="info-label">Address:</span>
+              <span class="info-value">{{ result.deliveryAddress || 'Not specified' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Method:</span>
+              <span class="info-value">{{ result.deliveryMethod || 'Not specified' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Carrier:</span>
+              <span class="info-value">{{ result.carrier || 'Not specified' }}</span>
+            </div>
+            <div class="info-item" *ngIf="result.estimatedDeliveryTime">
+              <span class="info-label">Estimated Delivery:</span>
+              <span class="info-value">{{ result.estimatedDeliveryTime | date:'mediumDate' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="info-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+              </svg>
+            </div>
+            <h4 class="card-title">Need Help?</h4>
+          </div>
+          <div class="card-content">
+            <div class="info-item">
+              <span class="info-label">Customer Service:</span>
+              <span class="info-value">1-800-TRACK-ME</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email Support:</span>
+              <span class="info-value">britiumgallery&#64;gmail.com</span>
+              <span class="info-value"></span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Live Chat:</span>
+              <span class="info-value">Available 24/7</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Actions -->
+        <div class="info-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+              </svg>
+            </div>
+            <h4 class="card-title">Quick Actions</h4>
+          </div>
+          <div class="card-content">
+            <div class="action-buttons">
+              <button class="action-btn primary" (click)="shareTracking()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                  <polyline points="16,6 12,2 8,6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+                Share Tracking
+              </button>
+              <button class="action-btn secondary" (click)="printTracking()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="6,9 6,2 18,2 18,9"/>
+                  <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+                  <rect x="6" y="14" width="12" height="8"/>
+                </svg>
+                Print Details
+              </button>
+              <button class="action-btn info" (click)="reportIssue()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

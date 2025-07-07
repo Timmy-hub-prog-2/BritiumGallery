@@ -11,35 +11,28 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.maven.demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.maven.demo.dto.AddStockRequestDTO;
 import com.maven.demo.dto.AttributeOptionDTO;
+import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
+import com.maven.demo.dto.PurchaseHistoryResponseDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
-import com.maven.demo.dto.AddStockRequestDTO;
-import com.maven.demo.dto.PriceHistoryResponseDTO;
-import com.maven.demo.dto.PurchaseHistoryResponseDTO;
 import com.maven.demo.entity.AttributeEntity;
 import com.maven.demo.entity.AttributeOptions;
 import com.maven.demo.entity.CategoryEntity;
 import com.maven.demo.entity.ProductEntity;
 import com.maven.demo.entity.ProductVariantEntity;
 import com.maven.demo.entity.ProductVariantImage;
-import com.maven.demo.entity.VariantAttributeValueEntity;
-import com.maven.demo.entity.PurchaseHistoryEntity;
 import com.maven.demo.entity.ProductVariantPriceHistoryEntity;
+import com.maven.demo.entity.PurchaseHistoryEntity;
 import com.maven.demo.entity.UserEntity;
-import com.maven.demo.repository.AttributeOptionRepository;
-import com.maven.demo.repository.AttributeRepository;
-import com.maven.demo.repository.CategoryRepository;
-import com.maven.demo.repository.ProductRepository;
-import com.maven.demo.repository.ProductVariantRepository;
-import com.maven.demo.repository.PurchaseHistoryRepository;
-import com.maven.demo.repository.ProductVariantPriceHistoryRepository;
-import com.maven.demo.repository.UserRepository;
+import com.maven.demo.entity.VariantAttributeValueEntity;
 
 import jakarta.transaction.Transactional;
 
@@ -73,6 +66,9 @@ public class ProductService {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private BrandRepository brandRepository;
+
     @Transactional
     public void saveProductWithVariants(ProductRequestDTO dto) {
         // Create and save the Product
@@ -85,6 +81,10 @@ public class ProductService {
         product.setCreated_at(LocalDateTime.now());
         product.setRating(dto.getRating());
 
+        // Set brand if provided
+        if (dto.getBrandId() != null) {
+            product.setBrand(brandRepository.findById(dto.getBrandId()).orElse(null));
+        }
         proRepo.save(product);
 
         // Handle Variants
@@ -586,6 +586,7 @@ public class ProductService {
         dto.setPrice(variant.getPrice());
         dto.setStock(variant.getStock());
         dto.setSku(variant.getSku());
+        dto.setProductName(variant.getProduct().getName());
 
         // Convert attributes
         Map<String, String> attributes = new HashMap<>();
@@ -644,5 +645,17 @@ public class ProductService {
         dto.setPurchaseDate(entity.getPurchaseDate());
         // Note: PurchaseHistoryEntity doesn't have admin field, so we'll leave admin info null
         return dto;
+    }
+
+    public VariantResponseDTO getVariantById(Long variantId) {
+        ProductVariantEntity variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+        
+        return convertToVariantResponseDTO(variant);
+    }
+
+    public List<ProductResponseDTO> getAllProducts() {
+        List<ProductEntity> products = proRepo.findAll();
+        return products.stream().map(this::convertToProductResponseDTO).collect(Collectors.toList());
     }
 }

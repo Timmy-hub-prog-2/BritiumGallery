@@ -1,59 +1,280 @@
 <nav class="nav">
-<div class="nav-center">
-   <a [routerLink]="['/categoryList']">Category & Product</a>
-   
-    <div class="user-container"
-     (mouseenter)="showUserBox = true"
-     (mouseleave)="showUserBox = false">
-  <a class="user-link" href="javascript:void(0)">User</a>
-  <div class="user-box" *ngIf="showUserBox">
-    <a [routerLink]="['/viewcustomer']">
-      <span class="icon">👤</span> View Customer
-    </a>
-    <a [routerLink]="['/viewadmin']">
-      <span class="icon">🛡</span> View Admin
-    </a>
-  </div>
-</div>
+  <div class="nav-center nav2-actions">
+    <!-- Notification Bell: ensure only the bell button toggles the dropdown -->
+    <div class="notification-container" *ngIf="user">
+      <button class="notification-trigger"
+              (click)="toggleNotifications()"
+              [class.active]="showNotifications"
+              aria-label="Notifications">
+        <div class="bell-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <div class="notification-dot" *ngIf="unreadCount > 0">
+            <span class="dot-count" *ngIf="unreadCount <= 99">{{ unreadCount }}</span>
+            <span class="dot-count" *ngIf="unreadCount > 99">99+</span>
+          </div>
+        </div>
+      </button>
+      <div class="notification-dropdown"
+           *ngIf="showNotifications">
+        <!-- Header -->
+        <div class="dropdown-header">
+          <div class="header-left">
+            <h3 class="header-title">Notifications</h3>
+            <span class="notification-count" *ngIf="notifications.length > 0">
+              {{ notifications.length }} total
+            </span>
+          </div>
+          <div class="header-actions">
+            <button class="header-action-btn" 
+                    *ngIf="unreadCount > 0" 
+                    (click)="markAllAsRead()"
+                    title="Mark all as read">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20,6 9,17 4,12"/>
+              </svg>
+            </button>
+            <button class="header-action-btn" 
+                    (click)="closeNotifications()"
+                    title="Close">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
 
-    <a [routerLink]="['/coupon']">Promotion & Discount</a>
-    <a href="/delivery">Delivery</a>
-     <a href="/payment-list">Payment</a>
-    <a href="#">Order</a>
-    <a  [routerLink]="['/shopaddressform']">Shop</a>
+        <!-- Filter Tabs -->
+        <div class="notification-filters" *ngIf="notifications.length > 0">
+          <button class="filter-tab" 
+                  [class.active]="activeFilter === 'all'"
+                  (click)="setFilter('all')">
+            All
+          </button>
+          <button class="filter-tab" 
+                  [class.active]="activeFilter === 'unread'"
+                  (click)="setFilter('unread')"
+                  *ngIf="unreadCount > 0">
+            Unread ({{ unreadCount }})
+          </button>
+          <button class="filter-tab" 
+                  [class.active]="activeFilter === 'orders'"
+                  (click)="setFilter('orders')">
+            Orders
+          </button>
+          <button class="filter-tab" 
+                  [class.active]="activeFilter === 'refunds'"
+                  (click)="setFilter('refunds')">
+            Refunds
+          </button>
+        </div>
 
-     <div class="nav2-actions">
-    
-     <div class="profile-menu-container" *ngIf="user">
-    <button class="action-button profile-button" [class.active]="isProfileMenuVisible" (click)="toggleProfileMenu($event)">
-      <img *ngIf="user?.imageUrls?.length"
-           [src]="user!.imageUrls![0]"
-           alt="User Profile"
-           class="profile-image" />
-      <svg *ngIf="!user?.imageUrls?.length" width="32" height="32" viewBox="0 0 32 32" focusable="false" class="fr-ec-icon fr-ec-icon--default" role="presentation">
+        <!-- Notification List -->
+        <div class="notification-list">
+          
+          <!-- Empty State -->
+          <div class="empty-state" *ngIf="filteredNotifications.length === 0">
+            <div class="empty-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </div>
+            <h4 class="empty-title">No notifications</h4>
+            <p class="empty-message">You're all caught up! Check back later for updates.</p>
+          </div>
+
+          <!-- Notification Items -->
+          <div class="notification-item" 
+               *ngFor="let notification of filteredNotifications; trackBy: trackByNotificationId"
+               [class.unread]="!notification.isRead"
+               (click)="openNotification(notification)">
+            
+            <!-- Notification Icon -->
+            <div class="notification-icon">
+              <div class="icon-wrapper" [ngClass]="getNotificationIconClass(notification.type)">
+                <!-- Order Icon (always, for all order notifications) -->
+                <svg *ngIf="notification.type === 'ORDER'" width="16" height="16" viewBox="0 0 24 24" fill="none" [attr.stroke]="notification.title && notification.title.toLowerCase().includes('rejected') ? 'red' : 'currentColor'">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                </svg>
+                <!-- Refund Icon -->
+                <svg *ngIf="notification.type === 'REFUND'" width="16" height="16" viewBox="0 0 24 24" fill="none" [attr.stroke]="notification.title && notification.title.toLowerCase().includes('rejected') ? 'red' : (notification.title && notification.title.toLowerCase().includes('accepted') ? 'orange' : 'currentColor')">
+                  <path d="M3 6h18l-2 13H5L3 6z"/>
+                  <path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+                <!-- System Alert Icon -->
+                <svg *ngIf="notification.type === 'SYSTEM_ALERT'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <!-- Low Stock Icon for STOCK type -->
+                <svg *ngIf="notification.type === 'STOCK'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="orange" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="13" />
+                  <circle cx="12" cy="16" r="1" />
+                </svg>
+                <!-- Message Icon -->
+                <svg *ngIf="notification.type === 'MESSAGE'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <!-- Default Icon -->
+                <svg *ngIf="!['ORDER', 'SYSTEM_ALERT', 'REFUND', 'MESSAGE', 'STOCK'].includes(notification.type)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+              </div>
+              <!-- Unread Indicator -->
+              <div class="unread-indicator" *ngIf="!notification.isRead"></div>
+            </div>
+
+            <!-- Notification Content -->
+            <div class="notification-content">
+              <div class="notification-header">
+                <h4 class="notification-title" [ngStyle]="notification.type === 'ORDER' && notification.title && notification.title.toLowerCase().includes('rejected') ? {'color': 'red'} : (notification.type === 'REFUND' && notification.title && notification.title.toLowerCase().includes('rejected') ? {'color': 'red'} : (notification.type === 'REFUND' && notification.title && notification.title.toLowerCase().includes('accepted') ? {'color': 'orange'} : {}))">{{ notification.title }}</h4>
+                <span class="notification-time">{{ getRelativeTime(notification.createdAt) }}</span>
+              </div>
+              <p class="notification-message" [innerHTML]="getSanitizedMessage(getNotificationPreviewMessage(notification))"></p>
+              <!-- Notification Meta -->
+              <div class="notification-meta" *ngIf="notification.trackingCode">
+                <span class="meta-label">Order ID:</span>
+                <span class="meta-value">{{ notification.trackingCode }}</span>
+              </div>
+            </div>
+            <!-- Action Button -->
+            <div class="notification-action" *ngIf="hasAction(notification)">
+              <button class="action-btn" (click)="handleNotificationAction(notification, $event)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="9,18 15,12 9,6"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="dropdown-footer" *ngIf="notifications.length > 0">
+          <button class="footer-btn" (click)="viewAllNotifications()">
+            View All Notifications
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Profile Menu -->
+    <div class="profile-menu-container" *ngIf="user">
+      <button class="action-button profile-button" [class.active]="isProfileMenuVisible" (click)="toggleProfileMenu($event)">
+        <img *ngIf="user?.imageUrls?.length"
+             [src]="user!.imageUrls![0]"
+             alt="User Profile"
+             class="profile-image" />
+        <svg *ngIf="!user?.imageUrls?.length" width="32" height="32" viewBox="0 0 32 32" focusable="false" class="fr-ec-icon fr-ec-icon--default" role="presentation">
+          <path d="M20.8129 13.7902C21.4753 12.8404 21.8667 11.6884 21.8667 10.4453C21.8667 7.20996 19.2349 4.57812 16 4.57812C12.7651 4.57812 10.1338 7.20996 10.1338 10.4453C10.1338 11.6884 10.5251 12.8404 11.1874 13.7903L6.9668 16.7676V25.6211H25.0332V16.7676L20.8129 13.7902ZM16 6.17773C18.3525 6.17773 20.2671 8.0918 20.2671 10.4453C20.2671 12.7979 18.3525 14.7119 16 14.7119C13.6475 14.7119 11.7334 12.7979 11.7334 10.4453C11.7334 8.0918 13.6475 6.17773 16 6.17773ZM23.4336 24.0215H8.56641V17.5977L12.28 14.9772C13.2932 15.8104 14.589 16.3115 16 16.3115C17.4111 16.3115 18.7071 15.8103 19.7203 14.9772L23.4336 17.5977V24.0215Z"></path>
+        </svg>
+      </button>
+      <div class="profile-dropdown-menu" [class.visible]="isProfileMenuVisible">
+        <div class="profile-info" *ngIf="user">
+          <p class="profile-name">Hi, {{ user?.name }}</p>
+        </div>
+        <hr />
+        <a href="#" class="dropdown-item" [routerLink]="['/view-profile']">Account</a>
+        <hr />
+        <a href="#" class="dropdown-item" (click)="logout()">Sign out</a>
+      </div>
+    </div>
+    <button *ngIf="!user" class="action-button profile-button" [routerLink]="['/login']">
+      <svg width="32" height="32" viewBox="0 0 32 32" focusable="false" class="fr-ec-icon fr-ec-icon--default" role="presentation">
         <path d="M20.8129 13.7902C21.4753 12.8404 21.8667 11.6884 21.8667 10.4453C21.8667 7.20996 19.2349 4.57812 16 4.57812C12.7651 4.57812 10.1338 7.20996 10.1338 10.4453C10.1338 11.6884 10.5251 12.8404 11.1874 13.7903L6.9668 16.7676V25.6211H25.0332V16.7676L20.8129 13.7902ZM16 6.17773C18.3525 6.17773 20.2671 8.0918 20.2671 10.4453C20.2671 12.7979 18.3525 14.7119 16 14.7119C13.6475 14.7119 11.7334 12.7979 11.7334 10.4453C11.7334 8.0918 13.6475 6.17773 16 6.17773ZM23.4336 24.0215H8.56641V17.5977L12.28 14.9772C13.2932 15.8104 14.589 16.3115 16 16.3115C17.4111 16.3115 18.7071 15.8103 19.7203 14.9772L23.4336 17.5977V24.0215Z"></path>
       </svg>
     </button>
-    <div class="profile-dropdown-menu" [class.visible]="isProfileMenuVisible">
-      <div class="profile-info" *ngIf="user">
-        <p class="profile-name">Hi, {{ user?.name }}</p>
+  </div>
+</nav>
+
+<!-- Notification Detail Modal -->
+<div class="notification-modal-overlay" 
+     *ngIf="selectedNotification" 
+     [@fadeIn]
+     (click)="closeNotificationDetail()">
+  
+  <div class="notification-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <div class="icon-wrapper" [ngClass]="getNotificationIconClass(selectedNotification.type)">
+          <!-- Order Icon -->
+          <svg *ngIf="selectedNotification.type === 'ORDER'" width="20" height="20" viewBox="0 0 24 24" fill="none" [attr.stroke]="selectedNotification.title && selectedNotification.title.toLowerCase().includes('rejected') ? 'red' : 'currentColor'">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          </svg>
+          <!-- Refund Icon -->
+          <svg *ngIf="selectedNotification.type === 'REFUND'" width="20" height="20" viewBox="0 0 24 24" fill="none" [attr.stroke]="selectedNotification.title && selectedNotification.title.toLowerCase().includes('rejected') ? 'red' : (selectedNotification.title && selectedNotification.title.toLowerCase().includes('accepted') ? 'orange' : 'currentColor')">
+            <path d="M3 6h18l-2 13H5L3 6z"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+          <!-- System Alert Icon (also for SYSTEM type) -->
+          <svg *ngIf="selectedNotification.type === 'SYSTEM_ALERT' || selectedNotification.type === 'SYSTEM'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <!-- Low Stock Icon for STOCK type -->
+          <svg *ngIf="selectedNotification.type === 'STOCK'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="orange" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="13" />
+            <circle cx="12" cy="16" r="1" />
+          </svg>
+          <!-- Message Icon -->
+          <svg *ngIf="selectedNotification.type === 'MESSAGE'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
       </div>
-      <hr />
-      <a href="#" class="dropdown-item" [routerLink]="['/view-profile']">Account</a>
-      <hr />
-      <a href="#" class="dropdown-item" (click)="logout()">Sign out</a>
+      <div class="modal-title-section">
+        <h2 class="modal-title" [ngStyle]="selectedNotification.type === 'ORDER' && selectedNotification.title && selectedNotification.title.toLowerCase().includes('rejected') ? {'color': 'red'} : (selectedNotification.type === 'REFUND' && selectedNotification.title && selectedNotification.title.toLowerCase().includes('rejected') ? {'color': 'red'} : (selectedNotification.type === 'REFUND' && selectedNotification.title && selectedNotification.title.toLowerCase().includes('accepted') ? {'color': 'orange'} : {}))">{{ selectedNotification.title }}</h2>
+        <p class="modal-timestamp">{{ selectedNotification.createdAt | date:'fullDate' }} at {{ selectedNotification.createdAt | date:'shortTime' }}</p>
+      </div>
+      <button class="modal-close" (click)="closeNotificationDetail()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-message" [innerHTML]="getSanitizedMessage(selectedNotification.message)"></div>
+      <div *ngIf="selectedNotification.actionLink" class="modal-action-link">
+        <a [href]="selectedNotification.actionLink" target="_blank" rel="noopener" class="action-link-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 4px;">
+            <path d="M14 3h7v7"/>
+            <path d="M5 19l14-14"/>
+            <path d="M5 5v14h14"/>
+          </svg>
+          View Link
+        </a>
+      </div>
+     
+      <div class="modal-details" *ngIf="selectedNotification.trackingCode">
+        <div class="detail-item">
+          <span class="detail-label">{{ getMetaLabel(selectedNotification.type) }}</span>
+          <span class="detail-value">{{ selectedNotification.trackingCode }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Type</span>
+          <span class="detail-value">{{ selectedNotification.type }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" *ngIf="hasAction(selectedNotification)">
+      <button class="modal-action-btn primary" (click)="handleNotificationAction(selectedNotification)">
+        {{ getActionLabel(selectedNotification.type) }}
+      </button>
+      <button class="modal-action-btn secondary" (click)="closeNotificationDetail()">
+        Close
+      </button>
     </div>
   </div>
-  <button *ngIf="!user" class="action-button profile-button" [routerLink]="['/login']">
-    <svg width="32" height="32" viewBox="0 0 32 32" focusable="false" class="fr-ec-icon fr-ec-icon--default" role="presentation">
-      <path d="M20.8129 13.7902C21.4753 12.8404 21.8667 11.6884 21.8667 10.4453C21.8667 7.20996 19.2349 4.57812 16 4.57812C12.7651 4.57812 10.1338 7.20996 10.1338 10.4453C10.1338 11.6884 10.5251 12.8404 11.1874 13.7903L6.9668 16.7676V25.6211H25.0332V16.7676L20.8129 13.7902ZM16 6.17773C18.3525 6.17773 20.2671 8.0918 20.2671 10.4453C20.2671 12.7979 18.3525 14.7119 16 14.7119C13.6475 14.7119 11.7334 12.7979 11.7334 10.4453C11.7334 8.0918 13.6475 6.17773 16 6.17773ZM23.4336 24.0215H8.56641V17.5977L12.28 14.9772C13.2932 15.8104 14.589 16.3115 16 16.3115C17.4111 16.3115 18.7071 15.8103 19.7203 14.9772L23.4336 17.5977V24.0215Z"></path>
-    </svg>
-  </button>
-
-    </div>
-
-    
-
-
-  </div>  
-  </nav>
+</div>

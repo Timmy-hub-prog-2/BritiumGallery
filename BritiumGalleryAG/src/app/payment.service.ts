@@ -6,7 +6,7 @@ export interface Payment {
   id?: number;
   name: string;
   admin_id: number;
-  qrPhotoUrl: string;
+  qrPhotoUrls: string[];
 }
 
 @Injectable({

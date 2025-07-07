@@ -1,0 +1,258 @@
+<div class="compact-refund-container">
+  <div class="page-header">
+    <div class="header-left">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 6h18l-2 13H5L3 6z"/>
+          <path d="M16 10a4 4 0 01-8 0"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">Refund Requests</h1>
+        <p class="page-subtitle">Order #{{ orderId }}</p>
+      </div>
+    </div>
+    <div class="header-stats" *ngIf="refunds.length > 0">
+      <div class="stat-item">
+        <span class="stat-number">{{ refunds.length }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ getStatusCount('REQUESTED') }}</span>
+        <span class="stat-label">Pending</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ getStatusCount('APPROVED') }}</span>
+        <span class="stat-label">Approved</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ getStatusCount('REJECTED') }}</span>
+        <span class="stat-label">DECLINED</span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner"></div>
+    <span>Loading...</span>
+  </div>
+
+  <div *ngIf="error && !loading" class="error-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    <span>{{ error }}</span>
+  </div>
+
+  <div *ngIf="!loading && !error && refunds.length === 0" class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <span>No refund requests found</span>
+  </div>
+
+  <div *ngIf="!loading && !error && refunds.length > 0" class="refunds-list">
+    <div class="refund-item" *ngFor="let refund of refunds; let i = index" [class.expanded]="expandedItems[i]">
+      
+      <!-- Main Row -->
+      <div class="refund-row" (click)="toggleExpanded(i)">
+        <div class="row-left">
+          <div class="refund-id">
+            <span class="id-number">#{{ i + 1 }}</span>
+            <span class="tracking-code">{{ refund.trackingCode }}</span>
+          </div>
+          <div class="refund-status">
+            <div class="status-indicator" [ngClass]="refund.status?.toLowerCase()">
+              
+              <span class="status-text">
+                {{ refund.status === 'REQUESTED' ? 'Under Review' : 
+                   refund.status === 'APPROVED' ? 'Approved' : 'Declined' }}
+              </span>
+            </div>
+            <span class="refund-type" [class.full]="refund.type === 'FULL'">
+              {{ refund.type === 'FULL' ? 'Full' : 'Partial' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="row-center">
+          <div class="refund-amount">
+            <span class="amount-value">MMK {{ refund.amount | number:'1.0-0' }}</span>
+            <span class="amount-label">Refund Amount</span>
+          </div>
+          <div class="refund-items">
+            <span class="items-count">{{ refund.refundedItems.length }} items</span>
+            <span class="items-label">Included</span>
+          </div>
+          <div class="refund-dates">
+            <span class="date-value">{{ refund.requestedAt | date:'MMM d' }}</span>
+            <span class="date-label">Requested</span>
+          </div>
+        </div>
+
+        <div class="row-right">
+          <div class="refund-reason">
+            <span class="reason-text">{{ refund.reason | slice:0:50 }}{{ refund.reason.length > 50 ? '...' : '' }}</span>
+          </div>
+          <div class="expand-button">
+            <svg class="expand-icon" [class.rotated]="expandedItems[i]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="6,9 12,15 18,9"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expanded Content -->
+      <div class="expanded-details" *ngIf="expandedItems[i]">
+        <div class="details-grid">
+          
+          <!-- Left Column -->
+          <div class="details-column">
+            <div class="detail-section">
+              <h4 class="section-title">Timeline</h4>
+              <div class="mini-timeline">
+                <div class="timeline-step completed">
+                  <div class="step-dot"></div>
+                  <div class="step-content">
+                    <span class="step-title">Delivered</span>
+                    <span class="step-date">{{ refund.deliveredAt | date:'MMM d, yyyy' }}</span>
+                  </div>
+                </div>
+                <div class="timeline-step completed">
+                  <div class="step-dot"></div>
+                  <div class="step-content">
+                    <span class="step-title">Requested</span>
+                    <span class="step-date">{{ refund.requestedAt | date:'MMM d, yyyy' }}</span>
+                  </div>
+                </div>
+                <div class="timeline-step" [class.completed]="refund.status !== 'REQUESTED'">
+                  <div class="step-dot"></div>
+                  <div class="step-content">
+                    <span class="step-title">
+                      {{ refund.status === 'APPROVED' ? 'Approved' : 
+                         refund.status === 'REJECTED' ? 'Declined' : 'Processing' }}
+                    </span>
+                    <span class="step-date" *ngIf="refund.status !== 'REQUESTED'">
+                      {{ refund.processedAt | date:'MMM d, yyyy' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-section" *ngIf="refund.status === 'REJECTED' && refund.adminNote">
+              <h4 class="section-title rejection-title">Decline Reason</h4>
+              <p class="rejection-text">{{ refund.adminNote }}</p>
+            </div>
+          </div>
+
+          <!-- Center Column -->
+          <div class="details-column">
+            <div class="detail-section">
+              <h4 class="section-title">Full Reason</h4>
+              <p class="reason-full">{{ refund.reason }}</p>
+            </div>
+
+            <div class="detail-section" *ngIf="refund.proofImageUrl">
+              <h4 class="section-title">Evidence</h4>
+              <div class="proof-thumbnail" (click)="openProofModal(refund.proofImageUrl)">
+                <img [src]="refund.proofImageUrl" alt="Proof" />
+                <div class="proof-overlay">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M15 3h6v6"/>
+                    <path d="M10 14L21 3"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="details-column">
+            <div class="detail-section">
+              <h4 class="section-title">Items ({{ refund.refundedItems.length }})</h4>
+              <div class="items-list">
+                <div class="item-row" *ngFor="let item of refund.refundedItems">
+                  <div class="item-image">
+                    <img *ngIf="item.variant?.imageUrl" [src]="item.variant?.imageUrl" alt="{{ item.productName }}" />
+                    <div *ngIf="!item.variant?.imageUrl" class="image-placeholder">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="item-info">
+                    <span class="item-name">{{ item.productName }}</span>
+                    <div class="item-meta">
+                      <span *ngIf="item.variant?.sku" class="item-sku">{{ item.variant?.sku }}</span>
+                      <span class="item-qty">Qty: {{ item.quantity }}</span>
+                    </div>
+                    <div class="item-variants" *ngIf="item.variant?.attributes">
+                      <span *ngFor="let attr of (item.variant?.attributes | keyvalue)" class="variant-chip">
+                        {{ attr.value }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Message -->
+        <div class="status-banner" [ngClass]="refund.status?.toLowerCase()">
+          <div class="banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" *ngIf="refund.status === 'REQUESTED'">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12,6 12,12 16,14"/>
+            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" *ngIf="refund.status === 'APPROVED'">
+              <path d="M9 12l2 2 4-4"/>
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" *ngIf="refund.status === 'REJECTED'">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+          </div>
+          <div class="banner-text">
+            <p *ngIf="refund.status === 'REQUESTED'">
+              We're reviewing your request. You'll be notified once we make a decision.
+            </p>
+            <p *ngIf="refund.status === 'APPROVED'">
+              Your refund has been approved! The amount will be credited within 3-5 business days.
+            </p>
+            <p *ngIf="refund.status === 'REJECTED'">
+              This refund request was declined. See the reason above for more details.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Proof Image Modal -->
+<div class="proof-modal-backdrop" *ngIf="showProofModal">
+  <div class="proof-modal-overlay" (click)="closeProofModal()"></div>
+  <div class="proof-modal-box">
+    <div class="modal-header">
+      <h3>Supporting Evidence</h3>
+      <button class="modal-close" (click)="closeProofModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <img [src]="proofModalImageUrl" alt="Proof" />
+    </div>
+  </div>
+</div>

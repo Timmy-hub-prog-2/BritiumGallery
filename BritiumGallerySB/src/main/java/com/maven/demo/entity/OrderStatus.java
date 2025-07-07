@@ -1,0 +1,5 @@
+package com.maven.demo.entity;
+
+public enum OrderStatus {
+    PENDING, PAID, FAILED, CANCELLED, SHIPPED, DELIVERED, REFUNDED, PENDING_VERIFICATION, ACCEPTED, REJECTED,COMPLETED
+} 
