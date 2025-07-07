@@ -44,7 +44,7 @@ export class ProductDetailComponent implements OnInit {
       this.fetchProductDetail();
       this.productService.getProductBreadcrumb(this.productId).subscribe(data=>{
            this.breadcrumb = data;
-           this.reloadWishlist();
+            this.loadWishlist(); 
       });
     });
     this.loadCurrentUser();
@@ -308,49 +308,77 @@ export class ProductDetailComponent implements OnInit {
     return variantImageUrls.size > 0 ? Array.from(variantImageUrls) : this.productImages;
   }
 
-  addToWishlist(productId: number): void {
-    const userId = this.authService.getLoggedInUserId();
-    if (userId === null) return;
+ addToWishlist(productId: number): void {
+  const userId = this.authService.getLoggedInUserId();
+  if (userId === null) return;
 
-    if (this.wishlist.some(item => item.productId === productId)) {
-      this.snackBar.open('This product is already in your wishlist.', 'Close', { duration: 3000 });
-      return;
-    }
-
-    this.wishlistService.addWishlistItem(userId, productId).subscribe({
-      next: (res) => {
-        // ✅ Show the message from backend (res.message)
-        this.snackBar.open(res.message || 'Added to wishlist!', 'Close', { duration: 3000 });
-        this.reloadWishlist();
-      },
-      error: (err) => {
-        if (err.status === 409) {
-          // ✅ Show conflict message from backend
-          this.snackBar.open(err.error.message || 'Item already exists in wishlist.', 'Close', { duration: 3000 });
-        } else {
-          console.error('Failed to add to wishlist', err);
-          this.snackBar.open('Failed to add to wishlist. Try again.', 'Close', { duration: 3000 });
-        }
-      }
-    });
+  if (this.isProductInWishlist(productId)) {
+    this.snackBar.open('This product is already in your wishlist.', 'Close', { duration: 3000 });
+    return;
   }
 
-  reloadWishlist(): void {
-    const userId = this.authService.getLoggedInUserId();
-    if (userId === null) {
-      console.error('User not logged in.');
-      return;
-    }
-
-    this.wishlistService.getWishlistByUser(userId).subscribe({
-      next: (data) => {
-        this.wishlist = data;
-      },
-      error: (err) => {
-        console.error('Failed to load wishlist', err);
+  this.wishlistService.addWishlistItem(userId, productId).subscribe({
+    next: (res) => {
+      // ✅ Update local wishlist state immediately
+      this.wishlist.push({ productId });
+      this.snackBar.open(res.message || 'Added to wishlist!', 'Close', { duration: 3000 });
+    },
+    error: (err) => {
+      if (err.status === 409) {
+        this.snackBar.open(err.error.message || 'Item already exists in wishlist.', 'Close', { duration: 3000 });
+      } else {
+        console.error('Failed to add to wishlist', err);
+        this.snackBar.open('Failed to add to wishlist. Try again.', 'Close', { duration: 3000 });
       }
-    });
-  }
+    }
+  });
+}
+
+removeFromWishlist(productId: number): void {
+  console.log("i am here ");
+  
+
+  const userId = this.authService.getLoggedInUserId();
+  if (userId === null) return;
+
+  this.wishlistService.removeWishlistItem(userId, productId).subscribe({
+    next: (res: any) => {
+      if (res && res.success !== false) {
+        this.snackBar.open('Removed from wishlist.', 'Close', { duration: 3000 });
+
+        // ✅ Update local wishlist state immediately
+        this.wishlist = this.wishlist.filter(item => item.productId !== productId);
+
+      } else {
+        this.snackBar.open(res.message || 'Could not remove from wishlist.', 'Close', { duration: 3000 });
+      }
+    },
+    error: (err) => {
+      console.error('Failed to remove from wishlist', err);
+      this.snackBar.open('Failed to remove from wishlist. Try again.', 'Close', { duration: 3000 });
+    }
+  });
+}
+
+// Check if product is in wishlist
+isProductInWishlist(productId: number): boolean {
+  return this.wishlist.some(item => item.productId === productId);
+}
+
+ 
+loadWishlist(): void {
+  const userId = this.authService.getLoggedInUserId();
+  if (userId === null) return;
+
+  this.wishlistService.getWishlistByUser(userId).subscribe({
+    next: (data) => {
+      this.wishlist = data;
+    },
+    error: (err) => {
+      console.error('Failed to load wishlist', err);
+    }
+  });
+}
 
   addProductToCart(): void {
     if (!this.currentUser) {

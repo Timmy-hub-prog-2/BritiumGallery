@@ -105,10 +105,16 @@
       <div class="action-buttons">
         
         <button class="send-inquiry-button" (click)="addProductToCart()">Add To Cart</button>
-      <button class="chat-now-button" (click)="addToWishlist(latestProductDetail!.id)">Favourite</button>
+    <!-- Favourite / Favourited Toggle -->
+          <button *ngIf="!isProductInWishlist(latestProductDetail?.id!)" class="chat-now-button"
+            (click)="addToWishlist(latestProductDetail!.id)">
+             Favourite
+          </button>
 
-         <!-- <button (click)="addToWishlist()">Favourite</button> -->
-
+          <button *ngIf="isProductInWishlist(latestProductDetail?.id!)" class="chat-now-button favourited"
+            (click)="removeFromWishlist(latestProductDetail!.id)">
+             Favourite
+          </button>
       </div>
 
       <!-- Product Description -->
