@@ -16,6 +16,8 @@ public class OrderDetailDTO {
     @JsonProperty("isRefunded")
     private boolean isRefunded;
     private Integer refundedQty;
+    private Integer discountPercent; // discount percent applied to this item (e.g., 10 for 10%)
+    private Integer discountAmount;  // discount amount (in MMK) applied to this item
 
     public OrderDetailVariantDTO getVariant() { return variant; }
     public void setVariant(OrderDetailVariantDTO variant) { this.variant = variant; }

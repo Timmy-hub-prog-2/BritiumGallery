@@ -404,9 +404,30 @@ export class CheckoutComponent implements OnInit {
 
   private loadCartItems(): void {
     if (this.currentUser) {
-      this.items = this.cartService.getCartItems(this.currentUser.id);
+      const rawItems = this.cartService.getCartItems(this.currentUser.id);
+      // Fetch latest discount info for each item
+      const updatedItems: CartItem[] = [];
+      rawItems.forEach(item => {
+        this.productService.getProductDetail(item.productId).subscribe(product => {
+          const variant = product.variants.find((v: any) => v.id === item.productVariantId);
+          if (variant) {
+            updatedItems.push({
+              ...item,
+              discountedPrice: variant.discountedPrice ?? null,
+              discountPercent: variant.discountPercent ?? null
+            });
+          } else {
+            updatedItems.push(item);
+          }
+          // Only update items array when all items are processed
+          if (updatedItems.length === rawItems.length) {
+            this.items = updatedItems;
+          }
+        });
+      });
+      
       // Fetch detailed variant information for each cart item
-      this.items.forEach(item => {
+      rawItems.forEach(item => {
         this.productService.getVariantById(item.productVariantId).subscribe({
           next: (variant) => {
             this.variantDetails[item.productVariantId] = variant;
@@ -422,7 +443,10 @@ export class CheckoutComponent implements OnInit {
   }
 
   getSubtotal(): number {
-    return this.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    return this.items.reduce((total, item) => {
+      const price = (item as any).discountedPrice ?? item.price;
+      return total + item.quantity * price;
+    }, 0);
   }
 
   getTotalItems(): number {
@@ -479,7 +503,11 @@ export class CheckoutComponent implements OnInit {
     const mappedItems = this.items.map(item => ({
       variantId: item.productVariantId,
       quantity: item.quantity,
-      price: item.price
+      price: item.price,
+      discountPercent: item.discountPercent ?? null,
+      discountAmount: (item.discountedPrice != null && item.price != null)
+        ? (item.price - item.discountedPrice)
+        : null
     }));
 
     const orderData = {
@@ -574,5 +602,13 @@ export class CheckoutComponent implements OnInit {
     if (this.promoCode && this.promoCode.trim() !== '') {
       this.applyPromo();
     }
+  }
+
+  getItemDiscountedPrice(item: CartItem): number {
+    return (item as any).discountedPrice ?? item.price;
+  }
+
+  getItemDiscountPercent(item: CartItem): number | null {
+    return (item as any).discountPercent ?? null;
   }
 }

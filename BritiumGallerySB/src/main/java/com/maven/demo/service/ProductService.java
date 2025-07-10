@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.maven.demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,11 +20,13 @@ import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
 import com.maven.demo.dto.PurchaseHistoryResponseDTO;
+import com.maven.demo.dto.ReduceStockRequestDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
 import com.maven.demo.entity.AttributeEntity;
 import com.maven.demo.entity.AttributeOptions;
 import com.maven.demo.entity.CategoryEntity;
+import com.maven.demo.entity.DiscountRule;
 import com.maven.demo.entity.ProductEntity;
 import com.maven.demo.entity.ProductVariantEntity;
 import com.maven.demo.entity.ProductVariantImage;
@@ -33,6 +34,16 @@ import com.maven.demo.entity.ProductVariantPriceHistoryEntity;
 import com.maven.demo.entity.PurchaseHistoryEntity;
 import com.maven.demo.entity.UserEntity;
 import com.maven.demo.entity.VariantAttributeValueEntity;
+import com.maven.demo.repository.AttributeOptionRepository;
+import com.maven.demo.repository.AttributeRepository;
+import com.maven.demo.repository.BrandRepository;
+import com.maven.demo.repository.CategoryRepository;
+import com.maven.demo.repository.DiscountRuleRepository;
+import com.maven.demo.repository.ProductRepository;
+import com.maven.demo.repository.ProductVariantPriceHistoryRepository;
+import com.maven.demo.repository.ProductVariantRepository;
+import com.maven.demo.repository.PurchaseHistoryRepository;
+import com.maven.demo.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -68,6 +79,12 @@ public class ProductService {
 
     @Autowired
     private BrandRepository brandRepository;
+
+    @Autowired
+    private DiscountService discountService;
+
+    @Autowired
+    private DiscountRuleRepository discountRuleRepository;
 
     @Transactional
     public void saveProductWithVariants(ProductRequestDTO dto) {
@@ -185,11 +202,11 @@ public class ProductService {
             ProductResponseDTO dto = new ProductResponseDTO();
             dto.setId(product.getId());
             dto.setName(product.getName());
-            dto.setBasePhotoUrl(product.getBasePhotoUrl());
             dto.setDescription(product.getDescription());
             dto.setRating(product.getRating());
             dto.setCategoryId(product.getCategory().getId());
             dto.setAdminId(product.getAdmin_id());
+            dto.setBasePhotoUrl(product.getBasePhotoUrl());
 
             List<VariantResponseDTO> variantDTOs = product.getVariants().stream().map(variant -> {
                 VariantResponseDTO varDTO = new VariantResponseDTO();
@@ -219,7 +236,8 @@ public class ProductService {
         dto.setId(product.getId());
         dto.setName(product.getName());
         dto.setDescription(product.getDescription());
-
+        dto.setBrand(product.getBrand() != null ? product.getBrand().getName() : null);
+        dto.setBrandId(product.getBrand() != null ? product.getBrand().getId() : null);
         dto.setRating(product.getRating());
         dto.setCategoryId(product.getCategory().getId());
         dto.setAdminId(product.getAdmin_id());
@@ -245,15 +263,51 @@ public class ProductService {
             }
             varDTO.setImageUrls(imageUrls);
 
+            // --- Discount logic ---
+            Double discountPercent = null;
+            // 1. Variant discount (highest priority)
+            List<DiscountRule> variantDiscounts = discountRuleRepository.findAllByProductVariantIdAndActive(variant.getId());
+            if (!variantDiscounts.isEmpty()) {
+                discountPercent = variantDiscounts.get(0).getDiscountPercent();
+            } else {
+                // 2. Product discount
+                List<DiscountRule> productDiscounts = discountRuleRepository.findActiveProductDiscounts(product.getId());
+                if (!productDiscounts.isEmpty()) {
+                    discountPercent = productDiscounts.get(0).getDiscountPercent();
+                } else {
+                    // 3. Category discount (check all ancestors, closest first)
+                    CategoryEntity cat = product.getCategory();
+                    while (cat != null && discountPercent == null) {
+                        List<DiscountRule> categoryDiscounts = discountRuleRepository.findActiveCategoryDiscounts(cat.getId());
+                        if (!categoryDiscounts.isEmpty()) {
+                            discountPercent = categoryDiscounts.get(0).getDiscountPercent();
+                            break;
+                        }
+                        cat = cat.getParentCategory();
+                    }
+                    // 4. Brand discount (lowest priority)
+                    if (discountPercent == null && product.getBrand() != null) {
+                        List<DiscountRule> brandDiscounts = discountRuleRepository.findActiveBrandDiscounts(product.getBrand().getId());
+                        if (!brandDiscounts.isEmpty()) {
+                            discountPercent = brandDiscounts.get(0).getDiscountPercent();
+                        }
+                    }
+                }
+            }
+            if (discountPercent != null && discountPercent > 0) {
+                varDTO.setDiscountPercent(discountPercent);
+                int discounted = (int) Math.round(variant.getPrice() * (1 - discountPercent / 100.0));
+                varDTO.setDiscountedPrice(discounted);
+            } else {
+                varDTO.setDiscountPercent(null);
+                varDTO.setDiscountedPrice(null);
+            }
+            // --- End discount logic ---
+
             return varDTO;
         }).toList();
 
         dto.setVariants(variantDTOs);
-        if (product.getBrand() != null) {
-            dto.setBrand(product.getBrand().getName());
-        } else {
-            dto.setBrand(null);
-        }
         return dto;
     }
 
@@ -294,6 +348,13 @@ public class ProductService {
             product.setBasePhotoUrl(dto.getBasePhotoUrl());
         }
         product.setRating(dto.getRating());
+
+        // Set brand if provided
+        if (dto.getBrandId() != null) {
+            product.setBrand(brandRepository.findById(dto.getBrandId()).orElse(null));
+        } else {
+            product.setBrand(null);
+        }
 
         proRepo.save(product);
 
@@ -380,7 +441,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponseDTO addVariant(Long productId, VariantDTO dto, List<String> newPhotoUrls) {
+    public ProductResponseDTO addVariant(Long productId, VariantDTO dto, List<String> newPhotoUrls, Long adminId) {
         ProductEntity product = proRepo.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
@@ -416,7 +477,41 @@ public class ProductService {
             }
         }
 
+        // Auto-generate SKU
+        String prefix = product.getName().replaceAll("\\s+", "").toUpperCase();
+        prefix = prefix.length() > 4 ? prefix.substring(0, 4) : prefix;
+        Long prodId = product.getId();
+        // Find the current max variant id for this product to increment SKU
+        int variantCount = product.getVariants() != null ? product.getVariants().size() : 0;
+        String sku = String.format("%s%d%03d", prefix, prodId, variantCount + 1);
+        variant.setSku(sku);
+
         variantRepository.save(variant);
+
+        // --- Create purchase history and price history for the new variant ---
+        if (dto.getStock() > 0) {
+            PurchaseHistoryEntity purchase = new PurchaseHistoryEntity();
+            purchase.setVariant(variant);
+            purchase.setPurchasePrice(dto.getPurchasePrice());
+            purchase.setQuantity(dto.getStock());
+            purchase.setRemainingQuantity(dto.getStock());
+            purchaseHistoryRepository.save(purchase);
+        }
+        {
+            ProductVariantPriceHistoryEntity priceHistory = new ProductVariantPriceHistoryEntity();
+            priceHistory.setVariant(variant);
+            priceHistory.setPrice(dto.getPrice());
+            priceHistory.setPriceDate(LocalDateTime.now());
+            // Optionally set admin if available
+            if (adminId != null) {
+                UserEntity admin = userRepository.findById(adminId)
+                        .orElseThrow(() -> new RuntimeException("Admin not found"));
+                priceHistory.setAdmin(admin);
+            }
+            priceHistoryRepository.save(priceHistory);
+        }
+        // --- END ---
+
         return convertToProductResponseDTO(product);
     }
 
@@ -454,8 +549,10 @@ public class ProductService {
         dto.setVariants(variantDTOs);
         if (product.getBrand() != null) {
             dto.setBrand(product.getBrand().getName());
+            dto.setBrandId(product.getBrand().getId());
         } else {
             dto.setBrand(null);
+            dto.setBrandId(null);
         }
         return dto;
     }
@@ -589,29 +686,50 @@ public class ProductService {
         purchase.setRemainingQuantity(request.getQuantity());
         purchaseHistoryRepository.save(purchase);
 
-        // If selling price changed, create a price history record
+        // If selling price changed, create a price history record (for the new price)
         if (priceChanged) {
             ProductVariantPriceHistoryEntity priceHistory = new ProductVariantPriceHistoryEntity();
             priceHistory.setVariant(variant);
-            priceHistory.setPrice(oldPrice); // Store the old price
+            priceHistory.setPrice(request.getSellingPrice()); // Store the new price
             priceHistory.setPriceDate(LocalDateTime.now());
-            
-            // Set the admin who made the change
             if (adminId != null) {
                 UserEntity admin = userRepository.findById(adminId)
                         .orElseThrow(() -> new RuntimeException("Admin not found"));
                 priceHistory.setAdmin(admin);
             }
-            
             priceHistoryRepository.save(priceHistory);
         }
 
-        // Update variant stock and price
-        variant.setStock(variant.getStock() + request.getQuantity());
+        // Recalculate stock from all purchase batches' remaining quantities
+        List<PurchaseHistoryEntity> allBatches = purchaseHistoryRepository.findByVariantOrderByPurchaseDateDesc(variant);
+        int totalStock = allBatches.stream().mapToInt(PurchaseHistoryEntity::getRemainingQuantity).sum();
+        variant.setStock(totalStock);
         variant.setPrice(request.getSellingPrice());
         variantRepository.save(variant);
 
-        // Convert to response DTO
+        return convertToVariantResponseDTO(variant);
+    }
+
+    @Transactional
+    public VariantResponseDTO reduceStock(Long variantId, ReduceStockRequestDTO request, Long adminId) {
+        ProductVariantEntity variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+        int totalToReduce = 0;
+        for (ReduceStockRequestDTO.PurchaseReduction reduction : request.getReductions()) {
+            PurchaseHistoryEntity purchase = purchaseHistoryRepository.findById(reduction.getPurchaseId())
+                    .orElseThrow(() -> new RuntimeException("Purchase not found: " + reduction.getPurchaseId()));
+            if (purchase.getRemainingQuantity() < reduction.getQuantity()) {
+                throw new RuntimeException("Not enough stock in purchase " + reduction.getPurchaseId());
+            }
+            purchase.setRemainingQuantity(purchase.getRemainingQuantity() - reduction.getQuantity());
+            purchaseHistoryRepository.save(purchase);
+            totalToReduce += reduction.getQuantity();
+        }
+        // Recalculate stock from all purchase batches' remaining quantities
+        List<PurchaseHistoryEntity> allBatches = purchaseHistoryRepository.findByVariantOrderByPurchaseDateDesc(variant);
+        int totalStock = allBatches.stream().mapToInt(PurchaseHistoryEntity::getRemainingQuantity).sum();
+        variant.setStock(totalStock);
+        variantRepository.save(variant);
         return convertToVariantResponseDTO(variant);
     }
 

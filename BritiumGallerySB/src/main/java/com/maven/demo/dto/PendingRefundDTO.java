@@ -27,6 +27,8 @@ public class PendingRefundDTO {
         public String productName;
         public Integer quantity;
         public Integer price;
+        public Integer discountPercent;
+        public Integer discountAmount;
         public VariantDTO variant;
     }
 

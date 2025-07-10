@@ -1,137 +1,150 @@
-<div class="product-detail-page">
-  <!-- Breadcrumb -->
-  <div class="breadcrumb" *ngIf="breadcrumb.length > 0">
-  <ng-container *ngFor="let item of breadcrumb; let i = index">
-    <span [class.current]="i === breadcrumb.length - 1">{{ item }}</span>
-    <span class="separator" *ngIf="i !== breadcrumb.length - 1">></span>
-  </ng-container>
-</div>
+  <div class="product-detail-page">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb" *ngIf="breadcrumb.length > 0">
+    <ng-container *ngFor="let item of breadcrumb; let i = index">
+      <span [class.current]="i === breadcrumb.length - 1">{{ item }}</span>
+      <span class="separator" *ngIf="i !== breadcrumb.length - 1">></span>
+    </ng-container>
+  </div>
 
-  <div *ngIf="breadcrumb.length > 0"></div>
+    <div *ngIf="breadcrumb.length > 0"></div>
 
-  <!-- Product Title -->
-  
-
-  <div *ngIf="latestProductDetail" class="product-main-content">
-    <!-- Left Section: Images -->
-    <div class="left-section">
-      <div class="product-images-container">
-        <!-- Thumbnails Gallery (Left Side) -->
-        <div class="thumbnails-gallery">
-          <div *ngFor="let imageUrl of getVariantImages(latestProductDetail)"
-               class="thumbnail-item"
-               [class.active]="imageUrl === selectedVariantImage"
-               (click)="selectVariantImage(imageUrl)">
-            <img [src]="imageUrl"
-                 [alt]="latestProductDetail.name"
-                 class="thumbnail-image">
-          </div>
-        </div>
-
-        <!-- Main Image Display (Right Side) -->
-        <div class="main-image-container">
-          <div class="main-image-wrapper">
-            <button class="arrow-button left-arrow" (click)="previousImage()">&#x2329;</button>
-            <img [src]="selectedVariantImage || productImages[0]"
-                 [alt]="latestProductDetail.name"
-                 class="main-product-image">
-            <button class="arrow-button right-arrow" (click)="nextImage()">&#x232A;</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Section: Details, Variations, Actions -->
-    <div class="right-section">
-      <!-- Product Header Block -->
-      <div class="product-header-block">
-        <div class="product-title-row">
-          <span class="supplier-name">{{ latestProductDetail.name }}</span>
-          <span class="variant-sku" *ngIf="getSelectedVariant()?.sku">
-            <span class="sku-label">SKU:</span>
-            <span class="sku-value">{{ getSelectedVariant()?.sku }}</span>
-          </span>
-        </div>
-        <div class="product-rating" *ngIf="latestProductDetail.rating !== undefined">
-          <span class="stars">
-            <ng-container *ngFor="let star of [1,2,3,4,5]">
-              <mat-icon *ngIf="latestProductDetail.rating >= star">star</mat-icon>
-              <mat-icon *ngIf="latestProductDetail.rating < star && latestProductDetail.rating >= star - 0.5">star_half</mat-icon>
-              <mat-icon *ngIf="latestProductDetail.rating < star - 0.5">star_border</mat-icon>
-            </ng-container>
-          </span>
-        </div>
-      </div>
-
+    <!-- Product Title -->
     
 
-      <!-- Price and Sample Info -->
-      <div class="price-sample-section">
-        <div class="product-tags">
-          <div *ngIf="latestProductDetail.brand" class="customizable-tag">{{ latestProductDetail.brand }}</div>
-         
-        </div>
-        <div class="price-container">
-          <div class="main-price">
-            {{ selectedVariantPrice | number:'1.0-0' }} MMK
+    <div *ngIf="latestProductDetail" class="product-main-content">
+      <!-- Left Section: Images -->
+      <div class="left-section">
+        <div class="product-images-container">
+          <!-- Thumbnails Gallery (Left Side) -->
+          <div class="thumbnails-gallery">
+            <div *ngFor="let imageUrl of getVariantImages(latestProductDetail)"
+                class="thumbnail-item"
+                [class.active]="imageUrl === selectedVariantImage"
+                (click)="selectVariantImage(imageUrl)">
+              <img [src]="imageUrl"
+                  [alt]="latestProductDetail.name"
+                  class="thumbnail-image">
+            </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Variations Section -->
-      <div class="variations-section">
-        <div class="variations-header">
-          <h3>Variations</h3>
-          <a href="#" class="select-now-link">Size Guide ></a>
-        </div>
-        <div class="variation-groups">
-          <div class="variation-group" *ngFor="let variationType of getVariationTypes(latestProductDetail)">
-            <label class="variation-label">{{ variationType }}:</label>
-            <div class="variation-options">
-              <button class="variation-option"
-                      *ngFor="let option of getVariationOptions(latestProductDetail, variationType)"
-                      [class.selected]="isSelectedVariation(variationType, option)"
-                      [class.unavailable]="!isOptionSelectable(latestProductDetail, variationType, option)"
-                      (click)="selectVariation(variationType, option)">
-                {{ option }}
-              </button>
+          <!-- Main Image Display (Right Side) -->
+          <div class="main-image-container">
+            <div class="main-image-wrapper">
+              <button class="arrow-button left-arrow" (click)="previousImage()">&#x2329;</button>
+              <img [src]="selectedVariantImage || productImages[0]"
+                  [alt]="latestProductDetail.name"
+                  class="main-product-image">
+              <button class="arrow-button right-arrow" (click)="nextImage()">&#x232A;</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="action-buttons">
-        
-        <button class="send-inquiry-button" (click)="addProductToCart()">Add To Cart</button>
-    <!-- Favourite / Favourited Toggle -->
-          <button *ngIf="!isProductInWishlist(latestProductDetail?.id!)" class="chat-now-button"
-            (click)="addToWishlist(latestProductDetail!.id)">
-             Favourite
-          </button>
+      <!-- Right Section: Details, Variations, Actions -->
+      <div class="right-section">
+        <!-- Product Header Block -->
+        <div class="product-header-block">
+          <div class="product-title-row">
+            <span class="supplier-name">{{ latestProductDetail.name }}</span>
+            <span class="variant-sku" *ngIf="getSelectedVariant()?.sku">
+              <span class="sku-label">SKU:</span>
+              <span class="sku-value">{{ getSelectedVariant()?.sku }}</span>
+            </span>
+          </div>
+          <div class="product-rating" *ngIf="latestProductDetail.rating !== undefined">
+            <span class="stars">
+              <ng-container *ngFor="let star of [1,2,3,4,5]">
+                <mat-icon *ngIf="latestProductDetail.rating >= star">star</mat-icon>
+                <mat-icon *ngIf="latestProductDetail.rating < star && latestProductDetail.rating >= star - 0.5">star_half</mat-icon>
+                <mat-icon *ngIf="latestProductDetail.rating < star - 0.5">star_border</mat-icon>
+              </ng-container>
+            </span>
+          </div>
+        </div>
 
-          <button *ngIf="isProductInWishlist(latestProductDetail?.id!)" class="chat-now-button favourited"
-            (click)="removeFromWishlist(latestProductDetail!.id)">
-             Favourite
-          </button>
-      </div>
+      
 
-      <!-- Product Description -->
-      <div class="product-description" *ngIf="latestProductDetail">
-        <div class="description-content">
-          <p>{{ latestProductDetail.description }}</p>
+        <!-- Price and Sample Info -->
+        <div class="price-sample-section">
+          <div class="product-tags">
+            <div *ngIf="latestProductDetail.brand" class="customizable-tag">{{ latestProductDetail.brand }}</div>
+            
+          </div>
+          <div class="price-container">
+            <div class="main-price">
+              <ng-container *ngIf="getSelectedVariant()?.discountedPrice; else noDiscount">
+                <span class="original-price" style="text-decoration: line-through; color: #888; font-size: 1.1em; margin-right: 8px;">
+                  {{ getSelectedVariant()?.price | number:'1.0-0' }} MMK
+                </span>
+                <span class="discounted-price" style="color: #111; font-weight: 700; font-size: 1.1em; margin-right: 8px;">
+                  {{ getSelectedVariant()?.discountedPrice | number:'1.0-0' }} MMK
+                </span>
+                <span *ngIf="getSelectedVariant()?.discountPercent" class="discount-percent-badge" style="background: #ffeaea; color: #d32f2f; font-size: 0.65em; font-weight: 600; border-radius: 8px; padding: 2px 10px; vertical-align: middle;">
+                  -{{ getSelectedVariant()?.discountPercent | number:'1.0-0' }}%
+                </span>
+              </ng-container>
+              <ng-template #noDiscount>
+                <span class="regular-price" style="color: #111; font-weight: 700; font-size: 1.1em;">{{ selectedVariantPrice | number:'1.0-0' }} MMK</span>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+
+        <!-- Variations Section -->
+        <div class="variations-section">
+          <div class="variations-header">
+            <h3>Variations</h3>
+            <a href="#" class="select-now-link">Size Guide ></a>
+          </div>
+          <div class="variation-groups">
+            <div class="variation-group" *ngFor="let variationType of getVariationTypes(latestProductDetail)">
+              <label class="variation-label">{{ variationType }}:</label>
+              <div class="variation-options">
+                <button class="variation-option"
+                        *ngFor="let option of getVariationOptions(latestProductDetail, variationType)"
+                        [class.selected]="isSelectedVariation(variationType, option)"
+                        [class.unavailable]="!isOptionSelectable(latestProductDetail, variationType, option)"
+                        (click)="selectVariation(variationType, option)">
+                  {{ option }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          
+          <button class="send-inquiry-button" (click)="addProductToCart()">Add To Cart</button>
+      <!-- Favourite / Favourited Toggle -->
+            <button *ngIf="!isProductInWishlist(latestProductDetail?.id!)" class="chat-now-button"
+              (click)="addToWishlist(latestProductDetail!.id)">
+              Favourite
+            </button>
+
+            <button *ngIf="isProductInWishlist(latestProductDetail?.id!)" class="chat-now-button favourited"
+              (click)="removeFromWishlist(latestProductDetail!.id)">
+              Favourite
+            </button>
+        </div>
+
+        <!-- Product Description -->
+        <div class="product-description" *ngIf="latestProductDetail">
+          <div class="description-content">
+            <p>{{ latestProductDetail.description }}</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Other Recommendations Section -->
-  <div class="recommendations-section">
-    <h3>Other recommendations for your business</h3>
-    <div class="recommendations-placeholder">
-      <!-- Placeholder for recommendation items -->
-      <p>Recommendation items will be displayed here</p>
+    <!-- Other Recommendations Section -->
+    <div class="recommendations-section">
+      <h3>Other recommendations for your business</h3>
+      <div class="recommendations-placeholder">
+        <!-- Placeholder for recommendation items -->
+        <p>Recommendation items will be displayed here</p>
+      </div>
     </div>
-  </div>
 
 

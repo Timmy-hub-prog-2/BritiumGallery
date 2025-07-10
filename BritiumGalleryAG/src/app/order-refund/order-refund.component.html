@@ -268,26 +268,29 @@
                 <div class="price-info">
                   <div class="price-row">
                     <span class="price-label">Original Price:</span>
-                    <span class="price-value">{{ item.value.price | number:'1.0-0' }} MMK each</span>
+                    <span class="price-value original-price">
+                      {{ item.value.price | number:'1.0-0' }} MMK each
+                    </span>
                   </div>
-                  
-                  <ng-container *ngIf="item.value.actualRefundableAmount != null && (item.value.price > (item.value.actualRefundableAmount / item.value.quantity))">
+                  <ng-container *ngIf="item.value.discountAmount != null && item.value.discountAmount > 0">
                     <div class="price-row discount">
                       <span class="price-label">Discount:</span>
-                      <span class="price-value">-{{ (item.value.price - (item.value.actualRefundableAmount / item.value.quantity)) | number:'1.0-0' }} MMK each</span>
-                    </div>
-                    <div class="price-row final">
-                      <span class="price-label">You Paid:</span>
-                      <span class="price-value">{{ (item.value.actualRefundableAmount / item.value.quantity) | number:'1.0-0' }} MMK each</span>
+                      <span class="price-value">-{{ item.value.discountPercent }}% / {{ item.value.discountAmount | number:'1.0-0' }} MMK each</span>
                     </div>
                   </ng-container>
+                  <div class="price-row final">
+                    <span class="price-label">You Paid:</span>
+                    <span class="price-value discounted-price">
+                      {{ (item.value.price - (item.value.discountAmount || 0)) | number:'1.0-0' }} MMK each
+                    </span>
+                  </div>
                 </div>
 
                 <div *ngIf="item.get('selected')?.value" class="refund-amount-display">
                   <div class="refund-amount">
                     <span class="amount-label">Refund Amount:</span>
                     <span class="amount-value">
-                      {{ item.value.actualRefundableAmount != null ? (item.value.actualRefundableAmount / item.value.quantity) * (item.get('refundQuantity')?.value || 1) : '' | number:'1.0-0' }} MMK
+                      {{ (item.value.price - (item.value.discountAmount || 0)) * (item.get('refundQuantity')?.value || 1) | number:'1.0-0' }} MMK
                     </span>
                   </div>
                   <div *ngIf="order.discountAmount && order.discountAmount > 0" class="coupon-note-small">
@@ -416,3 +419,4 @@
 
   </div>
 </div>
+

@@ -1,471 +1,986 @@
-<div class="product-editor">
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <div class="product-info-compact">
-      <div class="product-header">
+<div class="product-editor-clean">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="product-info-header">
         <ng-container *ngIf="product as p; else loadingProductHeader">
-          <img *ngIf="p.basePhotoUrl" [src]="p.basePhotoUrl" alt="Product Base Photo" class="product-base-photo-thumbnail">
-          <mat-icon *ngIf="!p.basePhotoUrl" class="product-icon">inventory_2</mat-icon>
-          <div class="product-details">
-            <h2 class="product-name">{{ p.name }}</h2>
-            <span class="product-subtitle">{{ p.description || 'Manage variants and inventory' }}</span>
+          <div class="product-avatar-clean">
+            <img *ngIf="p.basePhotoUrl" [src]="p.basePhotoUrl" alt="Product Base Photo" class="avatar-img">
+            <div *ngIf="!p.basePhotoUrl" class="avatar-placeholder-clean">
+              <mat-icon>inventory_2</mat-icon>
+            </div>
+          </div>
+          <div class="product-details-clean">
+            <h1 class="product-title-clean">{{ p.name }}</h1>
+            <p class="product-description-clean">{{ p.description || 'Manage variants and inventory' }}</p>
+            <div class="product-stats-clean">
+              <div class="stat-item">
+                <span class="stat-number">{{ getTotalStock() }}</span>
+                <span class="stat-label">Total Stock</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat-item">
+                <span class="stat-number">{{ dataSource.data.length }}</span>
+                <span class="stat-label">Variants</span>
+              </div>
+            </div>
           </div>
         </ng-container>
         <ng-template #loadingProductHeader>
-          <mat-icon class="product-icon">inventory_2</mat-icon>
-          <div class="product-details">
-            <h2 class="product-name">Loading Product...</h2>
-            <span class="product-subtitle">Manage variants and inventory</span>
+          <div class="product-avatar-clean loading">
+            <mat-icon>inventory_2</mat-icon>
+          </div>
+          <div class="product-details-clean">
+            <h1 class="product-title-clean">Loading Product...</h1>
+            <p class="product-description-clean">Please wait while we load the product information</p>
           </div>
         </ng-template>
       </div>
-      <button mat-raised-button color="primary" (click)="editProductInfo()" class="edit-product-btn">
+      
+      <div class="header-actions">
+        <button mat-stroked-button (click)="editProductInfo()" class="action-btn-clean edit-product">
         <mat-icon>edit</mat-icon>
         Edit Product
       </button>
+        <button mat-flat-button color="primary" (click)="addNewVariant()" class="action-btn-clean add-variant">
+          <mat-icon>add</mat-icon>
+          Add Variant
+        </button>
+      </div>
     </div>
   </div>
 
-  
-  <!-- Variants Management -->
-  <div class="variants-container">
+  <!-- Main Content -->
+  <div class="main-content-clean">
     <!-- Toolbar -->
-    <div class="variants-toolbar">
+    <div class="toolbar-clean">
       <div class="toolbar-left">
-        <h3 class="section-title">Product Variants</h3>
-        <button mat-fab color="primary" (click)="addNewVariant()" class="add-fab" matTooltip="Add Variant">
+        <h2 class="section-title-clean">Product Variants</h2>
+        <span class="variants-count">{{ dataSource.data.length }} items</span>
+      </div>
+      
+      <div class="toolbar-right">
+       
+        
+        <button mat-mini-fab (click)="addNewVariant()" matTooltip="Quick Add" class="quick-add-clean">
           <mat-icon>add</mat-icon>
         </button>
       </div>
-      <div class="toolbar-right">
-        <mat-form-field appearance="outline" class="search-compact">
-          <input matInput (keyup)="applyFilter($event)" placeholder="Search variants..." #input>
-          <mat-icon matSuffix>search</mat-icon>
-        </mat-form-field>
-      </div>
     </div>
 
-    <!-- Variants Grid -->
-    <div class="mat-elevation-z2 variants-table-container">
-      <table mat-table [dataSource]="dataSource" matSort class="full-width-table">
-
+    <!-- Variants Table -->
+    <div class="table-container-clean">
+      <table mat-table [dataSource]="dataSource" matSort class="variants-table-clean">
         <!-- ID Column -->
         <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
-          <td mat-cell *matCellDef="let variant"> #{{variant.id}} </td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+            <div class="header-content-clean">
+              <mat-icon class="header-icon">tag</mat-icon>
+              <span>ID</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let variant" class="data-cell-clean">
+            <div class="id-badge-clean">#{{ variant.id }}</div>
+          </td>
+        </ng-container>
+
+        <!-- Photos Column -->
+        <ng-container matColumnDef="photos">
+          <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+            <div class="header-content-clean">
+              <mat-icon class="header-icon">photo_library</mat-icon>
+              <span>Photos</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let variant" class="data-cell-clean">
+            <div class="photo-container-clean" *ngIf="hasValidImageUrls(variant.imageUrls); else noPhotoClean">
+              <div class="photo-preview-clean" (click)="openPhotoDialog(variant.imageUrls[0])">
+                <img [src]="variant.imageUrls[0]" alt="Product">
+                <div class="photo-overlay-clean">
+                  <mat-icon>zoom_in</mat-icon>
+                </div>
+              </div>
+              <div class="photo-counter-clean" *ngIf="variant.imageUrls.length > 1">
+                +{{ variant.imageUrls.length - 1 }}
+              </div>
+            </div>
+            <ng-template #noPhotoClean>
+              <div class="no-photo-clean">
+                <mat-icon>image_not_supported</mat-icon>
+              </div>
+            </ng-template>
+          </td>
         </ng-container>
 
         <!-- Price Column -->
         <ng-container matColumnDef="price">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Price </th>
-          <td mat-cell *matCellDef="let variant"> {{ variant.price | number:'1.0-0' }} MMK </td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+            <div class="header-content-clean">
+              <mat-icon class="header-icon">attach_money</mat-icon>
+              <span>Price</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let variant" class="data-cell-clean">
+            <div class="price-display-clean">
+              <span class="price-amount-clean">{{ variant.price | number:'1.0-0' }}</span>
+              <span class="price-currency-clean">MMK</span>
+            </div>
+          </td>
         </ng-container>
 
         <!-- Stock Column -->
         <ng-container matColumnDef="stock">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Stock </th>
-          <td mat-cell *matCellDef="let variant">
-            <div [class]="getStockClass(variant.stock)">
-             
-              {{variant.stock}}
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+            <div class="header-content-clean">
+              <mat-icon class="header-icon">inventory_2</mat-icon>
+              <span>Stock</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let variant" class="data-cell-clean">
+            <div class="stock-badge-clean" [ngClass]="getStockClass(variant.stock)">
+              <div class="stock-dot-clean"></div>
+              <span class="stock-number-clean">{{ variant.stock }}</span>
+              <span class="stock-unit-clean">units</span>
             </div>
           </td>
         </ng-container>
 
         <!-- Attributes Column -->
         <ng-container matColumnDef="attributes">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Attributes </th>
-          <td mat-cell *matCellDef="let variant">
-            <mat-chip-set>
-              <mat-chip *ngFor="let attr of variant.attributes | keyvalue | slice:0:3" class="attr-chip">
-                {{attr.key}}: {{attr.value}}
-              </mat-chip>
-              <mat-chip *ngIf="(variant.attributes | keyvalue).length > 3" class="more-chip">
-                +{{(variant.attributes | keyvalue).length - 3}} more
-              </mat-chip>
-            </mat-chip-set>
-          </td>
-        </ng-container>
-
-        <!-- Photos Column -->
-        <ng-container matColumnDef="photos">
-          <th mat-header-cell *matHeaderCellDef> Photos </th>
-          <td mat-cell *matCellDef="let variant">
-            <div class="variant-photos-compact">
-              <div class="photo-main" *ngIf="hasValidImageUrls(variant.imageUrls); else noPhotoTable">
-                <img [src]="variant.imageUrls[0]" alt="Product" (click)="openPhotoDialog(variant.imageUrls[0])">
-                <div class="photo-count" *ngIf="variant.imageUrls.length > 1">+{{variant.imageUrls.length - 1}}</div>
+          <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+            <div class="header-content-clean">
+              <mat-icon class="header-icon">tune</mat-icon>
+              <span>Attributes</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let variant" class="data-cell-clean">
+            <div class="attributes-list-clean">
+              <div class="attribute-chip-clean" *ngFor="let attr of variant.attributes | keyvalue | slice:0:2">
+                <span class="attr-key-clean">{{ attr.key }}</span>
+                <span class="attr-separator-clean">:</span>
+                <span class="attr-value-clean">{{ attr.value }}</span>
               </div>
-              <ng-template #noPhotoTable>
-                <div class="no-photo">
-                  <mat-icon>image</mat-icon>
+              <div class="more-attrs-clean" *ngIf="(variant.attributes | keyvalue).length > 2">
+                +{{ (variant.attributes | keyvalue).length - 2 }} more
                 </div>
-              </ng-template>
             </div>
           </td>
         </ng-container>
 
         <!-- Actions Column -->
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef> Actions </th>
-          <td mat-cell *matCellDef="let variant">
-            <button mat-icon-button (click)="editVariant(variant)" matTooltip="Edit">
+          <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+            <div class="header-content-clean">
+              <mat-icon class="header-icon">settings</mat-icon>
+              <span>Actions</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let variant" class="data-cell-clean">
+            <div class="actions-group-clean">
+              <button mat-icon-button (click)="editVariant(variant)" matTooltip="Edit Variant" class="action-icon-clean edit">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="accent" (click)="addStock(variant)" matTooltip="Add Stock">
-              <mat-icon>add_shopping_cart</mat-icon>
+              <button mat-icon-button (click)="addStock(variant)" matTooltip="Add Stock" class="action-icon-clean add">
+                <mat-icon>add_circle</mat-icon>
+              </button>
+              <button mat-icon-button (click)="openReduceStockModal(variant)" matTooltip="Reduce Stock" class="action-icon-clean reduce">
+                <mat-icon>remove_circle</mat-icon>
             </button>
-            <button mat-icon-button color="primary" (click)="showHistory(variant)" matTooltip="History">
+              <button mat-icon-button (click)="showHistory(variant)" matTooltip="View History" class="action-icon-clean history">
               <mat-icon>history</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="deleteVariant(variant)" matTooltip="Delete">
+              <button mat-icon-button (click)="deleteVariant(variant)" matTooltip="Delete Variant" class="action-icon-clean delete">
               <mat-icon>delete</mat-icon>
             </button>
+            </div>
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-        <!-- Row when no matching records found -->
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" [attr.colspan]="displayedColumns.length">No variants matching the filter "{{input.value}}"</td>
-        </tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns" class="header-row-clean"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row-clean"></tr>
+        
+        <!-- No Data Row -->
+       
       </table>
     </div>
 
     <!-- Pagination -->
-    <mat-paginator [pageSizeOptions]="[6, 12, 24]" [pageSize]="12" class="compact-paginator"></mat-paginator>
+    <div class="pagination-container-clean">
+      <mat-paginator [pageSizeOptions]="[6, 12, 24]" [pageSize]="12" class="paginator-clean"></mat-paginator>
+    </div>
       </div>
+
+  <!-- REDESIGNED MODALS -->
 
   <!-- Add Stock Modal -->
   <ng-template #addStockModal>
-    <div class="modal-header">
-      <h2>Add Stock for Variant #{{selectedVariant?.id}}</h2>
-      <button mat-icon-button mat-dialog-close aria-label="Close dialog">
+    <div class="modal-clean large">
+      <div class="modal-header-clean">
+        <div class="modal-title-section">
+          <div class="modal-icon-clean add-stock">
+            <mat-icon>add_shopping_cart</mat-icon>
+          </div>
+          <div class="modal-title-content">
+            <h2 class="modal-title-clean">Add Stock</h2>
+            <p class="modal-subtitle-clean">Variant #{{ selectedVariant?.id }}</p>
+          </div>
+        </div>
+        <button mat-icon-button mat-dialog-close class="modal-close-clean">
         <mat-icon>close</mat-icon>
       </button>
     </div>
-    <div class="modal-content">
-      <form [formGroup]="stockForm" (ngSubmit)="saveStock()" class="compact-form">
-        <!-- Stock Info Section -->
-        <div class="form-section">
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Current Stock</mat-label>
-              <input matInput type="number" [value]="selectedVariant?.stock" disabled>
-            </mat-form-field>
+
+      <div class="modal-body-clean">
+        <form [formGroup]="stockForm" (ngSubmit)="saveStock()" class="form-clean">
+          <!-- Current Stock Info -->
+          <div class="info-section-clean">
+            <div class="info-header-clean">
+              <mat-icon>inventory</mat-icon>
+              <span>Current Inventory Status</span>
+            </div>
+            <div class="info-content-clean">
+              <div class="current-stock-display">
+                <span class="stock-value">{{ selectedVariant?.stock }}</span>
+                <span class="stock-label">units currently in stock</span>
+              </div>
+            </div>
           </div>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="full-width">
+
+          <!-- Form Fields -->
+          <div class="form-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>attach_money</mat-icon>
+              <span>Pricing Information</span>
+            </div>
+            
+            <div class="form-grid-clean">
+              <mat-form-field appearance="outline" class="form-field-clean">
               <mat-label>Previous Purchase Price (MMK)</mat-label>
               <input matInput type="number" [value]="previousPurchasePrice" disabled>
+                <mat-icon matSuffix>history</mat-icon>
             </mat-form-field>
-          </div>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="full-width">
+              
+              <mat-form-field appearance="outline" class="form-field-clean">
               <mat-label>New Purchase Price (MMK)</mat-label>
               <input matInput type="number" formControlName="purchasePrice" required>
+                <mat-icon matSuffix>shopping_cart</mat-icon>
               <mat-error *ngIf="stockForm.get('purchasePrice')?.hasError('required')">Purchase price is required</mat-error>
               <mat-error *ngIf="stockForm.get('purchasePrice')?.hasError('min')">Purchase price must be positive</mat-error>
             </mat-form-field>
-          </div>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="full-width">
+              
+              <mat-form-field appearance="outline" class="form-field-clean">
               <mat-label>New Selling Price (MMK)</mat-label>
               <input matInput type="number" formControlName="sellingPrice" required>
+                <mat-icon matSuffix>sell</mat-icon>
               <mat-error *ngIf="stockForm.get('sellingPrice')?.hasError('required')">Selling price is required</mat-error>
               <mat-error *ngIf="stockForm.get('sellingPrice')?.hasError('min')">Selling price must be positive</mat-error>
             </mat-form-field>
-          </div>
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="full-width">
+              
+              <mat-form-field appearance="outline" class="form-field-clean quantity-field">
               <mat-label>Additional Stock Quantity</mat-label>
               <input matInput type="number" formControlName="quantity" required>
+                <mat-icon matSuffix>inventory_2</mat-icon>
               <mat-error *ngIf="stockForm.get('quantity')?.hasError('required')">Quantity is required</mat-error>
               <mat-error *ngIf="stockForm.get('quantity')?.hasError('min')">Quantity must be positive</mat-error>
             </mat-form-field>
           </div>
+
+            <!-- Preview -->
+            <div class="preview-section-clean" *ngIf="stockForm.get('quantity')?.value > 0">
+              <div class="preview-header-clean">
+                <mat-icon>preview</mat-icon>
+                <span>Stock Preview</span>
+              </div>
+              <div class="preview-content-clean">
+                <span class="preview-label">New Total Stock:</span>
+                <span class="preview-value">{{ (selectedVariant?.stock || 0) + (stockForm.get('quantity')?.value || 0) }} units</span>
+              </div>
+          </div>
         </div>
 
-        <!-- Modal Actions -->
-        <div class="modal-actions">
-          <button mat-button mat-dialog-close type="button">Cancel</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="stockForm.invalid || isUpdating">
+          <!-- Actions -->
+          <div class="modal-actions-clean">
+            <button mat-stroked-button mat-dialog-close type="button" class="btn-cancel-clean">
+              <mat-icon>close</mat-icon>
+              Cancel
+            </button>
+            <button mat-flat-button color="primary" type="submit" [disabled]="stockForm.invalid || isUpdating" class="btn-save-clean">
             <ng-container *ngIf="isUpdating">
-              <mat-spinner diameter="20" class="spinner"></mat-spinner>
+                <mat-spinner diameter="20" class="btn-spinner-clean"></mat-spinner>
               <span>Saving...</span>
             </ng-container>
             <ng-container *ngIf="!isUpdating">
-              <span>Save</span>
+                
+                <span>Save Stock</span>
             </ng-container>
           </button>
         </div>
       </form>
+      </div>
     </div>
   </ng-template>
 
   <!-- Add Variant Modal -->
   <ng-template #addVariantModal>
-    <div class="modal-header">
-      <h2>Add New Variant</h2>
+    <div class="modal-clean large">
+      <div class="modal-header-clean">
+        <div class="modal-title-section">
+          <div class="modal-icon-clean add-variant">
+            <mat-icon>add_box</mat-icon>
+          </div>
+          <div class="modal-title-content">
+            <h2 class="modal-title-clean">Create New Variant</h2>
+            <p class="modal-subtitle-clean">Add a new product variant with custom attributes</p>
+          </div>
+        </div>
+        <button mat-icon-button mat-dialog-close class="modal-close-clean">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body-clean">
+        <form [formGroup]="variantForm" (ngSubmit)="saveVariant()" class="form-clean">
+          <!-- Basic Information -->
+          <div class="form-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>info</mat-icon>
+              <span>Basic Information</span>
     </div>
-    <div class="modal-content">
-      <form [formGroup]="variantForm" (ngSubmit)="saveVariant()" class="compact-form">
-        <!-- Basic Info Section -->
-        <div class="form-section">
-          <div class="form-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Price(MMK)</mat-label>
+            
+            <div class="form-grid-clean two-col">
+              <mat-form-field appearance="outline" class="form-field-clean">
+                <mat-label>Price (MMK)</mat-label>
               <input matInput type="number" formControlName="price" required>
+                <mat-icon matSuffix>attach_money</mat-icon>
               <mat-error *ngIf="variantForm.get('price')?.hasError('required')">Price is required</mat-error>
               <mat-error *ngIf="variantForm.get('price')?.hasError('min')">Price must be positive</mat-error>
             </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Stock</mat-label>
+              
+              <mat-form-field appearance="outline" class="form-field-clean">
+                <mat-label>Initial Stock</mat-label>
               <input matInput type="number" formControlName="stock" required>
+                <mat-icon matSuffix>inventory</mat-icon>
               <mat-error *ngIf="variantForm.get('stock')?.hasError('required')">Stock is required</mat-error>
               <mat-error *ngIf="variantForm.get('stock')?.hasError('min')">Stock must be positive</mat-error>
             </mat-form-field>
+              <mat-form-field appearance="outline" class="form-field-clean">
+                <mat-label>Purchase Price (MMK)</mat-label>
+                <input matInput type="number" formControlName="purchasePrice" required>
+                <mat-icon matSuffix>shopping_cart</mat-icon>
+                <mat-error *ngIf="variantForm.get('purchasePrice')?.hasError('required')">Purchase price is required</mat-error>
+                <mat-error *ngIf="variantForm.get('purchasePrice')?.hasError('min')">Purchase price must be positive</mat-error>
+              </mat-form-field>
           </div>
         </div>
 
-        <!-- Attributes Section -->
-        <div class="form-section">
-          <div class="section-header">
-            <h4>Attributes</h4>
-            <button mat-icon-button color="primary" type="button" (click)="addAttribute()">
+          <!-- Attributes -->
+          <div class="form-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>tune</mat-icon>
+              <span>Variant Attributes</span>
+              <button mat-icon-button type="button" (click)="addAttribute()" class="add-btn-clean">
               <mat-icon>add_circle</mat-icon>
             </button>
           </div>
-          <div formArrayName="attributes" class="attributes-list">
+            
+            <div formArrayName="attributes" class="attributes-container-clean">
             <div *ngFor="let attributeGroup of attributesFormArray.controls; let i = index; trackBy: trackByAttribute" 
-                 [formGroupName]="i" class="attribute-row">
-              <mat-form-field appearance="outline" class="attr-field">
-                <mat-label>Name</mat-label>
-                <input matInput formControlName="key">
+                    [formGroupName]="i" class="attribute-row-clean">
+                <mat-form-field appearance="outline" class="attr-field-clean">
+                  <mat-label>Attribute Name</mat-label>
+                  <input matInput formControlName="key" placeholder="e.g., Color">
+                  <mat-icon matSuffix>label</mat-icon>
               </mat-form-field>
-              <mat-form-field appearance="outline" class="attr-field">
+                <mat-form-field appearance="outline" class="attr-field-clean">
                 <mat-label>Value</mat-label>
-                <input matInput formControlName="value">
+                  <input matInput formControlName="value" placeholder="e.g., Red">
+                  <mat-icon matSuffix>text_fields</mat-icon>
               </mat-form-field>
-              <button mat-icon-button color="warn" (click)="removeAttribute(i)">
-                <mat-icon>close</mat-icon>
+                <button mat-icon-button (click)="removeAttribute(i)" class="remove-btn-clean">
+                  <mat-icon>delete</mat-icon>
               </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Photos Section -->
-        <div class="form-section">
-          <h4>Photos</h4>
-          <div class="photo-upload-compact">
-            <div class="photos-preview" *ngIf="displayImageUrls.length > 0">
-              <div class="photo-thumb" *ngFor="let url of displayImageUrls; let i = index">
-                <img [src]="url" alt="Preview">
-                <button mat-icon-button (click)="removePhoto(i)" class="remove-thumb" type="button">
-                  <mat-icon>close</mat-icon>
-                </button>
+              </div>
+              
+              <div class="empty-attributes-clean" *ngIf="attributesFormArray.length === 0">
+                <mat-icon class="empty-icon-clean">tune</mat-icon>
+                <p>No attributes added yet. Click the + button to add your first attribute.</p>
               </div>
             </div>
-            <input #fileInput type="file" multiple accept="image/*" (change)="onFileSelected($event)" style="display: none">
-            <button mat-stroked-button (click)="fileInput.click()" type="button" class="upload-btn">
-              <mat-icon>add_photo_alternate</mat-icon>
-              Add Photos
-            </button>
           </div>
+
+          <!-- Photos -->
+          <div class="form-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>photo_library</mat-icon>
+              <span>Product Photos</span>
         </div>
 
-        <!-- Modal Actions -->
-        <div class="modal-actions">
-          <button mat-button (click)="cancelAddVariant()" type="button">Cancel</button>
-          <button mat-raised-button color="primary" type="submit">Save Variant</button>
+            <div class="photo-section-clean">
+              <div class="photos-grid-clean" *ngIf="displayImageUrls.length > 0">
+                <div class="photo-item-clean" *ngFor="let url of displayImageUrls; let i = index">
+                  <div class="photo-wrapper-clean">
+                <img [src]="url" alt="Preview">
+                    <div class="photo-actions-clean">
+                      <button mat-mini-fab (click)="removePhoto(i)" type="button" class="remove-photo-clean">
+                        <mat-icon>delete</mat-icon>
+                </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="upload-area-clean" (click)="fileInput.click()">
+                <input #fileInput type="file" multiple accept="image/*" (change)="onFileSelected($event)" style="display: none">
+                <div class="upload-content-clean">
+                  <mat-icon class="upload-icon-clean">cloud_upload</mat-icon>
+                  <h4>Upload Photos</h4>
+                  <p>Click to browse or drag and drop images here</p>
+                  <span class="upload-hint-clean">PNG, JPG, GIF up to 10MB each</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="modal-actions-clean">
+            <button mat-stroked-button (click)="cancelAddVariant()" type="button" class="btn-cancel-clean">
+              <mat-icon>close</mat-icon>
+              Cancel
+            </button>
+            <button mat-flat-button color="primary" type="submit" class="btn-save-clean">
+              <mat-icon>save</mat-icon>
+              Create Variant
+            </button>
+          </div>
+        </form>
         </div>
-      </form>
     </div>
   </ng-template>
 
-  <!-- Edit Product Modal Content (Hidden, shown in dialog) -->
+  <!-- Edit Product Modal -->
   <ng-template #editProductModal>
-    <div class="modal-header">
-      <h2>Edit Product Information</h2>
+    <div class="modal-clean">
+      <div class="modal-header-clean">
+        <div class="modal-title-section">
+          <div class="modal-icon-clean edit-product">
+            <mat-icon>edit</mat-icon>
+          </div>
+          <div class="modal-title-content">
+            <h2 class="modal-title-clean">Edit Product</h2>
+            <p class="modal-subtitle-clean">Update product information and settings</p>
+          </div>
+        </div>
+        <button mat-icon-button mat-dialog-close class="modal-close-clean">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body-clean">
+        <form [formGroup]="productForm" (ngSubmit)="saveProduct()" class="form-clean">
+          <!-- Product Details -->
+          <div class="form-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>inventory_2</mat-icon>
+              <span>Product Details</span>
     </div>
-    <div class="modal-content">
-      <form [formGroup]="productForm" (ngSubmit)="saveProduct()" class="compact-form">
-        <mat-form-field appearance="outline" class="full-width">
+            
+            <div class="form-grid-clean">
+              <mat-form-field appearance="outline" class="form-field-clean">
+                <mat-label>Brand</mat-label>
+                <mat-select formControlName="brandId" required>
+                  <mat-option [value]="null" disabled>Select a brand</mat-option>
+                  <mat-option *ngFor="let brand of brands" [value]="brand.id">{{ brand.name }}</mat-option>
+                </mat-select>
+                <mat-icon matSuffix>business</mat-icon>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="form-field-clean">
           <mat-label>Product Name</mat-label>
           <input matInput formControlName="name" required>
+                <mat-icon matSuffix>title</mat-icon>
           <mat-error *ngIf="productForm.get('name')?.hasError('required')">Name is required</mat-error>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
+              
+              <mat-form-field appearance="outline" class="form-field-clean full-width">
           <mat-label>Product Description</mat-label>
-          <textarea matInput formControlName="description" rows="4"></textarea>
+                <textarea matInput formControlName="description" rows="4" placeholder="Describe your product..."></textarea>
+                <mat-icon matSuffix>description</mat-icon>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
+              
+              <mat-form-field appearance="outline" class="form-field-clean">
           <mat-label>Product Rating (0-5)</mat-label>
           <input matInput type="number" formControlName="rating" min="0" max="5" step="0.1">
+                <mat-icon matSuffix>star</mat-icon>
           <mat-error *ngIf="productForm.get('rating')?.hasError('required')">Rating is required</mat-error>
           <mat-error *ngIf="productForm.get('rating')?.hasError('min')">Minimum rating is 0</mat-error>
           <mat-error *ngIf="productForm.get('rating')?.hasError('max')">Maximum rating is 5</mat-error>
         </mat-form-field>
-        <div class="modal-actions">
-          <button mat-button type="button" mat-dialog-close>Cancel</button>
-          <button mat-raised-button color="primary" type="submit">Save Product</button>
+            </div>
+          </div>
+
+          <!-- Product Image -->
+          <div class="form-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>image</mat-icon>
+              <span>Product Image</span>
+            </div>
+            
+            <div class="image-section-clean">
+              <div class="current-image-clean" *ngIf="basePhotoPreview">
+                <img [src]="basePhotoPreview" alt="Product preview">
+                <div class="image-overlay-clean">
+                  <button mat-mini-fab (click)="removeProductImage()" type="button" class="remove-image-clean">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="image-upload-clean" (click)="triggerProductImageUpload()">
+                <input type="file" id="basePhoto" (change)="onBasePhotoSelected($event)" accept="image/*" style="display: none;" #productImageInput>
+                <div class="upload-content-clean">
+                  <mat-icon class="upload-icon-clean">add_photo_alternate</mat-icon>
+                  <h4>{{ basePhotoPreview ? 'Change Image' : 'Upload Image' }}</h4>
+                  <p>Click to select a new product image</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="modal-actions-clean">
+            <button mat-stroked-button type="button" mat-dialog-close class="btn-cancel-clean">
+              <mat-icon>close</mat-icon>
+              Cancel
+            </button>
+            <button mat-flat-button color="primary" type="submit" class="btn-save-clean">
+              <mat-icon>save</mat-icon>
+              Save Product
+            </button>
         </div>
       </form>
+      </div>
     </div>
   </ng-template>
 
-  <!-- Edit Variant Modal Content (Hidden, shown in dialog) -->
+  <!-- Edit Variant Modal -->
   <ng-template #editVariantModal>
-    <div class="modal-header">
-      <h2>Edit Variant</h2>
-      <button mat-icon-button mat-dialog-close="false" aria-label="Close dialog">
+    <div class="modal-clean large">
+      <div class="modal-header-clean">
+        <div class="modal-title-section">
+          <div class="modal-icon-clean edit-variant">
+            <mat-icon>edit</mat-icon>
+          </div>
+          <div class="modal-title-content">
+            <h2 class="modal-title-clean">Edit Variant</h2>
+            <p class="modal-subtitle-clean">Variant #{{ editingVariant?.id }}</p>
+          </div>
+        </div>
+        <button mat-icon-button mat-dialog-close="false" class="modal-close-clean">
         <mat-icon>close</mat-icon>
               </button>
     </div>
-    <div class="modal-content">
-      <form [formGroup]="variantForm" (ngSubmit)="updateVariant()" class="compact-form">
-                <div class="form-row">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Price</mat-label>
-            <input matInput type="number" formControlName="price">
-           
+
+      <div class="modal-body-clean">
+        <form [formGroup]="variantForm" (ngSubmit)="updateVariant()" class="form-clean">
+          <!-- Basic Information -->
+          <div class="form-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>info</mat-icon>
+              <span>Basic Information</span>
+            </div>
+            
+            <div class="form-grid-clean two-col">
+              <mat-form-field appearance="outline" class="form-field-clean">
+                <mat-label>SKU</mat-label>
+                <input matInput [value]="editingVariant?.sku" disabled>
+                <mat-icon matSuffix>qr_code</mat-icon>
                   </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>Stock</mat-label>
-            <input matInput type="number" formControlName="stock">
+              
+              <mat-form-field appearance="outline" class="form-field-clean">
+                <mat-label>Price (MMK)</mat-label>
+                <input matInput type="number" formControlName="price">
+                <mat-icon matSuffix>attach_money</mat-icon>
                   </mat-form-field>
                 </div>
 
-        <div class="form-section">
-          <div class="section-header">
-                <h4>Attributes</h4>
-            <button mat-icon-button color="primary" type="button" (click)="addAttribute()">
+            <!-- Stock Info -->
+            <div class="info-section-clean">
+              <div class="info-header-clean">
+                <mat-icon>inventory</mat-icon>
+                <span>Current Stock: {{ editingVariant?.stock }} units</span>
+              </div>
+              <div class="info-content-clean">
+                <p class="stock-note-clean">Use the stock management buttons in the main table to adjust inventory levels</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attributes -->
+          <div class="form-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>tune</mat-icon>
+              <span>Variant Attributes</span>
+              <button mat-icon-button type="button" (click)="addAttribute()" class="add-btn-clean">
               <mat-icon>add_circle</mat-icon>
             </button>
           </div>
-          <div formArrayName="attributes" class="attributes-list">
+            
+            <div formArrayName="attributes" class="attributes-container-clean">
             <div *ngFor="let attributeGroup of attributesFormArray.controls; let i = index; trackBy: trackByAttribute" 
-                 [formGroupName]="i" class="attribute-row">
-              <mat-form-field appearance="outline" class="attr-field">
-                <mat-label>Name</mat-label>
+                    [formGroupName]="i" class="attribute-row-clean">
+                <mat-form-field appearance="outline" class="attr-field-clean">
+                  <mat-label>Attribute Name</mat-label>
                 <input matInput formControlName="key">
+                  <mat-icon matSuffix>label</mat-icon>
                     </mat-form-field>
-              <mat-form-field appearance="outline" class="attr-field">
+                <mat-form-field appearance="outline" class="attr-field-clean">
                 <mat-label>Value</mat-label>
                 <input matInput formControlName="value">
+                  <mat-icon matSuffix>text_fields</mat-icon>
                     </mat-form-field>
-              <!-- <button mat-icon-button color="warn" (click)="removeAttribute(i)">
-                <mat-icon>close</mat-icon>
-                    </button> -->
+                <button mat-icon-button (click)="removeAttribute(i)" class="remove-btn-clean">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
             </div>
                   </div>
+
+          <!-- Photos -->
+          <div class="form-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>photo_library</mat-icon>
+              <span>Product Photos</span>
                 </div>
 
-        <div class="form-section">
-                <h4>Photos</h4>
-          <div class="photo-upload-compact">
-            <div class="photos-preview" *ngIf="displayImageUrls.length > 0">
-              <div class="photo-thumb" *ngFor="let url of displayImageUrls; let i = index">
+            <div class="photo-section-clean">
+              <div class="photos-grid-clean" *ngIf="displayImageUrls.length > 0">
+                <div class="photo-item-clean" *ngFor="let url of displayImageUrls; let i = index">
+                  <div class="photo-wrapper-clean">
                       <img [src]="url" alt="Preview">
-                <button mat-icon-button (click)="removePhoto(i)" class="remove-thumb" type="button">
-                        <mat-icon>close</mat-icon>
+                    <div class="photo-actions-clean">
+                      <button mat-mini-fab (click)="removePhoto(i)" type="button" class="remove-photo-clean">
+                        <mat-icon>delete</mat-icon>
                       </button>
                     </div>
                   </div>
+                </div>
+              </div>
+              
+              <div class="upload-area-clean" (click)="fileInput.click()">
                     <input #fileInput type="file" multiple accept="image/*" (change)="onFileSelected($event)" style="display: none">
-            <button mat-stroked-button (click)="fileInput.click()" type="button" class="upload-btn">
-              <mat-icon>add_photo_alternate</mat-icon>
-              Add Photos
-                    </button>
+                <div class="upload-content-clean">
+                  <mat-icon class="upload-icon-clean">add_photo_alternate</mat-icon>
+                  <h4>Add More Photos</h4>
+                  <p>Click to browse additional images</p>
+                </div>
+              </div>
                   </div>
                 </div>
 
-        <div class="modal-actions">
-          <button mat-button (click)="cancelEdit()" type="button" mat-dialog-close="false" [disabled]="isUpdating">Cancel</button>
-          <button mat-raised-button color="primary" type="submit" mat-dialog-close="true" [disabled]="isUpdating">
+          <!-- Actions -->
+          <div class="modal-actions-clean">
+            <button mat-stroked-button (click)="cancelEdit()" type="button" mat-dialog-close="false" [disabled]="isUpdating" class="btn-cancel-clean">
+              <mat-icon>close</mat-icon>
+              Cancel
+            </button>
+            <button mat-flat-button color="primary" type="submit" mat-dialog-close="true" [disabled]="isUpdating" class="btn-save-clean">
             <ng-container *ngIf="isUpdating">
-              <mat-spinner diameter="20" class="spinner"></mat-spinner>
+                <mat-spinner diameter="20" class="btn-spinner-clean"></mat-spinner>
               <span>Updating...</span>
             </ng-container>
             <ng-container *ngIf="!isUpdating">
+               
               <span>Update Variant</span>
             </ng-container>
           </button>
         </div>
       </form>
+      </div>
     </div>
   </ng-template>
 
   <!-- History Modal -->
   <ng-template #historyModal>
-    <div class="modal-header">
-      <h4 class="modal-title">Variant History - #{{selectedVariantForHistory?.id}}</h4>
-      <button type="button" class="btn-close" aria-label="Close" (click)="closeHistoryModal()"></button>
+    <div class="modal-clean extra-large">
+      <div class="modal-header-clean">
+        <div class="modal-title-section">
+          <div class="modal-icon-clean history">
+            <mat-icon>history</mat-icon>
+          </div>
+          <div class="modal-title-content">
+            <h2 class="modal-title-clean">Variant History</h2>
+            <p class="modal-subtitle-clean">Variant #{{ selectedVariantForHistory?.id }}</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-clean" (click)="closeHistoryModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body-clean history-body">
+        <div class="history-tabs-clean">
+          <div class="tab-clean active">
+            <mat-icon>sell</mat-icon>
+            <span>Price History</span>
+          </div>
+          <div class="tab-clean">
+            <mat-icon>shopping_cart</mat-icon>
+            <span>Purchase History</span>
+          </div>
+        </div>
+
+        <div class="history-content-clean">
+          <!-- Price History -->
+          <div class="history-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>trending_up</mat-icon>
+              <span>Selling Price History</span>
     </div>
-    <div class="modal-body history-flex">
-      <!-- Selling Price History Table -->
-      <div class="history-table-block">
-        <div class="history-table-title">Selling Price History</div>
-        <table mat-table [dataSource]="priceHistoryDataSource" matSort #priceSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="mat-elevation-z1 history-mat-table">
-          <!-- Price Column -->
+            
+            <div class="history-table-clean">
+              <table mat-table [dataSource]="priceHistoryDataSource" matSort #priceSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="data-table-clean">
           <ng-container matColumnDef="price">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Price</th>
-            <td mat-cell *matCellDef="let row">{{ row.price }} MMK</td>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">attach_money</mat-icon>
+                      <span>Price</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                    <div class="price-display-clean">
+                      <span class="price-amount-clean">{{ row.price }}</span>
+                      <span class="price-currency-clean">MMK</span>
+                    </div>
+                  </td>
           </ng-container>
-          <!-- Date Column -->
+                
           <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
-            <td mat-cell *matCellDef="let row">{{ row.priceDate | date:'MMM dd, yyyy HH:mm' }}</td>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">schedule</mat-icon>
+                      <span>Date</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.priceDate | date:'MMM dd, yyyy HH:mm' }}</td>
           </ng-container>
-          <!-- Admin Column -->
+                
           <ng-container matColumnDef="admin">
-            <th mat-header-cell *matHeaderCellDef>Admin</th>
-            <td mat-cell *matCellDef="let row">{{ row.adminName || 'N/A' }} ({{row.adminId}})</td>
+                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">person</mat-icon>
+                      <span>Admin</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.adminName || 'N/A' }} ({{ row.adminId }})</td>
           </ng-container>
-          <tr mat-header-row *matHeaderRowDef="['price', 'date', 'admin']"></tr>
-          <tr mat-row *matRowDef="let row; columns: ['price', 'date', 'admin'];"></tr>
-          <tr *ngIf="priceHistoryDataSource.data.length === 0">
-            <td colspan="3" class="text-center text-muted">No price history available</td>
+                
+                <tr mat-header-row *matHeaderRowDef="['price', 'date', 'admin']" class="header-row-clean"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['price', 'date', 'admin'];" class="data-row-clean"></tr>
+                
+                <tr *ngIf="priceHistoryDataSource.data.length === 0" class="empty-row-clean">
+                  <td colspan="3" class="empty-cell-clean">
+                    <div class="empty-state-clean">
+                      <mat-icon>trending_flat</mat-icon>
+                      <p>No price history available</p>
+                    </div>
+                  </td>
           </tr>
         </table>
       </div>
-      <div class="history-divider"></div>
-      <!-- Purchase History Table -->
-      <div class="history-table-block">
-        <div class="history-table-title">Purchase History</div>
-        <table mat-table [dataSource]="purchaseHistoryDataSource" matSort #purchaseSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="mat-elevation-z1 history-mat-table">
-          <!-- Purchase Price Column -->
+          </div>
+
+          <!-- Purchase History -->
+          <div class="history-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>shopping_basket</mat-icon>
+              <span>Purchase History</span>
+            </div>
+            
+            <div class="history-table-clean">
+              <table mat-table [dataSource]="purchaseHistoryDataSource" matSort #purchaseSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="data-table-clean">
           <ng-container matColumnDef="purchasePrice">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Purchase Price</th>
-            <td mat-cell *matCellDef="let row">{{ row.purchasePrice }} MMK</td>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">shopping_cart</mat-icon>
+                      <span>Purchase Price</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                    <div class="price-display-clean">
+                      <span class="price-amount-clean">{{ row.purchasePrice }}</span>
+                      <span class="price-currency-clean">MMK</span>
+                    </div>
+                  </td>
           </ng-container>
-          <!-- Quantity Column -->
+                
           <ng-container matColumnDef="quantity">
-            <th mat-header-cell *matHeaderCellDef>Quantity</th>
-            <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
+                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">inventory_2</mat-icon>
+                      <span>Quantity</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                    <div class="quantity-badge-clean">{{ row.quantity }}</div>
+                  </td>
           </ng-container>
-          <!-- Remaining Column -->
+                
           <ng-container matColumnDef="remaining">
-            <th mat-header-cell *matHeaderCellDef>Remaining</th>
-            <td mat-cell *matCellDef="let row">{{ row.remainingQuantity }}</td>
+                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">inventory</mat-icon>
+                      <span>Remaining</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                    <div class="remaining-badge-clean" [class.low]="row.remainingQuantity <= 5">
+                      {{ row.remainingQuantity }}
+                    </div>
+                  </td>
           </ng-container>
-          <!-- Date Column -->
+                
           <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
-            <td mat-cell *matCellDef="let row">{{ row.purchaseDate | date:'MMM dd, yyyy HH:mm' }}</td>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">schedule</mat-icon>
+                      <span>Date</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.purchaseDate | date:'MMM dd, yyyy HH:mm' }}</td>
           </ng-container>
-          <tr mat-header-row *matHeaderRowDef="['purchasePrice', 'quantity', 'remaining', 'date']"></tr>
-          <tr mat-row *matRowDef="let row; columns: ['purchasePrice', 'quantity', 'remaining', 'date'];"></tr>
-          <tr *ngIf="purchaseHistoryDataSource.data.length === 0">
-            <td colspan="4" class="text-center text-muted">No purchase history available</td>
+                
+                <tr mat-header-row *matHeaderRowDef="['purchasePrice', 'quantity', 'remaining', 'date']" class="header-row-clean"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['purchasePrice', 'quantity', 'remaining', 'date'];" class="data-row-clean"></tr>
+                
+                <tr *ngIf="purchaseHistoryDataSource.data.length === 0" class="empty-row-clean">
+                  <td colspan="4" class="empty-cell-clean">
+                    <div class="empty-state-clean">
+                      <mat-icon>shopping_basket</mat-icon>
+                      <p>No purchase history available</p>
+                    </div>
+                  </td>
           </tr>
         </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="modal-footer">
-      
+  </ng-template>
+
+  <!-- Reduce Stock Modal -->
+  <ng-template #reduceStockModal>
+    <div class="modal-clean large">
+      <div class="modal-header-clean">
+        <div class="modal-title-section">
+          <div class="modal-icon-clean reduce-stock">
+            <mat-icon>remove_shopping_cart</mat-icon>
+          </div>
+          <div class="modal-title-content">
+            <h2 class="modal-title-clean">Reduce Stock</h2>
+            <p class="modal-subtitle-clean">Variant #{{ selectedVariant?.id }}</p>
+          </div>
+        </div>
+        <button mat-icon-button mat-dialog-close class="modal-close-clean">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body-clean">
+        <form [formGroup]="reduceStockForm" (ngSubmit)="submitReduceStock()" class="form-clean">
+          <!-- Current Stock Info -->
+          <div class="info-section-clean">
+            <div class="info-header-clean">
+              <mat-icon>inventory</mat-icon>
+              <span>Current Stock: {{ selectedVariant?.stock }} units</span>
+            </div>
+            <div class="info-content-clean">
+              <p class="stock-note-clean">Select quantities to reduce from each purchase batch below</p>
+            </div>
+          </div>
+
+          <!-- Reduction Table -->
+          <div class="reduction-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>list</mat-icon>
+              <span>Purchase Batches</span>
+            </div>
+            
+            <div class="reduction-items-clean">
+              <div class="reduction-item-clean" *ngFor="let group of reductionsFormArray.controls; let i = index">
+                <div class="batch-info-clean">
+                  <div class="batch-detail">
+                    <mat-icon>attach_money</mat-icon>
+                    <span class="batch-price-clean">{{ purchaseHistory[i].purchasePrice | number }} MMK</span>
+                  </div>
+                  <div class="batch-detail">
+                    <mat-icon>inventory</mat-icon>
+                    <span>{{ purchaseHistory[i].remainingQuantity }} available</span>
+                  </div>
+                  <div class="batch-detail">
+                    <mat-icon>schedule</mat-icon>
+                    <span>{{ purchaseHistory[i].purchaseDate | date:'MMM dd, yyyy' }}</span>
+                  </div>
+                </div>
+                
+                <div class="reduction-controls-clean">
+                  <button mat-mini-fab (click)="decrementReduction(i)" type="button" 
+                          [disabled]="group.get('quantity')?.value <= 0" class="control-btn-clean decrease">
+                    <mat-icon>remove</mat-icon>
+                  </button>
+                  
+                  <div class="quantity-input-clean">
+                    <input matInput type="number" min="0" [max]="purchaseHistory[i].remainingQuantity"
+                           [formControl]="getQuantityControl(group)" class="quantity-field-clean">
+                  </div>
+                  
+                  <button mat-mini-fab (click)="incrementReduction(i, purchaseHistory[i].remainingQuantity)" type="button"
+                          [disabled]="group.get('quantity')?.value >= purchaseHistory[i].remainingQuantity" class="control-btn-clean increase">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="summary-section-clean">
+            <div class="summary-header-clean">
+              <mat-icon>calculate</mat-icon>
+              <span>Reduction Summary</span>
+            </div>
+            <div class="summary-content-clean">
+              <div class="summary-row-clean">
+                <span class="summary-label-clean">Total to reduce:</span>
+                <span class="summary-value-clean">{{ getTotalReduction() }} units</span>
+              </div>
+              <div class="summary-row-clean">
+                <span class="summary-label-clean">Remaining after reduction:</span>
+                <span class="summary-value-clean">{{ (selectedVariant?.stock ?? 0) - getTotalReduction() }} units</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="modal-actions-clean">
+            <button mat-stroked-button mat-dialog-close type="button" class="btn-cancel-clean">
+              <mat-icon>close</mat-icon>
+              Cancel
+            </button>
+            <button mat-flat-button color="warn" type="submit" class="btn-reduce-clean"
+                    [disabled]="reduceStockForm.invalid || getTotalReduction() === 0 || getTotalReduction() > (selectedVariant?.stock ?? 0)">
+              <ng-container *ngIf="isReducing">
+                <mat-spinner diameter="20" class="btn-spinner-clean"></mat-spinner>
+                <span>Reducing...</span>
+              </ng-container>
+              <ng-container *ngIf="!isReducing">
+                
+                <span>Reduce Stock</span>
+              </ng-container>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </ng-template>
 </div>

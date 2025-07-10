@@ -1,62 +1,330 @@
-<div class="sidebar" [class.expanded]="expanded">
-  <button class="sidebar-toggle" (click)="toggleSidebar()" aria-label="Toggle sidebar">
-    <span *ngIf="!expanded">&#9776;</span>
-    <span *ngIf="expanded">&times;</span>
-  </button>
-  <nav *ngIf="expanded" class="sidebar-nav scrollable-nav">
-    <div class="sidebar-title">Admin Panel</div>
-    <a routerLink="/admin-dashboard" routerLinkActive="active" aria-label="Dashboard">
-      <i class="fas fa-tachometer-alt"></i>
-      <span class="sidebar-link-label">Dashboard</span>
-    </a>
-    <a routerLink="/categoryList" routerLinkActive="active" aria-label="Category & Product">
-      <i class="fas fa-th-list"></i>
-      <span class="sidebar-link-label">Category & Product</span>
-    </a>
-    <div class="sidebar-user-group">
-      <span class="sidebar-user-label"><i class="fas fa-users"></i> User</span>
-      <div class="sidebar-user-links">
-        <a routerLink="/viewcustomer" routerLinkActive="active" aria-label="View Customer">
-          <i class="fas fa-user"></i>
-          <span class="sidebar-link-label">View Customer</span>
+<div class="admin-sidebar" [class.expanded]="expanded" [class.collapsed]="!expanded">
+  
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <div class="logo-section" *ngIf="expanded">
+      <div class="logo-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <h2 class="brand-name">Admin Panel</h2>
+        <p class="brand-subtitle">Management System</p>
+      </div>
+    </div>
+    
+    <button class="sidebar-toggle" 
+            (click)="toggleSidebar()" 
+            [title]="expanded ? 'Collapse sidebar' : 'Expand sidebar'"
+            aria-label="Toggle sidebar">
+      <svg class="toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="3" y1="6" x2="21" y2="6" *ngIf="!expanded"/>
+        <line x1="3" y1="12" x2="21" y2="12" *ngIf="!expanded"/>
+        <line x1="3" y1="18" x2="21" y2="18" *ngIf="!expanded"/>
+        <line x1="18" y1="6" x2="6" y2="18" *ngIf="expanded"/>
+        <line x1="6" y1="6" x2="18" y2="18" *ngIf="expanded"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav class="sidebar-nav" [class.scrollable]="expanded">
+    
+    <!-- Dashboard -->
+    <div class="nav-section">
+      <a routerLink="/admin-dashboard" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Dashboard' : ''"
+         aria-label="Dashboard">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="4" width="7" height="7"/>
+            <rect x="14" y="4" width="7" height="7"/>
+            <rect x="14" y="15" width="7" height="7"/>
+            <rect x="3" y="15" width="7" height="7"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Dashboard</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+    </div>
+
+    <!-- Products & Categories -->
+    <div class="nav-section">
+      <h3 class="section-title" *ngIf="expanded">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+        Products
+      </h3>
+      
+      <a routerLink="/categoryList" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Category & Product' : ''"
+         aria-label="Category & Product">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 3h7v7H3z"/>
+            <path d="M14 3h7v7h-7z"/>
+            <path d="M14 14h7v7h-7z"/>
+            <path d="M3 14h7v7H3z"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Categories & Products</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+
+      <a routerLink="/brand-register" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Brands' : ''"
+         aria-label="Brands">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Brands</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+    </div>
+
+    <!-- User Management -->
+    <div class="nav-section">
+      <h3 class="section-title" *ngIf="expanded">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Users
+      </h3>
+      
+      <div class="nav-group" *ngIf="expanded">
+        <a routerLink="/viewcustomer" 
+           routerLinkActive="active" 
+           class="nav-item sub-item"
+           aria-label="View Customer">
+          <div class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <span class="nav-label">Customers</span>
+          <div class="nav-indicator"></div>
         </a>
-        <a routerLink="/viewadmin" routerLinkActive="active" aria-label="View Admin">
-          <i class="fas fa-user-shield"></i>
-          <span class="sidebar-link-label">View Admin</span>
+
+        <a routerLink="/viewadmin" 
+           routerLinkActive="active" 
+           class="nav-item sub-item"
+           aria-label="View Admin">
+          <div class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </div>
+          <span class="nav-label">Administrators</span>
+          <div class="nav-indicator"></div>
+        </a>
+      </div>
+
+      <!-- Collapsed User Items -->
+      <div class="nav-group" *ngIf="!expanded">
+        <a routerLink="/viewcustomer" 
+           routerLinkActive="active" 
+           class="nav-item"
+           title="View Customer"
+           aria-label="View Customer">
+          <div class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+        </a>
+
+        <a routerLink="/viewadmin" 
+           routerLinkActive="active" 
+           class="nav-item"
+           title="View Admin"
+           aria-label="View Admin">
+          <div class="nav-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </div>
         </a>
       </div>
     </div>
-    <a routerLink="/coupon" routerLinkActive="active" aria-label="Promotion & Discount">
-      <i class="fas fa-tags"></i>
-      <span class="sidebar-link-label">Promotion & Discount</span>
-    </a>
-    <a routerLink="/events" routerLinkActive="active" aria-label="Events">
-      <i class="fas fa-event"></i>
-      <span class="sidebar-link-label">Event</span>
-    </a>
-    <a routerLink="/delivery" routerLinkActive="active" aria-label="Delivery">
-      <i class="fas fa-truck"></i>
-      <span class="sidebar-link-label">Delivery</span>
-    </a>
-    <a routerLink="/payment-list" routerLinkActive="active" aria-label="Payment">
-      <i class="fas fa-credit-card"></i>
-      <span class="sidebar-link-label">Payment</span>
-    </a>
-    <a routerLink="/admin-order-list" routerLinkActive="active" aria-label="Order">
-      <i class="fas fa-shopping-cart"></i>
-      <span class="sidebar-link-label">Order</span>
-    </a>
-    <a routerLink="/admin-order-refund-list" routerLinkActive="active" aria-label="Refund Order">
-      <i class="fas fa-undo-alt"></i>
-      <span class="sidebar-link-label">Refund Order</span>
-    </a>
-    <a routerLink="/shopaddressform" routerLinkActive="active" aria-label="Shop">
-      <i class="fas fa-store"></i>
-      <span class="sidebar-link-label">Shop</span>
-    </a>
-    <a routerLink="/create-notification" routerLinkActive="active" aria-label="Notification">
-      <i class="fas fa-bell"></i>
-      <span class="sidebar-link-label">Notification</span>
-    </a>
+
+    <!-- Sales & Marketing -->
+    <div class="nav-section">
+      <h3 class="section-title" *ngIf="expanded">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        Sales
+      </h3>
+      
+      <a routerLink="/coupon" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Promotion & Discount' : ''"
+         aria-label="Promotion & Discount">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Promotions</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+
+      <a routerLink="/events" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Events' : ''"
+         aria-label="Events">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Events</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+    </div>
+
+    <!-- Operations -->
+    <div class="nav-section">
+      <h3 class="section-title" *ngIf="expanded">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+        Operations
+      </h3>
+      
+      <a routerLink="/admin-order-list" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Orders' : ''"
+         aria-label="Orders">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="9" cy="21" r="1"/>
+            <circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Orders</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+
+      <a routerLink="/admin-order-refund-list" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Refunds' : ''"
+         aria-label="Refunds">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 6h18l-2 13H5L3 6z"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Refunds</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+
+      <a routerLink="/delivery" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Delivery' : ''"
+         aria-label="Delivery">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="1" y="3" width="15" height="13"/>
+            <polygon points="16,8 20,8 23,11 23,16 16,16 16,8"/>
+            <circle cx="5.5" cy="18.5" r="2.5"/>
+            <circle cx="18.5" cy="18.5" r="2.5"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Delivery</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+
+      <a routerLink="/payment-list" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Payments' : ''"
+         aria-label="Payments">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Payments</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+    </div>
+
+    <!-- System -->
+    <div class="nav-section">
+      <h3 class="section-title" *ngIf="expanded">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+        </svg>
+        System
+      </h3>
+      
+      <a routerLink="/create-notification" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Notifications' : ''"
+         aria-label="Notifications">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Notifications</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+
+      <a routerLink="/shopaddressform" 
+         routerLinkActive="active" 
+         class="nav-item"
+         [title]="!expanded ? 'Shop Settings' : ''"
+         aria-label="Shop Settings">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 21h18"/>
+            <path d="M5 21V7l8-4v18"/>
+            <path d="M19 21V11l-6-4"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Shop Settings</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+    </div>
   </nav>
+
+  
 </div>

@@ -20,6 +20,7 @@ import com.maven.demo.entity.RefundStatus;
 import com.maven.demo.entity.SaleFifoMappingEntity;
 import com.maven.demo.entity.TransactionStatus;
 import com.maven.demo.entity.UserEntity;
+import com.maven.demo.entity.TotalSpendEntity;
 import com.maven.demo.repository.OrderDetailRepository;
 import com.maven.demo.repository.OrderRepository;
 import com.maven.demo.repository.ProductVariantRepository;
@@ -27,6 +28,7 @@ import com.maven.demo.repository.PurchaseHistoryRepository;
 import com.maven.demo.repository.RefundRequestRepository;
 import com.maven.demo.repository.SaleFifoMappingRepository;
 import com.maven.demo.repository.TransactionRepository;
+import com.maven.demo.repository.TotalSpendRepository;
 
 @Service
 public class RefundService {
@@ -58,6 +60,9 @@ public class RefundService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private TotalSpendRepository totalSpendRepository;
+
     @Transactional
     public void createFullOrderRefund(RefundRequestDTO request, MultipartFile proofFile) throws IOException {
         OrderEntity order = orderRepository.findById(request.getOrderId())
@@ -80,9 +85,9 @@ public class RefundService {
             // Coupon used: refund the total after discount (should match what customer paid)
             refundAmount = order.getTotal();
         } else {
-            // No coupon: refund the sum of all item prices
+            // No coupon: refund the sum of all item discounted prices
             refundAmount = order.getOrderDetails().stream()
-                .mapToInt(od -> od.getPrice() * od.getQuantity())
+                .mapToInt(od -> ((od.getPrice() - (od.getDiscountAmount() != null ? od.getDiscountAmount() : 0)) * od.getQuantity()))
                 .sum();
         }
 
@@ -139,11 +144,11 @@ public class RefundService {
             // Calculate proportional refund if coupon was used
             int itemRefundAmount;
             if (usedCoupon && subtotal > 0) {
-                int itemTotal = orderDetail.getPrice() * item.getQuantity();
+                int itemTotal = (orderDetail.getPrice() - (orderDetail.getDiscountAmount() != null ? orderDetail.getDiscountAmount() : 0)) * item.getQuantity();
                 // Proportional refund: (itemTotal / subtotal) * total
                 itemRefundAmount = (int)Math.round((itemTotal / (double)subtotal) * total);
             } else {
-                itemRefundAmount = orderDetail.getPrice() * item.getQuantity();
+                itemRefundAmount = (orderDetail.getPrice() - (orderDetail.getDiscountAmount() != null ? orderDetail.getDiscountAmount() : 0)) * item.getQuantity();
             }
 
             // Create refund request for this item
@@ -336,7 +341,7 @@ public class RefundService {
                     .append("<b>Product:</b> ").append(productName).append("<br>")
                     .append(attrStr.length() > 0 ? ("<b>Attributes:</b> " + attrStr.toString() + "<br>") : "")
                     .append("<b>Quantity:</b> ").append(refund.getRefundQuantity()).append("<br>")
-                    .append("<b>Amount:</b> ").append(String.format("%,d MMK", detail.getPrice() * refund.getRefundQuantity())).append("</li>");
+                    .append("<b>Amount:</b> ").append(String.format("%,d MMK", (detail.getPrice() - (detail.getDiscountAmount() != null ? detail.getDiscountAmount() : 0)) * refund.getRefundQuantity())).append("</li>");
             } else if (order.getOrderDetails() != null) {
                 // Full refund: all items
                 for (OrderDetailEntity detail : order.getOrderDetails()) {
@@ -355,7 +360,7 @@ public class RefundService {
                         .append("<b>Product:</b> ").append(productName).append("<br>")
                         .append(attrStr.length() > 0 ? ("<b>Attributes:</b> " + attrStr.toString() + "<br>") : "")
                         .append("<b>Quantity:</b> ").append(detail.getQuantity()).append("<br>")
-                        .append("<b>Amount:</b> ").append(String.format("%,d MMK", detail.getPrice() * detail.getQuantity())).append("</li>");
+                        .append("<b>Amount:</b> ").append(String.format("%,d MMK", (detail.getPrice() - (detail.getDiscountAmount() != null ? detail.getDiscountAmount() : 0)) * detail.getQuantity())).append("</li>");
                 }
             }
             itemsHtml.append("</ul>");
@@ -368,6 +373,15 @@ public class RefundService {
                     itemsHtml.toString()
             );
             notificationService.createUserNotification(user, title, message, "REFUND",order.getId());
+        }
+        // --- Reduce user's total spent on refund acceptance ---
+        if (user != null) {
+            TotalSpendEntity totalSpend = totalSpendRepository.findByUser(user).orElse(null);
+            if (totalSpend != null && totalSpend.getAmount() > 0) {
+                int newAmount = totalSpend.getAmount() - (refund.getAmount() != null ? refund.getAmount() : 0);
+                totalSpend.setAmount(Math.max(newAmount, 0));
+                totalSpendRepository.save(totalSpend);
+            }
         }
 
     }

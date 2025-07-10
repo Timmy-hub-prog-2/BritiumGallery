@@ -14,7 +14,8 @@ public class ProductResponseDTO {
     private double rating;
     private Long categoryId;
     private Long adminId;
-    private String basePhotoUrl;
     private String brand;
+    private Long brandId;
+    private String basePhotoUrl;
     private List<VariantResponseDTO> variants;
 }

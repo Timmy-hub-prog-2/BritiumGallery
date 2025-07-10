@@ -143,6 +143,8 @@ public class OrderServiceImpl implements OrderService {
             detail.setVariant(variant);
             detail.setQuantity(item.getQuantity());
             detail.setPrice(item.getPrice());
+            detail.setDiscountPercent(item.getDiscountPercent());
+            detail.setDiscountAmount(item.getDiscountAmount());
             orderDetails.add(detail);
         }
         order.setOrderDetails(orderDetails);
@@ -421,6 +423,8 @@ public class OrderServiceImpl implements OrderService {
             d.setVariant(vdto);
             d.setRefunded(detail.isRefunded());
             d.setRefundedQty(detail.getRefundedQty());
+            d.setDiscountPercent(detail.getDiscountPercent());
+            d.setDiscountAmount(detail.getDiscountAmount());
             return d;
         }).collect(java.util.stream.Collectors.toList());
 
@@ -948,54 +952,61 @@ public class OrderServiceImpl implements OrderService {
             if (order.getOrderDetails() != null) {
                 for (OrderDetailEntity detail : order.getOrderDetails()) {
                     ProductVariantEntity variant = detail.getVariant();
-                    if (variant != null) {
-                        String key = String.valueOf(variant.getId());
-                        BestSellerProductDTO dto = productMap.get(key);
+                    if (variant == null) continue;
+                    String key = String.valueOf(variant.getId());
+                    BestSellerProductDTO dto = productMap.get(key);
+                    int quantity = detail.getQuantity();
+                    // Exclude refunded quantities
+                    int refundedQty = detail.getRefundedQty() != null ? detail.getRefundedQty() : 0;
+                    int netQuantity = quantity - refundedQty;
+                    if (netQuantity <= 0) continue; // skip fully refunded
+                    
+                    int sales = netQuantity * detail.getPrice();
+                    int cost = 0;
+                    // Calculate cost from FIFO mappings (only for netQuantity)
+                    List<SaleFifoMappingEntity> mappings = saleFifoMappingRepository.findByOrderDetail(detail);
+                    int qtyLeft = netQuantity;
+                    for (SaleFifoMappingEntity mapping : mappings) {
+                        int usedQty = Math.min(mapping.getQuantity(), qtyLeft);
+                        cost += usedQty * mapping.getUnitCost();
+                        qtyLeft -= usedQty;
+                        if (qtyLeft <= 0) break;
+                    }
+                    
+                    // Use netQuantity everywhere below
+                    if (dto == null) {
+                        String productName = variant.getProduct() != null ? variant.getProduct().getName() : "Unknown Product";
                         
-                        int quantity = detail.getQuantity();
-                        int sales = quantity * detail.getPrice();
-                        int cost = 0;
-                        
-                        // Calculate cost from FIFO mappings
-                        List<SaleFifoMappingEntity> mappings = saleFifoMappingRepository.findByOrderDetail(detail);
-                        for (SaleFifoMappingEntity mapping : mappings) {
-                            cost += mapping.getQuantity() * mapping.getUnitCost();
-                        }
-                        
-                        if (dto == null) {
-                            String productName = variant.getProduct() != null ? variant.getProduct().getName() : "Unknown Product";
-                            
-                            // Build variant name from attributes
-                            StringBuilder variantNameBuilder = new StringBuilder();
-                            if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
-                                for (int i = 0; i < variant.getAttributeValues().size(); i++) {
-                                    if (i > 0) variantNameBuilder.append(" - ");
-                                    variantNameBuilder.append(variant.getAttributeValues().get(i).getValue());
-                                }
-                            } else {
-                                variantNameBuilder.append("Default");
+                        // Build variant name from attributes
+                        StringBuilder variantNameBuilder = new StringBuilder();
+                        if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
+                            for (int i = 0; i < variant.getAttributeValues().size(); i++) {
+                                if (i > 0) variantNameBuilder.append(" - ");
+                                variantNameBuilder.append(variant.getAttributeValues().get(i).getValue());
                             }
-                            String variantName = variantNameBuilder.toString();
-                            
-                            dto = new BestSellerProductDTO(
-                                variant.getId(),
-                                productName,
-                                variantName,
-                                quantity,
-                                sales,
-                                cost,
-                                0, // No delivery fee for best sellers
-                                sales - cost, // Profit without delivery fee
-                                0.0
-                            );
-                            productMap.put(key, dto);
                         } else {
-                            dto.setTotalQuantitySold(dto.getTotalQuantitySold() + quantity);
-                            dto.setTotalSales(dto.getTotalSales() + sales);
-                            dto.setTotalCost(dto.getTotalCost() + cost);
-                            dto.setTotalDeliveryFee(0); // No delivery fee for best sellers
-                            dto.setTotalProfit(dto.getTotalProfit() + (sales - cost));
+                            variantNameBuilder.append("Default");
                         }
+                        String variantName = variantNameBuilder.toString();
+                        
+                        dto = new BestSellerProductDTO(
+                            variant.getId(),
+                            productName,
+                            variantName,
+                            netQuantity,
+                            sales,
+                            cost,
+                            0, // No delivery fee for best sellers
+                            sales - cost, // Profit without delivery fee
+                            0.0
+                        );
+                        productMap.put(key, dto);
+                    } else {
+                        dto.setTotalQuantitySold(dto.getTotalQuantitySold() + netQuantity);
+                        dto.setTotalSales(dto.getTotalSales() + sales);
+                        dto.setTotalCost(dto.getTotalCost() + cost);
+                        dto.setTotalDeliveryFee(0); // No delivery fee for best sellers
+                        dto.setTotalProfit(dto.getTotalProfit() + (sales - cost));
                     }
                 }
             }

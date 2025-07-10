@@ -107,4 +107,8 @@ export class UserService {
       }
     );
   }
+
+  getUserProfileById(id: number): Observable<User> {
+    return this.http.get<User>(`${this.userBase}/profile/${id}`);
+  }
 }

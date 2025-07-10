@@ -139,5 +139,21 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Helper methods for discount display
+  hasDiscount(item: any): boolean {
+    return item.discountPercent != null && item.discountAmount != null && item.discountAmount > 0;
+  }
+
+  getDiscountedPrice(item: any): number {
+    if (this.hasDiscount(item)) {
+      return item.price - item.discountAmount;
+    }
+    return item.price;
+  }
+
+  getItemSubtotal(item: any): number {
+    return item.quantity * this.getDiscountedPrice(item);
+  }
+
 
 }

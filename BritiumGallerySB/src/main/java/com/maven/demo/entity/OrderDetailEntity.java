@@ -26,6 +26,11 @@ public class OrderDetailEntity {
     @Column(nullable = true)
     private Integer refundedQty;
 
+    @Column(nullable = true)
+    private Integer discountPercent; // discount percent applied to this item (e.g., 10 for 10%)
+
+    @Column(nullable = true)
+    private Integer discountAmount;  // discount amount (in MMK) applied to this item
 
 
 }

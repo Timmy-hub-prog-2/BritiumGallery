@@ -10,5 +10,6 @@ export interface User {
   roleId: number;
   address?:string;
   customerType?: string;
+  totalSpend?: number;
 }
 

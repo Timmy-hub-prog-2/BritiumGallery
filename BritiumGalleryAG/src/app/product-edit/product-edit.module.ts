@@ -22,7 +22,8 @@ import { PhotoDialogComponent } from './photo-dialog.component';
 @NgModule({
   declarations: [
     ProductEditComponent,
-    PhotoDialogComponent
+    PhotoDialogComponent,
+   
   ],
   imports: [
     CommonModule,

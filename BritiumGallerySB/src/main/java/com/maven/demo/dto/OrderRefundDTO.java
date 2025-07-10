@@ -27,6 +27,8 @@ public class OrderRefundDTO {
         private Integer remainingQty;  // quantity - refundedQty
         private VariantRefundDTO variant;
         private Integer actualRefundableAmount;
+        private Integer discountAmount;    // Discount per item
+        private Integer discountPercent;   // Discount percent per item
     }
 
     @Data

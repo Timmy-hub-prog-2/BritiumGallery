@@ -68,7 +68,8 @@ export class ProductDetailComponent implements OnInit {
         if (firstVariant.attributes) {
           this.selectedVariations = { ...firstVariant.attributes };
         }
-        this.selectedVariantPrice = firstVariant.price;
+        // Use discounted price if present
+        this.selectedVariantPrice = firstVariant.discountedPrice ?? firstVariant.price;
         console.log('Initial price set to:', this.selectedVariantPrice);
       }
 
@@ -219,9 +220,9 @@ export class ProductDetailComponent implements OnInit {
     console.log('[selectVariation] Matching variant:', matchingVariant);
 
     if (matchingVariant) {
-      // Update price
+      // Update price (use discounted price if present)
       const oldPrice = this.selectedVariantPrice;
-      this.selectedVariantPrice = matchingVariant.price;
+      this.selectedVariantPrice = matchingVariant.discountedPrice ?? matchingVariant.price;
       console.log(`[selectVariation] Price updated from ${oldPrice} to ${this.selectedVariantPrice}`);
 
       // Update image

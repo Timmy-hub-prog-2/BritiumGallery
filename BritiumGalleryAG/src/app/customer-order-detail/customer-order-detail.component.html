@@ -269,11 +269,22 @@
                     <div class="item-pricing">
                       <div class="pricing-row">
                         <span class="pricing-label">Unit Price</span>
-                        <span class="pricing-value">MMK {{ item.price | number:'1.0-0' }}</span>
+                        <ng-container *ngIf="hasDiscount(item); else noDiscount">
+                          <span class="pricing-value original-price">
+                            MMK {{ item.price | number:'1.0-0' }}
+                          </span>
+                         
+                          <span class="pricing-value discounted-price">
+                            MMK {{ getDiscountedPrice(item) | number:'1.0-0' }}
+                          </span>
+                        </ng-container>
+                        <ng-template #noDiscount>
+                          <span class="pricing-value">MMK {{ item.price | number:'1.0-0' }}</span>
+                        </ng-template>
                       </div>
                       <div class="pricing-row total">
                         <span class="pricing-label">Subtotal</span>
-                        <span class="pricing-value">MMK {{ item.quantity * item.price | number:'1.0-0' }}</span>
+                        <span class="pricing-value">MMK {{ getItemSubtotal(item) | number:'1.0-0' }}</span>
                       </div>
                     </div>
                   </div>
@@ -388,7 +399,7 @@
       <div class="modal-body">
         <div class="modal-items-list">
           <div class="modal-item-card" *ngFor="let item of order.orderDetails; let i = index" [ngClass]="{'refunded-item': item.isRefunded}">
-            <div class="item-number">{{ i + 1 }}</div>
+         
             <div class="item-image-container">
               <img 
                 *ngIf="item.variant?.imageUrls?.length" 
@@ -421,7 +432,24 @@
                 <div class="pricing-grid">
                   <div class="pricing-item">
                     <span class="pricing-label">Unit Price</span>
-                    <span class="pricing-value">MMK {{ item.price | number:'1.0-0' }}</span>
+                    <ng-container *ngIf="hasDiscount(item); else noDiscountModal">
+                      <div class="discount-price-display">
+                        <span class="pricing-value ">
+                          MMK {{ item.price | number:'1.0-0' }}
+                        </span>
+                      
+                      </div>
+                    </ng-container>
+                    <ng-template #noDiscountModal>
+                      <span class="pricing-value">MMK {{ item.price | number:'1.0-0' }}</span>
+                    </ng-template>
+                  </div>
+                  <!-- New Discount Box -->
+                  <div class="pricing-item discount-box" *ngIf="hasDiscount(item)">
+                    <span class="pricing-label">Discount</span>
+                    <span class="discount-value">
+                      -{{ item.discountPercent }}% 
+                    </span>
                   </div>
                   <div class="pricing-item">
                     <span class="pricing-label">Quantity</span>
@@ -429,7 +457,7 @@
                   </div>
                   <div class="pricing-item total">
                     <span class="pricing-label">Subtotal</span>
-                    <span class="pricing-value">MMK {{ item.quantity * item.price | number:'1.0-0' }}</span>
+                    <span class="pricing-value">MMK {{ getItemSubtotal(item) | number:'1.0-0' }}</span>
                   </div>
                 </div>
               </div>

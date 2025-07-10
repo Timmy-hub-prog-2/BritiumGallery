@@ -95,6 +95,8 @@ public class RefundController {
                     item.productName = od.getVariant() != null && od.getVariant().getProduct() != null ? od.getVariant().getProduct().getName() : null;
                     item.quantity = od.getQuantity();
                     item.price = od.getPrice();
+                    item.discountPercent = od.getDiscountPercent();
+                    item.discountAmount = od.getDiscountAmount();
                     if (od.getVariant() != null) {
                         PendingRefundDTO.VariantDTO variant = new PendingRefundDTO.VariantDTO();
                         variant.sku = od.getVariant().getSku();
@@ -115,6 +117,8 @@ public class RefundController {
                 item.productName = refund.getOrderDetail().getVariant() != null && refund.getOrderDetail().getVariant().getProduct() != null ? refund.getOrderDetail().getVariant().getProduct().getName() : null;
                 item.quantity = refund.getRefundQuantity();
                 item.price = refund.getOrderDetail().getPrice();
+                item.discountPercent = refund.getOrderDetail().getDiscountPercent();
+                item.discountAmount = refund.getOrderDetail().getDiscountAmount();
                 if (refund.getOrderDetail().getVariant() != null) {
                     PendingRefundDTO.VariantDTO variant = new PendingRefundDTO.VariantDTO();
                     variant.sku = refund.getOrderDetail().getVariant().getSku();
@@ -165,6 +169,8 @@ public class RefundController {
                 item.productName = od.getVariant() != null && od.getVariant().getProduct() != null ? od.getVariant().getProduct().getName() : null;
                 item.quantity = od.getQuantity();
                 item.price = od.getPrice();
+                item.discountPercent = od.getDiscountPercent();
+                item.discountAmount = od.getDiscountAmount();
                 if (od.getVariant() != null) {
                     PendingRefundDTO.VariantDTO variant = new PendingRefundDTO.VariantDTO();
                     variant.sku = od.getVariant().getSku();
@@ -185,6 +191,8 @@ public class RefundController {
             item.productName = refund.getOrderDetail().getVariant() != null && refund.getOrderDetail().getVariant().getProduct() != null ? refund.getOrderDetail().getVariant().getProduct().getName() : null;
             item.quantity = refund.getRefundQuantity();
             item.price = refund.getOrderDetail().getPrice();
+            item.discountPercent = refund.getOrderDetail().getDiscountPercent();
+            item.discountAmount = refund.getOrderDetail().getDiscountAmount();
             if (refund.getOrderDetail().getVariant() != null) {
                 PendingRefundDTO.VariantDTO variant = new PendingRefundDTO.VariantDTO();
                 variant.sku = refund.getOrderDetail().getVariant().getSku();
@@ -232,6 +240,8 @@ public class RefundController {
                     item.productName = od.getVariant() != null && od.getVariant().getProduct() != null ? od.getVariant().getProduct().getName() : null;
                     item.quantity = od.getQuantity();
                     item.price = od.getPrice();
+                    item.discountPercent = od.getDiscountPercent();
+                    item.discountAmount = od.getDiscountAmount();
                     if (od.getVariant() != null) {
                         PendingRefundDTO.VariantDTO variant = new PendingRefundDTO.VariantDTO();
                         variant.sku = od.getVariant().getSku();
@@ -252,6 +262,8 @@ public class RefundController {
                 item.productName = refund.getOrderDetail().getVariant() != null && refund.getOrderDetail().getVariant().getProduct() != null ? refund.getOrderDetail().getVariant().getProduct().getName() : null;
                 item.quantity = refund.getRefundQuantity();
                 item.price = refund.getOrderDetail().getPrice();
+                item.discountPercent = refund.getOrderDetail().getDiscountPercent();
+                item.discountAmount = refund.getOrderDetail().getDiscountAmount();
                 if (refund.getOrderDetail().getVariant() != null) {
                     PendingRefundDTO.VariantDTO variant = new PendingRefundDTO.VariantDTO();
                     variant.sku = refund.getOrderDetail().getVariant().getSku();
@@ -300,6 +312,8 @@ public class RefundController {
                     item.productName = od.getVariant() != null && od.getVariant().getProduct() != null ? od.getVariant().getProduct().getName() : null;
                     item.quantity = od.getQuantity();
                     item.price = od.getPrice();
+                    item.discountPercent = od.getDiscountPercent();
+                    item.discountAmount = od.getDiscountAmount();
                     if (od.getVariant() != null) {
                         PendingRefundDTO.VariantDTO variant = new PendingRefundDTO.VariantDTO();
                         variant.sku = od.getVariant().getSku();
@@ -320,6 +334,8 @@ public class RefundController {
                 item.productName = refund.getOrderDetail().getVariant() != null && refund.getOrderDetail().getVariant().getProduct() != null ? refund.getOrderDetail().getVariant().getProduct().getName() : null;
                 item.quantity = refund.getRefundQuantity();
                 item.price = refund.getOrderDetail().getPrice();
+                item.discountPercent = refund.getOrderDetail().getDiscountPercent();
+                item.discountAmount = refund.getOrderDetail().getDiscountAmount();
                 if (refund.getOrderDetail().getVariant() != null) {
                     PendingRefundDTO.VariantDTO variant = new PendingRefundDTO.VariantDTO();
                     variant.sku = refund.getOrderDetail().getVariant().getSku();
@@ -368,6 +384,8 @@ public class RefundController {
                     item.productName = od.getVariant() != null && od.getVariant().getProduct() != null ? od.getVariant().getProduct().getName() : null;
                     item.quantity = od.getQuantity();
                     item.price = od.getPrice();
+                    item.discountPercent = od.getDiscountPercent();
+                    item.discountAmount = od.getDiscountAmount();
                     if (od.getVariant() != null) {
                         PendingRefundDTO.VariantDTO variant = new PendingRefundDTO.VariantDTO();
                         variant.sku = od.getVariant().getSku();
@@ -388,6 +406,8 @@ public class RefundController {
                 item.productName = refund.getOrderDetail().getVariant() != null && refund.getOrderDetail().getVariant().getProduct() != null ? refund.getOrderDetail().getVariant().getProduct().getName() : null;
                 item.quantity = refund.getRefundQuantity();
                 item.price = refund.getOrderDetail().getPrice();
+                item.discountPercent = refund.getOrderDetail().getDiscountPercent();
+                item.discountAmount = refund.getOrderDetail().getDiscountAmount();
                 if (refund.getOrderDetail().getVariant() != null) {
                     PendingRefundDTO.VariantDTO variant = new PendingRefundDTO.VariantDTO();
                     variant.sku = refund.getOrderDetail().getVariant().getSku();

@@ -56,6 +56,20 @@ public class UserServiceImpl implements UserService1 {
         dto.setEmail(user.getEmail());
         dto.setGender(user.getGender());
         dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setRoleId(user.getRole() != null ? user.getRole().getId() : 3L);
+        dto.setImageUrls(user.getImageUrls());
+
+        // Set customerType if present
+        if (user.getCustomerType() != null) {
+            dto.setCustomerType(user.getCustomerType().getType());
+        }
+        // Set totalSpend (sum all, or use first if only one)
+        if (user.getTotalSpends() != null && !user.getTotalSpends().isEmpty()) {
+            int total = user.getTotalSpends().stream().mapToInt(ts -> ts.getAmount()).sum();
+            dto.setTotalSpend(total);
+        } else {
+            dto.setTotalSpend(0);
+        }
 
         // Include main address from AddressEntity if present (for any role)
         Optional<AddressEntity> mainAddressOpt = user.getAddresses()

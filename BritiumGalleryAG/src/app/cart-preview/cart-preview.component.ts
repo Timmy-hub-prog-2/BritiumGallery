@@ -5,6 +5,7 @@ import { User } from '../../user.model';
 import { UserService } from '../services/user.service';
 import { CouponService } from '../services/coupon.service';
 import { OrderService } from '../services/order.service';
+import { ProductService } from '../services/product.service';
 
 @Component({
   selector: 'app-cart-preview',
@@ -21,7 +22,8 @@ export class CartPreviewComponent implements OnInit {
     private router: Router,
     private userService: UserService,
     private couponService: CouponService,
-    private orderService: OrderService
+    private orderService: OrderService,
+    private productService: ProductService
   ) {}
 
   ngOnInit(): void {
@@ -38,7 +40,27 @@ export class CartPreviewComponent implements OnInit {
 
   private loadCartItems(): void {
     if (this.currentUser) {
-      this.items = this.cartService.getCartItems(this.currentUser.id);
+      const rawItems = this.cartService.getCartItems(this.currentUser.id);
+      // Fetch latest discount info for each item
+      const updatedItems: CartItem[] = [];
+      rawItems.forEach(item => {
+        this.productService.getProductDetail(item.productId).subscribe(product => {
+          const variant = product.variants.find((v: any) => v.id === item.productVariantId);
+          if (variant) {
+            updatedItems.push({
+              ...item,
+              discountedPrice: variant.discountedPrice ?? null,
+              discountPercent: variant.discountPercent ?? null
+            });
+          } else {
+            updatedItems.push(item);
+          }
+          // Only update items array when all items are processed
+          if (updatedItems.length === rawItems.length) {
+            this.items = updatedItems;
+          }
+        });
+      });
     } else {
       this.items = [];
     }
@@ -76,7 +98,10 @@ export class CartPreviewComponent implements OnInit {
   }
 
   getSubtotal(): number {
-    return this.items.reduce((total, item) => total + item.quantity * item.price, 0);
+    return this.items.reduce((total, item) => {
+      const price = (item as any).discountedPrice ?? item.price;
+      return total + item.quantity * price;
+    }, 0);
   }
 
   getTotalCost(): number {

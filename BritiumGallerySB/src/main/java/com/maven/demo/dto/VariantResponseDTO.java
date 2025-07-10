@@ -17,4 +17,6 @@ public class VariantResponseDTO {
     private Map<String, String> attributes;
     private String sku;
     private String productName;
+    private Double discountPercent; // The discount percent applied, if any
+    private Integer discountedPrice; // The price after discount, if any
 }

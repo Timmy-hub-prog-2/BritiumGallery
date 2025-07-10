@@ -28,12 +28,13 @@ import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
 import com.maven.demo.dto.PurchaseHistoryResponseDTO;
+import com.maven.demo.dto.ReduceStockRequestDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
+import com.maven.demo.entity.ProductVariantEntity;
+import com.maven.demo.repository.ProductVariantRepository;
 import com.maven.demo.service.CloudinaryUploadService;
 import com.maven.demo.service.ProductService;
-import com.maven.demo.repository.ProductVariantRepository;
-import com.maven.demo.entity.ProductVariantEntity;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -102,6 +103,12 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductBreadcrumb(productId));
     }
 
+    /**
+     * Update product details, including name, description, rating, brand, and base photo.
+     * Accepts multipart/form-data with:
+     *   - product: ProductRequestDTO (JSON, must include brandId if updating brand)
+     *   - basePhoto: MultipartFile (optional, for updating base photo)
+     */
     @PutMapping("/update/{productId}")
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable Long productId,
@@ -166,7 +173,8 @@ public class ProductController {
     public ResponseEntity<ProductResponseDTO> addVariantWithPhotos(
             @PathVariable Long productId,
             @RequestPart("variant") VariantDTO variant,
-            @RequestPart(value = "photos", required = false) List<MultipartFile> photos
+            @RequestPart(value = "photos", required = false) List<MultipartFile> photos,
+            @RequestParam(value = "adminId", required = false) Long adminId
     ) throws IOException {
         try {
             List<String> newPhotoUrls = new ArrayList<>();
@@ -181,8 +189,7 @@ public class ProductController {
                         })
                         .toList();
             }
-            
-            ProductResponseDTO updatedProduct = productService.addVariant(productId, variant, newPhotoUrls);
+            ProductResponseDTO updatedProduct = productService.addVariant(productId, variant, newPhotoUrls, adminId);
             return ResponseEntity.ok(updatedProduct);
         } catch (Exception e) {
             e.printStackTrace();
@@ -237,6 +244,15 @@ public class ProductController {
             @RequestBody AddStockRequestDTO request,
             @RequestParam(value = "adminId", required = false) Long adminId) {
         VariantResponseDTO response = productService.addStock(variantId, request, adminId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/variants/{variantId}/reduce-stock")
+    public ResponseEntity<VariantResponseDTO> reduceStock(
+            @PathVariable Long variantId,
+            @RequestBody ReduceStockRequestDTO request,
+            @RequestParam(value = "adminId", required = false) Long adminId) {
+        VariantResponseDTO response = productService.reduceStock(variantId, request, adminId);
         return ResponseEntity.ok(response);
     }
 

@@ -936,13 +936,13 @@
 
 .modal-item-card {
   display: flex;
-  gap: 16px;
-  padding: 20px;
-  background: #fafafa;
-  border-radius: 12px;
-  border: 1px solid #f0f0f0;
-  transition: all 0.3s ease;
-  position: relative;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 18px 24px 0;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  margin-bottom: 24px;
 }
 
 .modal-item-card:hover {
@@ -970,6 +970,7 @@
    
   width: 130px;
   height: 160px;
+  margin-left: 12px;
 }
 
 .modal-item-card .item-details {
@@ -983,10 +984,11 @@
 }
 
 .pricing-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
-  margin-top: 12px;
+  display: flex;
+  gap: 28px;
+  flex: 1;
+  justify-content: flex-start;
+  align-items: stretch;
 }
 
 .pricing-item {
@@ -1375,4 +1377,85 @@
 .refunded-item .item-image-container img {
   filter: grayscale(1) brightness(0.85);
   opacity: 0.7;
+}
+
+/* Discount Display Styles */
+.discount-badge {
+  display: inline-block;
+  background: #ffeaea;
+  color: #d32f2f;
+  font-size: 0.85em;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.discount-price-display {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.pricing-row .pricing-value {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.pricing-item .discount-price-display {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.pricing-item .discount-price-display .pricing-value {
+  display: inline;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #888;
+  font-size: 0.9em;
+}
+
+.discounted-price {
+  color: #111;
+  font-weight: 700;
+  font-size: 1.05em;
+}
+
+.discount-box {
+  /* Remove custom background and border, use same as .pricing-item */
+}
+.discount-box .pricing-label {
+  /* Use same as .pricing-item .pricing-label, no changes */
+}
+.discount-box .discount-value {
+  color: #b71c1c;
+  font-size: inherit;
+  font-weight: inherit;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Ensure all pricing-item boxes are the same height */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  width: 100%;
+  gap: 28px;
+  align-items: stretch;
+}
+.pricing-item, .discount-box {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
 }

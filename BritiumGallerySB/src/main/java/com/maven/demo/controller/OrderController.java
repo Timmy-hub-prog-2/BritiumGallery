@@ -436,6 +436,8 @@ public class OrderController {
                 detailDto.setId(detail.getId());
                 detailDto.setQuantity(detail.getQuantity());
                 detailDto.setPrice(detail.getPrice());
+                detailDto.setDiscountAmount(detail.getDiscountAmount());
+                detailDto.setDiscountPercent(detail.getDiscountPercent());
                 detailDto.setRefunded(detail.isRefunded());
                 detailDto.setRefundedQty(detail.getRefundedQty());
                 // Sum all refund requests for this detail with status REQUESTED or APPROVED

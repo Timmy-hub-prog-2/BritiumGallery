@@ -276,7 +276,25 @@
                 <span style="font-size: 13px;">{{attr.key}}: {{attr.value}}</span>
               </div>
               <div>Quantity: {{item.quantity}}</div>
-              <div>Price: {{item.price | number:'1.0-0'}} MMK</div>
+              <div class="price-display">
+                <ng-container *ngIf="getItemDiscountedPrice(item); else noDiscount">
+                  <span style="text-decoration: line-through; color: #888; font-size: 0.9em; margin-right: 6px;">
+                    {{item.price | number:'1.0-0'}} MMK
+                  </span>
+                  <span *ngIf="getItemDiscountPercent(item)" style="background: #ffeaea; color: #d32f2f; font-size: 0.85em; font-weight: 600; border-radius: 6px; padding: 1px 6px; margin-right: 6px;">
+                    -{{getItemDiscountPercent(item) | number:'1.0-0'}}%
+                  </span>
+                  <span style="color: #111; font-weight: 700; font-size: 1.05em;">
+                    {{getItemDiscountedPrice(item) | number:'1.0-0'}} MMK
+                  </span>
+                </ng-container>
+                <ng-template #noDiscount>
+                  {{item.price | number:'1.0-0'}} MMK
+                </ng-template>
+              </div>
+              <div class="item-total">
+                Total: {{item.quantity * getItemDiscountedPrice(item) | number:'1.0-0'}} MMK
+              </div>
               
             </div>
           </li>

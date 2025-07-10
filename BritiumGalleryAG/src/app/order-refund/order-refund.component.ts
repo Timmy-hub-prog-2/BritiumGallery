@@ -98,6 +98,8 @@ export class OrderRefundComponent {
             quantity: [item.quantity],
             remainingQty: [item.remainingQty],
             price: [item.price],
+            discountAmount: [item.discountAmount],
+            discountPercent: [item.discountPercent],
             actualRefundableAmount: [item.actualRefundableAmount],
             refundQuantity: [1],
             reason: [''],

@@ -284,7 +284,17 @@
                     <div class="item-pricing">
                       <div class="pricing-row">
                         <span class="pricing-label">Unit Price</span>
-                        <span class="pricing-value">MMK {{ item.price | number:'1.0-0' }}</span>
+                        <ng-container *ngIf="hasDiscount(item); else noDiscount">
+                          <span class="pricing-value original-price">
+                            MMK {{ item.price | number:'1.0-0' }}
+                          </span>
+                          <span class="pricing-value discounted-price">
+                            MMK {{ getDiscountedPrice(item) | number:'1.0-0' }}
+                          </span>
+                        </ng-container>
+                        <ng-template #noDiscount>
+                          <span class="pricing-value">MMK {{ item.price | number:'1.0-0' }}</span>
+                        </ng-template>
                       </div>
                       <div class="pricing-row total">
                         <span class="pricing-label">Subtotal</span>
@@ -407,14 +417,12 @@
       <div class="modal-body">
         <div class="modal-items-list">
           <div class="modal-item-card" *ngFor="let item of order.orderDetails; let i = index" [ngClass]="{'refunded-item': item.isRefunded}">
-            <div class="item-number">{{ i + 1 }}</div>
             <div class="item-image-container">
               <img 
                 *ngIf="item.variant?.imageUrls?.length" 
                 [src]="item.variant.imageUrls[0]" 
                 [alt]="item.variant?.productName"
                 class="item-image"
-                [ngClass]="{'dimmed': item.isRefunded}"
               />
               <div *ngIf="!item.variant?.imageUrls?.length" class="item-placeholder">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -423,24 +431,36 @@
                   <polyline points="21,15 16,10 5,21"/>
                 </svg>
               </div>
-              <span *ngIf="item.isRefunded" class="refunded-badge">Refunded</span>
             </div>
-            
             <div class="item-details">
               <h4 class="item-name">{{ item.variant?.productName }}</h4>
+              <span *ngIf="item.isRefunded" class="refunded-badge">Refunded{{ item.refundedQty ? ' (' + item.refundedQty + ')' : '' }}</span>
               <p class="item-sku" *ngIf="item.variant?.sku">SKU: {{ item.variant.sku }}</p>
-              
               <div class="item-attributes" *ngIf="item.variant?.attributes">
                 <span class="attribute-tag" *ngFor="let attr of item.variant.attributes | keyvalue">
                   {{ attr.key }}: {{ attr.value }}
                 </span>
               </div>
-              
               <div class="item-pricing">
                 <div class="pricing-grid">
                   <div class="pricing-item">
                     <span class="pricing-label">Unit Price</span>
-                    <span class="pricing-value">MMK {{ item.price | number:'1.0-0' }}</span>
+                    <ng-container *ngIf="hasDiscount(item); else noDiscountModal">
+                      <div class="discount-price-display">
+                        <span class="pricing-value ">
+                          MMK {{ item.price | number:'1.0-0' }}
+                        </span>
+                      </div>
+                    </ng-container>
+                    <ng-template #noDiscountModal>
+                      <span class="pricing-value">MMK {{ item.price | number:'1.0-0' }}</span>
+                    </ng-template>
+                  </div>
+                  <div class="pricing-item discount-box" *ngIf="hasDiscount(item)">
+                    <span class="pricing-label">Discount</span>
+                    <span class="discount-value">
+                      -{{ item.discountPercent }}% 
+                    </span>
                   </div>
                   <div class="pricing-item">
                     <span class="pricing-label">Quantity</span>
@@ -448,7 +468,7 @@
                   </div>
                   <div class="pricing-item total">
                     <span class="pricing-label">Subtotal</span>
-                    <span class="pricing-value">MMK {{ item.quantity * item.price | number:'1.0-0' }}</span>
+                    <span class="pricing-value">MMK {{ getItemSubtotal(item) | number:'1.0-0' }}</span>
                   </div>
                 </div>
               </div>

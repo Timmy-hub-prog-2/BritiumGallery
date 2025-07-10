@@ -318,16 +318,75 @@
   margin-bottom: 12px;
 }
 
+/* --- Discounted Price Section Styles (Balanced) --- */
 .main-price {
-  font-size: 28px;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #000000;
+  color: #111;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  line-height: 1.2;
 }
 
-.price-range {
-  font-size: 16px;
-  color: #666;
+.original-price {
+  text-decoration: line-through;
+  color: #888;
+  font-size: 1.05rem;
+  margin-right: 8px;
+  font-weight: 500;
+  vertical-align: bottom;
 }
+
+.discounted-price {
+  color: #111;
+  font-weight: 700;
+  font-size: 1.35rem;
+  margin-right: 8px;
+  letter-spacing: 0.2px;
+  vertical-align: bottom;
+}
+
+.discount-percent-badge {
+  background: #ffeaea;
+  color: #d32f2f;
+  font-size: 0.35rem;
+  font-weight: 300;
+  border-radius: 8px;
+  padding: 2px 10px;
+  vertical-align: middle;
+  margin-left: 2px;
+  letter-spacing: 0.2px;
+  display: inline-block;
+}
+
+.regular-price {
+  color: #111;
+  font-weight: 700;
+  font-size: 1.35rem;
+}
+
+@media (max-width: 768px) {
+  .main-price {
+    font-size: 1rem;
+    gap: 6px;
+  }
+  .original-price {
+    font-size: 0.95rem;
+  }
+  .discounted-price {
+    font-size: 1rem;
+  }
+  .discount-percent-badge {
+    font-size: 0.85rem;
+    padding: 2px 7px;
+  }
+  .regular-price {
+    font-size: 1rem;
+  }
+}
+/* --- End Discounted Price Section Styles (Balanced) --- */
 
 .sample-info {
   display: flex;

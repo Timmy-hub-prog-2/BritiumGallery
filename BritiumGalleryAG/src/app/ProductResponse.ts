@@ -10,15 +10,17 @@ export interface ProductResponse {
   variants: VariantResponse[];
   imageUrl?: string; // optional fallback
   brand?: string;
+  brandId?:number;
 }
 
 export interface VariantResponse {
   id: number;
   price: number;
   stock: number;
-  attributes: Record<string, string>;
   imageUrls: string[];
-  attributesString?: string; // For editing purposes
-  sku?: string;
-  productName?: string;
+  attributes: { [key: string]: string };
+  sku: string;
+  productName: string;
+  discountPercent?: number | null;
+  discountedPrice?: number | null;
 }

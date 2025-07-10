@@ -9,6 +9,8 @@ export interface CartItem {
   quantity: number;
   price: number;
   stock: number;
+  discountedPrice?: number | null;
+  discountPercent?: number | null;
 }
 
 @Injectable({

@@ -102,6 +102,10 @@ export class ProductService {
     return this.http.post<VariantResponse>(`${this.baseUrl}/variants/${stockData.variantId}/add-stock`, stockData, { params });
   }
 
+  reduceStock(variantId: number, body: { reductions: { purchaseId: number, quantity: number }[] }) {
+    return this.http.post(`${this.baseUrl}/variants/${variantId}/reduce-stock`, body);
+  }
+
   getAllProducts(): Observable<Product[]> {
     return this.http.get<Product[]>(`${this.baseUrl}/all`);
   }

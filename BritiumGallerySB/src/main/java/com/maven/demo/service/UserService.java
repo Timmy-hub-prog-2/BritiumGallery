@@ -162,11 +162,19 @@ public class UserService {
             response.setPhoneNumber(updatedUser.getPhoneNumber());
             response.setImageUrls(updatedUser.getImageUrls());
             response.setGender(updatedUser.getGender());
-
-
-             response.setStatus(updatedUser.getStatus());
-             response.setRoleId(updatedUser.getRole() != null ? updatedUser.getRole().getId() : null);
-
+            response.setStatus(updatedUser.getStatus());
+            response.setRoleId(updatedUser.getRole() != null ? updatedUser.getRole().getId() : null);
+            // Set customerType if present
+            if (updatedUser.getCustomerType() != null) {
+                response.setCustomerType(updatedUser.getCustomerType().getType());
+            }
+            // Set totalSpend (sum all, or use first if only one)
+            if (updatedUser.getTotalSpends() != null && !updatedUser.getTotalSpends().isEmpty()) {
+                int total = updatedUser.getTotalSpends().stream().mapToInt(ts -> ts.getAmount()).sum();
+                response.setTotalSpend(total);
+            } else {
+                response.setTotalSpend(0);
+            }
             return response;
         });
     }
