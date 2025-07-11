@@ -5114,3 +5114,22 @@
   background: #1251a3;
   box-shadow: 0 4px 16px rgba(25,118,210,0.13);
 }
+
+/* Error styling for form validation */
+.error-input {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.create-field .error-message,
+.edit-field .error-message {
+  margin-top: 4px;
+  padding-left: 2px;
+}

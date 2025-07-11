@@ -177,36 +177,21 @@
           </th>
           <td mat-cell *matCellDef="let variant" class="data-cell-clean">
             <div class="actions-group-clean">
-              <span class="custom-tooltip-container">
-                <button mat-icon-button (click)="editVariant(variant)" class="action-icon-clean edit">
+              <button mat-icon-button (click)="editVariant(variant)" matTooltip="Edit Variant" class="action-icon-clean edit">
               <mat-icon>edit</mat-icon>
             </button>
-                <span class="custom-tooltip">Edit Variant</span>
-              </span>
-              <span class="custom-tooltip-container">
-                <button mat-icon-button (click)="addStock(variant)" class="action-icon-clean add">
+              <button mat-icon-button (click)="addStock(variant)" matTooltip="Add Stock" class="action-icon-clean add">
                 <mat-icon>add_circle</mat-icon>
               </button>
-                <span class="custom-tooltip">Add Stock</span>
-              </span>
-              <span class="custom-tooltip-container">
-                <button mat-icon-button (click)="openReduceStockModal(variant)" class="action-icon-clean reduce">
+              <button mat-icon-button (click)="openReduceStockModal(variant)" matTooltip="Reduce Stock" class="action-icon-clean reduce">
                 <mat-icon>remove_circle</mat-icon>
             </button>
-                <span class="custom-tooltip">Reduce Stock</span>
-              </span>
-              <span class="custom-tooltip-container">
-                <button mat-icon-button (click)="showHistory(variant)" class="action-icon-clean history">
+              <button mat-icon-button (click)="showHistory(variant)" matTooltip="View History" class="action-icon-clean history">
               <mat-icon>history</mat-icon>
             </button>
-                <span class="custom-tooltip">View History</span>
-              </span>
-              <span class="custom-tooltip-container">
-                <button mat-icon-button (click)="deleteVariant(variant)" class="action-icon-clean delete">
+              <button mat-icon-button (click)="deleteVariant(variant)" matTooltip="Delete Variant" class="action-icon-clean delete">
               <mat-icon>delete</mat-icon>
             </button>
-                <span class="custom-tooltip">Delete Variant</span>
-              </span>
             </div>
           </td>
         </ng-container>
@@ -714,6 +699,175 @@
     </div>
   </ng-template>
 
+  <!-- History Modal -->
+  <ng-template #historyModal>
+    <div class="modal-clean extra-large">
+      <div class="modal-header-clean">
+        <div class="modal-title-section">
+          <div class="modal-icon-clean history">
+            <mat-icon>history</mat-icon>
+          </div>
+          <div class="modal-title-content">
+            <h2 class="modal-title-clean">Variant History</h2>
+            <p class="modal-subtitle-clean">Variant #{{ selectedVariantForHistory?.id }}</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-clean" (click)="closeHistoryModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body-clean history-body">
+        <div class="history-tabs-clean">
+          <div class="tab-clean active">
+            <mat-icon>sell</mat-icon>
+            <span>Price History</span>
+          </div>
+          <div class="tab-clean">
+            <mat-icon>shopping_cart</mat-icon>
+            <span>Purchase History</span>
+          </div>
+        </div>
+
+        <div class="history-content-clean">
+          <!-- Price History -->
+          <div class="history-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>trending_up</mat-icon>
+              <span>Selling Price History</span>
+    </div>
+            
+            <div class="history-table-clean">
+              <table mat-table [dataSource]="priceHistoryDataSource" matSort #priceSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="data-table-clean">
+          <ng-container matColumnDef="price">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">attach_money</mat-icon>
+                      <span>Price</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                    <div class="price-display-clean">
+                      <span class="price-amount-clean">{{ row.price }}</span>
+                      <span class="price-currency-clean">MMK</span>
+                    </div>
+                  </td>
+          </ng-container>
+                
+          <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">schedule</mat-icon>
+                      <span>Date</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.priceDate | date:'MMM dd, yyyy HH:mm' }}</td>
+          </ng-container>
+                
+          <ng-container matColumnDef="admin">
+                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">person</mat-icon>
+                      <span>Admin</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.adminName || 'N/A' }} ({{ row.adminId }})</td>
+          </ng-container>
+                
+                <tr mat-header-row *matHeaderRowDef="['price', 'date', 'admin']" class="header-row-clean"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['price', 'date', 'admin'];" class="data-row-clean"></tr>
+                
+                <tr *ngIf="priceHistoryDataSource.data.length === 0" class="empty-row-clean">
+                  <td colspan="3" class="empty-cell-clean">
+                    <div class="empty-state-clean">
+                      <mat-icon>trending_flat</mat-icon>
+                      <p>No price history available</p>
+                    </div>
+                  </td>
+          </tr>
+        </table>
+      </div>
+          </div>
+
+          <!-- Purchase History -->
+          <div class="history-section-clean">
+            <div class="section-title-clean">
+              <mat-icon>shopping_basket</mat-icon>
+              <span>Purchase History</span>
+            </div>
+            
+            <div class="history-table-clean">
+              <table mat-table [dataSource]="purchaseHistoryDataSource" matSort #purchaseSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="data-table-clean">
+          <ng-container matColumnDef="purchasePrice">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">shopping_cart</mat-icon>
+                      <span>Purchase Price</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                    <div class="price-display-clean">
+                      <span class="price-amount-clean">{{ row.purchasePrice }}</span>
+                      <span class="price-currency-clean">MMK</span>
+                    </div>
+                  </td>
+          </ng-container>
+                
+          <ng-container matColumnDef="quantity">
+                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">inventory_2</mat-icon>
+                      <span>Quantity</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                    <div class="quantity-badge-clean">{{ row.quantity }}</div>
+                  </td>
+          </ng-container>
+                
+          <ng-container matColumnDef="remaining">
+                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">inventory</mat-icon>
+                      <span>Remaining</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                    <div class="remaining-badge-clean" [class.low]="row.remainingQuantity <= 5">
+                      {{ row.remainingQuantity }}
+                    </div>
+                  </td>
+          </ng-container>
+                
+          <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+                    <div class="header-content-clean">
+                      <mat-icon class="header-icon">schedule</mat-icon>
+                      <span>Date</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.purchaseDate | date:'MMM dd, yyyy HH:mm' }}</td>
+          </ng-container>
+                
+                <tr mat-header-row *matHeaderRowDef="['purchasePrice', 'quantity', 'remaining', 'date']" class="header-row-clean"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['purchasePrice', 'quantity', 'remaining', 'date'];" class="data-row-clean"></tr>
+                
+                <tr *ngIf="purchaseHistoryDataSource.data.length === 0" class="empty-row-clean">
+                  <td colspan="4" class="empty-cell-clean">
+                    <div class="empty-state-clean">
+                      <mat-icon>shopping_basket</mat-icon>
+                      <p>No purchase history available</p>
+                    </div>
+                  </td>
+          </tr>
+        </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
   <!-- Reduce Stock Modal -->
   <ng-template #reduceStockModal>
     <div class="modal-clean large">
@@ -789,21 +943,6 @@
             </div>
           </div>
 
-          <!-- Reduction Reason -->
-          <div class="reason-section-clean">
-            <div class="section-title-clean">
-              <mat-icon>help_outline</mat-icon>
-              <span>Reduction Reason</span>
-            </div>
-            <mat-form-field appearance="outline" class="form-field-clean full-width">
-              <mat-label>Why are you reducing this stock?</mat-label>
-              <textarea matInput formControlName="reductionReason" rows="3" 
-                        placeholder="e.g., Damaged goods, Return to supplier, Quality issues, etc."></textarea>
-              <mat-icon matSuffix>description</mat-icon>
-              <mat-error *ngIf="reduceStockForm.get('reductionReason')?.hasError('required')">Reason is required</mat-error>
-            </mat-form-field>
-          </div>
-
           <!-- Summary -->
           <div class="summary-section-clean">
             <div class="summary-header-clean">
@@ -845,230 +984,3 @@
     </div>
   </ng-template>
 </div>
-
-<!-- Custom History Modal Overlay -->
-<div *ngIf="showCustomHistoryModal" class="custom-modal-overlay">
-  <div class="custom-modal-box">
-    <button class="custom-modal-close" (click)="closeCustomHistoryModal()">&times;</button>
-      <div class="modal-header-clean">
-        <div class="modal-title-section">
-          <div class="modal-icon-clean history">
-            <mat-icon>history</mat-icon>
-          </div>
-          <div class="modal-title-content">
-            <h2 class="modal-title-clean">Variant History</h2>
-            <p class="modal-subtitle-clean">Variant #{{ selectedVariantForHistory?.id }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="modal-body-clean history-body">
-        <div class="history-tabs-clean">
-        <div class="tab-clean" [class.active]="activeHistoryTab === 'price'" (click)="setActiveHistoryTab('price')">
-            <mat-icon>sell</mat-icon>
-            <span>Price History</span>
-          </div>
-        <div class="tab-clean" [class.active]="activeHistoryTab === 'purchase'" (click)="setActiveHistoryTab('purchase')">
-            <mat-icon>shopping_cart</mat-icon>
-            <span>Purchase History</span>
-          </div>
-        <div class="tab-clean" [class.active]="activeHistoryTab === 'reduce'" (click)="setActiveHistoryTab('reduce')">
-          <mat-icon>remove_shopping_cart</mat-icon>
-          <span>Reduce Stock History</span>
-        </div>
-      </div>
-        <div class="history-content-clean">
-          <!-- Price History -->
-        <div class="history-section-clean" *ngIf="activeHistoryTab === 'price'">
-            <div class="section-title-clean">
-              <mat-icon>trending_up</mat-icon>
-              <span>Selling Price History</span>
-    </div>
-            
-            <div class="history-table-clean">
-              <table mat-table [dataSource]="priceHistoryDataSource" matSort #priceSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="data-table-clean">
-          <ng-container matColumnDef="price">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">attach_money</mat-icon>
-                      <span>Price</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                    <div class="price-display-clean">
-                      <span class="price-amount-clean">{{ row.price }}</span>
-                      <span class="price-currency-clean">MMK</span>
-                    </div>
-                  </td>
-          </ng-container>
-                
-          <ng-container matColumnDef="date">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">schedule</mat-icon>
-                      <span>Date</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.priceDate | date:'MMM dd, yyyy HH:mm' }}</td>
-          </ng-container>
-                
-          <ng-container matColumnDef="admin">
-                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">person</mat-icon>
-                      <span>Admin</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.adminName || 'N/A' }} ({{ row.adminId }})</td>
-          </ng-container>
-                
-                <tr mat-header-row *matHeaderRowDef="['price', 'date', 'admin']" class="header-row-clean"></tr>
-                <tr mat-row *matRowDef="let row; columns: ['price', 'date', 'admin'];" class="data-row-clean"></tr>
-                
-                <tr *ngIf="priceHistoryDataSource.data.length === 0" class="empty-row-clean">
-                  <td colspan="3" class="empty-cell-clean">
-                    <div class="empty-state-clean">
-                      <mat-icon>trending_flat</mat-icon>
-                      <p>No price history available</p>
-                    </div>
-                  </td>
-          </tr>
-        </table>
-      </div>
-          </div>
-
-          <!-- Purchase History -->
-          <div class="history-section-clean" *ngIf="activeHistoryTab === 'purchase'">
-            <div class="section-title-clean">
-              <mat-icon>shopping_basket</mat-icon>
-              <span>Purchase History</span>
-            </div>
-            
-            <div class="history-table-clean">
-              <table mat-table [dataSource]="purchaseHistoryDataSource" matSort #purchaseSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="data-table-clean">
-                <ng-container matColumnDef="batchId">
-                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">confirmation_number</mat-icon>
-                      <span>Batch ID</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                    <span class="batch-id">#{{ row.id }}</span>
-                  </td>
-                </ng-container>
-          <ng-container matColumnDef="purchasePrice">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">shopping_cart</mat-icon>
-                      <span>Purchase Price</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                    <div class="price-display-clean">
-                      <span class="price-amount-clean">{{ row.purchasePrice }}</span>
-                      <span class="price-currency-clean">MMK</span>
-                    </div>
-                  </td>
-          </ng-container>
-          <ng-container matColumnDef="quantity">
-                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">inventory_2</mat-icon>
-                      <span>Quantity</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                    <div class="quantity-badge-clean">{{ row.quantity }}</div>
-                  </td>
-          </ng-container>
-          <ng-container matColumnDef="remaining">
-                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">inventory</mat-icon>
-                      <span>Remaining</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                    <div class="remaining-badge-clean" [class.low]="row.remainingQuantity <= 5">
-                      {{ row.remainingQuantity }}
-                    </div>
-                  </td>
-          </ng-container>
-          <ng-container matColumnDef="date">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">schedule</mat-icon>
-                      <span>Date</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.purchaseDate | date:'MMM dd, yyyy HH:mm' }}</td>
-          </ng-container>
-                <tr mat-header-row *matHeaderRowDef="['batchId', 'purchasePrice', 'quantity', 'remaining', 'date']" class="header-row-clean"></tr>
-                <tr mat-row *matRowDef="let row; columns: ['batchId', 'purchasePrice', 'quantity', 'remaining', 'date'];" class="data-row-clean"></tr>
-                <tr *ngIf="purchaseHistoryDataSource.data.length === 0" class="empty-row-clean">
-                  <td colspan="5" class="empty-cell-clean">
-                    <div class="empty-state-clean">
-                      <mat-icon>shopping_basket</mat-icon>
-                      <p>No purchase history available</p>
-                    </div>
-                  </td>
-          </tr>
-        </table>
-            </div>
-          </div>
-
-          <!-- Reduce Stock History -->
-          <div class="history-section-clean" *ngIf="activeHistoryTab === 'reduce'">
-            <div class="section-title-clean">
-            <mat-icon>remove_shopping_cart</mat-icon>
-              <span>Reduce Stock History</span>
-      </div>
-
-            <div class="history-table-clean">
-              <table class="data-table-clean">
-    <thead>
-      <tr class="header-row-clean">
-        <th>Reduction Reason</th>
-        <th>Admin</th>
-        <th>Date</th>
-        <th>Stock Change</th>
-        <th>Details (Batches)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let group of groupedReduceStockHistory">
-        <td>
-          <div class="reason-text-clean">{{ group.reductionReason }}</div>
-        </td>
-        <td>{{ group.adminName || 'N/A' }}</td>
-        <td>{{ group.reducedAt | date:'MMM dd, yyyy HH:mm' }}</td>
-        <td>
-          <span class="before-clean">{{ group.totalStockBeforeReduction }} → {{ group.totalStockAfterReduction }}</span>
-        </td>
-        <td>
-          <ul style="margin:0; padding-left: 1em;">
-            <li *ngFor="let row of group.rows">
-              <span class="batch-id">Batch #{{ row.purchaseHistoryId }}</span>
-              <span class="batch-qty">Quantity: {{ row.quantityReduced }}</span>
-              <span class="batch-price">Purchase Price: {{ row.purchasePriceAtReduction }} MMK</span>
-            </li>
-          </ul>
-        </td>
-      </tr>
-      <tr *ngIf="groupedReduceStockHistory.length === 0" class="empty-row-clean">
-        <td colspan="5" class="empty-cell-clean">
-          <div class="empty-state-clean">
-            <mat-icon>remove_shopping_cart</mat-icon>
-            <p>No reduce stock history available</p>
-            </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-            </div>
-          </div>
-            </div>
-                  </div>
-                  </div>
-                </div>
-                

@@ -15,18 +15,7 @@ public class OrderRefundDTO {
     private List<OrderDetailRefundDTO> orderDetails;
     private Integer discountAmount;
     private Integer subtotal;
-    private Integer total;
-    private Integer deliveryFee;
     private String appliedCouponCode;
-    private String discountType;
-    private String discountValue;
-
-    public Integer getDeliveryFee() { return deliveryFee; }
-    public void setDeliveryFee(Integer deliveryFee) { this.deliveryFee = deliveryFee; }
-    public String getDiscountType() { return discountType; }
-    public void setDiscountType(String discountType) { this.discountType = discountType; }
-    public String getDiscountValue() { return discountValue; }
-    public void setDiscountValue(String discountValue) { this.discountValue = discountValue; }
 
     @Data
     public static class OrderDetailRefundDTO {

@@ -30,13 +30,13 @@ export class LoginComponent {
 
       // Redirect based on role
       if (user.roleId === 3) {
-        this.router.navigate(['/customer-dashboard']).then(() => {
-          window.location.reload();
-        });
+
+        this.router.navigate(['/customer-dashboard']);
+
       } else if (user.roleId === 2) {
-        this.router.navigate(['/admin-dashboard']).then(() => {
-          window.location.reload();
-        });
+
+        this.router.navigate(['/admin-dashboard']);
+         this.cdr.detectChanges();
       } else {
         this.message = 'Unauthorized role. Please contact support.';
       }

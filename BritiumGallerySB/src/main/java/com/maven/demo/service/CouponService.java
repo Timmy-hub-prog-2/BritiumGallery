@@ -128,6 +128,12 @@ public class CouponService {
         Optional<CouponEntity> existingCouponOpt = couponRepository.findByCode(code);
         if (existingCouponOpt.isPresent()) {
             CouponEntity existingCoupon = existingCouponOpt.get();
+            
+            // Validate dates - allow past dates for updates to enable editing of historical coupons
+            if (couponDetails.getEndDate() != null && couponDetails.getEndDate().isBefore(couponDetails.getStartDate())) {
+                throw new RuntimeException("End date cannot be before the start date.");
+            }
+            
             existingCoupon.setType(couponDetails.getType());
             existingCoupon.setDiscount(couponDetails.getDiscount());
             existingCoupon.setStartDate(couponDetails.getStartDate());

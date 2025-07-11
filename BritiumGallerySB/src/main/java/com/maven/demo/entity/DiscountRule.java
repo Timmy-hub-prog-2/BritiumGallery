@@ -47,9 +47,6 @@ public class DiscountRule {
     @Column(name = "brand_id")
     private Long brandId;
     
-    @Column(nullable = false)
-    private boolean active = true;
-    
     @OneToMany(mappedBy = "rule", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<DiscountRuleAttributeOption> attributeOptions = new ArrayList<>();

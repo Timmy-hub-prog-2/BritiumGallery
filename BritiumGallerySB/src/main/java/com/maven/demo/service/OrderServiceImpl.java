@@ -667,9 +667,9 @@ public class OrderServiceImpl implements OrderService {
 
             int total = totalSpend.getAmount();
             CustomerTypeEntity newType = null;
-            if (total > 6000000) {
+            if (total > 500000) {
                 newType = customerTypeRepository.findById(3L).orElse(null); // VIP
-            } else if (total > 3000000) {
+            } else if (total > 100000) {
                 newType = customerTypeRepository.findById(2L).orElse(null); // Loyality
             }
             if (newType != null && (user.getCustomerType() == null || !user.getCustomerType().getId().equals(newType.getId()))) {

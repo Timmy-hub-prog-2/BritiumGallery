@@ -62,7 +62,6 @@ public class DiscountService {
                 rule.setDiscountPercent(ruleDto.getDiscountPercent());
                 rule.setAdminId(dto.getAdminId());
                 rule.setBrandId(ruleDto.getBrandId());
-                rule.setActive(ruleDto.isActive());
 
                 // Create attribute options if specified
                 if (ruleDto.getAttributeOptionIds() != null && !ruleDto.getAttributeOptionIds().isEmpty()) {
@@ -163,10 +162,7 @@ public class DiscountService {
         // Store old values for history
         DiscountEventDTO oldDto = convertToDTO(event);
 
-        // Validate dates
-        if (dto.getStartDate().isBefore(LocalDate.now())) {
-            throw new RuntimeException("Start date cannot be in the past");
-        }
+        // Validate dates - allow past dates for updates to enable editing of historical events
         if (dto.getEndDate().isBefore(dto.getStartDate())) {
             throw new RuntimeException("End date cannot be before start date");
         }
@@ -191,7 +187,6 @@ public class DiscountService {
                 rule.setDiscountPercent(ruleDto.getDiscountPercent());
                 rule.setAdminId(dto.getAdminId());
                 rule.setBrandId(ruleDto.getBrandId());
-                rule.setActive(ruleDto.isActive());
                 // Attribute options
                 if (ruleDto.getAttributeOptionIds() != null && !ruleDto.getAttributeOptionIds().isEmpty()) {
                     for (Long optionId : ruleDto.getAttributeOptionIds()) {
@@ -431,7 +426,6 @@ public class DiscountService {
         dto.setDiscountPercent(rule.getDiscountPercent());
         dto.setAdminId(rule.getAdminId());
         dto.setBrandId(rule.getBrandId());
-        dto.setActive(rule.isActive());
         dto.setCreatedAt(rule.getCreatedAt());
         dto.setUpdatedAt(rule.getUpdatedAt());
         
@@ -470,7 +464,6 @@ public class DiscountService {
         dto.setDiscountPercent(rule.getDiscountPercent());
         dto.setAdminId(rule.getAdminId());
         dto.setBrandId(rule.getBrandId());
-        dto.setActive(rule.isActive());
         // Add attribute options if needed
         return dto;
     }

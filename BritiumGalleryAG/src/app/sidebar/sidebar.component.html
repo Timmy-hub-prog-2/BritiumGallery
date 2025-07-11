@@ -1,5 +1,5 @@
 <div class="admin-sidebar" [class.expanded]="expanded" [class.collapsed]="!expanded">
-  
+
   <!-- Sidebar Header -->
   <div class="sidebar-header">
     <div class="logo-section" *ngIf="expanded">
@@ -15,9 +15,9 @@
         <p class="brand-subtitle">Management System</p>
       </div>
     </div>
-    
-    <button class="sidebar-toggle" 
-            (click)="toggleSidebar()" 
+
+    <button class="sidebar-toggle"
+            (click)="toggleSidebar()"
             [title]="expanded ? 'Collapse sidebar' : 'Expand sidebar'"
             aria-label="Toggle sidebar">
       <svg class="toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -32,11 +32,11 @@
 
   <!-- Navigation Menu -->
   <nav class="sidebar-nav" [class.scrollable]="expanded">
-    
+
     <!-- Dashboard -->
     <div class="nav-section">
-      <a routerLink="/admin-dashboard" 
-         routerLinkActive="active" 
+      <a routerLink="/admin-dashboard"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Dashboard' : ''"
          aria-label="Dashboard">
@@ -61,9 +61,9 @@
         </svg>
         Products
       </h3>
-      
-      <a routerLink="/categoryList" 
-         routerLinkActive="active" 
+
+      <a routerLink="/categoryList"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Category & Product' : ''"
          aria-label="Category & Product">
@@ -79,8 +79,8 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/brand-register" 
-         routerLinkActive="active" 
+      <a routerLink="/brand-register"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Brands' : ''"
          aria-label="Brands">
@@ -105,10 +105,10 @@
         </svg>
         Users
       </h3>
-      
+
       <div class="nav-group" *ngIf="expanded">
-        <a routerLink="/viewcustomer" 
-           routerLinkActive="active" 
+        <a routerLink="/viewcustomer"
+           routerLinkActive="active"
            class="nav-item sub-item"
            aria-label="View Customer">
           <div class="nav-icon">
@@ -121,8 +121,8 @@
           <div class="nav-indicator"></div>
         </a>
 
-        <a routerLink="/viewadmin" 
-           routerLinkActive="active" 
+        <a routerLink="/viewadmin"
+           routerLinkActive="active"
            class="nav-item sub-item"
            aria-label="View Admin">
           <div class="nav-icon">
@@ -138,8 +138,8 @@
 
       <!-- Collapsed User Items -->
       <div class="nav-group" *ngIf="!expanded">
-        <a routerLink="/viewcustomer" 
-           routerLinkActive="active" 
+        <a routerLink="/viewcustomer"
+           routerLinkActive="active"
            class="nav-item"
            title="View Customer"
            aria-label="View Customer">
@@ -151,8 +151,8 @@
           </div>
         </a>
 
-        <a routerLink="/viewadmin" 
-           routerLinkActive="active" 
+        <a routerLink="/viewadmin"
+           routerLinkActive="active"
            class="nav-item"
            title="View Admin"
            aria-label="View Admin">
@@ -175,9 +175,9 @@
         </svg>
         Sales
       </h3>
-      
-      <a routerLink="/coupon" 
-         routerLinkActive="active" 
+
+      <a routerLink="/coupon"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Promotion & Discount' : ''"
          aria-label="Promotion & Discount">
@@ -190,8 +190,8 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/events" 
-         routerLinkActive="active" 
+      <a routerLink="/events"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Events' : ''"
          aria-label="Events">
@@ -218,9 +218,9 @@
         </svg>
         Operations
       </h3>
-      
-      <a routerLink="/admin-order-list" 
-         routerLinkActive="active" 
+
+      <a routerLink="/admin-order-list"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Orders' : ''"
          aria-label="Orders">
@@ -235,8 +235,8 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/admin-order-refund-list" 
-         routerLinkActive="active" 
+      <a routerLink="/admin-order-refund-list"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Refunds' : ''"
          aria-label="Refunds">
@@ -250,8 +250,8 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/delivery" 
-         routerLinkActive="active" 
+      <a routerLink="/delivery"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Delivery' : ''"
          aria-label="Delivery">
@@ -267,8 +267,8 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/payment-list" 
-         routerLinkActive="active" 
+      <a routerLink="/payment-list"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Payments' : ''"
          aria-label="Payments">
@@ -292,9 +292,9 @@
         </svg>
         System
       </h3>
-      
-      <a routerLink="/create-notification" 
-         routerLinkActive="active" 
+
+      <a routerLink="/create-notification"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Notifications' : ''"
          aria-label="Notifications">
@@ -308,8 +308,8 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/shopaddressform" 
-         routerLinkActive="active" 
+      <a routerLink="/shopaddressform"
+         routerLinkActive="active"
          class="nav-item"
          [title]="!expanded ? 'Shop Settings' : ''"
          aria-label="Shop Settings">
@@ -326,5 +326,5 @@
     </div>
   </nav>
 
-  
+
 </div>

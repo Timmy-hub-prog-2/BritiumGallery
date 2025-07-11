@@ -68,7 +68,6 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
   basePhotoPreview?: string
   reduceStockForm: FormGroup
   isReducing = false
-  showCustomHistoryModal = false;
 
   @ViewChild("reduceStockModal") reduceStockModal!: TemplateRef<any>
   @ViewChild(MatPaginator) paginator!: MatPaginator
@@ -84,13 +83,9 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
 
   priceHistory: any[] = []
   purchaseHistory: any[] = []
-  reduceStockHistory: any[] = []
-  groupedReduceStockHistory: any[] = []
   selectedVariantForHistory: VariantResponse | null = null
   priceHistoryDataSource = new MatTableDataSource<any>()
   purchaseHistoryDataSource = new MatTableDataSource<any>()
-  reduceStockHistoryDataSource = new MatTableDataSource<any>()
-  activeHistoryTab: 'price' | 'purchase' | 'reduce' = 'price'
 
   constructor(
     private route: ActivatedRoute,
@@ -124,7 +119,6 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
 
     this.reduceStockForm = this.fb.group({
       reductions: this.fb.array<FormGroup>([]),
-      reductionReason: ['', Validators.required],
     })
 
     this.dataSource = new MatTableDataSource<VariantResponse>([])
@@ -327,8 +321,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
     })
 
     this.addVariantDialogRef = this.dialog.open(this.addVariantModal, {
-      width: "100vw",
-          maxWidth: "100vw",
+      width: "800px",
       disableClose: true,
     })
 
@@ -370,7 +363,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
     this.cdRef.detectChanges()
 
     const dialogRef = this.dialog.open(this.editVariantModal, {
-      maxWidth: "800px",
+      width: "800px",
       data: { title: "Edit Variant" },
       disableClose: true,
     })
@@ -748,11 +741,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         })
 
         const dialogRef = this.dialog.open(this.addStockModal, {
-          width: "100vw",
-          maxWidth: "100vw",
-          height:"100vw",
-          maxHeight: "100vw",
-
+          width: "500px",
           disableClose: true,
         })
 
@@ -803,22 +792,33 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
   }
 
   showHistory(variant: VariantResponse): void {
-    this.selectedVariantForHistory = variant;
-    this.loadHistoryData(variant.id);
-    this.showCustomHistoryModal = true;
+    this.selectedVariantForHistory = variant
+    this.loadHistoryData(variant.id)
+
+    const dialogRef = this.dialog.open(this.historyModal, {
+      width: "92vw",
+      maxWidth: "1500px",
+      maxHeight: "100vh",
+      disableClose: true,
+      panelClass: "history-modal",
+    })
+
+    dialogRef.afterOpened().subscribe(() => {
+      if (this.priceSort) this.priceHistoryDataSource.sort = this.priceSort
+      if (this.purchaseSort) this.purchaseHistoryDataSource.sort = this.purchaseSort
+    })
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.selectedVariantForHistory = null
+      this.priceHistory = []
+      this.purchaseHistory = []
+      this.priceHistoryDataSource.data = []
+      this.purchaseHistoryDataSource.data = []
+    })
   }
 
-  closeCustomHistoryModal(): void {
-    this.showCustomHistoryModal = false;
-    this.selectedVariantForHistory = null;
-    this.priceHistory = [];
-    this.purchaseHistory = [];
-    this.priceHistoryDataSource.data = [];
-    this.purchaseHistoryDataSource.data = [];
-  }
-
-  setActiveHistoryTab(tab: 'price' | 'purchase' | 'reduce'): void {
-    this.activeHistoryTab = tab
+  closeHistoryModal(): void {
+    this.dialog.closeAll()
   }
 
   private loadHistoryData(variantId: number): void {
@@ -843,42 +843,6 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
       error: (error: Error) => {
         console.error("Error loading purchase history:", error)
         this.showError("Failed to load purchase history")
-      },
-    })
-
-    this.productService.getReduceStockHistory(variantId).subscribe({
-      next: (data: any[]) => {
-        data.forEach((row) => (row.reducedAt = new Date(row.reducedAt)))
-        this.reduceStockHistory = data
-        // Robust grouping: group by reducedAt up to seconds, reductionReason, and adminId
-        const pad = (n: number) => n.toString().padStart(2, '0');
-        const toKey = (row: any) => {
-          const d = row.reducedAt instanceof Date ? row.reducedAt : new Date(row.reducedAt);
-          const dateKey = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-          return `${dateKey}|${row.reductionReason}|${row.adminId}`;
-        };
-        const groups: {[key: string]: any} = {};
-        data.forEach((row) => {
-          const key = toKey(row);
-          if (!groups[key]) {
-            groups[key] = {
-              reducedAt: row.reducedAt,
-              reductionReason: row.reductionReason,
-              adminId: row.adminId,
-              adminName: row.adminName,
-              totalStockBeforeReduction: row.totalStockBeforeReduction,
-              totalStockAfterReduction: row.totalStockAfterReduction,
-              rows: [],
-            };
-          }
-          groups[key].rows.push(row);
-        });
-        this.groupedReduceStockHistory = Object.values(groups);
-        this.reduceStockHistoryDataSource.data = data;
-      },
-      error: (error: Error) => {
-        console.error("Error loading reduce stock history:", error)
-        this.showError("Failed to load reduce stock history")
       },
     })
   }
@@ -929,10 +893,8 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
           }),
         )
 
-        // Ensure reductionReason is always included in the form group
         this.reduceStockForm = this.fb.group({
           reductions: this.fb.array(reductionsFGs),
-          reductionReason: ['', Validators.required],
         })
 
         const dialogRef = this.dialog.open(this.reduceStockModal, {
@@ -985,22 +947,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         }))
         .filter((r) => r.quantity > 0)
 
-      const requestBody = {
-        reductions: reductions,
-        reductionReason: this.reduceStockForm.get('reductionReason')?.value
-      }
-
-      // Get admin ID from localStorage
-      const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser") || "{}")
-      const adminId = loggedInUser && loggedInUser.id ? loggedInUser.id : null
-
-      if (!adminId) {
-        this.showError("Admin ID not found. Please log in again.")
-        this.isReducing = false
-        return
-      }
-
-      this.productService.reduceStock(this.selectedVariant.id, requestBody, adminId).subscribe({
+      this.productService.reduceStock(this.selectedVariant.id, { reductions }).subscribe({
         next: () => {
           this.showSuccess("Stock reduced successfully")
           if (this.product) {
