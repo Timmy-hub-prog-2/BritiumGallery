@@ -28,7 +28,6 @@ import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
 import com.maven.demo.dto.PurchaseHistoryResponseDTO;
-import com.maven.demo.dto.ReduceStockHistoryResponseDTO;
 import com.maven.demo.dto.ReduceStockRequestDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
@@ -69,14 +68,14 @@ public class ProductController {
             String variantKey = "variant_" + i;
             List<MultipartFile> variantFiles = allFiles.get(variantKey);
             List<String> photoUrls = new ArrayList<>();
-            
+
             if (variantFiles != null) {
                 for (MultipartFile file : variantFiles) {
                     String photoUrl = cloudinaryService.uploadToCloudinary(file, "products/variants");
                     photoUrls.add(photoUrl);
                 }
             }
-            
+
             // Set the uploaded photo URLs for this specific variant
             dto.getVariants().get(i).setImageUrls(photoUrls);
         }
@@ -149,7 +148,7 @@ public class ProductController {
                         })
                         .toList();
             }
-            
+
             ProductResponseDTO updatedProduct = productService.updateVariant(variantId, variant, newPhotoUrls, adminId);
             System.out.println("Received VariantDTO in controller: " + variant);
             if (variant.getAttributes() != null) {
@@ -223,7 +222,7 @@ public class ProductController {
                 filters.put(entry.getKey(), entry.getValue());
             }
         }
-        
+
         List<ProductResponseDTO> products = productService.getFilteredProducts(categoryId, filters);
         return ResponseEntity.ok(products);
     }
@@ -269,12 +268,6 @@ public class ProductController {
         return ResponseEntity.ok(purchaseHistory);
     }
 
-    @GetMapping("/variants/{variantId}/reduce-stock-history")
-    public ResponseEntity<List<ReduceStockHistoryResponseDTO>> getReduceStockHistory(@PathVariable Long variantId) {
-        List<ReduceStockHistoryResponseDTO> reduceStockHistory = productService.getReduceStockHistory(variantId);
-        return ResponseEntity.ok(reduceStockHistory);
-    }
-
     @GetMapping("/variants/{variantId}")
     public ResponseEntity<VariantResponseDTO> getVariantById(@PathVariable Long variantId) {
         VariantResponseDTO variant = productService.getVariantById(variantId);
@@ -292,6 +285,8 @@ public class ProductController {
         List<Map<String, Object>> dtos = variants.stream().map(variant -> {
             Map<String, Object> dto = new HashMap<>();
             dto.put("id", variant.getId());
+            dto.put("productId", variant.getProduct() != null ? variant.getProduct().getId() : null);
+
             StringBuilder nameBuilder = new StringBuilder();
             if (variant.getProduct() != null) {
                 nameBuilder.append(variant.getProduct().getName());
@@ -299,15 +294,28 @@ public class ProductController {
             if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
                 nameBuilder.append(" - ");
                 nameBuilder.append(
-                    variant.getAttributeValues().stream()
-                        .map(attr -> attr.getAttribute().getName() + ": " + attr.getValue())
-                        .reduce((a, b) -> a + ", " + b).orElse("")
+                        variant.getAttributeValues().stream()
+                                .map(attr -> attr.getAttribute().getName() + ": " + attr.getValue())
+                                .reduce((a, b) -> a + ", " + b).orElse("")
                 );
             }
             dto.put("name", nameBuilder.toString());
             dto.put("price", variant.getPrice());
             dto.put("stock", variant.getStock());
             dto.put("sku", variant.getSku());
+
+            // Add imageUrls
+            dto.put("imageUrls", variant.getImages().stream()
+                    .map(img -> img.getImageUrl())
+                    .toList());
+
+            // Add attributes
+            dto.put("attributes", variant.getAttributeValues().stream()
+                    .collect(java.util.stream.Collectors.toMap(
+                            vav -> vav.getAttribute().getName(),
+                            vav -> vav.getValue()
+                    )));
+
             return dto;
         }).toList();
         return ResponseEntity.ok(dtos);
@@ -340,9 +348,9 @@ public class ProductController {
             // Only add Brand attribute
             if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
                 variant.getAttributeValues().stream()
-                    .filter(attr -> "Brand".equalsIgnoreCase(attr.getAttribute().getName()))
-                    .findFirst()
-                    .ifPresent(brandAttr -> nameBuilder.append(" - Brand: ").append(brandAttr.getValue()));
+                        .filter(attr -> "Brand".equalsIgnoreCase(attr.getAttribute().getName()))
+                        .findFirst()
+                        .ifPresent(brandAttr -> nameBuilder.append(" - Brand: ").append(brandAttr.getValue()));
             }
             dto.put("name", nameBuilder.toString());
             dto.put("price", variant.getPrice());

@@ -62,7 +62,6 @@ public class DiscountService {
                 rule.setDiscountPercent(ruleDto.getDiscountPercent());
                 rule.setAdminId(dto.getAdminId());
                 rule.setBrandId(ruleDto.getBrandId());
-                rule.setActive(ruleDto.isActive());
 
                 // Create attribute options if specified
                 if (ruleDto.getAttributeOptionIds() != null && !ruleDto.getAttributeOptionIds().isEmpty()) {
@@ -93,7 +92,7 @@ public class DiscountService {
 
         for (DiscountRuleDTO rule : dto.getRules()) {
             List<DiscountEvent> activeEvents = eventRepo.findByActiveTrueAndStartDateBeforeAndEndDateAfter(
-                dto.getStartDate(), dto.getEndDate());
+                    dto.getStartDate(), dto.getEndDate());
             for (DiscountEvent event : activeEvents) {
                 List<DiscountRule> existingRules = ruleRepo.findByEventId(event.getId());
                 for (DiscountRule existingRule : existingRules) {
@@ -101,7 +100,7 @@ public class DiscountService {
                     if (rule.isCategoryDiscount()) {
                         // Block if any product or variant in this category is already discounted
                         if ((existingRule.getCategoryId() != null && existingRule.getCategoryId().equals(rule.getCategoryId()) &&
-                             (existingRule.getProductId() != null || existingRule.getProductVariantId() != null))) {
+                                (existingRule.getProductId() != null || existingRule.getProductVariantId() != null))) {
                             throw new RuntimeException("Cannot create category discount when product or variant discounts exist for the same category");
                         }
                     }
@@ -109,16 +108,16 @@ public class DiscountService {
                     if (rule.isProductDiscount()) {
                         // Block if category or variant discount exists for this product
                         if ((existingRule.getProductId() != null && existingRule.getProductId().equals(rule.getProductId())) ||
-                            (existingRule.getCategoryId() != null && existingRule.getCategoryId().equals(rule.getCategoryId())) ||
-                            (existingRule.getProductVariantId() != null && existingRule.getProductId() != null && existingRule.getProductId().equals(rule.getProductId()))) {
+                                (existingRule.getCategoryId() != null && existingRule.getCategoryId().equals(rule.getCategoryId())) ||
+                                (existingRule.getProductVariantId() != null && existingRule.getProductId() != null && existingRule.getProductId().equals(rule.getProductId()))) {
                             throw new RuntimeException("Cannot create product discount when category or variant discounts exist for this product");
                         }
                     }
                     // PRODUCT VARIANT LEVEL: block if parent product or its category is already discounted
                     if (rule.isProductVariantDiscount()) {
                         if ((existingRule.getProductVariantId() != null && existingRule.getProductVariantId().equals(rule.getProductVariantId())) ||
-                            (existingRule.getProductId() != null && existingRule.getProductId().equals(rule.getProductId())) ||
-                            (existingRule.getCategoryId() != null && existingRule.getCategoryId().equals(rule.getCategoryId()))) {
+                                (existingRule.getProductId() != null && existingRule.getProductId().equals(rule.getProductId())) ||
+                                (existingRule.getCategoryId() != null && existingRule.getCategoryId().equals(rule.getCategoryId()))) {
                             throw new RuntimeException("Cannot create variant discount when product or category discounts exist for this variant");
                         }
                     }
@@ -163,10 +162,7 @@ public class DiscountService {
         // Store old values for history
         DiscountEventDTO oldDto = convertToDTO(event);
 
-        // Validate dates
-        if (dto.getStartDate().isBefore(LocalDate.now())) {
-            throw new RuntimeException("Start date cannot be in the past");
-        }
+        // Validate dates - allow past dates for updates to enable editing of historical events
         if (dto.getEndDate().isBefore(dto.getStartDate())) {
             throw new RuntimeException("End date cannot be before start date");
         }
@@ -191,7 +187,6 @@ public class DiscountService {
                 rule.setDiscountPercent(ruleDto.getDiscountPercent());
                 rule.setAdminId(dto.getAdminId());
                 rule.setBrandId(ruleDto.getBrandId());
-                rule.setActive(ruleDto.isActive());
                 // Attribute options
                 if (ruleDto.getAttributeOptionIds() != null && !ruleDto.getAttributeOptionIds().isEmpty()) {
                     for (Long optionId : ruleDto.getAttributeOptionIds()) {
@@ -221,14 +216,14 @@ public class DiscountService {
     public void deleteDiscountEvent(Long eventId) {
         DiscountEvent event = eventRepo.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Discount event not found"));
-        
+
         // Record deletion history before deleting
         DiscountEventDTO eventDto = convertToDTO(event);
         recordHistory(eventId, event.getAdminId(), "DELETED", eventDto, null);
-        
+
         // Delete history records for this event (not cascaded)
         historyRepo.deleteByEventId(eventId);
-        
+
         // Delete the event (this will cascade to rules and attribute options)
         eventRepo.deleteById(eventId);
     }
@@ -237,7 +232,7 @@ public class DiscountService {
     public Map<String, Object> getDiscountInfo(Long categoryId, Long productVariantId) {
         LocalDate today = LocalDate.now();
         List<DiscountEvent> activeEvents = eventRepo.findByActiveTrueAndStartDateBeforeAndEndDateAfter(today, today);
-        
+
         Map<String, Object> result = new HashMap<>();
         result.put("hasCategoryDiscount", false);
         result.put("hasProductDiscount", false);
@@ -319,7 +314,7 @@ public class DiscountService {
         } else if (productDiscount != null) {
             return Optional.of(productDiscount);
         }
-        
+
         return Optional.empty();
     }
 
@@ -341,9 +336,9 @@ public class DiscountService {
                     map.put("rules", dto.getRules().stream().map(rule -> {
                         java.util.Map<String, Object> r = new java.util.HashMap<>();
                         r.put("type",
-                            rule.getCategoryId() != null ? "Category" :
-                            rule.getProductId() != null ? "Product" :
-                            rule.getBrandId() != null ? "Brand" : "Product Variant");
+                                rule.getCategoryId() != null ? "Category" :
+                                        rule.getProductId() != null ? "Product" :
+                                                rule.getBrandId() != null ? "Brand" : "Product Variant");
                         r.put("categoryId", rule.getCategoryId());
                         r.put("productId", rule.getProductId());
                         r.put("productVariantId", rule.getProductVariantId());
@@ -411,13 +406,13 @@ public class DiscountService {
         dto.setAdminId(event.getAdminId());
         dto.setCreatedAt(event.getCreatedAt());
         dto.setUpdatedAt(event.getUpdatedAt());
-        
+
         // Convert rules
         List<DiscountRule> rules = ruleRepo.findByEventId(event.getId());
         dto.setRules(rules.stream()
                 .map(this::convertRuleToResponseDTO)
                 .collect(Collectors.toList()));
-        
+
         return dto;
     }
 
@@ -431,16 +426,15 @@ public class DiscountService {
         dto.setDiscountPercent(rule.getDiscountPercent());
         dto.setAdminId(rule.getAdminId());
         dto.setBrandId(rule.getBrandId());
-        dto.setActive(rule.isActive());
         dto.setCreatedAt(rule.getCreatedAt());
         dto.setUpdatedAt(rule.getUpdatedAt());
-        
+
         // Get attribute option IDs
         List<DiscountRuleAttributeOption> options = optionRepo.findByRuleId(rule.getId());
         dto.setAttributeOptionIds(options.stream()
                 .map(DiscountRuleAttributeOption::getAttributeOptionId)
                 .collect(Collectors.toList()));
-        
+
         return dto;
     }
 
@@ -470,7 +464,6 @@ public class DiscountService {
         dto.setDiscountPercent(rule.getDiscountPercent());
         dto.setAdminId(rule.getAdminId());
         dto.setBrandId(rule.getBrandId());
-        dto.setActive(rule.isActive());
         // Add attribute options if needed
         return dto;
     }
