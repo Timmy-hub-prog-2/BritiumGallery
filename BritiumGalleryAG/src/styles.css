@@ -1,4 +1,7 @@
 /* Make the page take full height and layout with flexbox */
+
+
+
 html, body {
   height: 100%;
   width: 100%;
@@ -95,3 +98,56 @@ html, body {
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Remove overly broad overlay rules and scope only to dialogs */
+
+/* Remove or comment out the following global rules: */
+/*
+.cdk-overlay-pane {
+  display: block !important;
+  position: fixed !important;
+  top: 48px !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100vw !important;
+  height: auto !important;
+  pointer-events: none;
+}
+
+.cdk-global-overlay-wrapper {
+  display: block !important;
+  min-height: 100vh !important;
+}
+*/
+
+/* Instead, target only dialog overlays for horizontal centering */
+.cdk-overlay-pane.mat-mdc-dialog-panel {
+  display: block !important;
+  position: fixed !important;
+  top: 48px !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100vw !important;
+  height: auto !important;
+  pointer-events: none;
+}
+
+.mat-mdc-dialog-container {
+  pointer-events: auto !important;
+  margin: 0 auto !important;
+}
+
+.cdk-overlay-backdrop {
+  z-index: 1000 !important;
+  background: rgba(0,0,0,0.35) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transition: opacity 0.2s;
+}
+.cdk-overlay-pane {
+  z-index: 1100 !important;
+}

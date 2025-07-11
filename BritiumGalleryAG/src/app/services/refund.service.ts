@@ -47,7 +47,7 @@ export class RefundService {
    * Get order details for refund by tracking code
    */
   getOrderForRefund(trackingCode: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/order/${trackingCode}`);
+    return this.http.get(`${this.baseUrl}/orders/refund/${trackingCode}`);
   }
 
   /**

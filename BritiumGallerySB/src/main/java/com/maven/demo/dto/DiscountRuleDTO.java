@@ -14,6 +14,7 @@ public class DiscountRuleDTO {
     private LocalDateTime updatedAt;
     private Long productId;
     private Long brandId;
+    private boolean active = true;
     
     // Validation methods
     public boolean isValid() {

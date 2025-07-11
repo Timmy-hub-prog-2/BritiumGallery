@@ -28,6 +28,7 @@ import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
 import com.maven.demo.dto.PurchaseHistoryResponseDTO;
+import com.maven.demo.dto.ReduceStockHistoryResponseDTO;
 import com.maven.demo.dto.ReduceStockRequestDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
@@ -266,6 +267,12 @@ public class ProductController {
     public ResponseEntity<List<PurchaseHistoryResponseDTO>> getPurchaseHistory(@PathVariable Long variantId) {
         List<PurchaseHistoryResponseDTO> purchaseHistory = productService.getPurchaseHistory(variantId);
         return ResponseEntity.ok(purchaseHistory);
+    }
+
+    @GetMapping("/variants/{variantId}/reduce-stock-history")
+    public ResponseEntity<List<ReduceStockHistoryResponseDTO>> getReduceStockHistory(@PathVariable Long variantId) {
+        List<ReduceStockHistoryResponseDTO> reduceStockHistory = productService.getReduceStockHistory(variantId);
+        return ResponseEntity.ok(reduceStockHistory);
     }
 
     @GetMapping("/variants/{variantId}")

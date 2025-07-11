@@ -7,7 +7,7 @@
   background-color: #ffffff;
   border-right: 1px solid #e0e0e0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 2000;
+  z-index: 900;
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
@@ -270,7 +270,7 @@
   border-radius: 6px;
   font-size: 12px;
   white-space: nowrap;
-  z-index: 1000;
+  z-index: 500;
   margin-left: 8px;
   opacity: 0;
   animation: tooltipFadeIn 0.2s ease forwards;

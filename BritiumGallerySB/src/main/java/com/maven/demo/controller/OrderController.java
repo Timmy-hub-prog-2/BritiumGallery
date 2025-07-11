@@ -451,12 +451,14 @@ public class OrderController {
                 detailDto.setRemainingQty(remainingQty);
                 System.out.println("Detail " + detail.getId() + ": qty=" + detail.getQuantity() + ", requestedOrApprovedQty=" + requestedOrApprovedQty + ", remainingQty=" + remainingQty);
 
-                // Calculate actualRefundableAmount (proportional refund after coupon)
-                int itemTotal = detail.getPrice() * detail.getQuantity();
-                int actualRefundableAmount = itemTotal;
-                if (order.getAppliedCouponCode() != null && order.getDiscountAmount() != null && order.getSubtotal() != null && order.getSubtotal() > 0) {
-                    actualRefundableAmount = (int)Math.round((itemTotal / (double)order.getSubtotal()) * order.getTotal());
-                }
+                // Calculate actualRefundableAmount (proportional refund after both event and coupon discounts, including delivery fee in coupon ratio)
+                int itemSubtotal = (detail.getPrice() - (detail.getDiscountAmount() != null ? detail.getDiscountAmount() : 0)) * detail.getQuantity();
+                int orderSubtotal = order.getSubtotal() != null ? order.getSubtotal() : 0;
+                int orderDeliveryFee = order.getDeliveryFee() != null ? order.getDeliveryFee() : 0;
+                int orderDiscount = order.getDiscountAmount() != null ? order.getDiscountAmount() : 0;
+                double couponRatio = (orderSubtotal + orderDeliveryFee) > 0 ? (orderDiscount / (double)(orderSubtotal + orderDeliveryFee)) : 0.0;
+                int itemCouponDiscount = (int)Math.round(itemSubtotal * couponRatio);
+                int actualRefundableAmount = itemSubtotal - itemCouponDiscount;
                 detailDto.setActualRefundableAmount(actualRefundableAmount);
 
                 var variant = detail.getVariant();
@@ -494,10 +496,15 @@ public class OrderController {
         dto.setOrderDetails(orderDetails);
         dto.setDiscountAmount(order.getDiscountAmount());
         dto.setSubtotal(order.getSubtotal());
+        dto.setTotal(order.getTotal());
+        dto.setDeliveryFee(order.getDeliveryFee());
         dto.setAppliedCouponCode(order.getAppliedCouponCode());
+        dto.setDiscountType(order.getDiscountType());
+        dto.setDiscountValue(order.getDiscountValue());
 
         // Debug log for backend
         System.out.println("Refund DTO orderDetails: " + orderDetails);
+        System.out.println("discountType: " + order.getDiscountType() + ", discountValue: " + order.getDiscountValue());
 
         return ResponseEntity.ok(dto);
     }

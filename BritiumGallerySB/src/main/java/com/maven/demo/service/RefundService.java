@@ -79,17 +79,12 @@ public class RefundService {
             }
         }
 
-        // Calculate refund amount
-        int refundAmount;
-        if (order.getAppliedCouponCode() != null && !order.getAppliedCouponCode().isEmpty() && order.getDiscountAmount() != null && order.getSubtotal() != null) {
-            // Coupon used: refund the total after discount (should match what customer paid)
-            refundAmount = order.getTotal();
-        } else {
-            // No coupon: refund the sum of all item discounted prices
-            refundAmount = order.getOrderDetails().stream()
-                .mapToInt(od -> ((od.getPrice() - (od.getDiscountAmount() != null ? od.getDiscountAmount() : 0)) * od.getQuantity()))
-                .sum();
-        }
+        // Calculate refund amount: refund = subtotal + deliveryFee - discountAmount
+        int refundAmount = 0;
+        int subtotal = order.getSubtotal() != null ? order.getSubtotal() : 0;
+        int deliveryFee = order.getDeliveryFee() != null ? order.getDeliveryFee() : 0;
+        int discount = order.getDiscountAmount() != null ? order.getDiscountAmount() : 0;
+        refundAmount = subtotal + deliveryFee - discount;
 
         // Create refund request for full order
         RefundRequestEntity refund = new RefundRequestEntity();
@@ -125,9 +120,10 @@ public class RefundService {
             }
         }
 
-        boolean usedCoupon = order.getAppliedCouponCode() != null && !order.getAppliedCouponCode().isEmpty() && order.getDiscountAmount() != null && order.getSubtotal() != null;
         int subtotal = order.getSubtotal() != null ? order.getSubtotal() : 0;
-        int total = order.getTotal() != null ? order.getTotal() : subtotal;
+        int deliveryFee = order.getDeliveryFee() != null ? order.getDeliveryFee() : 0;
+        int discount = order.getDiscountAmount() != null ? order.getDiscountAmount() : 0;
+        double couponRatio = (subtotal + deliveryFee) > 0 ? (discount / (double)(subtotal + deliveryFee)) : 0.0;
 
         // Process each item refund request
         for (int i = 0; i < request.getItems().size(); i++) {
@@ -141,15 +137,11 @@ public class RefundService {
                 throw new RuntimeException("Invalid refund quantity for item " + orderDetail.getId());
             }
 
-            // Calculate proportional refund if coupon was used
-            int itemRefundAmount;
-            if (usedCoupon && subtotal > 0) {
-                int itemTotal = (orderDetail.getPrice() - (orderDetail.getDiscountAmount() != null ? orderDetail.getDiscountAmount() : 0)) * item.getQuantity();
-                // Proportional refund: (itemTotal / subtotal) * total
-                itemRefundAmount = (int)Math.round((itemTotal / (double)subtotal) * total);
-            } else {
-                itemRefundAmount = (orderDetail.getPrice() - (orderDetail.getDiscountAmount() != null ? orderDetail.getDiscountAmount() : 0)) * item.getQuantity();
-            }
+            // Calculate item subtotal (after event discount)
+            int itemSubtotal = (orderDetail.getPrice() - (orderDetail.getDiscountAmount() != null ? orderDetail.getDiscountAmount() : 0)) * item.getQuantity();
+            // Apply coupon discount proportionally (based on subtotal + deliveryFee)
+            int itemCouponDiscount = (int)Math.round(itemSubtotal * couponRatio);
+            int itemRefundAmount = itemSubtotal - itemCouponDiscount;
 
             // Create refund request for this item
             RefundRequestEntity refund = new RefundRequestEntity();
@@ -167,12 +159,6 @@ public class RefundService {
             }
 
             refundRequestRepository.save(refund);
-
-//            // Update order detail's refunded quantity
-//            int newRefundedQty = (orderDetail.getRefundedQty() != null ? orderDetail.getRefundedQty() : 0) + item.getQuantity();
-//            orderDetail.setRefundedQty(newRefundedQty);
-//            orderDetail.setRefunded(newRefundedQty >= orderDetail.getQuantity());
-//            orderDetailRepository.save(orderDetail);
         }
     }
 

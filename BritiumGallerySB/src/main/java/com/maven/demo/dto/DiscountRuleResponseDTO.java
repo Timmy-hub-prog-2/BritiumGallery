@@ -18,4 +18,5 @@ public class DiscountRuleResponseDTO {
     private LocalDateTime updatedAt;
     private List<Long> attributeOptionIds;
     private Long brandId;
+    private boolean active;
 } 

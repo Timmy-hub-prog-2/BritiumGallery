@@ -75,6 +75,7 @@ export class OrderRefundComponent {
     this.orderService.getOrderForRefund(code).subscribe({
       next: (res) => {
         this.order = res;
+        console.log('Order details for refund (frontend):', this.order);
         console.log('Order details for refund (frontend):', this.order.orderDetails);
         this.loading = false;
         this.initItemsForm();
@@ -230,16 +231,74 @@ export class OrderRefundComponent {
     return this.items.controls.filter(item => item.get('selected')?.value).length;
   }
 
+  getItemRefundAmount(i: number): number {
+    const item = this.items.at(i);
+    const value = item.value;
+    const refundQuantity = item.get('refundQuantity')?.value || 1;
+    
+    if (value.actualRefundableAmount != null) {
+      // Use the backend-calculated actualRefundableAmount for proportional refunds
+      return (value.actualRefundableAmount / value.quantity) * refundQuantity;
+    } else {
+      // Fallback calculation
+      return (value.price - (value.discountAmount || 0)) * refundQuantity;
+    }
+  }
+
+  getItemCouponDiscount(i: number): number {
+    if (!this.order) return 0;
+    const item = this.items.at(i);
+    const value = item.value;
+    const refundQuantity = item.get('refundQuantity')?.value || 1;
+    const itemSubtotal = (value.price - (value.discountAmount || 0)) * refundQuantity;
+    const subtotal = this.order.subtotal || 0;
+    const deliveryFee = this.order.deliveryFee || 0;
+    const discount = this.order.discountAmount || 0;
+    const couponRatio = (subtotal + deliveryFee) > 0 ? (discount / (subtotal + deliveryFee)) : 0.0;
+    return Math.round(itemSubtotal * couponRatio);
+  }
+
+  getOrderDetailCouponDiscount(item: any): number {
+    if (!this.order) return 0;
+    const itemSubtotal = (item.price - (item.discountAmount || 0)) * item.quantity;
+    const subtotal = this.order.subtotal || 0;
+    const deliveryFee = this.order.deliveryFee || 0;
+    const discount = this.order.discountAmount || 0;
+    const couponRatio = (subtotal + deliveryFee) > 0 ? (discount / (subtotal + deliveryFee)) : 0.0;
+    return Math.round(itemSubtotal * couponRatio);
+  }
+
+  getCouponDiscountOnSubtotal(): number {
+    if (!this.order || !this.order.subtotal) return 0;
+    const val = parseFloat(this.order.discountValue);
+    if (isNaN(val) || !this.order.discountValue) return 0;
+    if (this.order.discountType === 'Percentage') {
+      return Math.round(this.order.subtotal * (val / 100));
+    } else if (this.order.discountType === 'Fixed Amount') {
+      return Math.round(val);
+    }
+    return 0;
+  }
+
   getTotalRefundAmount(): number {
     return this.itemFormGroups
       .filter(item => item.get('selected')?.value)
-      .map(item => {
-        const value = item.value;
-        return value.actualRefundableAmount != null
-          ? (value.actualRefundableAmount / value.quantity) * (item.get('refundQuantity')?.value || 1)
-          : 0;
-      })
+      .map((item, index) => this.getItemRefundAmount(index))
       .reduce((sum, val) => sum + val, 0);
+  }
+
+  getWholeOrderRefundAmount(): number {
+    if (!this.order) return 0;
+    // For whole order refund, sum all actualRefundableAmounts (which already exclude delivery fee and apply coupon discount)
+    if (this.order.orderDetails && this.order.orderDetails.length > 0) {
+      return this.order.orderDetails.reduce((sum: number, item: any) => {
+        return sum + (item.actualRefundableAmount || 0);
+      }, 0);
+    }
+    // Fallback to subtotal - discountAmount
+    const subtotal = this.order.subtotal || 0;
+    const discount = this.order.discountAmount || 0;
+    return subtotal - discount;
   }
 
   submitRefund() {

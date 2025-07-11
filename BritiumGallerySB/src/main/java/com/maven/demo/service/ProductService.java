@@ -20,6 +20,7 @@ import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
 import com.maven.demo.dto.PurchaseHistoryResponseDTO;
+import com.maven.demo.dto.ReduceStockHistoryResponseDTO;
 import com.maven.demo.dto.ReduceStockRequestDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
@@ -32,6 +33,7 @@ import com.maven.demo.entity.ProductVariantEntity;
 import com.maven.demo.entity.ProductVariantImage;
 import com.maven.demo.entity.ProductVariantPriceHistoryEntity;
 import com.maven.demo.entity.PurchaseHistoryEntity;
+import com.maven.demo.entity.ReduceStockHistoryEntity;
 import com.maven.demo.entity.UserEntity;
 import com.maven.demo.entity.VariantAttributeValueEntity;
 import com.maven.demo.repository.AttributeOptionRepository;
@@ -43,6 +45,7 @@ import com.maven.demo.repository.ProductRepository;
 import com.maven.demo.repository.ProductVariantPriceHistoryRepository;
 import com.maven.demo.repository.ProductVariantRepository;
 import com.maven.demo.repository.PurchaseHistoryRepository;
+import com.maven.demo.repository.ReduceStockHistoryRepository;
 import com.maven.demo.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -85,6 +88,9 @@ public class ProductService {
 
     @Autowired
     private DiscountRuleRepository discountRuleRepository;
+
+    @Autowired
+    private ReduceStockHistoryRepository reduceStockHistoryRepository;
 
     @Transactional
     public void saveProductWithVariants(ProductRequestDTO dto) {
@@ -714,22 +720,69 @@ public class ProductService {
     public VariantResponseDTO reduceStock(Long variantId, ReduceStockRequestDTO request, Long adminId) {
         ProductVariantEntity variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new RuntimeException("Variant not found"));
+        
+        if (adminId == null) {
+            throw new RuntimeException("Admin ID is required for stock reduction.");
+        }
+        UserEntity admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+        
         int totalToReduce = 0;
+        int totalStockBeforeReduction = variant.getStock();
+        
+        // Use a single timestamp for all reductions in this action
+        LocalDateTime reductionTime = LocalDateTime.now();
+        
         for (ReduceStockRequestDTO.PurchaseReduction reduction : request.getReductions()) {
+            if (reduction.getQuantity() > 0) {
             PurchaseHistoryEntity purchase = purchaseHistoryRepository.findById(reduction.getPurchaseId())
                     .orElseThrow(() -> new RuntimeException("Purchase not found: " + reduction.getPurchaseId()));
+                
             if (purchase.getRemainingQuantity() < reduction.getQuantity()) {
                 throw new RuntimeException("Not enough stock in purchase " + reduction.getPurchaseId());
             }
+                
+                // Create reduce stock history record
+                ReduceStockHistoryEntity historyRecord = new ReduceStockHistoryEntity();
+                historyRecord.setVariant(variant);
+                historyRecord.setPurchaseHistory(purchase);
+                historyRecord.setQuantityReduced(reduction.getQuantity());
+                historyRecord.setPurchasePriceAtReduction(purchase.getPurchasePrice());
+                historyRecord.setReductionReason(request.getReductionReason() != null ? request.getReductionReason() : "Manual reduction");
+                historyRecord.setAdmin(admin);
+                historyRecord.setTotalStockBeforeReduction(totalStockBeforeReduction);
+                historyRecord.setReducedAt(reductionTime); // Set the same timestamp for all
+                
+                // Update purchase history
             purchase.setRemainingQuantity(purchase.getRemainingQuantity() - reduction.getQuantity());
             purchaseHistoryRepository.save(purchase);
+                
             totalToReduce += reduction.getQuantity();
+                
+                // Save history record
+                reduceStockHistoryRepository.save(historyRecord);
         }
+        }
+        
         // Recalculate stock from all purchase batches' remaining quantities
         List<PurchaseHistoryEntity> allBatches = purchaseHistoryRepository.findByVariantOrderByPurchaseDateDesc(variant);
-        int totalStock = allBatches.stream().mapToInt(PurchaseHistoryEntity::getRemainingQuantity).sum();
-        variant.setStock(totalStock);
+        int totalStockAfterReduction = allBatches.stream().mapToInt(PurchaseHistoryEntity::getRemainingQuantity).sum();
+        variant.setStock(totalStockAfterReduction);
         variantRepository.save(variant);
+        
+        // Update the history records with the final stock after reduction
+        List<ReduceStockHistoryEntity> recentHistoryRecords = reduceStockHistoryRepository
+                .findByVariantIdOrderByReducedAtDesc(variantId);
+        if (!recentHistoryRecords.isEmpty()) {
+            for (int i = 0; i < Math.min(recentHistoryRecords.size(), request.getReductions().size()); i++) {
+                ReduceStockHistoryEntity record = recentHistoryRecords.get(i);
+                if (record.getTotalStockAfterReduction() == null) {
+                    record.setTotalStockAfterReduction(totalStockAfterReduction);
+                    reduceStockHistoryRepository.save(record);
+                }
+            }
+        }
+        
         return convertToVariantResponseDTO(variant);
     }
 
@@ -777,6 +830,16 @@ public class ProductService {
                 .toList();
     }
 
+    @Transactional
+    public List<ReduceStockHistoryResponseDTO> getReduceStockHistory(Long variantId) {
+        ProductVariantEntity variant = variantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Variant not found"));
+        
+        return reduceStockHistoryRepository.findByVariantIdOrderByReducedAtDesc(variantId).stream()
+                .map(this::convertToReduceStockHistoryResponseDTO)
+                .toList();
+    }
+
     private PriceHistoryResponseDTO convertToPriceHistoryResponseDTO(ProductVariantPriceHistoryEntity entity) {
         PriceHistoryResponseDTO dto = new PriceHistoryResponseDTO();
         dto.setId(entity.getId());
@@ -797,6 +860,28 @@ public class ProductService {
         dto.setRemainingQuantity(entity.getRemainingQuantity());
         dto.setPurchaseDate(entity.getPurchaseDate());
         // Note: PurchaseHistoryEntity doesn't have admin field, so we'll leave admin info null
+        return dto;
+    }
+
+    private ReduceStockHistoryResponseDTO convertToReduceStockHistoryResponseDTO(ReduceStockHistoryEntity entity) {
+        ReduceStockHistoryResponseDTO dto = new ReduceStockHistoryResponseDTO();
+        dto.setId(entity.getId());
+        dto.setVariantId(entity.getVariant().getId());
+        dto.setVariantSku(entity.getVariant().getSku());
+        dto.setProductName(entity.getVariant().getProduct().getName());
+        dto.setPurchaseHistoryId(entity.getPurchaseHistory().getId());
+        dto.setQuantityReduced(entity.getQuantityReduced());
+        dto.setPurchasePriceAtReduction(entity.getPurchasePriceAtReduction());
+        dto.setReductionReason(entity.getReductionReason());
+        dto.setReducedAt(entity.getReducedAt());
+        dto.setTotalStockBeforeReduction(entity.getTotalStockBeforeReduction());
+        dto.setTotalStockAfterReduction(entity.getTotalStockAfterReduction());
+        
+        if (entity.getAdmin() != null) {
+            dto.setAdminId(entity.getAdmin().getId());
+            dto.setAdminName(entity.getAdmin().getName());
+        }
+        
         return dto;
     }
 
