@@ -1097,31 +1097,35 @@ public class OrderServiceImpl implements OrderService {
             if (matchesQuery) {
                 // Get sales data from order details
                 List<OrderDetailEntity> orderDetails = orderRepository.findOrderDetailsByVariant(variant.getId());
-                
                 // Initialize sales tracking variables
                 int totalSales = 0;
                 int totalProfit = 0;
                 java.time.LocalDateTime lastSoldDate = null;
-                
+                int quantitySold = 0;
+                int totalPurchasePrice = 0;
                 for (OrderDetailEntity detail : orderDetails) {
                     if (detail.getOrder() != null && 
                         (detail.getOrder().getStatus() == OrderStatus.COMPLETED ||
                          detail.getOrder().getStatus() == OrderStatus.DELIVERED ||
                          detail.getOrder().getStatus() == OrderStatus.PAID ||
                          detail.getOrder().getStatus() == OrderStatus.ACCEPTED)) {
-                        
-                        int sales = detail.getQuantity() * detail.getPrice();
+                        int quantity = detail.getQuantity();
+                        int refundedQty = detail.getRefundedQty() != null ? detail.getRefundedQty() : 0;
+                        int netQuantity = quantity - refundedQty;
+                        if (netQuantity <= 0) continue; // skip fully refunded
+                        int sales = netQuantity * detail.getPrice();
                         totalSales += sales;
-                        System.out.println("Added sales: " + sales + " for order " + detail.getOrder().getId());
-                        
+                        quantitySold += netQuantity;
                         List<SaleFifoMappingEntity> mappings = saleFifoMappingRepository.findByOrderDetail(detail);
                         int cost = 0;
+                        int qtyLeft = netQuantity;
                         for (SaleFifoMappingEntity mapping : mappings) {
-                            cost += mapping.getQuantity() * mapping.getUnitCost();
+                            int usedQty = Math.min(mapping.getQuantity(), qtyLeft);
+                            cost += usedQty * mapping.getUnitCost();
+                            qtyLeft -= usedQty;
+                            if (qtyLeft <= 0) break;
                         }
                         totalProfit += sales - cost;
-                        System.out.println("Added profit: " + (sales - cost) + " for order " + detail.getOrder().getId());
-                        
                         if (detail.getOrder().getOrderDate() != null) {
                             if (lastSoldDate == null || detail.getOrder().getOrderDate().isAfter(lastSoldDate)) {
                                 lastSoldDate = detail.getOrder().getOrderDate();
@@ -1138,18 +1142,23 @@ public class OrderServiceImpl implements OrderService {
                         if (tx.getOrder() != null && tx.getOrder().getOrderDetails() != null) {
                             for (OrderDetailEntity detail : tx.getOrder().getOrderDetails()) {
                                 if (detail.getVariant() != null && detail.getVariant().getId() == variant.getId()) {
-                                    int sales = detail.getQuantity() * detail.getPrice();
+                                    int quantity = detail.getQuantity();
+                                    int refundedQty = detail.getRefundedQty() != null ? detail.getRefundedQty() : 0;
+                                    int netQuantity = quantity - refundedQty;
+                                    if (netQuantity <= 0) continue; // skip fully refunded
+                                    int sales = netQuantity * detail.getPrice();
                                     totalSales += sales;
-                                    System.out.println("Added sales from transaction: " + sales + " for order " + tx.getOrder().getId());
-                                    
+                                    quantitySold += netQuantity;
                                     List<SaleFifoMappingEntity> mappings = saleFifoMappingRepository.findByOrderDetail(detail);
                                     int cost = 0;
+                                    int qtyLeft = netQuantity;
                                     for (SaleFifoMappingEntity mapping : mappings) {
-                                        cost += mapping.getQuantity() * mapping.getUnitCost();
+                                        int usedQty = Math.min(mapping.getQuantity(), qtyLeft);
+                                        cost += usedQty * mapping.getUnitCost();
+                                        qtyLeft -= usedQty;
+                                        if (qtyLeft <= 0) break;
                                     }
                                     totalProfit += sales - cost;
-                                    System.out.println("Added profit from transaction: " + (sales - cost) + " for order " + tx.getOrder().getId());
-                                    
                                     if (tx.getCreatedAt() != null) {
                                         if (lastSoldDate == null || tx.getCreatedAt().isAfter(lastSoldDate)) {
                                             lastSoldDate = tx.getCreatedAt();
@@ -1196,20 +1205,6 @@ public class OrderServiceImpl implements OrderService {
                 } else if (variant.getProduct() != null && variant.getProduct().getBasePhotoUrl() != null) {
                     imageUrl = variant.getProduct().getBasePhotoUrl();
                 }
-                int quantitySold = 0;
-                int totalPurchasePrice = 0;
-                for (OrderDetailEntity detail : orderDetails) {
-                    if (detail.getOrder() != null &&
-                        (detail.getOrder().getStatus() == OrderStatus.COMPLETED ||
-                         detail.getOrder().getStatus() == OrderStatus.DELIVERED ||
-                         detail.getOrder().getStatus() == OrderStatus.PAID ||
-                         detail.getOrder().getStatus() == OrderStatus.ACCEPTED)) {
-                        quantitySold += detail.getQuantity();
-                    }
-                }
-                for (PurchaseHistoryEntity purchase : purchaseHistory) {
-                    totalPurchasePrice += purchase.getQuantity() * purchase.getPurchasePrice();
-                }
                 
                 ProductSearchResultDTO result = new ProductSearchResultDTO(
                     variant.getProduct().getId(),
@@ -1249,32 +1244,36 @@ public class OrderServiceImpl implements OrderService {
         if (variant.getProduct() == null) return null;
         
         // Calculate sales data (same logic as searchProducts)
+        List<OrderDetailEntity> orderDetails = orderRepository.findOrderDetailsByVariant(variant.getId());
+        System.out.println("Found " + orderDetails.size() + " order details for variant " + variant.getId());
         int totalSales = 0;
         int totalProfit = 0;
         java.time.LocalDateTime lastSoldDate = null;
-        
-        List<OrderDetailEntity> orderDetails = orderRepository.findOrderDetailsByVariant(variant.getId());
-        System.out.println("Found " + orderDetails.size() + " order details for variant " + variant.getId());
-        
+        int quantitySold = 0;
+        int totalPurchasePrice = 0;
         for (OrderDetailEntity detail : orderDetails) {
             if (detail.getOrder() != null && 
                 (detail.getOrder().getStatus() == OrderStatus.COMPLETED ||
                  detail.getOrder().getStatus() == OrderStatus.DELIVERED ||
                  detail.getOrder().getStatus() == OrderStatus.PAID ||
                  detail.getOrder().getStatus() == OrderStatus.ACCEPTED)) {
-                
-                int sales = detail.getQuantity() * detail.getPrice();
+                int quantity = detail.getQuantity();
+                int refundedQty = detail.getRefundedQty() != null ? detail.getRefundedQty() : 0;
+                int netQuantity = quantity - refundedQty;
+                if (netQuantity <= 0) continue; // skip fully refunded
+                int sales = netQuantity * detail.getPrice();
                 totalSales += sales;
-                System.out.println("Added sales: " + sales + " for order " + detail.getOrder().getId());
-                
+                quantitySold += netQuantity;
                 List<SaleFifoMappingEntity> mappings = saleFifoMappingRepository.findByOrderDetail(detail);
                 int cost = 0;
+                int qtyLeft = netQuantity;
                 for (SaleFifoMappingEntity mapping : mappings) {
-                    cost += mapping.getQuantity() * mapping.getUnitCost();
+                    int usedQty = Math.min(mapping.getQuantity(), qtyLeft);
+                    cost += usedQty * mapping.getUnitCost();
+                    qtyLeft -= usedQty;
+                    if (qtyLeft <= 0) break;
                 }
                 totalProfit += sales - cost;
-                System.out.println("Added profit: " + (sales - cost) + " for order " + detail.getOrder().getId());
-                
                 if (detail.getOrder().getOrderDate() != null) {
                     if (lastSoldDate == null || detail.getOrder().getOrderDate().isAfter(lastSoldDate)) {
                         lastSoldDate = detail.getOrder().getOrderDate();
@@ -1291,18 +1290,23 @@ public class OrderServiceImpl implements OrderService {
                 if (tx.getOrder() != null && tx.getOrder().getOrderDetails() != null) {
                     for (OrderDetailEntity detail : tx.getOrder().getOrderDetails()) {
                         if (detail.getVariant() != null && detail.getVariant().getId() == variant.getId()) {
-                            int sales = detail.getQuantity() * detail.getPrice();
+                            int quantity = detail.getQuantity();
+                            int refundedQty = detail.getRefundedQty() != null ? detail.getRefundedQty() : 0;
+                            int netQuantity = quantity - refundedQty;
+                            if (netQuantity <= 0) continue; // skip fully refunded
+                            int sales = netQuantity * detail.getPrice();
                             totalSales += sales;
-                            System.out.println("Added sales from transaction: " + sales + " for order " + tx.getOrder().getId());
-                            
+                            quantitySold += netQuantity;
                             List<SaleFifoMappingEntity> mappings = saleFifoMappingRepository.findByOrderDetail(detail);
                             int cost = 0;
+                            int qtyLeft = netQuantity;
                             for (SaleFifoMappingEntity mapping : mappings) {
-                                cost += mapping.getQuantity() * mapping.getUnitCost();
+                                int usedQty = Math.min(mapping.getQuantity(), qtyLeft);
+                                cost += usedQty * mapping.getUnitCost();
+                                qtyLeft -= usedQty;
+                                if (qtyLeft <= 0) break;
                             }
                             totalProfit += sales - cost;
-                            System.out.println("Added profit from transaction: " + (sales - cost) + " for order " + tx.getOrder().getId());
-                            
                             if (tx.getCreatedAt() != null) {
                                 if (lastSoldDate == null || tx.getCreatedAt().isAfter(lastSoldDate)) {
                                     lastSoldDate = tx.getCreatedAt();
@@ -1347,8 +1351,7 @@ public class OrderServiceImpl implements OrderService {
         } else if (variant.getProduct() != null && variant.getProduct().getBasePhotoUrl() != null) {
             imageUrl = variant.getProduct().getBasePhotoUrl();
         }
-        int quantitySold = 0;
-        int totalPurchasePrice = 0;
+         totalPurchasePrice = 0;
         for (OrderDetailEntity detail : orderDetails) {
             if (detail.getOrder() != null &&
                 (detail.getOrder().getStatus() == OrderStatus.COMPLETED ||
