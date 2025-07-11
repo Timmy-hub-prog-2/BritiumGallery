@@ -28,6 +28,7 @@ import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
 import com.maven.demo.dto.PurchaseHistoryResponseDTO;
+import com.maven.demo.dto.ReduceStockHistoryResponseDTO;
 import com.maven.demo.dto.ReduceStockRequestDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
@@ -268,6 +269,12 @@ public class ProductController {
         return ResponseEntity.ok(purchaseHistory);
     }
 
+    @GetMapping("/variants/{variantId}/reduce-stock-history")
+    public ResponseEntity<List<ReduceStockHistoryResponseDTO>> getReduceStockHistory(@PathVariable Long variantId) {
+        List<ReduceStockHistoryResponseDTO> reduceStockHistory = productService.getReduceStockHistory(variantId);
+        return ResponseEntity.ok(reduceStockHistory);
+    }
+
     @GetMapping("/variants/{variantId}")
     public ResponseEntity<VariantResponseDTO> getVariantById(@PathVariable Long variantId) {
         VariantResponseDTO variant = productService.getVariantById(variantId);
@@ -285,8 +292,6 @@ public class ProductController {
         List<Map<String, Object>> dtos = variants.stream().map(variant -> {
             Map<String, Object> dto = new HashMap<>();
             dto.put("id", variant.getId());
-            dto.put("productId", variant.getProduct() != null ? variant.getProduct().getId() : null);
-
             StringBuilder nameBuilder = new StringBuilder();
             if (variant.getProduct() != null) {
                 nameBuilder.append(variant.getProduct().getName());
@@ -303,19 +308,6 @@ public class ProductController {
             dto.put("price", variant.getPrice());
             dto.put("stock", variant.getStock());
             dto.put("sku", variant.getSku());
-
-            // Add imageUrls
-            dto.put("imageUrls", variant.getImages().stream()
-                .map(img -> img.getImageUrl())
-                .toList());
-
-            // Add attributes
-            dto.put("attributes", variant.getAttributeValues().stream()
-                .collect(java.util.stream.Collectors.toMap(
-                    vav -> vav.getAttribute().getName(),
-                    vav -> vav.getValue()
-                )));
-
             return dto;
         }).toList();
         return ResponseEntity.ok(dtos);

@@ -72,7 +72,7 @@ export class DiscountEventsComponent implements OnInit {
 
   productBreadcrumbs: { [productId: string]: string[] } = {};
   productSearchTerm: string = '';
-  expandedProductIds: Set<number> = new Set();
+  expandedProductId: string | null = null;
 
   // For new product selection flow
   subCategorySearchTerm: string = '';
@@ -90,18 +90,6 @@ export class DiscountEventsComponent implements OnInit {
   selectedCount: number = 0;
   toastMessage: string = '';
   showToast: boolean = false;
-
-  editVariantId: string | number | null = null;
-
-  // Form validation error messages
-  nameError: string = '';
-  startDateError: string = '';
-  endDateError: string = '';
-
-  // Edit form validation error messages
-  editNameError: string = '';
-  editStartDateError: string = '';
-  editEndDateError: string = '';
 
   constructor(
     private eventService: DiscountEventService,
@@ -151,11 +139,8 @@ export class DiscountEventsComponent implements OnInit {
         this.products = data.map((product) => ({
           ...product,
           discount: undefined,
-          variants: [], // Initialize empty variants array
         }))
         this.fetchProductBreadcrumbs();
-        // Attach variants after products are loaded
-        this.attachVariantsToProducts();
         this.tryBuildCascadeTree()
       },
       error: () => {
@@ -190,22 +175,13 @@ export class DiscountEventsComponent implements OnInit {
   fetchProductVariants() {
     this.productVariantService.getAll().subscribe({
       next: (data: any[]) => {
-        this.productVariants = data;
-        // Attach variants after variants are loaded
-        this.attachVariantsToProducts();
-        this.tryBuildCascadeTree();
+        this.productVariants = data
+        this.tryBuildCascadeTree()
       },
-      error: (error) => {
-        this.productVariants = [];
+      error: () => {
+        this.productVariants = []
       },
     })
-  }
-
-  attachVariantsToProducts() {
-    if (!this.products || !this.productVariants) return;
-    this.products.forEach(product => {
-      product.variants = this.productVariants.filter((v: any) => v.productId === product.id);
-    });
   }
 
   fetchBrands() {
@@ -254,10 +230,9 @@ export class DiscountEventsComponent implements OnInit {
         discount: undefined,
       }
 
-      // Attach variants to product from the separate productVariants array
-      const productVariants = this.productVariants.filter((v: any) => v.productId === prod.id)
-      if (productVariants.length > 0) {
-        prodNode.children = productVariants.map((v: any) => ({
+      // Attach variants to product
+      if (prod.variants && prod.variants.length) {
+        prodNode.children = prod.variants.map((v: any) => ({
           name: this.getVariantDisplayName(v),
           type: "variant" as const,
           attributes: v.attributes,
@@ -463,31 +438,20 @@ export class DiscountEventsComponent implements OnInit {
     rule.productId = product.id;
     rule.productVariantId = null;
     rule.brandId = null;
-    // Automatically expand the product to show variants
-    this.expandedProductIds.add(product.id as number);
     this.resetCascadeState();
   }
 
   applyVariantSelection(variant: CascadeNode) {
-    if (this.currentRuleIndex === null || !this.currentRule) {
-      return;
-    }
-    // Find the parent product for this variant
-    const parentProduct = this.products.find(p => Array.isArray(p.variants) && p.variants.some((v: any) => v.id === variant.id));
-    if (!parentProduct) {
-      return;
-    }
-    // Update the rule's selectedPath to include both product and variant
+    console.log('DEBUG: Apply Variant Clicked', variant, 'currentRuleIndex:', this.currentRuleIndex, 'selectedProduct:', this.selectedProduct);
+    if (this.currentRuleIndex === null || !this.selectedProduct) return;
     const rule = this.newEvent.rules[this.currentRuleIndex];
-    rule.selectedPath = [parentProduct, variant];
+    rule.selectedPath = [this.selectedProduct, variant];
     rule.targetLevel = 'variant';
     // Set correct ID fields for backend
     rule.categoryId = null;
-    rule.productId = parentProduct.id;
+    rule.productId = null;
     rule.productVariantId = variant.id;
     rule.brandId = null;
-    this.resetCascadeState();
-    this.showToastMessage('Variant selected for discount rule!');
   }
 
   applyBrandSelection(brand: Brand) {
@@ -554,14 +518,6 @@ export class DiscountEventsComponent implements OnInit {
 
   // Event Management Methods
   createEvent() {
-    // Clear previous errors
-    this.clearFormErrors();
-    
-    // Validate form fields
-    if (!this.validateCreateForm()) {
-      return;
-    }
-
     const eventPayload = {
       name: this.newEvent.name,
       startDate: this.newEvent.startDate,
@@ -585,63 +541,12 @@ export class DiscountEventsComponent implements OnInit {
     })
   }
 
-  // Form validation methods
-  validateCreateForm(): boolean {
-    let isValid = true;
-
-    // Validate event name
-    if (!this.newEvent.name || this.newEvent.name.trim() === '') {
-      this.nameError = 'Event name is required';
-      isValid = false;
-    } else if (this.newEvent.name.trim().length < 3) {
-      this.nameError = 'Event name must be at least 3 characters long';
-      isValid = false;
-    }
-
-    // Validate start date
-    if (!this.newEvent.startDate) {
-      this.startDateError = 'Start date is required';
-      isValid = false;
-    } else {
-      const startDate = new Date(this.newEvent.startDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (startDate < today) {
-        this.startDateError = 'Start date cannot be in the past';
-        isValid = false;
-      }
-    }
-
-    // Validate end date
-    if (!this.newEvent.endDate) {
-      this.endDateError = 'End date is required';
-      isValid = false;
-    } else if (this.newEvent.startDate && this.newEvent.endDate) {
-      const startDate = new Date(this.newEvent.startDate);
-      const endDate = new Date(this.newEvent.endDate);
-      if (endDate <= startDate) {
-        this.endDateError = 'End date must be after start date';
-        isValid = false;
-      }
-    }
-
-    return isValid;
-  }
-
-  clearFormErrors() {
-    this.nameError = '';
-    this.startDateError = '';
-    this.endDateError = '';
-  }
-
   openEditModal(event: any) {
     this.editEvent = {
       ...event,
       rules: (event.rules || []).map((rule: any) => {
         let targetType = '';
         let selectedPath: any[] = [];
-        let expandedProductId = null;
-        let editVariantId = null;
         if (rule.categoryId) {
           targetType = 'category';
           const cat = this.categories.find((c) => c.id === rule.categoryId);
@@ -650,25 +555,6 @@ export class DiscountEventsComponent implements OnInit {
           targetType = 'product';
           const prod = this.products.find((p) => p.id === rule.productId);
           if (prod) selectedPath = [{ name: prod.name, id: prod.id, type: 'product' }];
-        } else if (rule.productVariantId) {
-          targetType = 'product';
-          const variant = this.productVariants.find((v) => v.id === rule.productVariantId);
-          if (variant) {
-            const prod = this.products.find((p) => p.id === variant.productId);
-            if (prod) {
-              selectedPath = [
-                { name: prod.name, id: prod.id, type: 'product' },
-                { name: variant.name || '', id: variant.id, type: 'variant', attributes: variant.attributes }
-              ];
-              expandedProductId = prod.id;
-              editVariantId = variant.id;
-            } else {
-              selectedPath = [
-                { name: variant.name || '', id: variant.id, type: 'variant', attributes: variant.attributes }
-              ];
-              editVariantId = variant.id;
-            }
-          }
         } else if (rule.brandId) {
           targetType = 'brand';
           const brand = this.brands.find((b) => b.id === rule.brandId);
@@ -678,20 +564,10 @@ export class DiscountEventsComponent implements OnInit {
           ...rule,
           targetType,
           selectedPath,
-          expandedProductId,
-          editVariantId
         };
       }),
     };
     this.showEditModal = true;
-    // Do NOT set showEditRuleBuilder, builderType, expandedProductId, or editVariantId here
-    this.showEditRuleBuilder = false;
-    this.builderType = 'category';
-    this.expandedProductIds.clear();
-    this.editVariantId = null;
-    this.currentEditRuleIndex = null;
-    this.cascadePath = [];
-    this.cascadeHoverPath = [];
   }
 
   addEditRule() {
@@ -719,60 +595,11 @@ export class DiscountEventsComponent implements OnInit {
   updateEvent() {
     if (!this.editEvent || !this.editEvent.id) return
 
-    // Clear previous errors
-    this.clearEditFormErrors();
-    
-    // Validate form fields
-    if (!this.validateEditForm()) {
-      return;
-    }
-
     this.eventService.updateEvent(this.editEvent.id, this.editEvent).subscribe(() => {
       this.showEditModal = false
       this.editEvent = null
       this.fetchEvents()
     })
-  }
-
-  // Edit form validation methods
-  validateEditForm(): boolean {
-    let isValid = true;
-
-    // Validate event name
-    if (!this.editEvent.name || this.editEvent.name.trim() === '') {
-      this.editNameError = 'Event name is required';
-      isValid = false;
-    } else if (this.editEvent.name.trim().length < 3) {
-      this.editNameError = 'Event name must be at least 3 characters long';
-      isValid = false;
-    }
-
-    // Validate start date (no past date restriction for editing)
-    if (!this.editEvent.startDate) {
-      this.editStartDateError = 'Start date is required';
-      isValid = false;
-    }
-
-    // Validate end date
-    if (!this.editEvent.endDate) {
-      this.editEndDateError = 'End date is required';
-      isValid = false;
-    } else if (this.editEvent.startDate && this.editEvent.endDate) {
-      const startDate = new Date(this.editEvent.startDate);
-      const endDate = new Date(this.editEvent.endDate);
-      if (endDate <= startDate) {
-        this.editEndDateError = 'End date must be after start date';
-        isValid = false;
-      }
-    }
-
-    return isValid;
-  }
-
-  clearEditFormErrors() {
-    this.editNameError = '';
-    this.editStartDateError = '';
-    this.editEndDateError = '';
   }
 
   deleteEvent(eventId: number) {
@@ -826,15 +653,7 @@ export class DiscountEventsComponent implements OnInit {
 
     if (rule.productVariantId) {
       const variant = this.productVariants.find((v) => v.id === rule.productVariantId)
-      if (variant) {
-        const prod = this.products.find((p) => p.id === variant.productId);
-        let details = '';
-        if (variant.attributes) {
-          details = Object.entries(variant.attributes).map(([k, v]) => `${k}: ${v}`).join(', ');
-        }
-        return prod ? `${prod.name}${details ? ' - ' + details : ''}` : (details || variant.name || '');
-      }
-      return '';
+      return variant ? `Variant: ${variant.name}` : "Variant: Unknown"
     }
 
     if (rule.brandId) {
@@ -846,6 +665,7 @@ export class DiscountEventsComponent implements OnInit {
   }
 
   getHistoryDiffs(h: any): string[] {
+    console.log('getHistoryDiffs CALLED', h);
     const diffs: string[] = [];
     try {
       const oldVals = h.oldValues ? JSON.parse(h.oldValues) : {};
@@ -890,6 +710,7 @@ export class DiscountEventsComponent implements OnInit {
   }
 
   private getChangedRulesDetailed(oldRules: any[], newRules: any[]): string[] {
+    console.log('getChangedRulesDetailed CALLED', { oldRules, newRules });
     const changes: string[] = [];
     const ruleKey = (rule: any) => {
       if (rule.categoryId) return `category:${rule.categoryId}`;
@@ -898,15 +719,19 @@ export class DiscountEventsComponent implements OnInit {
       if (rule.brandId) return `brand:${rule.brandId}`;
       return '';
     };
+    console.log('--- DEBUG: Old Rules ---', oldRules);
+    console.log('--- DEBUG: New Rules ---', newRules);
 
     const oldMap = new Map<string, any>();
     oldRules.forEach(rule => {
       const key = ruleKey(rule);
+      console.log('Old Rule Key:', key, rule);
       if (key) oldMap.set(key, rule);
     });
     const newMap = new Map<string, any>();
     newRules.forEach(rule => {
       const key = ruleKey(rule);
+      console.log('New Rule Key:', key, rule);
       if (key) newMap.set(key, rule);
     });
 
@@ -927,6 +752,7 @@ export class DiscountEventsComponent implements OnInit {
         changes.push(`${this.formatRuleLevel(newRule)}${target ? ': ' + target : ''} — ${newRule.discountPercent != null ? newRule.discountPercent + '%' : ''} discount`);
       }
     });
+    console.log('--- DEBUG: Detected Changes ---', changes);
     return changes;
   }
 
@@ -983,26 +809,12 @@ export class DiscountEventsComponent implements OnInit {
     rule.brandId = null;
     this.currentEditRuleIndex = index;
     this.showEditRuleBuilder = true;
+    // Reset any selection state as needed
     this.builderType = type;
     this.selectedProduct = null;
     this.selectedBrand = null;
     this.cascadePath = [];
     this.cascadeHoverPath = [];
-    // For product-variant, auto-expand product and highlight variant
-    if (type === 'product' && rule.productVariantId) {
-      const variant = this.productVariants.find((v) => v.id === rule.productVariantId);
-      if (variant) {
-        const prod = this.products.find((p) => p.id === variant.productId);
-        if (prod) {
-          this.expandedProductIds.clear();
-          this.expandedProductIds.add(prod.id);
-          this.editVariantId = variant.id;
-        }
-      }
-    } else {
-      this.expandedProductIds.clear();
-      this.editVariantId = null;
-    }
   }
 
   // Edit Event Rule Selection Methods
@@ -1089,9 +901,6 @@ export class DiscountEventsComponent implements OnInit {
   }
 
   private formatRuleLevel(rule: any): string {
-    if (rule.type === 'productVariant' || rule.targetType === 'productVariant') {
-      return 'Product-variant';
-    }
     if (rule.type) {
       // Capitalize and add spaces for better readability
       return rule.type.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase()).trim();
@@ -1113,15 +922,7 @@ export class DiscountEventsComponent implements OnInit {
     }
     if (rule.productVariantId) {
       const variant = this.productVariants.find((v) => v.id === rule.productVariantId);
-      if (variant) {
-        const prod = this.products.find((p) => p.id === variant.productId);
-        let details = '';
-        if (variant.attributes) {
-          details = Object.entries(variant.attributes).map(([k, v]) => `${k}: ${v}`).join(', ');
-        }
-        return prod ? `${prod.name}${details ? ' - ' + details : ''}` : (details || variant.name || '');
-      }
-      return '';
+      return variant ? variant.name : '';
     }
     if (rule.brandId) {
       const brand = this.brands.find((b) => b.id === rule.brandId);
@@ -1140,31 +941,9 @@ export class DiscountEventsComponent implements OnInit {
   openEditRuleBuilder(index: number) {
     this.currentEditRuleIndex = index;
     this.showEditRuleBuilder = true;
-    const rule = this.editEvent.rules[index];
-    this.builderType = rule.targetType;
-    this.cascadePath = rule.selectedPath || [];
+    this.builderType = this.editEvent.rules[index].targetType;
+    this.cascadePath = this.editEvent.rules[index].selectedPath || [];
     this.cascadeHoverPath = [];
-    // For product-variant, auto-expand product and highlight variant
-    if (rule.productVariantId) {
-      const variant = this.productVariants.find((v) => v.id === rule.productVariantId);
-      if (variant) {
-        const prod = this.products.find((p) => p.id === variant.productId);
-        if (prod) {
-          this.expandedProductIds.clear();
-          this.expandedProductIds.add(prod.id);
-          this.editVariantId = variant.id;
-          this.selectedProduct = prod;
-          // Force: ensure product is in expandedProductIds
-          if (!this.expandedProductIds.has(prod.id)) {
-            this.expandedProductIds.add(prod.id);
-          }
-        }
-      }
-    } else {
-      this.expandedProductIds.clear();
-      this.editVariantId = null;
-      this.selectedProduct = null;
-    }
   }
 
   // Add: Clear the selected target for a rule in edit modal
@@ -1217,8 +996,7 @@ export class DiscountEventsComponent implements OnInit {
   }
 
   onSelectProductForVariants(product: any) {
-    this.expandedProductIds.clear();
-    this.expandedProductIds.add(product.id);
+    this.expandedProductId = this.expandedProductId === product.id ? null : product.id;
     this.selectedProduct = product;
   }
 
@@ -1340,40 +1118,21 @@ export class DiscountEventsComponent implements OnInit {
     let count = 0;
     switch (type) {
       case 'variant':
-        if (!this.selectedProduct) {
-          this.showToastMessage('No product selected for variants!');
-          return;
-        }
-        if (this.selectedVariants.length > 0) {
-          // Update the starter rule with the first selected variant
-          const firstVariant = this.selectedVariants[0];
-          rule.selectedPath = [this.selectedProduct, firstVariant];
-          rule.targetLevel = 'variant';
-          rule.categoryId = null;
-          rule.productId = null;
-          rule.productVariantId = firstVariant.id;
-          rule.brandId = null;
-          rule.discountPercent = discountPercent;
+        if (!this.selectedProduct) return;
+        this.selectedVariants.forEach(variant => {
+          this.newEvent.rules.push({
+            id: Date.now().toString() + '-' + variant.id,
+            targetType: 'product',
+            selectedPath: [this.selectedProduct, variant],
+            discountPercent: discountPercent,
+            targetLevel: 'variant',
+            categoryId: null,
+            productId: null,
+            productVariantId: variant.id,
+            brandId: null
+          });
           count++;
-          // Add new rules for the rest
-          for (let i = 1; i < this.selectedVariants.length; i++) {
-            const variant = this.selectedVariants[i];
-            this.newEvent.rules.push({
-              id: Date.now().toString() + '-' + variant.id,
-              targetType: 'product',
-              selectedPath: [this.selectedProduct, variant],
-              discountPercent: discountPercent,
-              targetLevel: 'variant',
-              categoryId: null,
-              productId: null,
-              productVariantId: variant.id,
-              brandId: null
-            });
-            count++;
-          }
-        } else {
-          this.showToastMessage('No variants selected!');
-        }
+        });
         this.clearSelection('variant');
         break;
       case 'product':
@@ -1430,27 +1189,6 @@ export class DiscountEventsComponent implements OnInit {
     }
     if (count > 0) {
       this.showToastMessage(`Discount applied to ${count} ${type}${count > 1 ? 's' : ''}!`);
-    }
-  }
-
-  isProductExpandedOrHasEditVariant(product: any): boolean {
-    const isExpanded = this.expandedProductIds.has(product.id);
-    const hasEditVariant = this.editVariantId && product.variants && product.variants.some((v: any) => v.id === this.editVariantId);
-    return isExpanded || hasEditVariant;
-  }
-
-  toggleProductExpansion(productId: number) {
-    const product = this.products.find(p => p.id === productId);
-    if (this.expandedProductIds.has(productId)) {
-      this.expandedProductIds.delete(productId);
-      if (this.selectedProduct && this.selectedProduct.id === productId) {
-        this.selectedProduct = null;
-      }
-    } else {
-      this.expandedProductIds.add(productId);
-      if (product) {
-        this.selectedProduct = product;
-      }
     }
   }
 }

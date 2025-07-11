@@ -4,6 +4,27 @@
   background: #ffffff;
   font-family: "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
   color: #1a1a1a;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Fix tooltip positioning for action icons */
+.header-content,
+.main-content-clean {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  box-sizing: border-box;
+  overflow-x: visible;
+}
+
+.table-container-clean {
+  max-width: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
 }
 
 /* Header Section */
@@ -14,8 +35,9 @@
 }
 
 .header-content {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   padding: 0 2rem;
   display: flex;
   justify-content: space-between;
@@ -167,9 +189,11 @@
 
 /* Main Content */
 .main-content-clean {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 2rem 0;
+  overflow-x: hidden;
 }
 
 /* Toolbar */
@@ -330,8 +354,13 @@
   box-shadow: none !important;
   border-radius: 12px !important;
   background: transparent !important;
+   margin-left: auto !important;
+  margin-right: auto !important;
+ 
+ 
   
 }
+
 
 
 
@@ -641,6 +670,13 @@
     min-width: unset !important;
   }
 }
+
+
+
+
+
+
+
 
 /* Modal Header */
 .modal-header-clean {
@@ -1215,6 +1251,16 @@
   overflow-x: auto;
 }
 
+
+
+@media (max-width: 1100px) {
+  .history-table-clean {
+    max-width: 100%;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
 .data-table-clean {
   width: 100%;
   background: #ffffff;
@@ -1615,5 +1661,224 @@ button.mat-icon-button mat-icon, .action-btn-clean mat-icon, .add-btn-clean mat-
 /* Allow form fields to wrap in modal */
 .form-grid-clean {
   flex-wrap: wrap;
+}
+
+/* Style for reduce stock history batch details */
+.history-table-clean ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Add separation between reduction groups */
+.history-table-clean tbody > tr {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin-bottom: 18px;
+  transition: box-shadow 0.2s;
+}
+
+.history-table-clean tbody > tr:not(:last-child) {
+  border-bottom: 2px solid #e3e8ee;
+}
+
+.history-table-clean td {
+  vertical-align: top;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.history-table-clean ul li {
+  background: #f5f7fa;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  border: 1px solid #e0e0e0;
+}
+
+.history-table-clean ul li:last-child {
+  margin-bottom: 0;
+}
+
+.history-table-clean ul li .batch-id {
+  font-weight: 600;
+  margin-right: 12px;
+  color: #1976d2;
+}
+
+.history-table-clean ul li .batch-qty {
+  margin-right: 12px;
+  color: #388e3c;
+}
+
+.history-table-clean ul li .batch-price {
+  color: #6d4c41;
+}
+
+/* Improve spacing for reduce stock history columns */
+.history-table-clean th,
+.history-table-clean td {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+/* Set min-width for key columns */
+.history-table-clean th:nth-child(2),
+.history-table-clean td:nth-child(2) { /* Admin */
+  min-width: 120px;
+}
+.history-table-clean th:nth-child(3),
+.history-table-clean td:nth-child(3) { /* Date */
+  min-width: 170px;
+}
+.history-table-clean th:nth-child(4),
+.history-table-clean td:nth-child(4) { /* Stock Change */
+  min-width: 120px;
+}
+
+/* Ensure text wraps or ellipses if too long */
+.history-table-clean td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Center and space the Angular Material dialog modal */
+.cdk-overlay-pane {
+  max-width: 900px !important;
+  width: calc(100vw - 64px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+@media (max-width: 700px) {
+  .cdk-overlay-pane {
+    max-width: 100vw !important;
+    width: calc(100vw - 8px) !important;
+    margin-left: 4px !important;
+    margin-right: 4px !important;
+  }
+}
+
+/* Custom Modal Overlay and Box for History */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-modal-box {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 950px;
+  width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 32px 24px 24px 24px;
+  position: relative;
+  animation: fadeInModal 0.2s;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: none; }
+}
+
+.custom-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  color: #888;
+  cursor: pointer;
+  z-index: 1;
+  transition: color 0.2s;
+}
+.custom-modal-close:hover {
+  color: #d32f2f;
+}
+
+@media (max-width: 700px) {
+  .custom-modal-box {
+    max-width: 100vw;
+    width: 99vw;
+    padding: 12px 2vw 12px 2vw;
+  }
+}
+
+/* Custom tooltip for action icons in table - show below the icon */
+.custom-tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  background: #222;
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 4px 10px;
+  position: absolute;
+  z-index: 300;
+  left: 50%;
+  top: 38px; /* show below the icon, with a gap */
+  transform: translateX(-50%);
+  font-size: 13px;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.custom-tooltip-container:hover .custom-tooltip,
+.custom-tooltip-container:focus-within .custom-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Ensure custom tooltips are never covered by table rows */
+.custom-tooltip {
+  z-index: 300;
+}
+
+/* Allow tooltips to overflow table cells and rows */
+.variants-table-clean,
+.variants-table-clean tr,
+.variants-table-clean td,
+.variants-table-clean tbody {
+  overflow: visible !important;
+}
+
+.variants-table-clean tr:hover,
+.variants-table-clean tr:focus-within {
+  z-index: 400;
+  position: relative;
+}
+
+.variants-table-clean tr {
+  position: relative;
+  z-index: 1;
+}
+
+.custom-tooltip,
+.custom-tooltip-container {
+  z-index: 100000;
 }
 

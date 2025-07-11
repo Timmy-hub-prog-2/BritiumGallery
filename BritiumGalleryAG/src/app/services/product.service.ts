@@ -102,8 +102,16 @@ export class ProductService {
     return this.http.post<VariantResponse>(`${this.baseUrl}/variants/${stockData.variantId}/add-stock`, stockData, { params });
   }
 
-  reduceStock(variantId: number, body: { reductions: { purchaseId: number, quantity: number }[] }) {
-    return this.http.post(`${this.baseUrl}/variants/${variantId}/reduce-stock`, body);
+  reduceStock(variantId: number, body: { reductions: { purchaseId: number, quantity: number }[], reductionReason?: string }, adminId?: number) {
+    let params = new HttpParams();
+    if (adminId) {
+      params = params.set('adminId', adminId.toString());
+    }
+    return this.http.post(`${this.baseUrl}/variants/${variantId}/reduce-stock`, body, { params });
+  }
+
+  getReduceStockHistory(variantId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/variants/${variantId}/reduce-stock-history`);
   }
 
   getAllProducts(): Observable<Product[]> {

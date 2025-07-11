@@ -611,6 +611,22 @@
   padding: 16px;
 }
 
+.refund-summary .summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.refund-summary .summary-header h5 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
 .summary-row {
   display: flex;
   justify-content: space-between;
@@ -655,6 +671,33 @@
   width: 14px;
   height: 14px;
   flex-shrink: 0;
+}
+
+.coupon-info {
+  margin-bottom: 10px;
+  font-size: 14px;
+  background: #f3f4f6;
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.coupon-label {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.coupon-code {
+  font-family: monospace;
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.coupon-desc {
+  color: #6b7280;
+  font-size: 13px;
 }
 
 /* Items Container */
@@ -1129,4 +1172,84 @@
   .item-refund-form {
     padding: 12px;
   }
+}
+
+/* Whole Order Items */
+.whole-order-items {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e5e5e5;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.item-row:last-child {
+  border-bottom: none;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.item-details {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.item-sku,
+.item-qty {
+  background: #e5e5e5;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.item-attributes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.item-amount {
+  text-align: right;
+  min-width: 120px;
+}
+
+.amount-label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.amount-value {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.items-count {
+  font-size: 12px;
+  color: #666;
+  background: #e5e5e5;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
 }
