@@ -323,6 +323,85 @@
         <span class="nav-label" *ngIf="expanded">Shop Settings</span>
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
+
+      <!-- About Us Link -->
+<a routerLink="/about" 
+   routerLinkActive="active" 
+   class="nav-item" 
+   [title]="!expanded ? 'About Us' : ''" 
+   aria-label="About Us">
+  <div class="nav-icon">
+    <i class="fas fa-info-circle"></i>
+  </div>
+  <span class="nav-label" *ngIf="expanded">About Us</span>
+  <div class="nav-indicator" *ngIf="expanded"></div>
+</a>
+
+<!-- FAQ Link -->
+<a routerLink="/FAQ" 
+   routerLinkActive="active" 
+   class="nav-item" 
+   [title]="!expanded ? 'FAQs' : ''" 
+   aria-label="Frequently Asked Questions">
+  <div class="nav-icon">
+    <i class="fas fa-question-circle"></i>
+  </div>
+  <span class="nav-label" *ngIf="expanded">FAQs</span>
+  <div class="nav-indicator" *ngIf="expanded"></div>
+</a>
+
+<!-- Blog Link -->
+<a routerLink="/blog" 
+   routerLinkActive="active" 
+   class="nav-item" 
+   [title]="!expanded ? 'Blog/News' : ''" 
+   aria-label="Blog Page">
+  <div class="nav-icon">
+    <i class="fas fa-blog"></i>
+  </div>
+  <span class="nav-label" *ngIf="expanded">Blog/News</span>
+  <div class="nav-indicator" *ngIf="expanded"></div>
+</a>
+
+<!-- Terms and Conditions Link -->
+<a routerLink="/terms" 
+   routerLinkActive="active" 
+   class="nav-item" 
+   [title]="!expanded ? 'Terms & Conditions' : ''" 
+   aria-label="Terms and Conditions">
+  <div class="nav-icon">
+    <i class="fas fa-file-contract"></i>
+  </div>
+  <span class="nav-label" *ngIf="expanded">Terms & Conditions</span>
+  <div class="nav-indicator" *ngIf="expanded"></div>
+</a>
+
+<!-- Privacy Policy Link -->
+<a routerLink="/privacypolicy" 
+   routerLinkActive="active" 
+   class="nav-item" 
+   [title]="!expanded ? 'Privacy Policy' : ''" 
+   aria-label="Privacy Policy">
+  <div class="nav-icon">
+    <i class="fas fa-user-shield"></i>
+  </div>
+  <span class="nav-label" *ngIf="expanded">Privacy Policy</span>
+  <div class="nav-indicator" *ngIf="expanded"></div>
+</a>
+
+<!-- Shipping Policy Link -->
+<a routerLink="/shippingpolicy" 
+   routerLinkActive="active" 
+   class="nav-item" 
+   [title]="!expanded ? 'Shipping Policy' : ''" 
+   aria-label="Shipping Policy">
+  <div class="nav-icon">
+    <i class="fas fa-shipping-fast"></i>
+  </div>
+  <span class="nav-label" *ngIf="expanded">Shipping Policy</span>
+  <div class="nav-indicator" *ngIf="expanded"></div>
+</a>
+
     </div>
   </nav>
 

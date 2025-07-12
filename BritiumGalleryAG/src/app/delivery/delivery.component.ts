@@ -10,12 +10,14 @@ import { AuthService } from '../AuthService';
   styleUrls: ['./delivery.component.css']
 })
 export class DeliveryComponent implements OnInit {
-
   delivery!: Delivery;
   deliveries: Delivery[] = [];
 
   showModal = false;
   isEditMode = false;
+
+  searchText: string = '';
+  activeTab: string = 'ALL'; // ALL, STANDARD, EXPRESS, SHIP
 
   constructor(
     private deliveryService: DeliveryService,
@@ -29,13 +31,15 @@ export class DeliveryComponent implements OnInit {
 
   getEmptyDelivery(): Delivery {
     const adminId = this.authService.getLoggedInUserId();
+    const shopUserId = this.authService.getLoggedInUserId();
     return {
       type: 'STANDARD',
       name: '',
       adminId: adminId ?? 0,
       feesPer1km: 0,
       fixAmount: 0,
-      minDelayTime: ''
+      minDelayTime: null,
+      shopUserId: shopUserId ?? 0
     };
   }
 
@@ -43,7 +47,6 @@ export class DeliveryComponent implements OnInit {
     this.delivery = this.getEmptyDelivery();
     this.isEditMode = false;
     this.showModal = true;
-    console.log('Modal opened:', this.showModal);
   }
 
   closeModal() {
@@ -90,7 +93,6 @@ export class DeliveryComponent implements OnInit {
     this.delivery = { ...delivery };
     this.isEditMode = true;
     this.showModal = true;
-    console.log('Editing delivery:', delivery.id);
   }
 
   deleteDelivery(id: number) {
@@ -102,23 +104,34 @@ export class DeliveryComponent implements OnInit {
   loadDeliveries() {
     this.deliveryService.getAll().subscribe({
       next: data => {
-        console.log('deliveries:', data);
         this.deliveries = data;
       },
       error: err => console.error('API error:', err)
     });
   }
 
-  // 🔽 Filters for table display
-  get standardDeliveries() {
-    return this.deliveries.filter(d => d.type === 'STANDARD');
+  // Filtered deliveries for current tab and search text
+  filteredDeliveries(): Delivery[] {
+    let list = this.deliveries;
+
+    if (this.activeTab !== 'ALL') {
+      list = list.filter(d => d.type === this.activeTab);
+    }
+
+    if (this.searchText.trim()) {
+      const keyword = this.searchText.toLowerCase();
+      list = list.filter(d => d.name.toLowerCase().includes(keyword));
+    }
+
+    return list;
   }
 
-  get expressDeliveries() {
-    return this.deliveries.filter(d => d.type === 'EXPRESS');
-  }
-
-  get shipDeliveries() {
-    return this.deliveries.filter(d => d.type === 'SHIP');
+  getTabTitle(): string {
+    switch (this.activeTab) {
+      case 'STANDARD': return 'Standard Delivery Methods';
+      case 'EXPRESS': return 'Express Delivery Methods';
+      case 'SHIP': return 'Ship Delivery Methods';
+      default: return 'All Delivery Methods';
+    }
   }
 }

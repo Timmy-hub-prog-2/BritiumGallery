@@ -1,44 +1,86 @@
-<h2>Terms & Conditions Management</h2>
+<div class="admin-blog">
 
-<form [formGroup]="termsForm" (ngSubmit)="saveTerm()">
-  <label>Title</label>
-  <input formControlName="title" class="form-control" />
+  <!-- Page Header -->
+  <div class="management-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 6h18M6 6v14a2 2 0 002 2h8a2 2 0 002-2V6M9 10h6M9 14h6" />
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">Terms & Conditions</h1>
+        <p class="page-subtitle">Create, update, and manage terms & conditions of your store</p>
+      </div>
+    </div>
+  </div>
 
-  <label>Content</label>
-  <textarea formControlName="content" rows="5" class="form-control"></textarea>
+  <!-- Terms Form -->
+  <div class="form-section card">
+    <h3 class="section-title">{{ editingId ? 'Edit Term' : 'Create Term' }}</h3>
 
-  <label>
-    <input type="checkbox" formControlName="active" />
-    Active
-  </label>
+    <form [formGroup]="termsForm" (ngSubmit)="saveTerm()">
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input formControlName="title" class="form-input" placeholder="Enter title" />
+      </div>
 
-  <button type="submit" class="btn btn-primary">
-    {{ editingId ? 'Update' : 'Create' }} Terms
-  </button>
-  <button type="button" class="btn btn-secondary" (click)="cancelEdit()" *ngIf="editingId">Cancel</button>
-</form>
+      <div class="form-group">
+        <label class="form-label">Content</label>
+        <textarea formControlName="content" rows="5" class="form-input" placeholder="Enter content"></textarea>
+      </div>
 
-<hr />
+      <div class="form-group">
+        <label>
+          <input type="checkbox" formControlName="active" />
+          Active
+        </label>
+      </div>
 
-<h3>All Terms Records</h3>
-<table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Title</th>
-      <th>Active</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let term of allTerms">
-      <td>{{ term.id }}</td>
-      <td>{{ term.title }}</td>
-      <td>{{ term.active ? 'Yes' : 'No' }}</td>
-      <td>
-        <button (click)="editTerm(term)" class="btn btn-sm btn-warning">Edit</button>
-        <button (click)="deleteTerm(term.id!)" class="btn btn-sm btn-danger">Delete</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+      <div class="footer-actions">
+        <button type="submit" class="btn primary">
+          {{ editingId ? 'Update' : 'Create' }}
+        </button>
+        <button type="button" class="btn secondary" (click)="cancelEdit()" *ngIf="editingId">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Terms Table List -->
+  <div class="table-wrapper" *ngIf="allTerms.length > 0; else noTerms">
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Content</th>
+          <th>Active</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let term of allTerms">
+          <td>{{ term.id }}</td>
+          <td>{{ term.title }}</td>
+          <td>
+            <div [ngClass]="{ 'snippet': !isExpanded(term.id!) }" [innerHTML]="term.content"></div>
+            <a href="#" (click)="toggleExpand(term.id!, $event)">
+              {{ isExpanded(term.id!) ? 'Show Less ▲' : 'Read More ▼' }}
+            </a>
+          </td>
+          <td>{{ term.active ? '✅' : '❌' }}</td>
+          <td>
+            <button class="icon-button" (click)="editTerm(term)">✏️</button>
+            <button class="icon-button" (click)="deleteTerm(term.id!)">🗑️</button>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #noTerms>
+    <p>No terms found.</p>
+  </ng-template>
+
+</div>

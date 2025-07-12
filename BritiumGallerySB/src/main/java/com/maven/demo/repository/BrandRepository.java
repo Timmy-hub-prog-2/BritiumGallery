@@ -11,4 +11,6 @@ public interface BrandRepository extends JpaRepository<BrandEntity, Long> {
     
     // Retrieve all brands ordered by id ascending
     List<BrandEntity> findAllByOrderByIdAsc();
+    Optional<BrandEntity> findByNameIgnoreCase(String name);
+
 }

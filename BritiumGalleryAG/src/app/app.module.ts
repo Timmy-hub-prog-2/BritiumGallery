@@ -89,6 +89,9 @@ import { CreateNotificationComponent } from './create-notification/create-notifi
 import { DiscountEventsComponent } from './discount-events/discount-events.component';
 import { MapToAttributeLinePipe } from './map-to-attribute-line.pipe';
 import { BrandRegisterComponent } from './brand-register/brand-register.component';
+import { ShippingReturnsPolicyComponent } from './shipping-returns-policy/shipping-returns-policy.component';
+import { AboutComponent } from './about/about.component';
+import { BlogCreateComponent } from './blog-create/blog-create.component';
 
 @NgModule({
   declarations: [
@@ -152,7 +155,10 @@ import { BrandRegisterComponent } from './brand-register/brand-register.componen
     SidebarComponent,
     DiscountEventsComponent,
     ManagerComponent,
-    ManagerSidebarComponent
+    ManagerSidebarComponent,
+    ShippingReturnsPolicyComponent,
+    AboutComponent,
+    BlogCreateComponent
   ],
   imports: [
     BrowserModule,

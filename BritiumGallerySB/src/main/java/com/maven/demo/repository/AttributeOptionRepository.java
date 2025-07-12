@@ -1,6 +1,7 @@
 package com.maven.demo.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,7 +20,8 @@ public interface AttributeOptionRepository extends JpaRepository<AttributeOption
     @Query("DELETE FROM AttributeOptions o WHERE o.attribute.id = :attributeId")
     void deleteByAttributeId(Long attributeId);
 
-
-
     List<AttributeOptions> findByAttributeId(Long attributeId);
+
+    Optional<AttributeOptions> findByAttributeIdAndValueIgnoreCase(Long attributeId, String value);
+
 }

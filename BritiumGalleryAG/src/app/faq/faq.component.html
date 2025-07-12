@@ -1,26 +1,59 @@
-<div class="faq-container">
-  <h2>📋 FAQ Manager</h2>
+<div class="admin-faq">
 
-  <form (ngSubmit)="saveFaq()" #faqForm="ngForm">
+  <!-- Page Header -->
+  <div class="management-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 6h18M6 6v14a2 2 0 002 2h8a2 2 0 002-2V6M9 10h6M9 14h6" />
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">FAQ Manager</h1>
+        <p class="page-subtitle">Create, edit, and manage frequently asked questions</p>
+      </div>
+    </div>
+  </div>
 
-     
-    <!-- Category Input -->
-    <input type="text" name="category" [(ngModel)]="faq.category" required placeholder="Category" />
-    
-    <input type="text" name="question" [(ngModel)]="faq.question" required placeholder="Question" />
-    <textarea name="answer" [(ngModel)]="faq.answer" required placeholder="Answer"></textarea>
-    <button type="submit">{{ faq.id ? 'Update' : 'Create' }}</button>
-    <button type="button" (click)="resetForm()">Cancel</button>
-  </form>
+  <!-- FAQ Form -->
+  <div class="form-section card">
+    <h3 class="section-title">{{ faq.id ? 'Edit FAQ' : 'Create New FAQ' }}</h3>
 
-  <hr />
+    <form (ngSubmit)="saveFaq()" #faqForm="ngForm">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <input type="text" name="category" [(ngModel)]="faq.category" required class="form-input" placeholder="Category" />
+      </div>
 
-  <ul>
-    <li *ngFor="let f of faqs">
-      <strong>{{ f.question }}</strong><br />
-      <em>{{ f.answer }}</em><br />
-      <button (click)="editFaq(f)">Edit</button>
-      <button (click)="deleteFaq(f.id)">Delete</button>
-    </li>
-  </ul>
+      <div class="form-group">
+        <label class="form-label">Question</label>
+        <input type="text" name="question" [(ngModel)]="faq.question" required class="form-input" placeholder="Your question" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Answer</label>
+        <textarea name="answer" [(ngModel)]="faq.answer" rows="4" required class="form-input" placeholder="Answer here..."></textarea>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn primary" type="submit">{{ faq.id ? 'Update FAQ' : 'Create FAQ' }}</button>
+        <button class="btn secondary" type="button" (click)="resetForm()" *ngIf="faq.id">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- FAQ List -->
+  <div class="faq-list card" *ngIf="faqs.length">
+    <h3 class="section-title">All FAQs</h3>
+
+    <div *ngFor="let f of faqs" class="faq-item">
+      <h4>{{ f.question }}</h4>
+      <p><strong>Category:</strong> {{ f.category }}</p>
+      <p><em>{{ f.answer }}</em></p>
+      <div class="action-buttons">
+        <button class="btn icon" (click)="editFaq(f)">Edit</button>
+        <button class="btn icon danger" (click)="deleteFaq(f.id)">Delete</button>
+      </div>
+    </div>
+  </div>
 </div>

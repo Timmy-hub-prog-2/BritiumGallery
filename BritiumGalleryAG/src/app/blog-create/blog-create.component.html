@@ -1,0 +1,80 @@
+<div class="admin-blog">
+
+  <!-- Page Header -->
+  <div class="management-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 6h18M6 6v14a2 2 0 002 2h8a2 2 0 002-2V6M9 10h6M9 14h6" />
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">Blog Post Management</h1>
+        <p class="page-subtitle">Create, edit, and manage your latest blog/news articles</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blog Form -->
+  <div class="form-section card">
+    <h3 class="section-title">{{ editingId ? 'Edit Blog Post' : 'Create New Blog Post' }}</h3>
+
+    <form (ngSubmit)="submit()" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" [(ngModel)]="blog.title" name="title" class="form-input" required placeholder="Blog title" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Author</label>
+        <input type="text" [(ngModel)]="blog.author" name="author" class="form-input" required placeholder="Author name" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Publish Date</label>
+        <input type="date" [(ngModel)]="blog.publishDate" name="publishDate" class="form-input" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Summary</label>
+        <textarea [(ngModel)]="blog.summary" name="summary" rows="2" class="form-input" placeholder="Brief summary..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Content</label>
+        <textarea [(ngModel)]="blog.content" name="content" rows="5" class="form-input" placeholder="Main content..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Image Upload</label>
+        <input type="file" (change)="onFileSelected($event)" class="form-input" />
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn primary" type="submit">{{ editingId ? 'Update Blog' : 'Create Blog' }}</button>
+        <button class="btn secondary" type="button" (click)="cancelEdit()" *ngIf="editingId">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Blog List -->
+  <div class="blog-list card" *ngIf="blogs.length">
+    <h3 class="section-title">All Blog Posts</h3>
+
+    <div *ngFor="let b of blogs" class="blog-item">
+      <div class="blog-image-wrapper" *ngIf="b.imageUrl">
+        <img [src]="b.imageUrl" alt="Image" class="blog-image" />
+      </div>
+      <div class="blog-details">
+        <h4>{{ b.title }}</h4>
+        <p><strong>Author:</strong> {{ b.author }}</p>
+        <p><strong>Date:</strong> {{ b.publishDate | date }}</p>
+        <p><strong>Summary:</strong> {{ b.summary }}</p>
+        <div class="action-buttons">
+          <button class="btn icon" (click)="editBlog(b)">Edit</button>
+          <button class="btn icon danger" (click)="deleteBlog(b.id!)">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

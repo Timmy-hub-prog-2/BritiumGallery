@@ -5,12 +5,12 @@ export interface Delivery {
   adminId: number; 
   feesPer1km?: number | null; // Allow null as well
   fixAmount?: number | null; // Allow null as well
-  minDelayTime?: string;
+minDelayTime?: string | null;
     shopLat?: number;
   shopLng?: number;
  shopAddressId?: number;
 
-
+shopUserId?: number;
 }
 export interface DeliveryFeeRequestDTO {
   userId: number;

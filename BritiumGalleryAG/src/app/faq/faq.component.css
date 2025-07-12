@@ -1,15 +1,185 @@
-.faq-container {
-  max-width: 600px;
+.admin-faq {
+  padding: 20px;
+  max-width: 900px;
   margin: auto;
-  padding: 16px;
 }
 
-input, textarea {
+/* Header */
+.management-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 15px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+}
+
+.header-icon {
+  margin-right: 15px;
+  color: #2c3e50;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.page-subtitle {
+  margin: 5px 0 0;
+  color: #666;
+}
+
+/* Card Layout */
+.card {
+  background: #f9f9fb;
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: 0 4px 24px rgba(44, 62, 80, 0.08);
+  margin-bottom: 32px;
+  border: 1px solid #e0e0e0;
+}
+
+/* FAQ List */
+.faq-list.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px;
+  box-shadow: 0 2px 12px rgba(44, 62, 80, 0.06);
+}
+
+/* FAQ Items */
+.faq-item {
+  border-top: 1px solid #eee;
+  padding: 18px 0;
+  transition: background 0.2s;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.faq-item:hover {
+  background: #f3f6fa;
+}
+
+/* FAQ Question */
+.faq-item h4 {
+  margin: 0 0 6px 0;
+  font-size: 18px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* FAQ Category */
+.faq-item p strong {
+  color: #2980b9;
+}
+
+/* FAQ Answer */
+.faq-item p em {
+  color: #555;
+  font-style: normal;
+}
+
+/* Action Buttons */
+.action-buttons {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+}
+
+/* Buttons */
+.btn {
+  background-color: #2c3e50;
+  color: white;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  margin-right: 0;
+  box-shadow: 0 2px 6px rgba(44, 62, 80, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn.primary {
+  background-color: #2980b9;
+}
+.btn.secondary {
+  background-color: #bdc3c7;
+  color: #2c3e50;
+}
+.btn.icon {
+  background-color: #27ae60;
+}
+.btn.icon.danger {
+  background-color: #e74c3c;
+}
+.btn:hover {
+  background-color: #34495e;
+  box-shadow: 0 4px 12px rgba(44, 62, 80, 0.12);
+}
+.btn.icon:hover {
+  background-color: #218c53;
+}
+.btn.icon.danger:hover {
+  background-color: #c0392b;
+}
+
+
+/* Responsive */
+@media (max-width: 600px) {
+  .admin-faq, .card, .faq-list.card {
+    padding: 10px;
+    max-width: 100%;
+  }
+  .management-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 8px;
+  }
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .footer-actions, .action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Form Styling */
+.form-group {
+  margin-bottom: 18px;
+}
+.form-label {
+  font-weight: 600;
+  margin-bottom: 7px;
+  display: block;
+  color: #2c3e50;
+}
+.form-input,
+input[type="text"],
+input[type="date"],
+textarea {
   width: 100%;
-  margin-bottom: 10px;
-  padding: 8px;
+  padding: 13px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: 'Segoe UI', sans-serif;
+  box-sizing: border-box;
+  margin-bottom: 0;
+  background: #f7fafd;
+  transition: border 0.2s;
 }
-
-button {
-  margin-right: 5px;
+.form-input:focus,
+input[type="text"]:focus,
+textarea:focus {
+  border-color: #2980b9;
+  outline: none;
 }
