@@ -7,6 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.maven.demo.entity.BrandEntity;
+import com.maven.demo.repository.BrandRepository;
+import com.maven.demo.service.ExcelService;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -48,10 +55,16 @@ public class ProductController {
     @Autowired
     private CloudinaryUploadService cloudinaryService;
 
+    @Autowired
+    private ExcelService excelService;
 
 
     @Autowired
     private ProductVariantRepository variantRepository;
+
+    @Autowired
+    private BrandRepository brandRepository;
+
 
     @PostMapping("/saveWithFiles")
     public ResponseEntity<String> saveProductWithFiles(
@@ -379,6 +392,61 @@ public class ProductController {
     @GetMapping("/{categoryId}/price-range")
     public ResponseEntity<Map<String, Integer>> getMinMaxPriceForCategory(@PathVariable Long categoryId) {
         return ResponseEntity.ok(productService.getMinMaxPriceForCategory(categoryId));
+    }
+    @GetMapping("/export-template")
+    public void exportProductTemplate(@RequestParam Long categoryId, HttpServletResponse response) throws IOException {
+        List<String> columns = productService.getColumnsByCategoryId(categoryId);
+        List<BrandEntity> brands = brandRepository.findAllByOrderByIdAsc();
+
+        // Add default columns if not already included
+        if (!columns.contains("name")) columns.add(0, "name");
+        if (!columns.contains("description")) columns.add("description");
+        if (!columns.contains("brand")) columns.add("brand");
+        if (!columns.contains("rating")) columns.add("rating");
+        if (!columns.contains("price")) columns.add("price");
+        if (!columns.contains("stock")) columns.add("stock");
+        if (!columns.contains("purchaseprice")) columns.add("purchaseprice");
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet templateSheet = workbook.createSheet("Product Template");
+
+        // 🧾 Create header row
+        Row header = templateSheet.createRow(0);
+        for (int i = 0; i < columns.size(); i++) {
+            header.createCell(i).setCellValue(columns.get(i));
+        }
+
+        // 🧾 Create Data Validation Helper for Dropdown (for brand column)
+        DataValidationHelper dataValidationHelper = templateSheet.getDataValidationHelper();
+        DataValidationConstraint constraint = dataValidationHelper.createExplicitListConstraint(
+                brands.stream().map(BrandEntity::getName).toArray(String[]::new)
+        );
+
+        // Apply data validation to the "brand" column (index 4)
+        CellRangeAddressList addressList = new CellRangeAddressList(1, 1000, 4, 4); // Apply to rows 1 to 1000 in the "brand" column (index 4)
+        DataValidation validation = dataValidationHelper.createValidation(constraint, addressList);
+        templateSheet.addValidationData(validation);
+
+        // 📤 Setup download
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=category_" + categoryId + "_template.xlsx");
+
+        workbook.write(response.getOutputStream());
+        workbook.close();
+    }
+
+
+    @PostMapping("/upload-products")
+    public ResponseEntity<Map<String, Object>> uploadExcel(@RequestParam("file") MultipartFile file,
+                                                           @RequestParam("categoryId") Long categoryId,
+                                                           @RequestParam("adminId") Long adminId) throws IOException {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "File is empty"));
+        }
+
+        excelService.parseAndInsertExcelData(file, categoryId, adminId);
+        // Pass categoryId
+        return ResponseEntity.ok(Map.of("success", true, "message", "Upload successful"));
     }
 
 }

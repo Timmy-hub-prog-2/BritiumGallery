@@ -1,130 +1,92 @@
-<!-- Create Delivery Button -->
-<button (click)="openModal()">Create Delivery</button>
-<br><br>
+<div class="delivery-container">
+    <!-- Header -->
+    <h1>Delivery Management</h1>
+    <p>Configure and manage your delivery methods and pricing</p>
 
-<!-- Modal -->
-<div class="modal" *ngIf="showModal">
-    <div class="modal-content">
-        <h2>{{ isEditMode ? 'Edit' : 'Create' }} Delivery Method</h2>
-        <form (ngSubmit)="onSubmit()">
-
-            <label>Type:</label>
-            <select [(ngModel)]="delivery.type" name="type" required>
-                <option value="STANDARD">Standard</option>
-                <option value="EXPRESS">Express</option>
-                <option value="SHIP">Ship</option>
-            </select>
-
-            <label>Name:</label>
-            <input [(ngModel)]="delivery.name" name="name" required />
-
-            <!-- Fees Per KM for STANDARD -->
-            <div *ngIf="delivery.type === 'STANDARD'">
-                <label>Fees Per KM:</label>
-                <input [(ngModel)]="delivery.feesPer1km" name="feesPer1km" type="number" />
-            </div>
-
-            <!-- Fixed Amount for EXPRESS and SHIP -->
-            <div *ngIf="delivery.type === 'EXPRESS' || delivery.type === 'SHIP'">
-                <label>Fixed Amount:</label>
-                <input [(ngModel)]="delivery.fixAmount" name="fixAmount" type="number" />
-            </div>
-
-            <label>Minimum Delay Time:</label>
-            <input [(ngModel)]="delivery.minDelayTime" name="minDelayTime" />
-
-            <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 20px;">
-                <button type="submit">{{ isEditMode ? 'Update' : 'Save' }}</button>
-                <button type="button" (click)="closeModal()">Cancel</button>
-            </div>
-
-        </form>
+    <!-- Top controls -->
+    <div class="top-controls">
+        <input type="text" placeholder="Search delivery methods..." class="search-box" [(ngModel)]="searchText" />
+        <button class="add-button" (click)="openModal()">+ Add Delivery Method</button>
     </div>
-</div>
 
-<!-- STANDARD Table -->
-<div class="delivery-section">
-    <h3>Standard Deliveries</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Fees Per KM</th>
-                <th>Min Delay</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let d of standardDeliveries">
-                <td>{{ d.name }}</td>
-                <td>{{ d.feesPer1km }}</td>
-                <td>{{ d.minDelayTime || '—' }}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="edit" (click)="editDelivery(d)">Edit</button>
-                        <button class="delete" (click)="deleteDelivery(d.id!)">Delete</button>
-                    </div>
-                </td>
+    <!-- Tabs -->
+    <div class="tabs">
+        <button (click)="activeTab = 'ALL'" [class.active]="activeTab === 'ALL'">All Methods</button>
+        <button (click)="activeTab = 'STANDARD'" [class.active]="activeTab === 'STANDARD'">Standard</button>
+        <button (click)="activeTab = 'EXPRESS'" [class.active]="activeTab === 'EXPRESS'">Express</button>
+        <button (click)="activeTab = 'SHIP'" [class.active]="activeTab === 'SHIP'">Ship</button>
+    </div>
 
-            </tr>
-        </tbody>
-    </table>
-</div>
+    <!-- Table -->
+    <div class="delivery-section">
+        <h3>{{ getTabTitle() }}</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Pricing</th>
+                    <th>Min Delay</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let delivery of filteredDeliveries()">
+                    <td>{{ delivery.name }}</td>
+                    <td>
+                        <span [ngClass]="{
+              'badge-standard': delivery.type === 'STANDARD',
+              'badge-express': delivery.type === 'EXPRESS',
+              'badge-ship': delivery.type === 'SHIP'
+            }">{{ delivery.type }}</span>
+                    </td>
+                    <td>
+                        <span *ngIf="delivery.type === 'STANDARD'">{{ delivery.feesPer1km }} /km</span>
+                        <span *ngIf="delivery.type !== 'STANDARD'">{{ delivery.fixAmount }}</span>
+                    </td>
+                    <td>{{ delivery.minDelayTime }} days</td>
+                    <td class="action-buttons">
+                        <button class="icon-button" (click)="editDelivery(delivery)">✏️</button>
+                        <button class="icon-button" (click)="deleteDelivery(delivery.id!)">🗑️</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-<div class="delivery-section">
-    <!-- EXPRESS Table -->
-    <h3>Express Deliveries</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Fixed Amount</th>
-                <th>Min Delay</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let d of expressDeliveries">
-                <td>{{ d.name }}</td>
-                <td>{{ d.fixAmount }}</td>
-                <td>{{ d.minDelayTime || '—' }}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="edit" (click)="editDelivery(d)">Edit</button>
-                        <button class="delete" (click)="deleteDelivery(d.id!)">Delete</button>
-                    </div>
-                </td>
+    <!-- Modal -->
+    <div class="modal" *ngIf="showModal">
+        <div class="modal-content">
+            <h2>{{ isEditMode ? 'Edit' : 'Create' }} Delivery Method</h2>
+            <form (ngSubmit)="onSubmit()">
+                <label>Type:</label>
+                <select [(ngModel)]="delivery.type" name="type" required>
+                    <option value="STANDARD">STANDARD</option>
+                    <option value="EXPRESS">EXPRESS</option>
+                    <option value="SHIP">SHIP</option>
+                </select>
 
-            </tr>
-        </tbody>
-    </table>
-</div>
+                <label>Name:</label>
+                <input type="text" [(ngModel)]="delivery.name" name="name" required />
 
-<div class="delivery-section">
-    <!-- SHIP Table -->
-    <h3>Ship Deliveries</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Fixed Amount</th>
-                <th>Min Delay</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let d of shipDeliveries">
-                <td>{{ d.name }}</td>
-                <td>{{ d.fixAmount }}</td>
-                <td>{{ d.minDelayTime || '—' }}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="edit" (click)="editDelivery(d)">Edit</button>
-                        <button class="delete" (click)="deleteDelivery(d.id!)">Delete</button>
-                    </div>
-                </td>
+                <div *ngIf="delivery.type === 'STANDARD'">
+                    <label>Fees Per KM:</label>
+                    <input [(ngModel)]="delivery.feesPer1km" name="feesPer1km" type="number" />
+                </div>
 
-            </tr>
-        </tbody>
-    </table>
+                <div *ngIf="delivery.type === 'EXPRESS' || delivery.type === 'SHIP'">
+                    <label>Fixed Amount:</label>
+                    <input [(ngModel)]="delivery.fixAmount" name="fixAmount" type="number" />
+                </div>
+
+                <label>Minimum Delay Time (in days):</label>
+                <input [(ngModel)]="delivery.minDelayTime" name="minDelayTime" type="number" />
+
+                <div class="modal-buttons">
+                    <button type="submit">{{ isEditMode ? 'Update' : 'Save' }}</button>
+                    <button type="button" (click)="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>

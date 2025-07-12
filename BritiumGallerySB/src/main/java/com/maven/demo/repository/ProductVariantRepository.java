@@ -25,4 +25,6 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariantEn
 
 
     List<ProductVariantEntity> findByProductId(long id);
+
+    long countByProductId(Long productId);
 }

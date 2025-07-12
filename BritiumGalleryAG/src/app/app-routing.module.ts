@@ -52,6 +52,9 @@ import { FAQListComponent } from './faqlist/faqlist.component';
 import { CreateNotificationComponent } from './create-notification/create-notification.component';
 import { DiscountEventsComponent } from './discount-events/discount-events.component';
 import { BrandRegisterComponent } from './brand-register/brand-register.component';
+import { ShippingReturnsPolicyComponent } from './shipping-returns-policy/shipping-returns-policy.component';
+import { AboutComponent } from './about/about.component';
+import { BlogCreateComponent } from './blog-create/blog-create.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -108,6 +111,11 @@ const routes: Routes = [
 {path:'create-notification',component:CreateNotificationComponent},
 { path: 'events', component: DiscountEventsComponent },
   { path: 'brand-register', component: BrandRegisterComponent },
+  {path:'shippingpolicy',component:ShippingReturnsPolicyComponent},
+  {path:'about',component:AboutComponent},
+   {path:'blog',component:BlogCreateComponent}
+
+
 
 ];
 

@@ -7,6 +7,17 @@
       </button>
     </div>
 
+<button (click)="downloadTemplate(categoryId)">
+  <i class="bi bi-download"></i> Download Excel Template
+</button>
+
+
+ <!-- File Upload Section -->
+<div class="file-upload-section">
+  <input type="file" (change)="onFileSelect($event)" accept=".xlsx,.xls" />
+  <button (click)="uploadFile()" [disabled]="!selectedFile">Upload Excel</button>
+</div>
+
     <form (ngSubmit)="onSubmit()" class="product-form" #productForm="ngForm">
       <!-- Product Info Section -->
       <div class="form-section product-info">

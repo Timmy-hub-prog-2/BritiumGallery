@@ -38,6 +38,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .map(entity -> {
                     DeliveryDTO dto = mapper.map(entity, DeliveryDTO.class);
                     dto.setAdminId(entity.getAdmin().getId());
+                    dto.setType(entity.getType());
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -47,14 +48,23 @@ public class DeliveryServiceImpl implements DeliveryService {
     public DeliveryDTO createDelivery(DeliveryDTO dto) {
         DeliveryEntity entity = mapper.map(dto, DeliveryEntity.class);
 
+        // ✅ Admin set
         if (dto.getAdminId() == null) {
             throw new IllegalArgumentException("Admin ID must not be null");
         }
-
         UserEntity admin = userRepository.findById(dto.getAdminId())
                 .orElseThrow(() -> new RuntimeException("Admin not found with id: " + dto.getAdminId()));
-
         entity.setAdmin(admin);
+
+
+        if (dto.getShopUserId() == null) {
+            throw new RuntimeException("shopUserId is required to set shop address");
+        }
+
+        ShopAddressEntity shopAddress = shopAddressRepo.findByUserIdAndMainAddressTrue(dto.getShopUserId())
+                .orElseThrow(() -> new RuntimeException("Main shop address not found for user ID: " + dto.getShopUserId()));
+
+        entity.setShopAddress(shopAddress);
 
         return mapper.map(deliveryRepository.save(entity), DeliveryDTO.class);
     }
@@ -150,9 +160,14 @@ public class DeliveryServiceImpl implements DeliveryService {
         if ("STANDARD".equalsIgnoreCase(suggestedMethod)) {
             fee = Math.ceil(distance) * (delivery.getFeesPer1km() != null ? delivery.getFeesPer1km() : 0);
         } else {
-            fee = delivery.getFixAmount() != null ? Double.parseDouble(delivery.getFixAmount()) : 0;
+            try {
+                fee = delivery.getFixAmount() != null ? Double.parseDouble(delivery.getFixAmount()) : 0;
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Invalid fixAmount format: " + delivery.getFixAmount());
+            }
         }
-        String time = delivery.getMinDelayTime();
+        String time = delivery.getMinDelayTime() != null ? delivery.getMinDelayTime() + " days" : "N/A";
+;
 
         DeliveryFeeResponseDTO response = new DeliveryFeeResponseDTO();
         response.setDistance(distance);

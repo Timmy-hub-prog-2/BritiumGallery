@@ -28,4 +28,8 @@ public interface AttributeRepository extends JpaRepository<AttributeEntity, Long
     void deleteByCategoryId2(Long categoryId);
 
     List<AttributeEntity> findByCategoryIdIn(List<Long> categoryIds);
+
+    Optional<AttributeEntity> findByNameIgnoreCaseAndCategoryId(String name, Long categoryId);
+    List<AttributeEntity> findByCategory(CategoryEntity category);
+
 }

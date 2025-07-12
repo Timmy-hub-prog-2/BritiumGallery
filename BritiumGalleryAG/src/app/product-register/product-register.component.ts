@@ -7,6 +7,8 @@ import { CategoryAttribute } from '../category';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Brand } from '../models/product.model';
 import { BrandService } from '../services/brand.service';
+import { HttpClient } from '@angular/common/http';
+import { FormGroup } from '@angular/forms';
 
 interface VariantCombination {
   attributes: { [key: string]: string };
@@ -49,7 +51,11 @@ export class ProductRegisterComponent implements OnInit {
     basePhotoUrl: '',
     rating: 0
   };
-
+ selectedFile: File | null = null;
+productForm!: FormGroup;
+productTypes: string[] = [];
+selectedProductType: string = '';
+  
   brands: Brand[] = [];
   selectedBrandId: number | null = null;
 
@@ -59,7 +65,8 @@ export class ProductRegisterComponent implements OnInit {
     private categoryService: CategoryService,
     private productService: ProductService,
     private snackBar: MatSnackBar,
-    private brandService: BrandService
+    private brandService: BrandService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -304,4 +311,55 @@ export class ProductRegisterComponent implements OnInit {
       previewsArray.forEach(preview => URL.revokeObjectURL(preview));
     });
   }
+
+  downloadTemplate(categoryId: number) {
+  this.http.get(`http://localhost:8080/product/export-template?categoryId=${categoryId}`, {
+    responseType: 'blob'
+  }).subscribe(blob => {
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `category_${categoryId}_template.xlsx`; // Save with category-specific name
+    link.click();
+  });
+}
+
+onFileSelect(event: any) {
+  this.selectedFile = event.target.files[0];
+}
+
+uploadFile() {
+  const formData = new FormData();
+  formData.append('file', this.selectedFile!);  // Attach the selected file
+
+  const categoryId = this.categoryId;  // Ensure categoryId is assigned correctly
+
+  // Retrieve adminId from localStorage or session
+  const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+  const adminId = loggedInUser && loggedInUser.id ? loggedInUser.id : null;
+
+  if (!adminId) {
+    this.snackBar.open('Admin ID is missing.', 'Close', { duration: 3000 });
+    return;
+  }
+
+  // Add categoryId and adminId to form data
+  formData.append('categoryId', categoryId.toString());
+  formData.append('adminId', adminId.toString());
+
+  // Send the file to the backend
+  this.http.post('http://localhost:8080/product/upload-products', formData, {
+    responseType: 'text'  // Ensure the response type matches what the backend sends
+  }).subscribe({
+    next: (res) => {
+      console.log('✅ Upload success:', res);
+      this.snackBar.open('File uploaded successfully!', 'Close', { duration: 3000 });
+    },
+    error: (err) => {
+      console.error('❌ Upload error:', err);
+      this.snackBar.open('Upload failed. Please try again.', 'Close', { duration: 3000 });
+    }
+  });
+}
+
+
 }

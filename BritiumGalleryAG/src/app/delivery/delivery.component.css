@@ -1,4 +1,164 @@
-/* Modal styles */
+/* Container */
+.delivery-container {
+  margin-left: 300px;
+  padding: 24px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Header */
+h1 {
+  font-size: 32px;
+  margin-bottom: 5px;
+}
+
+p {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+/* Top Controls */
+.top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-box {
+  padding: 10px;
+  width: 300px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* Add Button */
+.add-button {
+  background-color: #000;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.add-button:hover {
+  background-color: #333;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  padding: 10px 16px;
+  border: none;
+  background-color: #f2f2f2;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.tabs .active {
+  background-color: #000;
+  color: white;
+}
+
+/* Section */
+.delivery-section {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.delivery-section h3 {
+  margin: 0 0 15px;
+  font-size: 22px;
+  border-bottom: 2px solid #007bff;
+  color: #007bff;
+  padding-bottom: 8px;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+table thead {
+  background-color: #eef2f7;
+}
+
+table th,
+table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+table tbody tr:hover {
+  background-color: #f0f8ff;
+}
+
+/* Type Badges */
+.badge-standard {
+  background-color: #000;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.badge-express {
+  background-color: #e53935;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.badge-ship {
+  background-color: #1976d2;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+/* Icon Button */
+.icon-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  padding: 4px;
+  cursor: pointer;
+  color: #333;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.icon-button:hover {
+  transform: scale(1.2);
+  color: #007bff;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Modal */
 .modal {
   position: fixed;
   top: 0;
@@ -33,7 +193,13 @@
   }
 }
 
-/* Form styles */
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 10px;
+}
+
 form label {
   display: block;
   margin-top: 15px;
@@ -58,7 +224,6 @@ form button {
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.2s;
 }
 
 form button[type="submit"] {
@@ -76,105 +241,4 @@ form button[type="button"] {
 
 form button[type="button"]:hover {
   background-color: #999;
-}
-
-/* Table styles */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  font-size: 14px;
-}
-
-table thead {
-  background-color: #f5f5f5;
-}
-
-table th,
-table td {
-  padding: 12px;
-  border: 1px solid #ddd;
-  text-align: center;
-}
-
-table th {
-  font-weight: bold;
-  background-color: #eef2f7;
-  color: #333;
-}
-
-table tbody tr:hover {
-  background-color: #f0f8ff;
-}
-
-table button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  background-color: #28a745;
-  color: white;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-table button:hover {
-  background-color: #218838;
-}
-
-table button.delete {
-  background-color: #dc3545;
-}
-
-table button.delete:hover {
-  background-color: #c82333;
-}
-
-table button.edit {
-  margin-right: 8px;
-}
-
-/* Section styles for each delivery type */
-.delivery-section {
-  background-color: #ffffff;
-  border: 1px solid #dee2e6;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 40px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.delivery-section h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 22px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #007bff;
-  color: #007bff;
-}
-
-/* Extra styling for Create button */
-button {
-  margin-bottom: 20px;
-  background-color: #007bff;
-  color: white;
-  padding: 10px 18px;
-  font-size: 15px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-/* Flex container for action buttons */
-.action-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 10px; /* space between edit and delete */
-}
-
-/* Optional: keep these for individual styling */
-table button.edit {
-  margin-right: 0; /* reset margin if using flex gap */
 }

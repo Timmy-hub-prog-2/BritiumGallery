@@ -12,6 +12,7 @@ export class TermsComponent implements OnInit {
   termsForm!: FormGroup;
   allTerms: Terms[] = [];
   editingId: number | null = null;
+  expandedTerms: Set<number> = new Set(); // Track expanded rows
 
   constructor(private termsService: TermsService, private fb: FormBuilder) {}
 
@@ -26,7 +27,10 @@ export class TermsComponent implements OnInit {
   }
 
   loadTerms() {
-    this.termsService.getAllTerms().subscribe(data => this.allTerms = data);
+    this.termsService.getAllTerms().subscribe(data => {
+      this.allTerms = data;
+      this.expandedTerms.clear(); // Reset expansion on reload
+    });
   }
 
   saveTerm() {
@@ -59,5 +63,18 @@ export class TermsComponent implements OnInit {
   cancelEdit() {
     this.editingId = null;
     this.termsForm.reset({ active: true });
+  }
+
+  toggleExpand(id: number, event: Event) {
+    event.preventDefault();
+    if (this.expandedTerms.has(id)) {
+      this.expandedTerms.delete(id);
+    } else {
+      this.expandedTerms.add(id);
+    }
+  }
+
+  isExpanded(id: number): boolean {
+    return this.expandedTerms.has(id);
   }
 }

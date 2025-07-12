@@ -23,7 +23,12 @@ public class DeliveryEntity {
 
     private Integer feesPer1km;
     private String fixAmount;
+    // DeliveryEntity.java
+    // ✅ String allows "3", "3-5", etc.
+    @Column(name = "min_delay_time")
     private String minDelayTime;
+
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_address_id")  // This will create a foreign key column in `delivery` table

@@ -14,4 +14,8 @@ public class DeliveryDTO {
     private String fixAmount;
     private String minDelayTime;
 
+    private Long shopUserId;
+
+
+
 }

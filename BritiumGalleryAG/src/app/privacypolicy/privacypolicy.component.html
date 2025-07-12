@@ -1,53 +1,76 @@
-<div class="admin-policy-container">
-    <h2>🛡️ Privacy Policy Editor</h2>
+<div class="policy-management-container">
+  <!-- Page Header -->
+  <div class="management-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 14v-4m0-4h.01" />
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">Privacy Policy</h1>
+        <p class="page-subtitle">Create, update, and manage your store's privacy policy</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Policy Form -->
+  <div class="form-section card">
+    <h3 class="section-title">{{ policyId ? 'Edit Policy' : 'Add New Policy' }}</h3>
 
     <form [formGroup]="form" (ngSubmit)="savePolicy()">
-        <label>Content</label>
-        <textarea formControlName="content" rows="8" class="form-control"></textarea>
+      <div class="form-group">
+        <label class="form-label">Policy Content</label>
+        <textarea class="form-input" rows="6" formControlName="content"
+          placeholder="Enter privacy policy content"></textarea>
+      </div>
 
-        <label style="margin-top: 10px;">
-            <input type="checkbox" formControlName="active" /> Active
+      <div class="form-group">
+        <label>
+          <input type="checkbox" formControlName="active" />
+          Active
         </label>
+      </div>
 
-        <div style="margin-top: 10px;">
-            <button type="submit" class="btn btn-primary">
-                {{ policyId ? 'Update' : 'Create' }}
-            </button>
-            <button type="button" class="btn btn-secondary" (click)="cancelEdit()" *ngIf="policyId">
-                Cancel
-            </button>
-        </div>
+      <div class="footer-actions">
+        <button type="submit" class="btn primary">{{ policyId ? 'Update' : 'Create' }}</button>
+        <button type="button" class="btn secondary" (click)="cancelEdit()" *ngIf="policyId">Cancel</button>
+      </div>
     </form>
+  </div>
 
-</div>
+  <!-- Policy List -->
+  <div class="table-wrapper" *ngIf="allPolicies.length > 0; else noData">
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Content</th>
+          <th>Active</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let policy of allPolicies">
+          <td>{{policy.id}}</td>
+          <td>
+            <div [ngClass]="{ 'snippet': !isExpanded(policy.id) }" [innerHTML]="policy.content"></div>
+            <a href="#" (click)="toggleExpand(policy.id, $event)">
+              {{ isExpanded(policy.id) ? 'Show Less ▲' : 'Read More ▼' }}
+            </a>
+          </td>
 
-<hr />
-
-<h3>📜 Privacy Policy History</h3>
-<div *ngIf="allPolicies.length > 0; else noData">
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Content</th>
-                <th>Active</th>
-                <th>Actions</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let policy of allPolicies; let i = index">
-                <td style="white-space: pre-wrap;">{{ policy.content }}</td>
-                <td>{{ policy.active ? 'Yes' : 'No' }}</td>
-                <td>
-                    <button class="btn-simple" (click)="editPolicy(policy)">Edit</button>
-                    <button class="btn-simple" (click)="deletePolicy(policy.id)">Delete</button>
-                </td>
-
-            </tr>
-        </tbody>
+          <td>{{ policy.active ? '✅' : '❌' }}</td>
+          <td>
+            <button class="btn icon" (click)="editPolicy(policy)">✏️</button>
+            <button class="btn icon danger" (click)="deletePolicy(policy.id)">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
     </table>
-</div>
+  </div>
 
-<ng-template #noData>
+  <ng-template #noData>
     <p>No privacy policies found.</p>
-</ng-template>
+  </ng-template>
+</div>
