@@ -4,6 +4,7 @@ import com.maven.demo.dto.AddressDTO;
 import com.maven.demo.dto.LoginResponseDTO;
 import com.maven.demo.dto.UserDTO;
 import com.maven.demo.dto.UserResponseDTO;
+import com.maven.demo.dto.CustomerGrowthDTO;
 import com.maven.demo.entity.CustomerTypeEntity;
 import com.maven.demo.entity.RoleEntity;
 import com.maven.demo.entity.UserEntity;
@@ -15,9 +16,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeMap;
 
 @Service
 public class UserService {
@@ -80,6 +83,7 @@ public class UserService {
         user.setRole(role);
 
         user.setCustomerType(defaultType);
+        user.setCreatedAt(java.time.LocalDateTime.now());
 
         userRepository.save(user);
 
@@ -194,6 +198,33 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         return true;
+    }
+
+    public java.util.List<CustomerGrowthDTO> getCustomerGrowth(java.time.LocalDate from, java.time.LocalDate to, String groupBy) {
+        java.util.List<UserEntity> users = userRepository.findAll();
+        DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter monthFmt = DateTimeFormatter.ofPattern("yyyy-MM");
+        DateTimeFormatter weekFmt = DateTimeFormatter.ofPattern("YYYY-'W'ww");
+        java.util.Map<String, Integer> periodMap = new TreeMap<>();
+        for (UserEntity user : users) {
+            if (user.getCreatedAt() == null) continue;
+            java.time.LocalDate date = user.getCreatedAt().toLocalDate();
+            if ((from != null && date.isBefore(from)) || (to != null && date.isAfter(to))) continue;
+            String period;
+            switch (groupBy == null ? "day" : groupBy) {
+                case "month": period = date.format(monthFmt); break;
+                case "week": period = date.format(weekFmt); break;
+                default: period = date.format(dayFmt); break;
+            }
+            periodMap.put(period, periodMap.getOrDefault(period, 0) + 1);
+        }
+        java.util.List<CustomerGrowthDTO> result = new java.util.ArrayList<>();
+        int cumulative = 0;
+        for (java.util.Map.Entry<String, Integer> entry : periodMap.entrySet()) {
+            cumulative += entry.getValue();
+            result.add(new CustomerGrowthDTO(entry.getKey(), entry.getValue(), cumulative));
+        }
+        return result;
     }
 
 

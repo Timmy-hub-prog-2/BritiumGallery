@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.maven.demo.dto.*;
+import com.maven.demo.dto.LostProductAnalyticsDTO;
+import com.maven.demo.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,17 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.maven.demo.dto.BestSellerProductDTO;
-import com.maven.demo.dto.CheckoutRequestDTO;
-import com.maven.demo.dto.DailyOrderDetailDTO;
-import com.maven.demo.dto.DashboardStatsDTO;
-import com.maven.demo.dto.OrderRefundDTO;
-import com.maven.demo.dto.OrderResponseDTO;
-import com.maven.demo.dto.PaymentRequestDTO;
-import com.maven.demo.dto.PaymentResponseDTO;
-import com.maven.demo.dto.ProductSalesHistoryDTO;
-import com.maven.demo.dto.ProductSearchResultDTO;
-import com.maven.demo.dto.SalesTrendDTO;
 import com.maven.demo.entity.OrderDetailEntity;
 import com.maven.demo.entity.OrderEntity;
 import com.maven.demo.entity.OrderStatus;
@@ -48,6 +40,10 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    ProductService productService;
+
 
     @Autowired
     private ProductVariantRepository productVariantRepository;
@@ -214,8 +210,25 @@ public class OrderController {
 
     @GetMapping("/admin/best-sellers")
     public java.util.List<BestSellerProductDTO> getBestSellerProducts(
-        @RequestParam(required = false, defaultValue = "10") int limit) {
-        return orderService.getBestSellerProducts(limit);
+        @RequestParam(required = false, defaultValue = "10") int limit,
+        @RequestParam(required = false) String from,
+        @RequestParam(required = false) String to) {
+        if (from != null && to != null) {
+            java.time.LocalDate fromDate = java.time.LocalDate.parse(from);
+            java.time.LocalDate toDate = java.time.LocalDate.parse(to);
+            return orderService.getBestSellerProductsByDateRange(fromDate, toDate, limit);
+        } else {
+            return orderService.getBestSellerProducts(limit);
+        }
+    }
+
+    @GetMapping("/admin/top-categories")
+    public List<CategoryAnalyticsDTO> getTopCategories(
+            @RequestParam String from,
+            @RequestParam String to) {
+        java.time.LocalDate fromDate = java.time.LocalDate.parse(from);
+        java.time.LocalDate toDate = java.time.LocalDate.parse(to);
+        return orderService.getTopCategories(fromDate, toDate);
     }
 
     // Product Search Endpoints
@@ -523,5 +536,20 @@ public class OrderController {
                 "message", "Failed to update estimated delivery time: " + e.getMessage()
             ));
         }
+    }
+
+    @GetMapping("/admin/lost-products-analytics")
+    public ResponseEntity<List<LostProductAnalyticsDTO>> getLostProductsAnalytics(
+            @RequestParam String fromDate,
+            @RequestParam String toDate,
+            @RequestParam(required = false) String reason) {
+        List<LostProductAnalyticsDTO> analytics = productService.getLostProductsAnalytics(fromDate, toDate, reason);
+        return ResponseEntity.ok(analytics);
+    }
+
+    @GetMapping("/admin/reduction-reasons")
+    public ResponseEntity<List<String>> getReductionReasons() {
+        List<String> reasons = productService.getPredefinedReductionReasons();
+        return ResponseEntity.ok(reasons);
     }
 }

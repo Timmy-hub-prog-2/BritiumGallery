@@ -190,10 +190,14 @@
                 <span class="custom-tooltip">Add Stock</span>
               </span>
               <span class="custom-tooltip-container">
-                <button mat-icon-button (click)="openReduceStockModal(variant)" class="action-icon-clean reduce">
+                <button mat-icon-button 
+                        (click)="openReduceStockModal(variant)" 
+                        [disabled]="!hasStockToReduce(variant)"
+                        class="action-icon-clean reduce"
+                        [class.disabled]="!hasStockToReduce(variant)">
                 <mat-icon>remove_circle</mat-icon>
             </button>
-                <span class="custom-tooltip">Reduce Stock</span>
+                <span class="custom-tooltip">{{ hasStockToReduce(variant) ? 'Reduce Stock' : 'No Stock to Reduce' }}</span>
               </span>
               <span class="custom-tooltip-container">
                 <button mat-icon-button (click)="showHistory(variant)" class="action-icon-clean history">
@@ -796,11 +800,23 @@
               <span>Reduction Reason</span>
             </div>
             <mat-form-field appearance="outline" class="form-field-clean full-width">
-              <mat-label>Why are you reducing this stock?</mat-label>
-              <textarea matInput formControlName="reductionReason" rows="3" 
-                        placeholder="e.g., Damaged goods, Return to supplier, Quality issues, etc."></textarea>
-              <mat-icon matSuffix>description</mat-icon>
+              <mat-label>Select reduction reason</mat-label>
+              <mat-select formControlName="reductionReason">
+                <mat-option *ngFor="let reason of commonReductionReasons" [value]="reason">
+                  {{ reason }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>list</mat-icon>
               <mat-error *ngIf="reduceStockForm.get('reductionReason')?.hasError('required')">Reason is required</mat-error>
+            </mat-form-field>
+
+            <!-- Custom reason field - only show when "Other" is selected -->
+            <mat-form-field *ngIf="showCustomReasonField()" appearance="outline" class="form-field-clean full-width">
+              <mat-label>Please specify the reason</mat-label>
+              <textarea matInput formControlName="customReason" rows="3" 
+                        placeholder="Please provide details about the reduction reason..."></textarea>
+              <mat-icon matSuffix>description</mat-icon>
+              <mat-error *ngIf="reduceStockForm.get('customReason')?.hasError('required')">Custom reason is required</mat-error>
             </mat-form-field>
           </div>
 

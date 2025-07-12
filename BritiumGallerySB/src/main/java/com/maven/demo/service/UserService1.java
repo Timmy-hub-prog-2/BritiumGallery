@@ -14,4 +14,6 @@ public interface UserService1 {
     Optional<UserResponseDTO> getUserProfileById(Long id);
 
     Optional<UserResponseDTO> updateUserProfile(Long id, UserDTO userDto, MultipartFile imageFile);
+
+
 }

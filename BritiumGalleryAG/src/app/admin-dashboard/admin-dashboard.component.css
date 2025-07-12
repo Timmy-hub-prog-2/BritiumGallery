@@ -2781,3 +2781,265 @@
     width: calc(100vw - 20px);
   }
 }
+
+/* Lost Products Analytics Section */
+.lost-products-section {
+  margin-top: 24px;
+}
+
+.lost-products-section .table-panel {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.lost-products-section .panel-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lost-products-section .panel-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+}
+
+.lost-products-section .panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lost-products-section .filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lost-products-section .date-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lost-products-section .date-input {
+  padding: 6px 10px;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #ffffff;
+  color: #495057;
+  min-width: 120px;
+}
+
+.lost-products-section .date-input:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.lost-products-section .date-separator {
+  font-size: 13px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.lost-products-section .filter-select {
+  padding: 8px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #495057;
+  min-width: 150px;
+}
+
+.lost-products-section .filter-select:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Product Info Styles */
+.product-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.product-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.product-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.product-name {
+  font-weight: 500;
+  color: #212529;
+  font-size: 14px;
+}
+
+.variant-name {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* Badge Styles */
+.sku-badge {
+  background: #e9ecef;
+  color: #495057;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+}
+
+.category-badge {
+  background: #d1ecf1;
+  color: #0c5460;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.reason-badge {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.quantity-badge.lost {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.amount.loss {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.amount.loss.negative {
+  color: #28a745;
+}
+
+.date-badge {
+  background: #e9ecef;
+  color: #495057;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-badge {
+  background: #d4edda;
+  color: #155724;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Responsive Design for Lost Products */
+@media (max-width: 768px) {
+  .lost-products-section .panel-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .lost-products-section .panel-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .lost-products-section .filter-controls {
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .lost-products-section .date-filters {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .lost-products-section .date-input {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .product-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .product-image {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.modal-date-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1rem;
+}
+
+.modal-date-filters .date-input {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 1rem;
+  background: #fff;
+  color: #222;
+  min-width: 130px;
+  transition: border-color 0.2s;
+}
+
+.modal-date-filters .date-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.modal-date-filters .date-separator {
+  margin: 0 0.25rem;
+  color: #888;
+  font-weight: 500;
+}
+
+.horizontal-filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

@@ -31,13 +31,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.maven.demo.dto.AddStockRequestDTO;
+import com.maven.demo.dto.LostProductAnalyticsDTO;
 import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
 import com.maven.demo.dto.PurchaseHistoryResponseDTO;
+import com.maven.demo.dto.ReduceStockHistoryResponseDTO;
 import com.maven.demo.dto.ReduceStockRequestDTO;
 import com.maven.demo.dto.VariantDTO;
-import com.maven.demo.dto.ReduceStockHistoryResponseDTO;
 import com.maven.demo.dto.VariantResponseDTO;
 import com.maven.demo.entity.ProductVariantEntity;
 import com.maven.demo.repository.ProductVariantRepository;
@@ -287,6 +288,8 @@ public class ProductController {
         List<ReduceStockHistoryResponseDTO> reduceStockHistory = productService.getReduceStockHistory(variantId);
         return ResponseEntity.ok(reduceStockHistory);
     }
+
+
 
     @GetMapping("/variants/{variantId}")
     public ResponseEntity<VariantResponseDTO> getVariantById(@PathVariable Long variantId) {

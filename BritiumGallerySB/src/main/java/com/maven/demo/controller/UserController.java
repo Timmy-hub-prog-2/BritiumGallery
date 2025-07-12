@@ -4,6 +4,7 @@
     import com.maven.demo.dto.LoginResponseDTO;
     import com.maven.demo.dto.UserDTO;
     import com.maven.demo.dto.UserResponseDTO;
+    import com.maven.demo.dto.CustomerGrowthDTO;
     import com.maven.demo.service.AddressService;
     import com.maven.demo.service.CloudinaryUploadService;
     import com.maven.demo.service.UserService;
@@ -83,6 +84,17 @@
         @GetMapping("/customers")
         public List<UserResponseDTO> viewCustomers() {
             return userService1.getCustomers();
+        }
+
+        @GetMapping(value = "/admin/customer-growth", produces = "application/json")
+        public ResponseEntity<java.util.List<CustomerGrowthDTO>> getCustomerGrowth(
+                @RequestParam String from,
+                @RequestParam String to,
+                @RequestParam(defaultValue = "day") String groupBy) {
+            java.time.LocalDate fromDate = java.time.LocalDate.parse(from);
+            java.time.LocalDate toDate = java.time.LocalDate.parse(to);
+            java.util.List<CustomerGrowthDTO> result = userService.getCustomerGrowth(fromDate, toDate, groupBy);
+            return ResponseEntity.ok(result);
         }
 
 

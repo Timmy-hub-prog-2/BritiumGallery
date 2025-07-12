@@ -349,10 +349,12 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
     this.removedExistingImageUrls = []
     this.displayImageUrls = [...(variant.imageUrls || [])]
 
-    this.variantForm.reset()
-    this.variantForm.patchValue({
-      price: this.editingVariant.price,
-      stock: this.editingVariant.stock, // Ensure stock is patched too
+    // Create a new form for editing without purchasePrice validation
+    this.variantForm = this.fb.group({
+      price: [this.editingVariant.price, [Validators.required, Validators.min(0.01)]],
+      stock: [this.editingVariant.stock, [Validators.required, Validators.min(0)]],
+      attributes: this.fb.array<FormGroup>([]),
+      photos: [[]],
     })
 
     const newAttributesFormArray = this.fb.array<FormGroup>([])
@@ -380,7 +382,14 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         this.updateVariant()
       } else {
         this.editingVariant = null
-        this.variantForm.reset()
+        // Reset the form back to the original structure for adding new variants
+        this.variantForm = this.fb.group({
+          price: ["", [Validators.required, Validators.min(0.01)]],
+          stock: ["", [Validators.required, Validators.min(0)]],
+          purchasePrice: ["", [Validators.required, Validators.min(0.01)]],
+          attributes: this.fb.array<FormGroup>([]),
+          photos: [[]],
+        })
         this.attributesFormArray.clear()
         this.selectedFiles = []
         this.displayImageUrls = []
@@ -497,6 +506,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
       this.isUpdating = true
 
       this.editingVariant.price = this.variantForm.value.price
+      this.editingVariant.stock = this.variantForm.value.stock
 
       const updatedAttributes: { [key: string]: string } = {}
       this.attributesFormArray.controls.forEach((control) => {
@@ -513,6 +523,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
       const variantData = {
         id: this.editingVariant.id,
         price: this.editingVariant.price,
+        stock: this.editingVariant.stock,
         attributes: this.editingVariant.attributes,
         imageUrls: this.editingVariant.imageUrls.filter((url) => !this.removedExistingImageUrls.includes(url)),
         imageUrlsToDelete: this.removedExistingImageUrls,
@@ -534,7 +545,14 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
           this.showSuccess("Variant updated successfully")
           this.loadProduct(this.product!.id)
           this.editingVariant = null
-          this.variantForm.reset()
+          // Reset the form back to the original structure for adding new variants
+          this.variantForm = this.fb.group({
+            price: ["", [Validators.required, Validators.min(0.01)]],
+            stock: ["", [Validators.required, Validators.min(0)]],
+            purchasePrice: ["", [Validators.required, Validators.min(0.01)]],
+            attributes: this.fb.array<FormGroup>([]),
+            photos: [[]],
+          })
           this.attributesFormArray.clear()
           this.selectedFiles = []
           this.displayImageUrls = []
@@ -684,7 +702,14 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
 
   cancelEdit(): void {
     this.editingVariant = null
-    this.variantForm.reset()
+    // Reset the form back to the original structure for adding new variants
+    this.variantForm = this.fb.group({
+      price: ["", [Validators.required, Validators.min(0.01)]],
+      stock: ["", [Validators.required, Validators.min(0)]],
+      purchasePrice: ["", [Validators.required, Validators.min(0.01)]],
+      attributes: this.fb.array<FormGroup>([]),
+      photos: [[]],
+    })
     this.attributesFormArray.clear()
     this.selectedFiles = []
     this.displayImageUrls = []
@@ -922,6 +947,12 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         // Only show batches with remainingQuantity > 0
         this.purchaseHistory = data.filter((row) => row.remainingQuantity > 0)
 
+        // Check if there's any stock to reduce
+        if (this.purchaseHistory.length === 0) {
+          this.showError("No stock available to reduce. All purchase batches have been fully consumed.")
+          return
+        }
+
         const reductionsFGs = this.purchaseHistory.map((ph) =>
           this.fb.group({
             purchaseId: [ph.id],
@@ -933,6 +964,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         this.reduceStockForm = this.fb.group({
           reductions: this.fb.array(reductionsFGs),
           reductionReason: ['', Validators.required],
+          customReason: [''] // Not required by default, only when "Other" is selected
         })
 
         const dialogRef = this.dialog.open(this.reduceStockModal, {
@@ -945,6 +977,8 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         dialogRef.afterClosed().subscribe((result) => {
           this.selectedVariant = null
           this.reduceStockForm.reset()
+          // Reset the custom reason field specifically
+          this.reduceStockForm.get('customReason')?.setValue('')
         })
       },
       error: (error: Error) => {
@@ -976,7 +1010,18 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
   }
 
   submitReduceStock(): void {
-    if (this.reduceStockForm.valid && this.selectedVariant) {
+    // Custom validation for the form
+    const reductionReason = this.reduceStockForm.get('reductionReason')?.value
+    const customReason = this.reduceStockForm.get('customReason')?.value
+    
+    // If "Other" is selected, custom reason is required
+    if (reductionReason === 'Other' && (!customReason || customReason.trim() === '')) {
+      this.showError('Please provide a custom reason when selecting "Other"')
+      return
+    }
+    
+    // Basic form validation
+    if (this.reduceStockForm.get('reductionReason')?.valid && this.selectedVariant) {
       this.isReducing = true
       const reductions = this.reductionsFormArray.controls
         .map((group) => ({
@@ -985,9 +1030,15 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         }))
         .filter((r) => r.quantity > 0)
 
+      const reductionReason = this.reduceStockForm.get('reductionReason')?.value
+      const customReason = this.reduceStockForm.get('customReason')?.value
+      
+      // Use custom reason if "Other" is selected, otherwise use the selected reason
+      const finalReason = reductionReason === 'Other' ? customReason : reductionReason
+
       const requestBody = {
         reductions: reductions,
-        reductionReason: this.reduceStockForm.get('reductionReason')?.value
+        reductionReason: finalReason
       }
 
       // Get admin ID from localStorage
@@ -1019,5 +1070,28 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
 
   getQuantityControl(group: AbstractControl): FormControl {
     return group.get("quantity") as FormControl
+  }
+
+  hasStockToReduce(variant: VariantResponse): boolean {
+    // This is a simplified check - in a real implementation, you might want to 
+    // check the actual purchase history, but for now we'll check if stock > 0
+    return variant.stock > 0
+  }
+
+  // Common reduction reasons for dropdown
+  readonly commonReductionReasons = [
+    'Damaged goods',
+    'Quality issues',
+    'Return to supplier',
+    'Expired products',
+    'Lost items',
+    'Theft',
+    'Natural disaster',
+    'System error',
+    'Other'
+  ]
+
+  showCustomReasonField(): boolean {
+    return this.reduceStockForm.get('reductionReason')?.value === 'Other'
   }
 }

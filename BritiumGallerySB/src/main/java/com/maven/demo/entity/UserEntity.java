@@ -1,6 +1,7 @@
 package com.maven.demo.entity;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -42,6 +43,9 @@ public class UserEntity {
 
     @Column(name = "ph_number", length = 20, nullable = false )
     private String phoneNumber;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @ElementCollection
     @CollectionTable(name = "user_image_urls", joinColumns = @JoinColumn(name = "user_id"))

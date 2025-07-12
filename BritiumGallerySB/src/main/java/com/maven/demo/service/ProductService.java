@@ -3,6 +3,7 @@ package com.maven.demo.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import com.maven.demo.dto.AddStockRequestDTO;
 import com.maven.demo.dto.AttributeOptionDTO;
+import com.maven.demo.dto.LostProductAnalyticsDTO;
 import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
@@ -840,6 +842,91 @@ public class ProductService {
                 .toList();
     }
 
+    public List<LostProductAnalyticsDTO> getLostProductsAnalytics(String fromDate, String toDate, String reason) {
+        LocalDateTime from;
+        LocalDateTime to;
+        
+        try {
+            from = LocalDateTime.parse(fromDate + "T00:00:00");
+            to = LocalDateTime.parse(toDate + "T23:59:59");
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid date format. Expected format: yyyy-MM-dd", e);
+        }
+        
+        List<ReduceStockHistoryEntity> historyRecords;
+        if (reason != null && !reason.trim().isEmpty()) {
+            historyRecords = reduceStockHistoryRepository.findByReductionReasonAndReducedAtBetweenOrderByReducedAtDesc(reason.trim(), from, to);
+        } else {
+            historyRecords = reduceStockHistoryRepository.findByReducedAtBetweenOrderByReducedAtDesc(from, to);
+        }
+        
+        // Group by variant and reason to calculate totals
+        Map<String, List<ReduceStockHistoryEntity>> groupedRecords = historyRecords.stream()
+                .collect(Collectors.groupingBy(record -> 
+                    record.getVariant().getId() + "|" + record.getReductionReason()));
+        
+        List<LostProductAnalyticsDTO> analytics = new ArrayList<>();
+        
+        for (List<ReduceStockHistoryEntity> records : groupedRecords.values()) {
+            if (!records.isEmpty()) {
+                ReduceStockHistoryEntity firstRecord = records.get(0);
+                ProductVariantEntity variant = firstRecord.getVariant();
+                if (variant == null) continue;
+                
+                ProductEntity product = variant.getProduct();
+                if (product == null) continue;
+                
+                LostProductAnalyticsDTO dto = new LostProductAnalyticsDTO();
+                dto.setProductId(product.getId());
+                dto.setProductName(product.getName());
+                dto.setVariantId(variant.getId());
+                
+                // Get variant attributes and format them
+                Map<String, String> attributes = new HashMap<>();
+                for (VariantAttributeValueEntity value : variant.getAttributeValues()) {
+                    attributes.put(value.getAttribute().getName(), value.getValue());
+                }
+                
+                // Format variant name from attributes
+                String variantName = attributes.isEmpty() ? "Default" : 
+                    attributes.entrySet().stream()
+                        .map(entry -> entry.getKey() + ": " + entry.getValue())
+                        .collect(Collectors.joining(", "));
+                
+                dto.setVariantName(variantName);
+                dto.setVariantAttributes(variantName); // Store the formatted attributes
+                dto.setSku(variant.getSku());
+                dto.setCategory(product.getCategory().getName());
+                dto.setImageUrl(variant.getImages() != null && !variant.getImages().isEmpty() ? 
+                    variant.getImages().get(0).getImageUrl() : null);
+                dto.setReductionReason(firstRecord.getReductionReason());
+                
+                // Calculate totals
+                int totalQuantityLost = records.stream().mapToInt(ReduceStockHistoryEntity::getQuantityReduced).sum();
+                int totalPurchasePriceLost = records.stream()
+                    .mapToInt(r -> r.getQuantityReduced() * r.getPurchasePriceAtReduction()).sum();
+                
+                dto.setTotalQuantityLost(totalQuantityLost);
+                dto.setTotalPurchasePriceLost(totalPurchasePriceLost);
+                dto.setReductionCount(records.size());
+                
+                // Get latest reduction info
+                ReduceStockHistoryEntity latestRecord = records.stream()
+                    .max(Comparator.comparing(ReduceStockHistoryEntity::getReducedAt))
+                    .orElse(firstRecord);
+                dto.setLastReducedAt(latestRecord.getReducedAt().toString());
+                dto.setAdminName(latestRecord.getAdmin() != null ? latestRecord.getAdmin().getName() : "Unknown");
+                
+                analytics.add(dto);
+            }
+        }
+        
+        // Sort by total purchase price lost (descending)
+        analytics.sort((a, b) -> Integer.compare(b.getTotalPurchasePriceLost(), a.getTotalPurchasePriceLost()));
+        
+        return analytics;
+    }
+
     private PriceHistoryResponseDTO convertToPriceHistoryResponseDTO(ProductVariantPriceHistoryEntity entity) {
         PriceHistoryResponseDTO dto = new PriceHistoryResponseDTO();
         dto.setId(entity.getId());
@@ -932,5 +1019,38 @@ public class ProductService {
         result.put("min", min);
         result.put("max", max);
         return result;
+    }
+
+    /**
+     * Get predefined reduction reasons for the frontend dropdown
+     */
+    public List<String> getPredefinedReductionReasons() {
+        return List.of(
+            "Damaged goods",
+            "Quality issues", 
+            "Return to supplier",
+            "Expired products",
+            "Lost items",
+            "Theft",
+            "Natural disaster",
+            "System error",
+            "Other"
+        );
+    }
+
+    public List<String> getColumnsByCategoryId(Long categoryId) {
+        List<String> columns = new ArrayList<>(List.of("name", "description"));
+
+        Optional<CategoryEntity> categoryOpt = catRepo.findById(categoryId);
+        if (categoryOpt.isEmpty()) return columns;
+
+        CategoryEntity category = categoryOpt.get();
+        List<AttributeEntity> attributes = attriRepo.findByCategory(category);
+
+        for (AttributeEntity attr : attributes) {
+            columns.add(attr.getName());
+        }
+
+        return columns;
     }
 }

@@ -50,6 +50,30 @@ export interface ProductSearchResult {
   totalPurchasePrice?: number;
 }
 
+export interface CategoryAnalyticsDTO {
+  categoryName: string;
+  totalSales: number;
+  orderCount: number;
+  totalProfit: number;
+}
+
+export interface LostProductAnalyticsDTO {
+  productId: number;
+  productName: string;
+  variantId: number;
+  variantName?: string;
+  variantAttributes?: string;
+  sku: string;
+  category: string;
+  imageUrl?: string;
+  reductionReason: string;
+  totalQuantityLost: number;
+  totalPurchasePriceLost: number;
+  lastReducedAt: string;
+  adminName: string;
+  reductionCount: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -155,8 +179,12 @@ export class OrderService {
   /**
    * Get best seller products (limit default 10)
    */
-  getBestSellerProducts(limit: number = 10) {
-    return this.http.get<any[]>(`${this.baseUrl}/admin/best-sellers?limit=${limit}`);
+  getBestSellerProducts(limit: number = 10, from?: string, to?: string): Observable<any[]> {
+    let url = `${this.baseUrl}/admin/best-sellers?limit=${limit}`;
+    if (from && to) {
+      url += `&from=${from}&to=${to}`;
+    }
+    return this.http.get<any[]>(url);
   }
 
   /**
@@ -236,4 +264,20 @@ export class OrderService {
   submitRefundRequest(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/refunds`, data);
   }
+
+  getTopCategories(from: string, to: string): Observable<CategoryAnalyticsDTO[]> {
+    return this.http.get<CategoryAnalyticsDTO[]>(`${this.baseUrl}/admin/top-categories?from=${from}&to=${to}`);
+  }
+
+    getLostProductsAnalytics(from: string, to: string, reason?: string): Observable<LostProductAnalyticsDTO[]> {
+      let url = `${this.baseUrl}/admin/lost-products-analytics?fromDate=${from}&toDate=${to}`;
+      if (reason) {
+        url += `&reason=${encodeURIComponent(reason)}`;
+      }
+      return this.http.get<LostProductAnalyticsDTO[]>(url);
+    }
+
+    getReductionReasons(): Observable<string[]> {
+      return this.http.get<string[]>(`${this.baseUrl}/admin/reduction-reasons`);
+    }
 }

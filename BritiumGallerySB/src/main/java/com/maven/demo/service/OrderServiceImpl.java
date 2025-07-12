@@ -28,6 +28,7 @@ import com.maven.demo.dto.PaymentResponseDTO;
 import com.maven.demo.dto.ProductSalesHistoryDTO;
 import com.maven.demo.dto.ProductSearchResultDTO;
 import com.maven.demo.dto.SalesTrendDTO;
+import com.maven.demo.dto.CategoryAnalyticsDTO;
 import com.maven.demo.entity.AddressEntity;
 import com.maven.demo.entity.CouponEntity;
 import com.maven.demo.entity.CustomerTypeEntity;
@@ -1030,6 +1031,83 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
+    @Override
+    public List<BestSellerProductDTO> getBestSellerProductsByDateRange(java.time.LocalDate from, java.time.LocalDate to, int limit) {
+        Map<String, BestSellerProductDTO> productMap = new HashMap<>();
+        List<TransactionEntity> transactions = transactionRepository.findByStatus(TransactionStatus.SUCCESS);
+        for (TransactionEntity tx : transactions) {
+            if (tx.getCreatedAt() == null) continue;
+            java.time.LocalDate date = tx.getCreatedAt().toLocalDate();
+            if ((from != null && date.isBefore(from)) || (to != null && date.isAfter(to))) continue;
+            OrderEntity order = tx.getOrder();
+            if (order.getOrderDetails() != null) {
+                for (OrderDetailEntity detail : order.getOrderDetails()) {
+                    ProductVariantEntity variant = detail.getVariant();
+                    if (variant == null) continue;
+                    String key = String.valueOf(variant.getId());
+                    BestSellerProductDTO dto = productMap.get(key);
+                    int quantity = detail.getQuantity();
+                    int refundedQty = detail.getRefundedQty() != null ? detail.getRefundedQty() : 0;
+                    int netQuantity = quantity - refundedQty;
+                    if (netQuantity <= 0) continue;
+                    int sales = netQuantity * detail.getPrice();
+                    int cost = 0;
+                    List<SaleFifoMappingEntity> mappings = saleFifoMappingRepository.findByOrderDetail(detail);
+                    int qtyLeft = netQuantity;
+                    for (SaleFifoMappingEntity mapping : mappings) {
+                        int usedQty = Math.min(mapping.getQuantity(), qtyLeft);
+                        cost += usedQty * mapping.getUnitCost();
+                        qtyLeft -= usedQty;
+                        if (qtyLeft <= 0) break;
+                    }
+                    if (dto == null) {
+                        String productName = variant.getProduct() != null ? variant.getProduct().getName() : "Unknown Product";
+                        StringBuilder variantNameBuilder = new StringBuilder();
+                        if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
+                            for (int i = 0; i < variant.getAttributeValues().size(); i++) {
+                                if (i > 0) variantNameBuilder.append(" - ");
+                                variantNameBuilder.append(variant.getAttributeValues().get(i).getValue());
+                            }
+                        } else {
+                            variantNameBuilder.append("Default");
+                        }
+                        String variantName = variantNameBuilder.toString();
+                        dto = new BestSellerProductDTO(
+                            variant.getId(),
+                            productName,
+                            variantName,
+                            netQuantity,
+                            sales,
+                            cost,
+                            0,
+                            sales - cost,
+                            0.0
+                        );
+                        productMap.put(key, dto);
+                    } else {
+                        dto.setTotalQuantitySold(dto.getTotalQuantitySold() + netQuantity);
+                        dto.setTotalSales(dto.getTotalSales() + sales);
+                        dto.setTotalCost(dto.getTotalCost() + cost);
+                        dto.setTotalDeliveryFee(0);
+                        dto.setTotalProfit(dto.getTotalProfit() + (sales - cost));
+                    }
+                }
+            }
+        }
+        List<BestSellerProductDTO> result = new ArrayList<>(productMap.values());
+        for (BestSellerProductDTO dto : result) {
+            if (dto.getTotalSales() > 0) {
+                double margin = ((double) dto.getTotalProfit() / dto.getTotalSales()) * 100;
+                dto.setProfitMargin(margin);
+            }
+        }
+        result.sort((a, b) -> Integer.compare(b.getTotalProfit(), a.getTotalProfit()));
+        if (limit > 0 && result.size() > limit) {
+            return result.subList(0, limit);
+        }
+        return result;
+    }
+
     // Product Search Methods Implementation
     @Override
     public List<String> getProductCategories() {
@@ -1184,8 +1262,9 @@ public class OrderServiceImpl implements OrderService {
                     for (PurchaseHistoryEntity purchase : purchaseHistory) {
                         totalPurchaseAmount += purchase.getQuantity() * purchase.getPurchasePrice();
                         totalQuantity += purchase.getQuantity();
+                        totalPurchasePrice += purchase.getQuantity() * purchase.getPurchasePrice();
                     }
-                    averagePurchasePrice = totalQuantity > 0 ? totalPurchaseAmount : 0;
+                    averagePurchasePrice = totalQuantity > 0 ? totalPurchaseAmount / totalQuantity : 0;
                 }
                 
                 // Build variant name
@@ -1214,9 +1293,9 @@ public class OrderServiceImpl implements OrderService {
                     variant.getSku(),
                     variant.getProduct().getCategory().getName(),
                     java.math.BigDecimal.valueOf(variant.getPrice()),
-                    java.math.BigDecimal.valueOf(averagePurchasePrice),
+                    java.math.BigDecimal.valueOf(averagePurchasePrice), // purchasePrice = average
                     variant.getStock(),
-                    0, // No reorder point field in entity
+                    0,
                     java.math.BigDecimal.valueOf(totalSales),
                     java.math.BigDecimal.valueOf(totalProfit),
                     java.math.BigDecimal.valueOf(profitMargin),
@@ -1224,7 +1303,7 @@ public class OrderServiceImpl implements OrderService {
                     "", // No supplier info field in entity
                     imageUrl,
                     quantitySold,
-                    totalPurchasePrice
+                    totalPurchasePrice // totalPurchasePrice = sum
                 );
                 
                 results.add(result);
@@ -1331,6 +1410,7 @@ public class OrderServiceImpl implements OrderService {
             for (PurchaseHistoryEntity purchase : purchaseHistory) {
                 totalPurchaseAmount += purchase.getQuantity() * purchase.getPurchasePrice();
                 totalQuantity += purchase.getQuantity();
+                totalPurchasePrice += purchase.getQuantity() * purchase.getPurchasePrice();
             }
             averagePurchasePrice = totalQuantity > 0 ? totalPurchaseAmount / totalQuantity : 0;
         }
@@ -1351,19 +1431,6 @@ public class OrderServiceImpl implements OrderService {
         } else if (variant.getProduct() != null && variant.getProduct().getBasePhotoUrl() != null) {
             imageUrl = variant.getProduct().getBasePhotoUrl();
         }
-         totalPurchasePrice = 0;
-        for (OrderDetailEntity detail : orderDetails) {
-            if (detail.getOrder() != null &&
-                (detail.getOrder().getStatus() == OrderStatus.COMPLETED ||
-                 detail.getOrder().getStatus() == OrderStatus.DELIVERED ||
-                 detail.getOrder().getStatus() == OrderStatus.PAID ||
-                 detail.getOrder().getStatus() == OrderStatus.ACCEPTED)) {
-                quantitySold += detail.getQuantity();
-            }
-        }
-        for (PurchaseHistoryEntity purchase : purchaseHistory) {
-            totalPurchasePrice += purchase.getQuantity() * purchase.getPurchasePrice();
-        }
         
         return new ProductSearchResultDTO(
             variant.getProduct().getId(),
@@ -1373,9 +1440,9 @@ public class OrderServiceImpl implements OrderService {
             variant.getSku(),
             variant.getProduct().getCategory().getName(),
             java.math.BigDecimal.valueOf(variant.getPrice()),
-            java.math.BigDecimal.valueOf(averagePurchasePrice),
+            java.math.BigDecimal.valueOf(averagePurchasePrice), // purchasePrice = average
             variant.getStock(),
-            0, // No reorder point field in entity
+            0,
             java.math.BigDecimal.valueOf(totalSales),
             java.math.BigDecimal.valueOf(totalProfit),
             java.math.BigDecimal.valueOf(profitMargin),
@@ -1383,7 +1450,7 @@ public class OrderServiceImpl implements OrderService {
             "", // No supplier info field in entity
             imageUrl,
             quantitySold,
-            totalPurchasePrice
+            totalPurchasePrice // totalPurchasePrice = sum
         );
     }
 
@@ -1514,6 +1581,55 @@ public class OrderServiceImpl implements OrderService {
         }
         
         return csv.toString().getBytes();
+    }
+
+    @Override
+    public List<CategoryAnalyticsDTO> getTopCategories(java.time.LocalDate from, java.time.LocalDate to) {
+        Map<String, int[]> categoryMap = new HashMap<>(); // categoryName -> [sales, orderCount, profit]
+        List<TransactionEntity> transactions = transactionRepository.findByStatus(TransactionStatus.SUCCESS);
+        for (TransactionEntity tx : transactions) {
+            java.time.LocalDate date = tx.getCreatedAt().toLocalDate();
+            if ((from != null && date.isBefore(from)) || (to != null && date.isAfter(to))) continue;
+            OrderEntity order = tx.getOrder();
+            int orderSales = tx.getAmount() != null ? tx.getAmount() : 0;
+            int orderCost = 0;
+            int orderProfit = 0;
+            if (order.getOrderDetails() != null) {
+                for (OrderDetailEntity detail : order.getOrderDetails()) {
+                    ProductVariantEntity variant = detail.getVariant();
+                    if (variant == null || variant.getProduct() == null || variant.getProduct().getCategory() == null) continue;
+                    String category = variant.getProduct().getCategory().getName();
+                    int quantity = detail.getQuantity();
+                    int refundedQty = detail.getRefundedQty() != null ? detail.getRefundedQty() : 0;
+                    int netQuantity = quantity - refundedQty;
+                    if (netQuantity <= 0) continue;
+                    int sales = netQuantity * detail.getPrice();
+                    int cost = 0;
+                    List<SaleFifoMappingEntity> mappings = saleFifoMappingRepository.findByOrderDetail(detail);
+                    int qtyLeft = netQuantity;
+                    for (SaleFifoMappingEntity mapping : mappings) {
+                        int usedQty = Math.min(mapping.getQuantity(), qtyLeft);
+                        cost += usedQty * mapping.getUnitCost();
+                        qtyLeft -= usedQty;
+                        if (qtyLeft <= 0) break;
+                    }
+                    int profit = sales - cost;
+                    int[] arr = categoryMap.getOrDefault(category, new int[]{0,0,0});
+                    arr[0] += sales;
+                    arr[1] += 1; // order count (per order detail)
+                    arr[2] += profit;
+                    categoryMap.put(category, arr);
+                }
+            }
+        }
+        List<CategoryAnalyticsDTO> result = new ArrayList<>();
+        for (Map.Entry<String, int[]> entry : categoryMap.entrySet()) {
+            String category = entry.getKey();
+            int[] arr = entry.getValue();
+            result.add(new CategoryAnalyticsDTO(category, arr[0], arr[1], arr[2]));
+        }
+        result.sort((a, b) -> Integer.compare(b.getTotalSales(), a.getTotalSales()));
+        return result;
     }
 
     /**

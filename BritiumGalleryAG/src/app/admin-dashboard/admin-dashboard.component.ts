@@ -1,5 +1,6 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { OrderService, ProductSearchParams, ProductSearchResult } from '../services/order.service';
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { OrderService, ProductSearchParams, ProductSearchResult, CategoryAnalyticsDTO, LostProductAnalyticsDTO } from '../services/order.service';
+import { UserService, CustomerGrowthDTO } from '../services/user.service';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -126,6 +127,14 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   bestSellers: any[] = [];
   showDailyOrders: boolean = false;
 
+  // Top Categories Analytics
+  topCategories: CategoryAnalyticsDTO[] = [];
+  topCategoriesChartOptions: any = {};
+
+  // Customer Growth Analytics
+  customerGrowth: CustomerGrowthDTO[] = [];
+  customerGrowthChartOptions: any = {};
+
   // Table data sources
   dailyOrdersDataSource = new MatTableDataSource<any>([]);
   bestSellersDataSource = new MatTableDataSource<any>([]);
@@ -141,6 +150,8 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   @ViewChild('dailyOrdersSort', { static: false }) dailyOrdersSort!: MatSort;
   @ViewChild('salesTrendModalSort', { static: false }) salesTrendModalSort!: MatSort;
   @ViewChild('bestSellersModalSort', { static: false }) bestSellersModalSort!: MatSort;
+  @ViewChild('lostProductsSort', { static: false }) lostProductsSort!: MatSort;
+  @ViewChild('lostProductsModalSort', { static: false }) lostProductsModalSort!: MatSort;
 
   // Product Search Properties
   productSearchQuery = '';
@@ -151,6 +162,15 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   productCategories: string[] = [];
   productSearchResults: ProductSearchResult[] = [];
   isProductSearchLoading = false;
+
+  // Lost Products Analytics Properties
+  lostProducts: LostProductAnalyticsDTO[] = [];
+  lostProductsDataSource = new MatTableDataSource<LostProductAnalyticsDTO>([]);
+  lostProductsColumns: string[] = ['product', 'sku', 'category', 'reason', 'quantityLost', 'purchasePriceLost', 'lastReduced', 'admin'];
+  selectedLostReason = '';
+  predefinedReasons: string[] = [];
+  otherReasons: string[] = [];
+  showLostProductsModal = false;
   
   // Product View and Sort Properties - explicitly typed as string to avoid union type issues
   productViewMode: any = 'grid';
@@ -272,7 +292,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     console.log('Archive product:', product);
   }
 
-  constructor(private orderService: OrderService) {
+  constructor(private orderService: OrderService, private userService: UserService, private cdr: ChangeDetectorRef) {
     // Default: last 30 days
     const today = new Date();
     const prior = new Date();
@@ -332,12 +352,30 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
           return item[property];
       }
     };
+
+    // Lost products data source with custom sort
+    this.lostProductsDataSource.sortingDataAccessor = (item: any, property) => {
+      switch (property) {
+        case 'totalQuantityLost':
+        case 'totalPurchasePriceLost':
+        case 'reductionCount':
+          return Number(item[property]);
+        case 'lastReducedAt':
+          return new Date(item[property]);
+        default:
+          return item[property];
+      }
+    };
   }
 
   ngOnInit(): void {
     this.fetchStats();
     this.fetchSalesTrend();
     this.fetchBestSellers();
+    this.fetchTopCategories();
+    this.fetchCustomerGrowth();
+    this.loadReductionReasons();
+    this.fetchLostProducts();
   }
 
   ngAfterViewInit() {
@@ -359,6 +397,12 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     }
     if (this.salesTrendModalSort) {
       this.salesTrendDataSource.sort = this.salesTrendModalSort;
+    }
+    if (this.lostProductsSort) {
+      this.lostProductsDataSource.sort = this.lostProductsSort;
+    }
+    if (this.lostProductsModalSort) {
+      this.lostProductsDataSource.sort = this.lostProductsModalSort;
     }
   }
 
@@ -437,6 +481,9 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       case 'productSearch':
         this.showProductSearchModal = false;
         this.clearProductSearch();
+        break;
+      case 'lostProducts':
+        this.showLostProductsModal = false;
         break;
     }
   }
@@ -523,6 +570,10 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     return (this.stats?.profit / this.totalSales) * 100;
   }
 
+  get filteredPredefinedReasons(): string[] {
+    return this.predefinedReasons.filter(r => r !== 'Other');
+  }
+
   fetchStats(): void {
     this.loading = true;
     this.error = '';
@@ -558,6 +609,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
           orderCount: item.orderCount || 0
         }));
         this.salesTrendDataSource.data = salesTrendWithMargin;
+        this.salesTrendDataSource._updateChangeSubscription(); // Force table refresh
         
         this.updateChartOptions();
         this.refreshSorting();
@@ -569,6 +621,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
         this.costData = [];
         this.profitData = [];
         this.salesTrendDataSource.data = [];
+        this.salesTrendDataSource._updateChangeSubscription();
         this.updateChartOptions();
       }
     });
@@ -600,6 +653,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
 
   onFilterChange(): void {
     this.fetchSalesTrend();
+    this.fetchLostProducts();
   }
 
   // --- Totals for filtered range ---
@@ -607,14 +661,18 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     return this.salesTrend.reduce((sum, r) => sum + r.sales, 0);
   }
   get totalCost(): number {
-    // Use totalCost from dashboard stats if available, otherwise calculate from salesTrend
-    if (this.stats && this.stats.totalCost !== undefined) {
-      return this.stats.totalCost;
-    }
+    // Always calculate from filtered sales trend data to respect date filters
     return this.salesTrend.reduce((sum, r) => sum + r.cost, 0);
   }
   get totalProfit(): number {
     return this.salesTrend.reduce((sum, r) => sum + r.profit, 0);
+  }
+  get totalTransactions(): number {
+    return this.salesTrend.reduce((sum, r) => sum + (r.orderCount || 0), 0);
+  }
+
+  get totalLostAmount(): number {
+    return this.lostProducts.reduce((sum, item) => sum + item.totalPurchasePriceLost, 0);
   }
 
   fetchDailyOrders(date: string) {
@@ -639,21 +697,53 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
+  // Top Products date filter state
+  topProductsFrom: string = '';
+  topProductsTo: string = '';
+  topProductsQuickRange: 'week' | 'month' | 'custom' = 'week';
+
+  setTopProductsRange(range: 'week' | 'month' | 'custom') {
+    this.topProductsQuickRange = range;
+    const today = new Date();
+    if (range === 'week') {
+      const first = today.getDate() - today.getDay();
+      const from = new Date(today.setDate(first));
+      this.topProductsFrom = from.toISOString().slice(0, 10);
+      this.topProductsTo = new Date().toISOString().slice(0, 10);
+    } else if (range === 'month') {
+      const from = new Date(today.getFullYear(), today.getMonth(), 1);
+      this.topProductsFrom = from.toISOString().slice(0, 10);
+      this.topProductsTo = new Date().toISOString().slice(0, 10);
+    } else {
+      // custom: do not set, let user pick
+    }
+    this.fetchBestSellers();
+  }
+
+  onTopProductsDateChange() {
+    this.topProductsQuickRange = 'custom';
+    this.fetchBestSellers();
+  }
+
   fetchBestSellers(limit: number = 10) {
-    this.orderService.getBestSellerProducts(limit).subscribe({
+    const from = this.topProductsFrom;
+    const to = this.topProductsTo;
+    this.orderService.getBestSellerProducts(limit, from, to).subscribe({
       next: (data: any[]) => {
-        // Add rank property to each product
         const rankedProducts = data.map((product, index) => ({
           ...product,
           rank: index + 1
         }));
         this.bestSellers = rankedProducts;
         this.bestSellersDataSource.data = rankedProducts;
+        this.bestSellersDataSource._updateChangeSubscription();
         this.refreshSorting();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.bestSellers = [];
         this.bestSellersDataSource.data = [];
+        this.cdr.detectChanges();
       }
     });
   }
@@ -703,12 +793,19 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     if (this.salesTrendModalSort) {
       this.salesTrendDataSource.sort = this.salesTrendModalSort;
     }
+    if (this.lostProductsSort) {
+      this.lostProductsDataSource.sort = this.lostProductsSort;
+    }
+    if (this.lostProductsModalSort) {
+      this.lostProductsDataSource.sort = this.lostProductsModalSort;
+    }
 
     // Trigger sort refresh for all data sources
     try {
       this.dailyOrdersDataSource._updateChangeSubscription();
       this.bestSellersDataSource._updateChangeSubscription();
       this.salesTrendDataSource._updateChangeSubscription();
+      this.lostProductsDataSource._updateChangeSubscription();
     } catch (error) {
       console.warn('Error updating sort subscriptions:', error);
     }
@@ -809,6 +906,164 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   exportProductSearch(): void {
     // TODO: Implement search results export
     console.log('Export search results');
+  }
+
+  fetchTopCategories(): void {
+    this.orderService.getTopCategories(this.dateFrom, this.dateTo).subscribe({
+      next: (data) => {
+        this.topCategories = data;
+        this.updateTopCategoriesChart();
+      },
+      error: () => {
+        this.topCategories = [];
+        this.updateTopCategoriesChart();
+      }
+    });
+  }
+
+  updateTopCategoriesChart(): void {
+    this.topCategoriesChartOptions = {
+      series: this.topCategories.map(c => c.totalSales),
+      chart: { type: 'pie', height: 350 },
+      labels: this.topCategories.map(c => c.categoryName),
+      title: { text: 'Top Categories by Sales' },
+      legend: { show: true },
+      tooltip: { enabled: true },
+    };
+  }
+
+  fetchCustomerGrowth(): void {
+    this.userService.getCustomerGrowth(this.dateFrom, this.dateTo, this.groupBy).subscribe({
+      next: (data) => {
+        this.customerGrowth = data;
+        this.updateCustomerGrowthChart();
+      },
+      error: () => {
+        this.customerGrowth = [];
+        this.updateCustomerGrowthChart();
+      }
+    });
+  }
+
+  updateCustomerGrowthChart(): void {
+    this.customerGrowthChartOptions = {
+      series: [
+        {
+          name: 'Cumulative Signups',
+          data: this.customerGrowth.map(d => d.cumulativeCount)
+        }
+      ],
+      chart: { type: 'area', height: 350 },
+      xaxis: { categories: this.customerGrowth.map(d => d.period) },
+      title: { text: 'Customer Growth (Cumulative Signups)' },
+      dataLabels: { enabled: false },
+      legend: { show: true },
+      tooltip: { enabled: true },
+      colors: ['#775DD0'],
+      stroke: { curve: 'smooth' },
+      grid: { show: true, borderColor: '#e7e7e7', strokeDashArray: 4, position: 'back' },
+    };
+  }
+
+  fetchLostProducts(): void {
+    let reasonParam = this.selectedLostReason;
+    if (reasonParam === '__other__') {
+      reasonParam = '';
+    }
+    this.orderService.getLostProductsAnalytics(this.dateFrom, this.dateTo, reasonParam).subscribe({
+      next: (data) => {
+        let filtered = data;
+        if (this.selectedLostReason === '__other__') {
+          filtered = data.filter(item => !this.predefinedReasons.includes(item.reductionReason));
+        }
+        this.lostProducts = filtered;
+        this.lostProductsDataSource.data = filtered;
+        // Extract unique reasons for filter dropdown
+        const reasons = [...new Set(data.map(item => item.reductionReason))];
+        this.otherReasons = reasons.filter(
+          reason => !this.predefinedReasons.includes(reason) && reason !== 'Other'
+        ).sort();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.lostProducts = [];
+        this.lostProductsDataSource.data = [];
+        this.otherReasons = [];
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadReductionReasons(): void {
+    this.orderService.getReductionReasons().subscribe({
+      next: (reasons: string[]) => {
+        this.predefinedReasons = reasons;
+      },
+      error: () => {
+        this.predefinedReasons = [];
+      }
+    });
+  }
+
+  onLostReasonChange(): void {
+    if (this.showLostProductsModal) {
+      this.fetchLostProductsModal();
+    } else {
+      this.fetchLostProducts();
+    }
+  }
+
+  openLostProductsModal(): void {
+    // Set modal date range to current dashboard range by default
+    this.modalDateFrom = this.dateFrom;
+    this.modalDateTo = this.dateTo;
+    this.showLostProductsModal = true;
+    this.fetchLostProductsModal();
+    setTimeout(() => this.assignSorts(), 0);
+  }
+
+  // Add method to open customer growth chart in a modal
+  openCustomerGrowthModal(): void {
+    this.showChartModal = true;
+    // Optionally, set a flag or chart type to indicate this is the customer growth chart
+  }
+
+  // --- Modal-specific date filtering for lost products ---
+  modalDateFrom: string = '';
+  modalDateTo: string = '';
+
+  onModalDateChange(): void {
+    this.fetchLostProductsModal();
+  }
+
+  // Fetch lost products for modal with modal-specific date range
+  fetchLostProductsModal(): void {
+    let reasonParam = this.selectedLostReason;
+    if (reasonParam === '__other__') {
+      // We'll filter client-side after fetching all data for the date range
+      reasonParam = '';
+    }
+    this.orderService.getLostProductsAnalytics(this.modalDateFrom, this.modalDateTo, reasonParam).subscribe({
+      next: (data) => {
+        // If filtering for 'Other Reasons', filter client-side
+        let filtered = data;
+        if (this.selectedLostReason === '__other__') {
+          filtered = data.filter(item => !this.predefinedReasons.includes(item.reductionReason));
+        }
+        this.lostProducts = filtered;
+        this.lostProductsDataSource.data = filtered;
+        // Extract unique reasons for filter dropdown
+        const reasons = [...new Set(data.map(item => item.reductionReason))];
+        this.otherReasons = reasons.filter(reason => !this.predefinedReasons.includes(reason)).sort();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.lostProducts = [];
+        this.lostProductsDataSource.data = [];
+        this.otherReasons = [];
+        this.cdr.detectChanges();
+      }
+    });
   }
 }
 

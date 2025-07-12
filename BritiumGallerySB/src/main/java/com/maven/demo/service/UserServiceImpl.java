@@ -3,6 +3,7 @@ package com.maven.demo.service;
 import com.maven.demo.dto.UserDTO;
 import com.maven.demo.dto.UserResponseDTO;
 import com.maven.demo.dto.AddressDTO;
+import com.maven.demo.dto.CustomerGrowthDTO;
 import com.maven.demo.entity.AddressEntity;
 import com.maven.demo.entity.UserEntity;
 import com.maven.demo.repository.ShopAddressRepository;
@@ -47,6 +48,8 @@ public class UserServiceImpl implements UserService1 {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
+
+
 
     // Convert UserEntity to UserResponseDTO
     private UserResponseDTO convertToDto(UserEntity user) {

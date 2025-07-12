@@ -4,6 +4,12 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { User } from '../../user.model';
 
+export interface CustomerGrowthDTO {
+  period: string;
+  count: number;
+  cumulativeCount: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -15,7 +21,7 @@ export class UserService {
   private userSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient) { 
     const user = localStorage.getItem('loggedInUser');
     this.userSubject = new BehaviorSubject<User | null>(user ? JSON.parse(user) : null);
     this.currentUser = this.userSubject.asObservable();
@@ -110,5 +116,9 @@ export class UserService {
 
   getUserProfileById(id: number): Observable<User> {
     return this.http.get<User>(`${this.userBase}/profile/${id}`);
+  }
+
+  getCustomerGrowth(from: string, to: string, groupBy: string = 'day'): Observable<CustomerGrowthDTO[]> {
+    return this.http.get<CustomerGrowthDTO[]>(`${this.userBase}/admin/customer-growth?from=${from}&to=${to}&groupBy=${groupBy}`);
   }
 }

@@ -13,6 +13,7 @@ import com.maven.demo.dto.ProductSalesHistoryDTO;
 import com.maven.demo.dto.ProductSearchResultDTO;
 import com.maven.demo.dto.SalesTrendDTO;
 import com.maven.demo.dto.TransactionDTO;
+import com.maven.demo.dto.CategoryAnalyticsDTO;
 import com.maven.demo.entity.OrderEntity;
 import com.maven.demo.entity.OrderStatus;
 
@@ -47,6 +48,7 @@ public interface OrderService {
 
     // Get best seller products with profit analysis
     List<BestSellerProductDTO> getBestSellerProducts(int limit);
+    List<BestSellerProductDTO> getBestSellerProductsByDateRange(java.time.LocalDate from, java.time.LocalDate to, int limit);
 
     // Product Search Methods
     List<String> getProductCategories();
@@ -58,4 +60,6 @@ public interface OrderService {
     
     // Update estimated delivery time for existing orders
     void updateEstimatedDeliveryTimeForOrder(Long orderId);
+
+    List<CategoryAnalyticsDTO> getTopCategories(java.time.LocalDate from, java.time.LocalDate to);
 } 
