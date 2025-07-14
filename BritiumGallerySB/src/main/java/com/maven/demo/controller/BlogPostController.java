@@ -26,19 +26,24 @@ public class BlogPostController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createBlogPost(
             @RequestPart("post") BlogPost post,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestPart(value = "video", required = false) MultipartFile video) {
 
         try {
             if (image != null && !image.isEmpty()) {
-                String imageUrl = cloudinaryUploadService.uploadToCloudinary(image, "blogs");
+                String imageUrl = cloudinaryUploadService.uploadToCloudinary(image, "blogs/images");
                 post.setImageUrl(imageUrl);
             }
+            if (video != null && !video.isEmpty()) {
+                String videoUrl = cloudinaryUploadService.uploadToCloudinary(video, "blogs/videos");
+                post.setVideoUrl(videoUrl);
+            }
+
             BlogPost saved = blogPostService.save(post);
             return ResponseEntity.ok(saved);
 
         } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Image upload failed: " + e.getMessage());
+            return ResponseEntity.status(500).body("Media upload failed: " + e.getMessage());
         }
     }
 
@@ -80,4 +85,11 @@ public class BlogPostController {
         blogPostService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/set-main")
+    public ResponseEntity<Void> setMainBlog(@PathVariable Long id) {
+        blogPostService.setMainBlog(id);
+        return ResponseEntity.ok().build();
+    }
+
 }

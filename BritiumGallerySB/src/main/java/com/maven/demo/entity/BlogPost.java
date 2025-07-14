@@ -28,10 +28,16 @@ public class BlogPost {
     private String author;
     private String imageUrl;
 
+    private String videoUrl;
+
     private LocalDate publishDate;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Column(name = "is_main")
+    private Boolean isMain;
+
 
     @PrePersist
     public void onCreate() {

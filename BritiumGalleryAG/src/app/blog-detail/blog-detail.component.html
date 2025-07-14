@@ -1,0 +1,23 @@
+<div class="blog-detail-container" *ngIf="blog">
+  <h2>{{ blog.title }}</h2>
+  <p><strong>Author:</strong> {{ blog.author }}</p>
+  <p><strong>Published on:</strong> {{ blog.publishDate | date }}</p>
+  <span *ngIf="blog.isMain" class="main-badge">★ Main Blog</span>
+
+  <div class="media-wrapper">
+    <img *ngIf="blog.imageUrl" [src]="blog.imageUrl" class="detail-image" />
+    <video *ngIf="blog.videoUrl" [src]="blog.videoUrl" controls class="detail-video"></video>
+  </div>
+
+  <div class="content">
+    <h4>Summary</h4>
+    <p>{{ blog.summary }}</p>
+
+    <h4>Content</h4>
+    <p style="white-space: pre-line;">{{ blog.content }}</p>
+  </div>
+</div>
+
+<div *ngIf="!blog">
+  <p>Loading blog details...</p>
+</div>

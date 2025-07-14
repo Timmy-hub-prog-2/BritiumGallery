@@ -22,7 +22,6 @@ export class ShippingReturnsPolicyComponent implements OnInit {
   formPolicy: Policy = { title: '', content: '', displayOrder: 0 };
   editingPolicy: Policy | null = null;
 
-  // ✅ Make sure to use full backend base URL
   private BASE_URL = 'http://localhost:8080/api/policy';
 
   constructor(private http: HttpClient) {}
@@ -38,16 +37,47 @@ export class ShippingReturnsPolicyComponent implements OnInit {
   }
 
   savePolicy() {
+    const title = this.formPolicy.title?.trim();
+    const content = this.formPolicy.content?.trim();
+    const displayOrder = this.formPolicy.displayOrder;
+
+    // 1️⃣ Basic validation
+    if (!title || !content || displayOrder === null || displayOrder === undefined) {
+      alert('Please fill in all fields (title, content, display order) before saving.');
+      return;
+    }
+
+    // 2️⃣ Prevent negative displayOrder
+    if (displayOrder < 0) {
+      alert('Display order must be a non-negative number.');
+      return;
+    }
+
+    // 3️⃣ Check for duplicate title (excluding current editing record)
+    const isDuplicateTitle = this.policies.some(p => 
+      p.title.trim().toLowerCase() === title.toLowerCase() &&
+      (!this.editingPolicy || p.id !== this.editingPolicy.id)
+    );
+
+    if (isDuplicateTitle) {
+      alert('A policy with this title already exists. Please use a unique title.');
+      return;
+    }
+
+    const payload: Policy = { title, content, displayOrder };
+
     if (this.editingPolicy) {
       // PUT (Update)
-      this.http.put(`${this.BASE_URL}/${this.editingPolicy.id}`, this.formPolicy).subscribe(() => {
+      this.http.put(`${this.BASE_URL}/${this.editingPolicy.id}`, payload).subscribe(() => {
+        alert('Policy updated successfully!');
         this.editingPolicy = null;
         this.resetForm();
         this.loadPolicies();
       });
     } else {
       // POST (Create)
-      this.http.post(this.BASE_URL, this.formPolicy).subscribe(() => {
+      this.http.post(this.BASE_URL, payload).subscribe(() => {
+        alert('Policy created successfully!');
         this.resetForm();
         this.loadPolicies();
       });
@@ -56,12 +86,15 @@ export class ShippingReturnsPolicyComponent implements OnInit {
 
   editPolicy(policy: Policy) {
     this.editingPolicy = policy;
-    this.formPolicy = { ...policy }; // Clone to avoid mutating directly
+    this.formPolicy = { ...policy }; // Clone to avoid direct mutation
   }
 
   deletePolicy(id: number) {
     if (confirm('Are you sure you want to delete this policy section?')) {
-      this.http.delete(`${this.BASE_URL}/${id}`).subscribe(() => this.loadPolicies());
+      this.http.delete(`${this.BASE_URL}/${id}`).subscribe(() => {
+        alert('Policy deleted.');
+        this.loadPolicies();
+      });
     }
   }
 

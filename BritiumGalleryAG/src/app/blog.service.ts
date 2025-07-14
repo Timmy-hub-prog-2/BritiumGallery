@@ -28,4 +28,9 @@ export class BlogService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  setMain(id: number): Observable<void> {
+  return this.http.put<void>(`${this.apiUrl}/${id}/set-main`, null);
+}
+
 }

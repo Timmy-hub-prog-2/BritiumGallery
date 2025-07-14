@@ -27,27 +27,35 @@ export class FAQComponent implements OnInit {
     this.faqService.getFaqs().subscribe(data => this.faqs = data);
   }
 
-  saveFaq(): void {
-    const loggedInId = this.authService.getLoggedInUserId();
-    if (!loggedInId) {
-      alert('You must be logged in to create or update FAQs.');
-      return;
-    }
-
-    this.faq.createdById = loggedInId;
-
-    if (this.faq.id) {
-      this.faqService.updateFaq(this.faq.id, this.faq).subscribe(() => {
-        this.loadFaqs();
-        this.resetForm();
-      });
-    } else {
-      this.faqService.createFaq(this.faq).subscribe(() => {
-        this.loadFaqs();
-        this.resetForm();
-      });
-    }
+ saveFaq(): void {
+  const loggedInId = this.authService.getLoggedInUserId();
+  if (!loggedInId) {
+    alert('You must be logged in to create or update FAQs.');
+    return;
   }
+
+  // Trim inputs and validate
+  if (!this.faq.question.trim() || !this.faq.answer.trim() || !this.faq.category.trim()) {
+    alert('Please fill in all fields (question, answer, category) before saving.');
+    return;
+  }
+
+  this.faq.createdById = loggedInId;
+
+  if (this.faq.id) {
+    // Update FAQ (PUT)
+    this.faqService.updateFaq(this.faq.id, this.faq).subscribe(() => {
+      this.loadFaqs();
+      this.resetForm();
+    });
+  } else {
+    // Create FAQ (POST)
+    this.faqService.createFaq(this.faq).subscribe(() => {
+      this.loadFaqs();
+      this.resetForm();
+    });
+  }
+}
 
   editFaq(f: Faq): void {
     this.faq = { ...f };
