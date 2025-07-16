@@ -5,14 +5,21 @@
       <div class="product-info-header">
         <ng-container *ngIf="product as p; else loadingProductHeader">
           <div class="product-avatar-clean">
-            <img *ngIf="p.basePhotoUrl" [src]="p.basePhotoUrl" alt="Product Base Photo" class="avatar-img">
+            <img
+              *ngIf="p.basePhotoUrl"
+              [src]="p.basePhotoUrl"
+              alt="Product Base Photo"
+              class="avatar-img"
+            />
             <div *ngIf="!p.basePhotoUrl" class="avatar-placeholder-clean">
               <mat-icon>inventory_2</mat-icon>
             </div>
           </div>
           <div class="product-details-clean">
             <h1 class="product-title-clean">{{ p.name }}</h1>
-            <p class="product-description-clean">{{ p.description || 'Manage variants and inventory' }}</p>
+            <p class="product-description-clean">
+              {{ p.description || "Manage variants and inventory" }}
+            </p>
             <div class="product-stats-clean">
               <div class="stat-item">
                 <span class="stat-number">{{ getTotalStock() }}</span>
@@ -32,17 +39,28 @@
           </div>
           <div class="product-details-clean">
             <h1 class="product-title-clean">Loading Product...</h1>
-            <p class="product-description-clean">Please wait while we load the product information</p>
+            <p class="product-description-clean">
+              Please wait while we load the product information
+            </p>
           </div>
         </ng-template>
       </div>
-      
+
       <div class="header-actions">
-        <button mat-stroked-button (click)="editProductInfo()" class="action-btn-clean edit-product">
-        <mat-icon>edit</mat-icon>
-        Edit Product
-      </button>
-        <button mat-flat-button color="primary" (click)="addNewVariant()" class="action-btn-clean add-variant">
+        <button
+          mat-stroked-button
+          (click)="editProductInfo()"
+          class="action-btn-clean edit-product"
+        >
+          <mat-icon>edit</mat-icon>
+          Edit Product
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="addNewVariant()"
+          class="action-btn-clean add-variant"
+        >
           <mat-icon>add</mat-icon>
           Add Variant
         </button>
@@ -58,11 +76,14 @@
         <h2 class="section-title-clean">Product Variants</h2>
         <span class="variants-count">{{ dataSource.data.length }} items</span>
       </div>
-      
+
       <div class="toolbar-right">
-       
-        
-        <button mat-mini-fab (click)="addNewVariant()" matTooltip="Quick Add" class="quick-add-clean">
+        <button
+          mat-mini-fab
+          (click)="addNewVariant()"
+          matTooltip="Quick Add"
+          class="quick-add-clean"
+        >
           <mat-icon>add</mat-icon>
         </button>
       </div>
@@ -70,10 +91,20 @@
 
     <!-- Variants Table -->
     <div class="table-container-clean">
-      <table mat-table [dataSource]="dataSource" matSort class="variants-table-clean">
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        class="variants-table-clean"
+      >
         <!-- ID Column -->
         <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="header-cell-clean"
+          >
             <div class="header-content-clean">
               <mat-icon class="header-icon">tag</mat-icon>
               <span>ID</span>
@@ -93,14 +124,23 @@
             </div>
           </th>
           <td mat-cell *matCellDef="let variant" class="data-cell-clean">
-            <div class="photo-container-clean" *ngIf="hasValidImageUrls(variant.imageUrls); else noPhotoClean">
-              <div class="photo-preview-clean" (click)="openPhotoDialog(variant.imageUrls[0])">
-                <img [src]="variant.imageUrls[0]" alt="Product">
+            <div
+              class="photo-container-clean"
+              *ngIf="hasValidImageUrls(variant.imageUrls); else noPhotoClean"
+            >
+              <div
+                class="photo-preview-clean"
+                (click)="openPhotoDialog(variant.imageUrls[0])"
+              >
+                <img [src]="variant.imageUrls[0]" alt="Product" />
                 <div class="photo-overlay-clean">
                   <mat-icon>zoom_in</mat-icon>
                 </div>
               </div>
-              <div class="photo-counter-clean" *ngIf="variant.imageUrls.length > 1">
+              <div
+                class="photo-counter-clean"
+                *ngIf="variant.imageUrls.length > 1"
+              >
                 +{{ variant.imageUrls.length - 1 }}
               </div>
             </div>
@@ -114,7 +154,12 @@
 
         <!-- Price Column -->
         <ng-container matColumnDef="price">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="header-cell-clean"
+          >
             <div class="header-content-clean">
               <mat-icon class="header-icon">attach_money</mat-icon>
               <span>Price</span>
@@ -122,7 +167,9 @@
           </th>
           <td mat-cell *matCellDef="let variant" class="data-cell-clean">
             <div class="price-display-clean">
-              <span class="price-amount-clean">{{ variant.price | number:'1.0-0' }}</span>
+              <span class="price-amount-clean">{{
+                variant.price | number : "1.0-0"
+              }}</span>
               <span class="price-currency-clean">MMK</span>
             </div>
           </td>
@@ -130,14 +177,22 @@
 
         <!-- Stock Column -->
         <ng-container matColumnDef="stock">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="header-cell-clean"
+          >
             <div class="header-content-clean">
               <mat-icon class="header-icon">inventory_2</mat-icon>
               <span>Stock</span>
             </div>
           </th>
           <td mat-cell *matCellDef="let variant" class="data-cell-clean">
-            <div class="stock-badge-clean" [ngClass]="getStockClass(variant.stock)">
+            <div
+              class="stock-badge-clean"
+              [ngClass]="getStockClass(variant.stock)"
+            >
               <div class="stock-dot-clean"></div>
               <span class="stock-number-clean">{{ variant.stock }}</span>
               <span class="stock-unit-clean">units</span>
@@ -155,14 +210,22 @@
           </th>
           <td mat-cell *matCellDef="let variant" class="data-cell-clean">
             <div class="attributes-list-clean">
-              <div class="attribute-chip-clean" *ngFor="let attr of variant.attributes | keyvalue | slice:0:2">
+              <div
+                class="attribute-chip-clean"
+                *ngFor="
+                  let attr of variant.attributes | keyvalue | slice : 0 : 2
+                "
+              >
                 <span class="attr-key-clean">{{ attr.key }}</span>
                 <span class="attr-separator-clean">:</span>
                 <span class="attr-value-clean">{{ attr.value }}</span>
               </div>
-              <div class="more-attrs-clean" *ngIf="(variant.attributes | keyvalue).length > 2">
+              <div
+                class="more-attrs-clean"
+                *ngIf="(variant.attributes | keyvalue).length > 2"
+              >
                 +{{ (variant.attributes | keyvalue).length - 2 }} more
-                </div>
+              </div>
             </div>
           </td>
         </ng-container>
@@ -178,56 +241,89 @@
           <td mat-cell *matCellDef="let variant" class="data-cell-clean">
             <div class="actions-group-clean">
               <span class="custom-tooltip-container">
-                <button mat-icon-button (click)="editVariant(variant)" class="action-icon-clean edit">
-              <mat-icon>edit</mat-icon>
-            </button>
+                <button
+                  mat-icon-button
+                  (click)="editVariant(variant)"
+                  class="action-icon-clean edit"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
                 <span class="custom-tooltip">Edit Variant</span>
               </span>
               <span class="custom-tooltip-container">
-                <button mat-icon-button (click)="addStock(variant)" class="action-icon-clean add">
-                <mat-icon>add_circle</mat-icon>
-              </button>
+                <button
+                  mat-icon-button
+                  (click)="addStock(variant)"
+                  class="action-icon-clean add"
+                >
+                  <mat-icon>add_circle</mat-icon>
+                </button>
                 <span class="custom-tooltip">Add Stock</span>
               </span>
               <span class="custom-tooltip-container">
-                <button mat-icon-button 
-                        (click)="openReduceStockModal(variant)" 
-                        [disabled]="!hasStockToReduce(variant)"
-                        class="action-icon-clean reduce"
-                        [class.disabled]="!hasStockToReduce(variant)">
-                <mat-icon>remove_circle</mat-icon>
-            </button>
-                <span class="custom-tooltip">{{ hasStockToReduce(variant) ? 'Reduce Stock' : 'No Stock to Reduce' }}</span>
+                <button
+                  mat-icon-button
+                  (click)="openReduceStockModal(variant)"
+                  [disabled]="!hasStockToReduce(variant)"
+                  class="action-icon-clean reduce"
+                  [class.disabled]="!hasStockToReduce(variant)"
+                >
+                  <mat-icon>remove_circle</mat-icon>
+                </button>
+                <span class="custom-tooltip">{{
+                  hasStockToReduce(variant)
+                    ? "Reduce Stock"
+                    : "No Stock to Reduce"
+                }}</span>
               </span>
               <span class="custom-tooltip-container">
-                <button mat-icon-button (click)="showHistory(variant)" class="action-icon-clean history">
-              <mat-icon>history</mat-icon>
-            </button>
+                <button
+                  mat-icon-button
+                  (click)="showHistory(variant)"
+                  class="action-icon-clean history"
+                >
+                  <mat-icon>history</mat-icon>
+                </button>
                 <span class="custom-tooltip">View History</span>
               </span>
               <span class="custom-tooltip-container">
-                <button mat-icon-button (click)="deleteVariant(variant)" class="action-icon-clean delete">
-              <mat-icon>delete</mat-icon>
-            </button>
+                <button
+                  mat-icon-button
+                  (click)="deleteVariant(variant)"
+                  class="action-icon-clean delete"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
                 <span class="custom-tooltip">Delete Variant</span>
               </span>
             </div>
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns" class="header-row-clean"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row-clean"></tr>
-        
+        <tr
+          mat-header-row
+          *matHeaderRowDef="displayedColumns"
+          class="header-row-clean"
+        ></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="data-row-clean"
+        ></tr>
+
         <!-- No Data Row -->
-       
       </table>
     </div>
 
     <!-- Pagination -->
     <div class="pagination-container-clean">
-      <mat-paginator [pageSizeOptions]="[6, 12, 24]" [pageSize]="12" class="paginator-clean"></mat-paginator>
+      <mat-paginator
+        [pageSizeOptions]="[6, 12, 24]"
+        [pageSize]="12"
+        class="paginator-clean"
+      ></mat-paginator>
     </div>
-      </div>
+  </div>
 
   <!-- REDESIGNED MODALS -->
 
@@ -241,16 +337,22 @@
           </div>
           <div class="modal-title-content">
             <h2 class="modal-title-clean">Add Stock</h2>
-            <p class="modal-subtitle-clean">Variant #{{ selectedVariant?.id }}</p>
+            <p class="modal-subtitle-clean">
+              Variant #{{ selectedVariant?.id }}
+            </p>
           </div>
         </div>
         <button mat-icon-button mat-dialog-close class="modal-close-clean">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
 
       <div class="modal-body-clean">
-        <form [formGroup]="stockForm" (ngSubmit)="saveStock()" class="form-clean">
+        <form
+          [formGroup]="stockForm"
+          (ngSubmit)="saveStock()"
+          class="form-clean"
+        >
           <!-- Current Stock Info -->
           <div class="info-section-clean">
             <div class="info-header-clean">
@@ -271,70 +373,132 @@
               <mat-icon>attach_money</mat-icon>
               <span>Pricing Information</span>
             </div>
-            
+
             <div class="form-grid-clean">
               <mat-form-field appearance="outline" class="form-field-clean">
-              <mat-label>Previous Purchase Price (MMK)</mat-label>
-              <input matInput type="number" [value]="previousPurchasePrice" disabled>
+                <mat-label>Previous Purchase Price (MMK)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  [value]="previousPurchasePrice"
+                  disabled
+                />
                 <mat-icon matSuffix>history</mat-icon>
-            </mat-form-field>
-              
+              </mat-form-field>
+
               <mat-form-field appearance="outline" class="form-field-clean">
-              <mat-label>New Purchase Price (MMK)</mat-label>
-              <input matInput type="number" formControlName="purchasePrice" required>
+                <mat-label>New Purchase Price (MMK)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="purchasePrice"
+                  required
+                />
                 <mat-icon matSuffix>shopping_cart</mat-icon>
-              <mat-error *ngIf="stockForm.get('purchasePrice')?.hasError('required')">Purchase price is required</mat-error>
-              <mat-error *ngIf="stockForm.get('purchasePrice')?.hasError('min')">Purchase price must be positive</mat-error>
-            </mat-form-field>
-              
+                <mat-error
+                  *ngIf="stockForm.get('purchasePrice')?.hasError('required')"
+                  >Purchase price is required</mat-error
+                >
+                <mat-error
+                  *ngIf="stockForm.get('purchasePrice')?.hasError('min')"
+                  >Purchase price must be positive</mat-error
+                >
+              </mat-form-field>
+
               <mat-form-field appearance="outline" class="form-field-clean">
-              <mat-label>New Selling Price (MMK)</mat-label>
-              <input matInput type="number" formControlName="sellingPrice" required>
+                <mat-label>New Selling Price (MMK)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="sellingPrice"
+                  required
+                />
                 <mat-icon matSuffix>sell</mat-icon>
-              <mat-error *ngIf="stockForm.get('sellingPrice')?.hasError('required')">Selling price is required</mat-error>
-              <mat-error *ngIf="stockForm.get('sellingPrice')?.hasError('min')">Selling price must be positive</mat-error>
-            </mat-form-field>
-              
-              <mat-form-field appearance="outline" class="form-field-clean quantity-field">
-              <mat-label>Additional Stock Quantity</mat-label>
-              <input matInput type="number" formControlName="quantity" required>
+                <mat-error
+                  *ngIf="stockForm.get('sellingPrice')?.hasError('required')"
+                  >Selling price is required</mat-error
+                >
+                <mat-error
+                  *ngIf="stockForm.get('sellingPrice')?.hasError('min')"
+                  >Selling price must be positive</mat-error
+                >
+              </mat-form-field>
+
+              <mat-form-field
+                appearance="outline"
+                class="form-field-clean quantity-field"
+              >
+                <mat-label>Additional Stock Quantity</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="quantity"
+                  required
+                />
                 <mat-icon matSuffix>inventory_2</mat-icon>
-              <mat-error *ngIf="stockForm.get('quantity')?.hasError('required')">Quantity is required</mat-error>
-              <mat-error *ngIf="stockForm.get('quantity')?.hasError('min')">Quantity must be positive</mat-error>
-            </mat-form-field>
-          </div>
+                <mat-error
+                  *ngIf="stockForm.get('quantity')?.hasError('required')"
+                  >Quantity is required</mat-error
+                >
+                <mat-error *ngIf="stockForm.get('quantity')?.hasError('min')"
+                  >Quantity must be positive</mat-error
+                >
+              </mat-form-field>
+            </div>
 
             <!-- Preview -->
-            <div class="preview-section-clean" *ngIf="stockForm.get('quantity')?.value > 0">
+            <div
+              class="preview-section-clean"
+              *ngIf="stockForm.get('quantity')?.value > 0"
+            >
               <div class="preview-header-clean">
                 <mat-icon>preview</mat-icon>
                 <span>Stock Preview</span>
               </div>
               <div class="preview-content-clean">
                 <span class="preview-label">New Total Stock:</span>
-                <span class="preview-value">{{ (selectedVariant?.stock || 0) + (stockForm.get('quantity')?.value || 0) }} units</span>
+                <span class="preview-value"
+                  >{{
+                    (selectedVariant?.stock || 0) +
+                      (stockForm.get("quantity")?.value || 0)
+                  }}
+                  units</span
+                >
               </div>
+            </div>
           </div>
-        </div>
 
           <!-- Actions -->
           <div class="modal-actions-clean">
-            <button mat-stroked-button mat-dialog-close type="button" class="btn-cancel-clean">
+            <button
+              mat-stroked-button
+              mat-dialog-close
+              type="button"
+              class="btn-cancel-clean"
+            >
               <mat-icon>close</mat-icon>
               Cancel
             </button>
-            <button mat-flat-button color="primary" type="submit" [disabled]="stockForm.invalid || isUpdating" class="btn-save-clean">
-            <ng-container *ngIf="isUpdating">
-                <mat-spinner diameter="20" class="btn-spinner-clean"></mat-spinner>
-              <span>Saving...</span>
-            </ng-container>
-            <ng-container *ngIf="!isUpdating">
-                
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="stockForm.invalid || isUpdating"
+              class="btn-save-clean"
+            >
+              <ng-container *ngIf="isUpdating">
+                <mat-spinner
+                  diameter="20"
+                  class="btn-spinner-clean"
+                ></mat-spinner>
+                <span>Saving...</span>
+              </ng-container>
+              <ng-container *ngIf="!isUpdating">
                 <span>Save Stock</span>
-            </ng-container>
-          </button>
-        </div>
-      </form>
+              </ng-container>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </ng-template>
@@ -349,7 +513,9 @@
           </div>
           <div class="modal-title-content">
             <h2 class="modal-title-clean">Create New Variant</h2>
-            <p class="modal-subtitle-clean">Add a new product variant with custom attributes</p>
+            <p class="modal-subtitle-clean">
+              Add a new product variant with custom attributes
+            </p>
           </div>
         </div>
         <button mat-icon-button mat-dialog-close class="modal-close-clean">
@@ -358,71 +524,136 @@
       </div>
 
       <div class="modal-body-clean">
-        <form [formGroup]="variantForm" (ngSubmit)="saveVariant()" class="form-clean">
+        <form
+          [formGroup]="variantForm"
+          (ngSubmit)="saveVariant()"
+          class="form-clean"
+        >
           <!-- Basic Information -->
           <div class="form-section-clean">
             <div class="section-title-clean">
               <mat-icon>info</mat-icon>
               <span>Basic Information</span>
-    </div>
-            
+            </div>
+
             <div class="form-grid-clean two-col">
               <mat-form-field appearance="outline" class="form-field-clean">
                 <mat-label>Price (MMK)</mat-label>
-              <input matInput type="number" formControlName="price" required>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="price"
+                  required
+                />
                 <mat-icon matSuffix>attach_money</mat-icon>
-              <mat-error *ngIf="variantForm.get('price')?.hasError('required')">Price is required</mat-error>
-              <mat-error *ngIf="variantForm.get('price')?.hasError('min')">Price must be positive</mat-error>
-            </mat-form-field>
-              
+                <mat-error
+                  *ngIf="variantForm.get('price')?.hasError('required')"
+                  >Price is required</mat-error
+                >
+                <mat-error *ngIf="variantForm.get('price')?.hasError('min')"
+                  >Price must be positive</mat-error
+                >
+              </mat-form-field>
+
               <mat-form-field appearance="outline" class="form-field-clean">
                 <mat-label>Initial Stock</mat-label>
-              <input matInput type="number" formControlName="stock" required>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="stock"
+                  required
+                />
                 <mat-icon matSuffix>inventory</mat-icon>
-              <mat-error *ngIf="variantForm.get('stock')?.hasError('required')">Stock is required</mat-error>
-              <mat-error *ngIf="variantForm.get('stock')?.hasError('min')">Stock must be positive</mat-error>
-            </mat-form-field>
+                <mat-error
+                  *ngIf="variantForm.get('stock')?.hasError('required')"
+                  >Stock is required</mat-error
+                >
+                <mat-error *ngIf="variantForm.get('stock')?.hasError('min')"
+                  >Stock must be positive</mat-error
+                >
+              </mat-form-field>
               <mat-form-field appearance="outline" class="form-field-clean">
                 <mat-label>Purchase Price (MMK)</mat-label>
-                <input matInput type="number" formControlName="purchasePrice" required>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="purchasePrice"
+                  required
+                />
                 <mat-icon matSuffix>shopping_cart</mat-icon>
-                <mat-error *ngIf="variantForm.get('purchasePrice')?.hasError('required')">Purchase price is required</mat-error>
-                <mat-error *ngIf="variantForm.get('purchasePrice')?.hasError('min')">Purchase price must be positive</mat-error>
+                <mat-error
+                  *ngIf="variantForm.get('purchasePrice')?.hasError('required')"
+                  >Purchase price is required</mat-error
+                >
+                <mat-error
+                  *ngIf="variantForm.get('purchasePrice')?.hasError('min')"
+                  >Purchase price must be positive</mat-error
+                >
               </mat-form-field>
+            </div>
           </div>
-        </div>
 
           <!-- Attributes -->
           <div class="form-section-clean">
             <div class="section-title-clean">
               <mat-icon>tune</mat-icon>
               <span>Variant Attributes</span>
-              <button mat-icon-button type="button" (click)="addAttribute()" class="add-btn-clean">
-              <mat-icon>add_circle</mat-icon>
-            </button>
-          </div>
-            
+              <button
+                mat-icon-button
+                type="button"
+                (click)="addAttribute()"
+                class="add-btn-clean"
+              >
+                <mat-icon>add_circle</mat-icon>
+              </button>
+            </div>
+
             <div formArrayName="attributes" class="attributes-container-clean">
-            <div *ngFor="let attributeGroup of attributesFormArray.controls; let i = index; trackBy: trackByAttribute" 
-                    [formGroupName]="i" class="attribute-row-clean">
+              <div
+                *ngFor="
+                  let attributeGroup of attributesFormArray.controls;
+                  let i = index;
+                  trackBy: trackByAttribute
+                "
+                [formGroupName]="i"
+                class="attribute-row-clean"
+              >
                 <mat-form-field appearance="outline" class="attr-field-clean">
                   <mat-label>Attribute Name</mat-label>
-                  <input matInput formControlName="key" placeholder="e.g., Color">
+                  <input
+                    matInput
+                    formControlName="key"
+                    placeholder="e.g., Color"
+                  />
                   <mat-icon matSuffix>label</mat-icon>
-              </mat-form-field>
+                </mat-form-field>
                 <mat-form-field appearance="outline" class="attr-field-clean">
-                <mat-label>Value</mat-label>
-                  <input matInput formControlName="value" placeholder="e.g., Red">
+                  <mat-label>Value</mat-label>
+                  <input
+                    matInput
+                    formControlName="value"
+                    placeholder="e.g., Red"
+                  />
                   <mat-icon matSuffix>text_fields</mat-icon>
-              </mat-form-field>
-                <button mat-icon-button (click)="removeAttribute(i)" class="remove-btn-clean">
+                </mat-form-field>
+                <button
+                  mat-icon-button
+                  (click)="removeAttribute(i)"
+                  class="remove-btn-clean"
+                >
                   <mat-icon>delete</mat-icon>
-              </button>
+                </button>
               </div>
-              
-              <div class="empty-attributes-clean" *ngIf="attributesFormArray.length === 0">
+
+              <div
+                class="empty-attributes-clean"
+                *ngIf="attributesFormArray.length === 0"
+              >
                 <mat-icon class="empty-icon-clean">tune</mat-icon>
-                <p>No attributes added yet. Click the + button to add your first attribute.</p>
+                <p>
+                  No attributes added yet. Click the + button to add your first
+                  attribute.
+                </p>
               </div>
             </div>
           </div>
@@ -432,29 +663,49 @@
             <div class="section-title-clean">
               <mat-icon>photo_library</mat-icon>
               <span>Product Photos</span>
-        </div>
+            </div>
 
             <div class="photo-section-clean">
-              <div class="photos-grid-clean" *ngIf="displayImageUrls.length > 0">
-                <div class="photo-item-clean" *ngFor="let url of displayImageUrls; let i = index">
+              <div
+                class="photos-grid-clean"
+                *ngIf="displayImageUrls.length > 0"
+              >
+                <div
+                  class="photo-item-clean"
+                  *ngFor="let url of displayImageUrls; let i = index"
+                >
                   <div class="photo-wrapper-clean">
-                <img [src]="url" alt="Preview">
+                    <img [src]="url" alt="Preview" />
                     <div class="photo-actions-clean">
-                      <button mat-mini-fab (click)="removePhoto(i)" type="button" class="remove-photo-clean">
+                      <button
+                        mat-mini-fab
+                        (click)="removePhoto(i)"
+                        type="button"
+                        class="remove-photo-clean"
+                      >
                         <mat-icon>delete</mat-icon>
-                </button>
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div class="upload-area-clean" (click)="fileInput.click()">
-                <input #fileInput type="file" multiple accept="image/*" (change)="onFileSelected($event)" style="display: none">
+                <input
+                  #fileInput
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  (change)="onFileSelected($event)"
+                  style="display: none"
+                />
                 <div class="upload-content-clean">
                   <mat-icon class="upload-icon-clean">cloud_upload</mat-icon>
                   <h4>Upload Photos</h4>
                   <p>Click to browse or drag and drop images here</p>
-                  <span class="upload-hint-clean">PNG, JPG, GIF up to 10MB each</span>
+                  <span class="upload-hint-clean"
+                    >PNG, JPG, GIF up to 10MB each</span
+                  >
                 </div>
               </div>
             </div>
@@ -462,17 +713,27 @@
 
           <!-- Actions -->
           <div class="modal-actions-clean">
-            <button mat-stroked-button (click)="cancelAddVariant()" type="button" class="btn-cancel-clean">
+            <button
+              mat-stroked-button
+              (click)="cancelAddVariant()"
+              type="button"
+              class="btn-cancel-clean"
+            >
               <mat-icon>close</mat-icon>
               Cancel
             </button>
-            <button mat-flat-button color="primary" type="submit" class="btn-save-clean">
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              class="btn-save-clean"
+            >
               <mat-icon>save</mat-icon>
               Create Variant
             </button>
           </div>
         </form>
-        </div>
+      </div>
     </div>
   </ng-template>
 
@@ -486,7 +747,9 @@
           </div>
           <div class="modal-title-content">
             <h2 class="modal-title-clean">Edit Product</h2>
-            <p class="modal-subtitle-clean">Update product information and settings</p>
+            <p class="modal-subtitle-clean">
+              Update product information and settings
+            </p>
           </div>
         </div>
         <button mat-icon-button mat-dialog-close class="modal-close-clean">
@@ -495,45 +758,77 @@
       </div>
 
       <div class="modal-body-clean">
-        <form [formGroup]="productForm" (ngSubmit)="saveProduct()" class="form-clean">
+        <form
+          [formGroup]="productForm"
+          (ngSubmit)="saveProduct()"
+          class="form-clean"
+        >
           <!-- Product Details -->
           <div class="form-section-clean">
             <div class="section-title-clean">
               <mat-icon>inventory_2</mat-icon>
               <span>Product Details</span>
-    </div>
-            
+            </div>
+
             <div class="form-grid-clean">
               <mat-form-field appearance="outline" class="form-field-clean">
                 <mat-label>Brand</mat-label>
                 <mat-select formControlName="brandId" required>
-                  <mat-option [value]="null" disabled>Select a brand</mat-option>
-                  <mat-option *ngFor="let brand of brands" [value]="brand.id">{{ brand.name }}</mat-option>
+                  <mat-option [value]="null" disabled
+                    >Select a brand</mat-option
+                  >
+                  <mat-option *ngFor="let brand of brands" [value]="brand.id">{{
+                    brand.name
+                  }}</mat-option>
                 </mat-select>
                 <mat-icon matSuffix>business</mat-icon>
               </mat-form-field>
-              
+
               <mat-form-field appearance="outline" class="form-field-clean">
-          <mat-label>Product Name</mat-label>
-          <input matInput formControlName="name" required>
+                <mat-label>Product Name</mat-label>
+                <input matInput formControlName="name" required />
                 <mat-icon matSuffix>title</mat-icon>
-          <mat-error *ngIf="productForm.get('name')?.hasError('required')">Name is required</mat-error>
-        </mat-form-field>
-              
-              <mat-form-field appearance="outline" class="form-field-clean full-width">
-          <mat-label>Product Description</mat-label>
-                <textarea matInput formControlName="description" rows="4" placeholder="Describe your product..."></textarea>
+                <mat-error *ngIf="productForm.get('name')?.hasError('required')"
+                  >Name is required</mat-error
+                >
+              </mat-form-field>
+
+              <mat-form-field
+                appearance="outline"
+                class="form-field-clean full-width"
+              >
+                <mat-label>Product Description</mat-label>
+                <textarea
+                  matInput
+                  formControlName="description"
+                  rows="4"
+                  placeholder="Describe your product..."
+                ></textarea>
                 <mat-icon matSuffix>description</mat-icon>
-        </mat-form-field>
-              
+              </mat-form-field>
+
               <mat-form-field appearance="outline" class="form-field-clean">
-          <mat-label>Product Rating (0-5)</mat-label>
-          <input matInput type="number" formControlName="rating" min="0" max="5" step="0.1">
+                <mat-label>Product Rating (0-5)</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="rating"
+                  min="0"
+                  max="5"
+                  step="0.1"
+                />
                 <mat-icon matSuffix>star</mat-icon>
-          <mat-error *ngIf="productForm.get('rating')?.hasError('required')">Rating is required</mat-error>
-          <mat-error *ngIf="productForm.get('rating')?.hasError('min')">Minimum rating is 0</mat-error>
-          <mat-error *ngIf="productForm.get('rating')?.hasError('max')">Maximum rating is 5</mat-error>
-        </mat-form-field>
+                <mat-error
+                  *ngIf="productForm.get('rating')?.hasError('required')"
+                  >Rating is required</mat-error
+                >
+                <mat-error *ngIf="productForm.get('rating')?.hasError('min')"
+                  >Minimum rating is 0</mat-error
+                >
+                <mat-error *ngIf="productForm.get('rating')?.hasError('max')"
+                  >Maximum rating is 5</mat-error
+                >
+              </mat-form-field>
             </div>
           </div>
 
@@ -543,22 +838,41 @@
               <mat-icon>image</mat-icon>
               <span>Product Image</span>
             </div>
-            
+
             <div class="image-section-clean">
               <div class="current-image-clean" *ngIf="basePhotoPreview">
-                <img [src]="basePhotoPreview" alt="Product preview">
+                <img [src]="basePhotoPreview" alt="Product preview" />
                 <div class="image-overlay-clean">
-                  <button mat-mini-fab (click)="removeProductImage()" type="button" class="remove-image-clean">
+                  <button
+                    mat-mini-fab
+                    (click)="removeProductImage()"
+                    type="button"
+                    class="remove-image-clean"
+                  >
                     <mat-icon>delete</mat-icon>
                   </button>
                 </div>
               </div>
-              
-              <div class="image-upload-clean" (click)="triggerProductImageUpload()">
-                <input type="file" id="basePhoto" (change)="onBasePhotoSelected($event)" accept="image/*" style="display: none;" #productImageInput>
+
+              <div
+                class="image-upload-clean"
+                (click)="triggerProductImageUpload()"
+              >
+                <input
+                  type="file"
+                  id="basePhoto"
+                  (change)="onBasePhotoSelected($event)"
+                  accept="image/*"
+                  style="display: none"
+                  #productImageInput
+                />
                 <div class="upload-content-clean">
-                  <mat-icon class="upload-icon-clean">add_photo_alternate</mat-icon>
-                  <h4>{{ basePhotoPreview ? 'Change Image' : 'Upload Image' }}</h4>
+                  <mat-icon class="upload-icon-clean"
+                    >add_photo_alternate</mat-icon
+                  >
+                  <h4>
+                    {{ basePhotoPreview ? "Change Image" : "Upload Image" }}
+                  </h4>
                   <p>Click to select a new product image</p>
                 </div>
               </div>
@@ -567,16 +881,26 @@
 
           <!-- Actions -->
           <div class="modal-actions-clean">
-            <button mat-stroked-button type="button" mat-dialog-close class="btn-cancel-clean">
+            <button
+              mat-stroked-button
+              type="button"
+              mat-dialog-close
+              class="btn-cancel-clean"
+            >
               <mat-icon>close</mat-icon>
               Cancel
             </button>
-            <button mat-flat-button color="primary" type="submit" class="btn-save-clean">
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              class="btn-save-clean"
+            >
               <mat-icon>save</mat-icon>
               Save Product
             </button>
-        </div>
-      </form>
+          </div>
+        </form>
       </div>
     </div>
   </ng-template>
@@ -591,36 +915,46 @@
           </div>
           <div class="modal-title-content">
             <h2 class="modal-title-clean">Edit Variant</h2>
-            <p class="modal-subtitle-clean">Variant #{{ editingVariant?.id }}</p>
+            <p class="modal-subtitle-clean">
+              Variant #{{ editingVariant?.id }}
+            </p>
           </div>
         </div>
-        <button mat-icon-button mat-dialog-close="false" class="modal-close-clean">
-        <mat-icon>close</mat-icon>
-              </button>
-    </div>
+        <button
+          mat-icon-button
+          mat-dialog-close="false"
+          class="modal-close-clean"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
 
       <div class="modal-body-clean">
-        <form [formGroup]="variantForm" (ngSubmit)="updateVariant()" class="form-clean">
+        <form
+          [formGroup]="variantForm"
+          (ngSubmit)="updateVariant()"
+          class="form-clean"
+        >
           <!-- Basic Information -->
           <div class="form-section-clean">
             <div class="section-title-clean">
               <mat-icon>info</mat-icon>
               <span>Basic Information</span>
             </div>
-            
+
             <div class="form-grid-clean two-col">
               <mat-form-field appearance="outline" class="form-field-clean">
                 <mat-label>SKU</mat-label>
-                <input matInput [value]="editingVariant?.sku" disabled>
+                <input matInput [value]="editingVariant?.sku" disabled />
                 <mat-icon matSuffix>qr_code</mat-icon>
-                  </mat-form-field>
-              
+              </mat-form-field>
+
               <mat-form-field appearance="outline" class="form-field-clean">
                 <mat-label>Price (MMK)</mat-label>
-                <input matInput type="number" formControlName="price">
+                <input matInput type="number" formControlName="price" />
                 <mat-icon matSuffix>attach_money</mat-icon>
-                  </mat-form-field>
-                </div>
+              </mat-form-field>
+            </div>
 
             <!-- Stock Info -->
             <div class="info-section-clean">
@@ -629,7 +963,10 @@
                 <span>Current Stock: {{ editingVariant?.stock }} units</span>
               </div>
               <div class="info-content-clean">
-                <p class="stock-note-clean">Use the stock management buttons in the main table to adjust inventory levels</p>
+                <p class="stock-note-clean">
+                  Use the stock management buttons in the main table to adjust
+                  inventory levels
+                </p>
               </div>
             </div>
           </div>
@@ -639,81 +976,133 @@
             <div class="section-title-clean">
               <mat-icon>tune</mat-icon>
               <span>Variant Attributes</span>
-              <button mat-icon-button type="button" (click)="addAttribute()" class="add-btn-clean">
-              <mat-icon>add_circle</mat-icon>
-            </button>
-          </div>
-            
+              <button
+                mat-icon-button
+                type="button"
+                (click)="addAttribute()"
+                class="add-btn-clean"
+              >
+                <mat-icon>add_circle</mat-icon>
+              </button>
+            </div>
+
             <div formArrayName="attributes" class="attributes-container-clean">
-            <div *ngFor="let attributeGroup of attributesFormArray.controls; let i = index; trackBy: trackByAttribute" 
-                    [formGroupName]="i" class="attribute-row-clean">
+              <div
+                *ngFor="
+                  let attributeGroup of attributesFormArray.controls;
+                  let i = index;
+                  trackBy: trackByAttribute
+                "
+                [formGroupName]="i"
+                class="attribute-row-clean"
+              >
                 <mat-form-field appearance="outline" class="attr-field-clean">
                   <mat-label>Attribute Name</mat-label>
-                <input matInput formControlName="key">
+                  <input matInput formControlName="key" />
                   <mat-icon matSuffix>label</mat-icon>
-                    </mat-form-field>
+                </mat-form-field>
                 <mat-form-field appearance="outline" class="attr-field-clean">
-                <mat-label>Value</mat-label>
-                <input matInput formControlName="value">
+                  <mat-label>Value</mat-label>
+                  <input matInput formControlName="value" />
                   <mat-icon matSuffix>text_fields</mat-icon>
-                    </mat-form-field>
-                <button mat-icon-button (click)="removeAttribute(i)" class="remove-btn-clean">
+                </mat-form-field>
+                <button
+                  mat-icon-button
+                  (click)="removeAttribute(i)"
+                  class="remove-btn-clean"
+                >
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
             </div>
-                  </div>
+          </div>
 
           <!-- Photos -->
           <div class="form-section-clean">
             <div class="section-title-clean">
               <mat-icon>photo_library</mat-icon>
               <span>Product Photos</span>
-                </div>
+            </div>
 
             <div class="photo-section-clean">
-              <div class="photos-grid-clean" *ngIf="displayImageUrls.length > 0">
-                <div class="photo-item-clean" *ngFor="let url of displayImageUrls; let i = index">
+              <div
+                class="photos-grid-clean"
+                *ngIf="displayImageUrls.length > 0"
+              >
+                <div
+                  class="photo-item-clean"
+                  *ngFor="let url of displayImageUrls; let i = index"
+                >
                   <div class="photo-wrapper-clean">
-                      <img [src]="url" alt="Preview">
+                    <img [src]="url" alt="Preview" />
                     <div class="photo-actions-clean">
-                      <button mat-mini-fab (click)="removePhoto(i)" type="button" class="remove-photo-clean">
+                      <button
+                        mat-mini-fab
+                        (click)="removePhoto(i)"
+                        type="button"
+                        class="remove-photo-clean"
+                      >
                         <mat-icon>delete</mat-icon>
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div class="upload-area-clean" (click)="fileInput.click()">
-                    <input #fileInput type="file" multiple accept="image/*" (change)="onFileSelected($event)" style="display: none">
+                <input
+                  #fileInput
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  (change)="onFileSelected($event)"
+                  style="display: none"
+                />
                 <div class="upload-content-clean">
-                  <mat-icon class="upload-icon-clean">add_photo_alternate</mat-icon>
+                  <mat-icon class="upload-icon-clean"
+                    >add_photo_alternate</mat-icon
+                  >
                   <h4>Add More Photos</h4>
                   <p>Click to browse additional images</p>
                 </div>
               </div>
-                  </div>
-                </div>
+            </div>
+          </div>
 
           <!-- Actions -->
           <div class="modal-actions-clean">
-            <button mat-stroked-button (click)="cancelEdit()" type="button" mat-dialog-close="false" [disabled]="isUpdating" class="btn-cancel-clean">
+            <button
+              mat-stroked-button
+              (click)="cancelEdit()"
+              type="button"
+              mat-dialog-close="false"
+              [disabled]="isUpdating"
+              class="btn-cancel-clean"
+            >
               <mat-icon>close</mat-icon>
               Cancel
             </button>
-            <button mat-flat-button color="primary" type="submit" mat-dialog-close="true" [disabled]="isUpdating" class="btn-save-clean">
-            <ng-container *ngIf="isUpdating">
-                <mat-spinner diameter="20" class="btn-spinner-clean"></mat-spinner>
-              <span>Updating...</span>
-            </ng-container>
-            <ng-container *ngIf="!isUpdating">
-               
-              <span>Update Variant</span>
-            </ng-container>
-          </button>
-        </div>
-      </form>
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              mat-dialog-close="true"
+              [disabled]="isUpdating"
+              class="btn-save-clean"
+            >
+              <ng-container *ngIf="isUpdating">
+                <mat-spinner
+                  diameter="20"
+                  class="btn-spinner-clean"
+                ></mat-spinner>
+                <span>Updating...</span>
+              </ng-container>
+              <ng-container *ngIf="!isUpdating">
+                <span>Update Variant</span>
+              </ng-container>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </ng-template>
@@ -728,7 +1117,9 @@
           </div>
           <div class="modal-title-content">
             <h2 class="modal-title-clean">Reduce Stock</h2>
-            <p class="modal-subtitle-clean">Variant #{{ selectedVariant?.id }}</p>
+            <p class="modal-subtitle-clean">
+              Variant #{{ selectedVariant?.id }}
+            </p>
           </div>
         </div>
         <button mat-icon-button mat-dialog-close class="modal-close-clean">
@@ -737,7 +1128,11 @@
       </div>
 
       <div class="modal-body-clean">
-        <form [formGroup]="reduceStockForm" (ngSubmit)="submitReduceStock()" class="form-clean">
+        <form
+          [formGroup]="reduceStockForm"
+          (ngSubmit)="submitReduceStock()"
+          class="form-clean"
+        >
           <!-- Current Stock Info -->
           <div class="info-section-clean">
             <div class="info-header-clean">
@@ -745,7 +1140,9 @@
               <span>Current Stock: {{ selectedVariant?.stock }} units</span>
             </div>
             <div class="info-content-clean">
-              <p class="stock-note-clean">Select quantities to reduce from each purchase batch below</p>
+              <p class="stock-note-clean">
+                Select quantities to reduce from each purchase batch below
+              </p>
             </div>
           </div>
 
@@ -755,37 +1152,76 @@
               <mat-icon>list</mat-icon>
               <span>Purchase Batches</span>
             </div>
-            
+
             <div class="reduction-items-clean">
-              <div class="reduction-item-clean" *ngFor="let group of reductionsFormArray.controls; let i = index">
+              <div
+                class="reduction-item-clean"
+                *ngFor="
+                  let group of reductionsFormArray.controls;
+                  let i = index
+                "
+              >
                 <div class="batch-info-clean">
                   <div class="batch-detail">
                     <mat-icon>attach_money</mat-icon>
-                    <span class="batch-price-clean">{{ purchaseHistory[i].purchasePrice | number }} MMK</span>
+                    <span class="batch-price-clean"
+                      >{{ purchaseHistory[i].purchasePrice | number }} MMK</span
+                    >
                   </div>
                   <div class="batch-detail">
                     <mat-icon>inventory</mat-icon>
-                    <span>{{ purchaseHistory[i].remainingQuantity }} available</span>
+                    <span
+                      >{{
+                        purchaseHistory[i].remainingQuantity
+                      }}
+                      available</span
+                    >
                   </div>
                   <div class="batch-detail">
                     <mat-icon>schedule</mat-icon>
-                    <span>{{ purchaseHistory[i].purchaseDate | date:'MMM dd, yyyy' }}</span>
+                    <span>{{
+                      purchaseHistory[i].purchaseDate | date : "MMM dd, yyyy"
+                    }}</span>
                   </div>
                 </div>
-                
+
                 <div class="reduction-controls-clean">
-                  <button mat-mini-fab (click)="decrementReduction(i)" type="button" 
-                          [disabled]="group.get('quantity')?.value <= 0" class="control-btn-clean decrease">
+                  <button
+                    mat-mini-fab
+                    (click)="decrementReduction(i)"
+                    type="button"
+                    [disabled]="group.get('quantity')?.value <= 0"
+                    class="control-btn-clean decrease"
+                  >
                     <mat-icon>remove</mat-icon>
                   </button>
-                  
+
                   <div class="quantity-input-clean">
-                    <input matInput type="number" min="0" [max]="purchaseHistory[i].remainingQuantity"
-                           [formControl]="getQuantityControl(group)" class="quantity-field-clean">
+                    <input
+                      matInput
+                      type="number"
+                      min="0"
+                      [max]="purchaseHistory[i].remainingQuantity"
+                      [formControl]="getQuantityControl(group)"
+                      class="quantity-field-clean"
+                    />
                   </div>
-                  
-                  <button mat-mini-fab (click)="incrementReduction(i, purchaseHistory[i].remainingQuantity)" type="button"
-                          [disabled]="group.get('quantity')?.value >= purchaseHistory[i].remainingQuantity" class="control-btn-clean increase">
+
+                  <button
+                    mat-mini-fab
+                    (click)="
+                      incrementReduction(
+                        i,
+                        purchaseHistory[i].remainingQuantity
+                      )
+                    "
+                    type="button"
+                    [disabled]="
+                      group.get('quantity')?.value >=
+                      purchaseHistory[i].remainingQuantity
+                    "
+                    class="control-btn-clean increase"
+                  >
                     <mat-icon>add</mat-icon>
                   </button>
                 </div>
@@ -799,24 +1235,48 @@
               <mat-icon>help_outline</mat-icon>
               <span>Reduction Reason</span>
             </div>
-            <mat-form-field appearance="outline" class="form-field-clean full-width">
+            <mat-form-field
+              appearance="outline"
+              class="form-field-clean full-width"
+            >
               <mat-label>Select reduction reason</mat-label>
               <mat-select formControlName="reductionReason">
-                <mat-option *ngFor="let reason of commonReductionReasons" [value]="reason">
+                <mat-option
+                  *ngFor="let reason of commonReductionReasons"
+                  [value]="reason"
+                >
                   {{ reason }}
                 </mat-option>
               </mat-select>
               <mat-icon matSuffix>list</mat-icon>
-              <mat-error *ngIf="reduceStockForm.get('reductionReason')?.hasError('required')">Reason is required</mat-error>
+              <mat-error
+                *ngIf="
+                  reduceStockForm.get('reductionReason')?.hasError('required')
+                "
+                >Reason is required</mat-error
+              >
             </mat-form-field>
 
             <!-- Custom reason field - only show when "Other" is selected -->
-            <mat-form-field *ngIf="showCustomReasonField()" appearance="outline" class="form-field-clean full-width">
+            <mat-form-field
+              *ngIf="showCustomReasonField()"
+              appearance="outline"
+              class="form-field-clean full-width"
+            >
               <mat-label>Please specify the reason</mat-label>
-              <textarea matInput formControlName="customReason" rows="3" 
-                        placeholder="Please provide details about the reduction reason..."></textarea>
+              <textarea
+                matInput
+                formControlName="customReason"
+                rows="3"
+                placeholder="Please provide details about the reduction reason..."
+              ></textarea>
               <mat-icon matSuffix>description</mat-icon>
-              <mat-error *ngIf="reduceStockForm.get('customReason')?.hasError('required')">Custom reason is required</mat-error>
+              <mat-error
+                *ngIf="
+                  reduceStockForm.get('customReason')?.hasError('required')
+                "
+                >Custom reason is required</mat-error
+              >
             </mat-form-field>
           </div>
 
@@ -829,29 +1289,54 @@
             <div class="summary-content-clean">
               <div class="summary-row-clean">
                 <span class="summary-label-clean">Total to reduce:</span>
-                <span class="summary-value-clean">{{ getTotalReduction() }} units</span>
+                <span class="summary-value-clean"
+                  >{{ getTotalReduction() }} units</span
+                >
               </div>
               <div class="summary-row-clean">
-                <span class="summary-label-clean">Remaining after reduction:</span>
-                <span class="summary-value-clean">{{ (selectedVariant?.stock ?? 0) - getTotalReduction() }} units</span>
+                <span class="summary-label-clean"
+                  >Remaining after reduction:</span
+                >
+                <span class="summary-value-clean"
+                  >{{
+                    (selectedVariant?.stock ?? 0) - getTotalReduction()
+                  }}
+                  units</span
+                >
               </div>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="modal-actions-clean">
-            <button mat-stroked-button mat-dialog-close type="button" class="btn-cancel-clean">
+            <button
+              mat-stroked-button
+              mat-dialog-close
+              type="button"
+              class="btn-cancel-clean"
+            >
               <mat-icon>close</mat-icon>
               Cancel
             </button>
-            <button mat-flat-button color="warn" type="submit" class="btn-reduce-clean"
-                    [disabled]="reduceStockForm.invalid || getTotalReduction() === 0 || getTotalReduction() > (selectedVariant?.stock ?? 0)">
+            <button
+              mat-flat-button
+              color="warn"
+              type="submit"
+              class="btn-reduce-clean"
+              [disabled]="
+                reduceStockForm.invalid ||
+                getTotalReduction() === 0 ||
+                getTotalReduction() > (selectedVariant?.stock ?? 0)
+              "
+            >
               <ng-container *ngIf="isReducing">
-                <mat-spinner diameter="20" class="btn-spinner-clean"></mat-spinner>
+                <mat-spinner
+                  diameter="20"
+                  class="btn-spinner-clean"
+                ></mat-spinner>
                 <span>Reducing...</span>
               </ng-container>
               <ng-container *ngIf="!isReducing">
-                
                 <span>Reduce Stock</span>
               </ng-container>
             </button>
@@ -865,226 +1350,550 @@
 <!-- Custom History Modal Overlay -->
 <div *ngIf="showCustomHistoryModal" class="custom-modal-overlay">
   <div class="custom-modal-box">
-    <button class="custom-modal-close" (click)="closeCustomHistoryModal()">&times;</button>
-      <div class="modal-header-clean">
-        <div class="modal-title-section">
-          <div class="modal-icon-clean history">
-            <mat-icon>history</mat-icon>
-          </div>
-          <div class="modal-title-content">
-            <h2 class="modal-title-clean">Variant History</h2>
-            <p class="modal-subtitle-clean">Variant #{{ selectedVariantForHistory?.id }}</p>
-          </div>
+    <button class="custom-modal-close" (click)="closeCustomHistoryModal()">
+      &times;
+    </button>
+    <div class="modal-header-clean">
+      <div class="modal-title-section">
+        <div class="modal-icon-clean history">
+          <mat-icon>history</mat-icon>
+        </div>
+        <div class="modal-title-content">
+          <h2 class="modal-title-clean">Variant History</h2>
+          <p class="modal-subtitle-clean">
+            Variant #{{ selectedVariantForHistory?.id }}
+          </p>
         </div>
       </div>
-      <div class="modal-body-clean history-body">
-        <div class="history-tabs-clean">
-        <div class="tab-clean" [class.active]="activeHistoryTab === 'price'" (click)="setActiveHistoryTab('price')">
-            <mat-icon>sell</mat-icon>
-            <span>Price History</span>
-          </div>
-        <div class="tab-clean" [class.active]="activeHistoryTab === 'purchase'" (click)="setActiveHistoryTab('purchase')">
-            <mat-icon>shopping_cart</mat-icon>
-            <span>Purchase History</span>
-          </div>
-        <div class="tab-clean" [class.active]="activeHistoryTab === 'reduce'" (click)="setActiveHistoryTab('reduce')">
+    </div>
+    <div class="modal-body-clean history-body">
+      <div class="history-tabs-clean">
+        <div
+          class="tab-clean"
+          [class.active]="activeHistoryTab === 'price'"
+          (click)="setActiveHistoryTab('price')"
+        >
+          <mat-icon>sell</mat-icon>
+          <span>Price History</span>
+        </div>
+        <div
+          class="tab-clean"
+          [class.active]="activeHistoryTab === 'purchase'"
+          (click)="setActiveHistoryTab('purchase')"
+        >
+          <mat-icon>shopping_cart</mat-icon>
+          <span>Purchase History</span>
+        </div>
+        <div
+          class="tab-clean"
+          [class.active]="activeHistoryTab === 'reduce'"
+          (click)="setActiveHistoryTab('reduce')"
+        >
           <mat-icon>remove_shopping_cart</mat-icon>
           <span>Reduce Stock History</span>
         </div>
       </div>
-        <div class="history-content-clean">
-          <!-- Price History -->
+      <div class="history-content-clean">
+        <!-- Price History -->
         <div class="history-section-clean" *ngIf="activeHistoryTab === 'price'">
-            <div class="section-title-clean">
-              <mat-icon>trending_up</mat-icon>
-              <span>Selling Price History</span>
+          <div class="export-btn-row" style="position: relative">
+            <button
+              class="panel-btn"
+              (click)="showExportDropdownPrice = !showExportDropdownPrice"
+              aria-label="Export options"
+              style="margin-right: 0"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
+            <div
+              *ngIf="showExportDropdownPrice"
+              class="custom-export-dropdown"
+              (mouseleave)="showExportDropdownPrice = false"
+            >
+              <button
+                (click)="
+                  exportPriceHistoryPDF(); showExportDropdownPrice = false
+                "
+              >
+                <mat-icon>picture_as_pdf</mat-icon> Export as PDF
+              </button>
+              <button
+                (click)="
+                  exportPriceHistoryExcel(); showExportDropdownPrice = false
+                "
+              >
+                <mat-icon>table_view</mat-icon> Export as Excel
+              </button>
+            </div>
+          </div>
+          <div class="section-title-clean">
+            <mat-icon>trending_up</mat-icon>
+            <span>Selling Price History</span>
+          </div>
+
+          <div class="history-table-clean">
+            <table
+              mat-table
+              [dataSource]="priceHistoryDataSource"
+              matSort
+              #priceSort="matSort"
+              [matSortActive]="'date'"
+              [matSortDirection]="'desc'"
+              class="data-table-clean"
+            >
+              <ng-container matColumnDef="price">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  mat-sort-header
+                  class="header-cell-clean"
+                >
+                  <div class="header-content-clean">
+                    <mat-icon class="header-icon">attach_money</mat-icon>
+                    <span>Price</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                  <div class="price-display-clean">
+                    <span class="price-amount-clean">{{ row.price }}</span>
+                    <span class="price-currency-clean">MMK</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="date">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  mat-sort-header
+                  class="header-cell-clean"
+                >
+                  <div class="header-content-clean">
+                    <mat-icon class="header-icon">schedule</mat-icon>
+                    <span>Date</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                  {{ row.priceDate | date : "MMM dd, yyyy HH:mm" }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="admin">
+                <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                  <div class="header-content-clean">
+                    <mat-icon class="header-icon">person</mat-icon>
+                    <span>Admin</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                  {{ row.adminName || "N/A" }} ({{ row.adminId }})
+                </td>
+              </ng-container>
+
+              <tr
+                mat-header-row
+                *matHeaderRowDef="['price', 'date', 'admin']"
+                class="header-row-clean"
+              ></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: ['price', 'date', 'admin']"
+                class="data-row-clean"
+              ></tr>
+
+              <tr
+                *ngIf="priceHistoryDataSource.data.length === 0"
+                class="empty-row-clean"
+              >
+                <td colspan="3" class="empty-cell-clean">
+                  <div class="empty-state-clean">
+                    <mat-icon>trending_flat</mat-icon>
+                    <p>No price history available</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Purchase History -->
+        <div
+          class="history-section-clean"
+          *ngIf="activeHistoryTab === 'purchase'"
+        >
+          <div class="export-btn-row" style="position: relative">
+            <button
+              class="panel-btn"
+              (click)="showExportDropdownPurchase = !showExportDropdownPurchase"
+              aria-label="Export options"
+              style="margin-right: 0"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
+            <div
+              *ngIf="showExportDropdownPurchase"
+              class="custom-export-dropdown"
+              (mouseleave)="showExportDropdownPurchase = false"
+            >
+              <button
+                (click)="
+                  exportPurchaseHistoryPDF(); showExportDropdownPurchase = false
+                "
+              >
+                <mat-icon>picture_as_pdf</mat-icon> Export as PDF
+              </button>
+              <button
+                (click)="
+                  exportPurchaseHistoryExcel();
+                  showExportDropdownPurchase = false
+                "
+              >
+                <mat-icon>table_view</mat-icon> Export as Excel
+              </button>
+            </div>
+          </div>
+          <div class="section-title-clean">
+            <mat-icon>shopping_basket</mat-icon>
+            <span>Purchase History</span>
+          </div>
+
+          <div class="history-table-clean">
+            <table
+              mat-table
+              [dataSource]="purchaseHistoryDataSource"
+              matSort
+              #purchaseSort="matSort"
+              [matSortActive]="'date'"
+              [matSortDirection]="'desc'"
+              class="data-table-clean"
+            >
+              <ng-container matColumnDef="batchId">
+                <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                  <div class="header-content-clean">
+                    <mat-icon class="header-icon">confirmation_number</mat-icon>
+                    <span>Batch ID</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                  <span class="batch-id">#{{ row.id }}</span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="purchasePrice">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  mat-sort-header
+                  class="header-cell-clean"
+                >
+                  <div class="header-content-clean">
+                    <mat-icon class="header-icon">shopping_cart</mat-icon>
+                    <span>Purchase Price</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                  <div class="price-display-clean">
+                    <span class="price-amount-clean">{{
+                      row.purchasePrice
+                    }}</span>
+                    <span class="price-currency-clean">MMK</span>
+                  </div>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                  <div class="header-content-clean">
+                    <mat-icon class="header-icon">inventory_2</mat-icon>
+                    <span>Quantity</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                  <div class="quantity-badge-clean">{{ row.quantity }}</div>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="remaining">
+                <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                  <div class="header-content-clean">
+                    <mat-icon class="header-icon">inventory</mat-icon>
+                    <span>Remaining</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                  <div
+                    class="remaining-badge-clean"
+                    [class.low]="row.remainingQuantity <= 5"
+                  >
+                    {{ row.remainingQuantity }}
+                  </div>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="date">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  mat-sort-header
+                  class="header-cell-clean"
+                >
+                  <div class="header-content-clean">
+                    <mat-icon class="header-icon">schedule</mat-icon>
+                    <span>Date</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                  {{ row.purchaseDate | date : "MMM dd, yyyy HH:mm" }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="admin">
+                <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
+                  <div class="header-content-clean">
+                    <mat-icon class="header-icon">person</mat-icon>
+                    <span>ADMIN</span>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let row" class="data-cell-clean">
+                  {{ row.adminName || "N/A" }} ({{ row.adminId }})
+                </td>
+              </ng-container>
+              <tr
+                mat-header-row
+                *matHeaderRowDef="[
+                  'batchId',
+                  'purchasePrice',
+                  'quantity',
+                  'remaining',
+                  'date',
+                  'admin'
+                ]"
+                class="header-row-clean"
+              ></tr>
+              <tr
+                mat-row
+                *matRowDef="
+                  let row;
+                  columns: [
+                    'batchId',
+                    'purchasePrice',
+                    'quantity',
+                    'remaining',
+                    'date',
+                    'admin'
+                  ]
+                "
+                class="data-row-clean"
+              ></tr>
+              <tr
+                *ngIf="purchaseHistoryDataSource.data.length === 0"
+                class="empty-row-clean"
+              >
+                <td colspan="6" class="empty-cell-clean">
+                  <div class="empty-state-clean">
+                    <mat-icon>shopping_basket</mat-icon>
+                    <p>No purchase history available</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Reduce Stock History -->
+        <div
+          class="history-section-clean"
+          *ngIf="activeHistoryTab === 'reduce'"
+        >
+          <div class="export-btn-row" style="position: relative">
+            <button
+              class="panel-btn"
+              (click)="showExportDropdownReduce = !showExportDropdownReduce"
+              aria-label="Export options"
+              style="margin-right: 0"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
+            <div
+              *ngIf="showExportDropdownReduce"
+              class="custom-export-dropdown"
+              (mouseleave)="showExportDropdownReduce = false"
+            >
+              <button
+                (click)="
+                  exportReduceStockHistoryPDF();
+                  showExportDropdownReduce = false
+                "
+              >
+                <mat-icon>picture_as_pdf</mat-icon> Export as PDF
+              </button>
+              <button
+                (click)="
+                  exportReduceStockHistoryExcel();
+                  showExportDropdownReduce = false
+                "
+              >
+                <mat-icon>table_view</mat-icon> Export as Excel
+              </button>
+            </div>
+          </div>
+          <div class="section-title-clean">
+            <mat-icon>remove_shopping_cart</mat-icon>
+            <span>Reduce Stock History</span>
+          </div>
+
+          <div class="history-table-clean">
+            <table class="data-table-clean">
+              <thead>
+                <tr class="header-row-clean">
+                  <th>Reduction Reason</th>
+                  <th>Admin</th>
+                  <th>Admin ID</th>
+                  <th>Date</th>
+                  <th>Stock Change</th>
+                  <th>Details (Batches)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let group of groupedReduceStockHistory">
+                  <td>
+                    <div class="reason-text-clean">
+                      {{ group.reductionReason }}
+                    </div>
+                  </td>
+                  <td>{{ group.adminName || "N/A" }}</td>
+                  <td>{{ group.adminId || "N/A" }}</td>
+                  <td>{{ group.reducedAt | date : "MMM dd, yyyy HH:mm" }}</td>
+                  <td>
+                    <span class="before-clean"
+                      >{{ group.totalStockBeforeReduction }} →
+                      {{ group.totalStockAfterReduction }}</span
+                    >
+                  </td>
+                  <td>
+                    <ul style="margin: 0; padding-left: 1em">
+                      <li *ngFor="let row of group.rows">
+                        <span class="batch-id"
+                          >Batch #{{ row.purchaseHistoryId }}</span
+                        >
+                        <span class="batch-qty"
+                          >Quantity: {{ row.quantityReduced }}</span
+                        >
+                        <span class="batch-price"
+                          >Purchase Price:
+                          {{ row.purchasePriceAtReduction }} MMK</span
+                        >
+                      </li>
+                    </ul>
+                  </td>
+                </tr>
+                <tr
+                  *ngIf="groupedReduceStockHistory.length === 0"
+                  class="empty-row-clean"
+                >
+                  <td colspan="6" class="empty-cell-clean">
+                    <div class="empty-state-clean">
+                      <mat-icon>remove_shopping_cart</mat-icon>
+                      <p>No reduce stock history available</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
-            
-            <div class="history-table-clean">
-              <table mat-table [dataSource]="priceHistoryDataSource" matSort #priceSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="data-table-clean">
-          <ng-container matColumnDef="price">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">attach_money</mat-icon>
-                      <span>Price</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                    <div class="price-display-clean">
-                      <span class="price-amount-clean">{{ row.price }}</span>
-                      <span class="price-currency-clean">MMK</span>
-                    </div>
-                  </td>
-          </ng-container>
-                
-          <ng-container matColumnDef="date">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">schedule</mat-icon>
-                      <span>Date</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.priceDate | date:'MMM dd, yyyy HH:mm' }}</td>
-          </ng-container>
-                
-          <ng-container matColumnDef="admin">
-                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">person</mat-icon>
-                      <span>Admin</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.adminName || 'N/A' }} ({{ row.adminId }})</td>
-          </ng-container>
-                
-                <tr mat-header-row *matHeaderRowDef="['price', 'date', 'admin']" class="header-row-clean"></tr>
-                <tr mat-row *matRowDef="let row; columns: ['price', 'date', 'admin'];" class="data-row-clean"></tr>
-                
-                <tr *ngIf="priceHistoryDataSource.data.length === 0" class="empty-row-clean">
-                  <td colspan="3" class="empty-cell-clean">
-                    <div class="empty-state-clean">
-                      <mat-icon>trending_flat</mat-icon>
-                      <p>No price history available</p>
-                    </div>
-                  </td>
-          </tr>
-        </table>
-      </div>
-          </div>
+  </div>
+</div>
 
-          <!-- Purchase History -->
-          <div class="history-section-clean" *ngIf="activeHistoryTab === 'purchase'">
-            <div class="section-title-clean">
-              <mat-icon>shopping_basket</mat-icon>
-              <span>Purchase History</span>
-            </div>
-            
-            <div class="history-table-clean">
-              <table mat-table [dataSource]="purchaseHistoryDataSource" matSort #purchaseSort="matSort" [matSortActive]="'date'" [matSortDirection]="'desc'" class="data-table-clean">
-                <ng-container matColumnDef="batchId">
-                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">confirmation_number</mat-icon>
-                      <span>Batch ID</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                    <span class="batch-id">#{{ row.id }}</span>
-                  </td>
-                </ng-container>
-          <ng-container matColumnDef="purchasePrice">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">shopping_cart</mat-icon>
-                      <span>Purchase Price</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                    <div class="price-display-clean">
-                      <span class="price-amount-clean">{{ row.purchasePrice }}</span>
-                      <span class="price-currency-clean">MMK</span>
-                    </div>
-                  </td>
-          </ng-container>
-          <ng-container matColumnDef="quantity">
-                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">inventory_2</mat-icon>
-                      <span>Quantity</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                    <div class="quantity-badge-clean">{{ row.quantity }}</div>
-                  </td>
-          </ng-container>
-          <ng-container matColumnDef="remaining">
-                  <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">inventory</mat-icon>
-                      <span>Remaining</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                    <div class="remaining-badge-clean" [class.low]="row.remainingQuantity <= 5">
-                      {{ row.remainingQuantity }}
-                    </div>
-                  </td>
-          </ng-container>
-          <ng-container matColumnDef="date">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header class="header-cell-clean">
-                    <div class="header-content-clean">
-                      <mat-icon class="header-icon">schedule</mat-icon>
-                      <span>Date</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let row" class="data-cell-clean">{{ row.purchaseDate | date:'MMM dd, yyyy HH:mm' }}</td>
-          </ng-container>
-                <tr mat-header-row *matHeaderRowDef="['batchId', 'purchasePrice', 'quantity', 'remaining', 'date']" class="header-row-clean"></tr>
-                <tr mat-row *matRowDef="let row; columns: ['batchId', 'purchasePrice', 'quantity', 'remaining', 'date'];" class="data-row-clean"></tr>
-                <tr *ngIf="purchaseHistoryDataSource.data.length === 0" class="empty-row-clean">
-                  <td colspan="5" class="empty-cell-clean">
-                    <div class="empty-state-clean">
-                      <mat-icon>shopping_basket</mat-icon>
-                      <p>No purchase history available</p>
-                    </div>
-                  </td>
-          </tr>
-        </table>
-            </div>
-          </div>
-
-          <!-- Reduce Stock History -->
-          <div class="history-section-clean" *ngIf="activeHistoryTab === 'reduce'">
-            <div class="section-title-clean">
-            <mat-icon>remove_shopping_cart</mat-icon>
-              <span>Reduce Stock History</span>
-      </div>
-
-            <div class="history-table-clean">
-              <table class="data-table-clean">
-    <thead>
-      <tr class="header-row-clean">
-        <th>Reduction Reason</th>
-        <th>Admin</th>
-        <th>Date</th>
-        <th>Stock Change</th>
-        <th>Details (Batches)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let group of groupedReduceStockHistory">
-        <td>
-          <div class="reason-text-clean">{{ group.reductionReason }}</div>
-        </td>
-        <td>{{ group.adminName || 'N/A' }}</td>
-        <td>{{ group.reducedAt | date:'MMM dd, yyyy HH:mm' }}</td>
-        <td>
-          <span class="before-clean">{{ group.totalStockBeforeReduction }} → {{ group.totalStockAfterReduction }}</span>
-        </td>
-        <td>
-          <ul style="margin:0; padding-left: 1em;">
-            <li *ngFor="let row of group.rows">
-              <span class="batch-id">Batch #{{ row.purchaseHistoryId }}</span>
-              <span class="batch-qty">Quantity: {{ row.quantityReduced }}</span>
-              <span class="batch-price">Purchase Price: {{ row.purchasePriceAtReduction }} MMK</span>
-            </li>
-          </ul>
-        </td>
-      </tr>
-      <tr *ngIf="groupedReduceStockHistory.length === 0" class="empty-row-clean">
-        <td colspan="5" class="empty-cell-clean">
-          <div class="empty-state-clean">
-            <mat-icon>remove_shopping_cart</mat-icon>
-            <p>No reduce stock history available</p>
-            </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-            </div>
-          </div>
-            </div>
-                  </div>
-                  </div>
-                </div>
-                
+<style>
+  .export-btn-row {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-bottom: 18px;
+    margin-right: 12px;
+  }
+  .export-icon-btn.no-border {
+    background: #fff !important;
+    color: #111 !important;
+    border: none !important;
+    border-radius: 50% !important;
+    font-size: 22px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: none;
+  }
+  .export-icon-btn.no-border:hover,
+  .export-icon-btn.no-border:focus {
+    background: #111 !important;
+    color: #fff !important;
+  }
+  .custom-export-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    z-index: 10;
+    min-width: 160px;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .custom-export-dropdown button {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    padding: 10px 18px;
+    font-size: 15px;
+    color: #111;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .custom-export-dropdown button:hover {
+    background: #f5f5f5;
+  }
+  .panel-btn {
+    width: 56px;
+    height: 56px;
+    background: #fcfdfe;
+    border: 1.5px solid #e3e7ed;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border 0.2s, background 0.2s;
+    cursor: pointer;
+    padding: 0;
+  }
+  .panel-btn:hover,
+  .panel-btn:focus {
+    border: 1.5px solid #bdbdbd;
+    background: #f5f6fa;
+  }
+  .panel-btn svg {
+    width: 32px;
+    height: 32px;
+    color: #444;
+  }
+</style>

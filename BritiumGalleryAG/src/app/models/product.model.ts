@@ -6,7 +6,7 @@ export interface Product {
   categoryId: number;
   variants: ProductVariant[];
   basePhotoUrl: string;
-  brand?: Brand;
+  brand?: string; // Brand name as string
 }
 
 export interface ProductVariant {
@@ -23,4 +23,16 @@ export interface Brand {
   name: string;
   discount?: number;
   type: 'brand';
-} 
+}
+
+export interface PurchaseHistory {
+  id: number;
+  purchasePrice: number;
+  quantity: number;
+  remainingQuantity: number;
+  purchaseDate: string;
+  adminName?: string;
+  adminId?: number;
+  variantId: number; // Added for export and variant lookup
+  // ...add any other fields you use
+}

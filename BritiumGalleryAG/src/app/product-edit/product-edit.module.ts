@@ -18,13 +18,10 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ProductEditComponent } from './product-edit.component';
 import { PhotoDialogComponent } from './photo-dialog.component';
+import { MatMenuModule } from '@angular/material/menu';
 
 @NgModule({
-  declarations: [
-    ProductEditComponent,
-    PhotoDialogComponent,
-   
-  ],
+  declarations: [ProductEditComponent, PhotoDialogComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -43,10 +40,9 @@ import { PhotoDialogComponent } from './photo-dialog.component';
     MatSelectModule,
     MatDialogModule,
     MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatMenuModule,
   ],
-  exports: [
-    ProductEditComponent
-  ]
+  exports: [ProductEditComponent],
 })
-export class ProductEditModule { } 
+export class ProductEditModule {}

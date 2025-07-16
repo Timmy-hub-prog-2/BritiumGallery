@@ -1,5 +1,17 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
-import { OrderService, ProductSearchParams, ProductSearchResult, CategoryAnalyticsDTO, LostProductAnalyticsDTO } from '../services/order.service';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  ChangeDetectorRef,
+} from '@angular/core';
+import {
+  OrderService,
+  ProductSearchParams,
+  ProductSearchResult,
+  CategoryAnalyticsDTO,
+  LostProductAnalyticsDTO,
+} from '../services/order.service';
 import { UserService, CustomerGrowthDTO } from '../services/user.service';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
@@ -12,14 +24,17 @@ import {
   ApexStroke,
   ApexDataLabels,
   ApexLegend,
-  ApexTooltip
+  ApexTooltip,
 } from 'ng-apexcharts';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: false,
   templateUrl: './admin-dashboard.component.html',
-  styleUrl: './admin-dashboard.component.css'
+  styleUrl: './admin-dashboard.component.css',
 })
 export class AdminDashboardComponent implements OnInit, AfterViewInit {
   stats: any = null;
@@ -47,6 +62,10 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   showReportsModal = false;
   showSettingsModal = false;
   showProductSearchModal = false;
+  showExportDropdownSales = false;
+  showExportDropdownModal = false;
+  showExportDropdownTopProducts = false;
+  showExportDropdownLostProducts = false;
 
   // Table modal state
   currentTableType: 'sales' | 'products' = 'sales';
@@ -58,14 +77,14 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     includeKPIs: true,
     includeTrend: true,
     includeProducts: true,
-    includeChart: true
+    includeChart: true,
   };
 
   // Loading states
   loadingState = {
     stats: false,
     trend: false,
-    export: false
+    export: false,
   };
 
   // ApexCharts options
@@ -111,7 +130,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   groupByOptions = [
     { value: 'day', label: 'Daily' },
     { value: 'week', label: 'Weekly' },
-    { value: 'month', label: 'Monthly' }
+    { value: 'month', label: 'Monthly' },
   ];
   dateFrom: string;
   dateTo: string;
@@ -141,21 +160,55 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   salesTrendDataSource = new MatTableDataSource<any>([]);
 
   // Table columns
-  dailyOrdersColumns: string[] = ['orderId', 'trackingCode', 'customerName', 'sales', 'cost', 'deliveryFee', 'profit', 'status'];
-  bestSellersColumns: string[] = ['rank', 'productName', 'variantName', 'totalQuantitySold', 'totalSales', 'totalCost', 'totalProfit', 'profitMargin'];
-  salesTrendColumns: string[] = ['period', 'sales', 'cost', 'profit', 'margin', 'orderCount'];
+  dailyOrdersColumns: string[] = [
+    'orderId',
+    'trackingCode',
+    'customerName',
+    'sales',
+    'cost',
+    'deliveryFee',
+    'profit',
+    'status',
+  ];
+  bestSellersColumns: string[] = [
+    'rank',
+    'productName',
+    'variantName',
+    'totalQuantitySold',
+    'totalSales',
+    'totalCost',
+    'totalProfit',
+    'profitMargin',
+  ];
+  salesTrendColumns: string[] = [
+    'period',
+    'sales',
+    'cost',
+    'profit',
+    'margin',
+    'orderCount',
+  ];
 
   @ViewChild('salesTrendSort', { static: false }) salesTrendSort!: MatSort;
   @ViewChild('bestSellersSort', { static: false }) bestSellersSort!: MatSort;
   @ViewChild('dailyOrdersSort', { static: false }) dailyOrdersSort!: MatSort;
-  @ViewChild('salesTrendModalSort', { static: false }) salesTrendModalSort!: MatSort;
-  @ViewChild('bestSellersModalSort', { static: false }) bestSellersModalSort!: MatSort;
+  @ViewChild('salesTrendModalSort', { static: false })
+  salesTrendModalSort!: MatSort;
+  @ViewChild('bestSellersModalSort', { static: false })
+  bestSellersModalSort!: MatSort;
   @ViewChild('lostProductsSort', { static: false }) lostProductsSort!: MatSort;
-  @ViewChild('lostProductsModalSort', { static: false }) lostProductsModalSort!: MatSort;
+  @ViewChild('lostProductsModalSort', { static: false })
+  lostProductsModalSort!: MatSort;
 
   // Product Search Properties
   productSearchQuery = '';
-  productSearchType: 'all' | 'productId' | 'variantId' | 'sku' | 'name' | 'category' = 'all';
+  productSearchType:
+    | 'all'
+    | 'productId'
+    | 'variantId'
+    | 'sku'
+    | 'name'
+    | 'category' = 'all';
   productSearchCategory = '';
   productSearchStockStatus = '';
   productSearchPriceRange = '';
@@ -166,19 +219,30 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   // Lost Products Analytics Properties
   lostProducts: LostProductAnalyticsDTO[] = [];
   lostProductsDataSource = new MatTableDataSource<LostProductAnalyticsDTO>([]);
-  lostProductsColumns: string[] = ['product', 'sku', 'category', 'reason', 'quantityLost', 'purchasePriceLost', 'lastReduced', 'admin'];
+  lostProductsColumns: string[] = [
+    'product',
+    'sku',
+    'category',
+    'reason',
+    'quantityLost',
+    'purchasePriceLost',
+    'lastReduced',
+    'admin',
+  ];
   selectedLostReason = '';
   predefinedReasons: string[] = [];
   otherReasons: string[] = [];
   showLostProductsModal = false;
-  
+
   // Product View and Sort Properties - explicitly typed as string to avoid union type issues
   productViewMode: any = 'grid';
   productSortBy = 'name';
   activeProductActions: number | null = null;
 
   // Search type setter
-  setSearchType(type: 'all' | 'productId' | 'variantId' | 'sku' | 'name' | 'category') {
+  setSearchType(
+    type: 'all' | 'productId' | 'variantId' | 'sku' | 'name' | 'category'
+  ) {
     this.productSearchType = type;
     this.onProductSearch();
   }
@@ -186,12 +250,18 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   // Placeholder for search input
   getSearchPlaceholder(): string {
     switch (this.productSearchType) {
-      case 'productId': return 'Enter Product ID...';
-      case 'variantId': return 'Enter Variant ID...';
-      case 'sku': return 'Enter SKU...';
-      case 'name': return 'Enter Product Name...';
-      case 'category': return 'Enter Category...';
-      default: return 'Search products...';
+      case 'productId':
+        return 'Enter Product ID...';
+      case 'variantId':
+        return 'Enter Variant ID...';
+      case 'sku':
+        return 'Enter SKU...';
+      case 'name':
+        return 'Enter Product Name...';
+      case 'category':
+        return 'Enter Category...';
+      default:
+        return 'Search products...';
     }
   }
 
@@ -250,8 +320,12 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   }
 
   // ROI and Performance Methods
-  getROIClass(totalProfit: number | undefined, totalPurchasePrice: number | undefined): string {
-    if (!totalProfit || !totalPurchasePrice || totalPurchasePrice === 0) return 'roi-neutral';
+  getROIClass(
+    totalProfit: number | undefined,
+    totalPurchasePrice: number | undefined
+  ): string {
+    if (!totalProfit || !totalPurchasePrice || totalPurchasePrice === 0)
+      return 'roi-neutral';
     const roi = (totalProfit / totalPurchasePrice) * 100;
     if (roi >= 20) return 'roi-excellent';
     if (roi >= 10) return 'roi-good';
@@ -259,8 +333,12 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     return 'roi-poor';
   }
 
-  calculateROI(totalProfit: number | undefined, totalPurchasePrice: number | undefined): number {
-    if (!totalProfit || !totalPurchasePrice || totalPurchasePrice === 0) return 0;
+  calculateROI(
+    totalProfit: number | undefined,
+    totalPurchasePrice: number | undefined
+  ): number {
+    if (!totalProfit || !totalPurchasePrice || totalPurchasePrice === 0)
+      return 0;
     return (totalProfit / totalPurchasePrice) * 100;
   }
 
@@ -279,7 +357,8 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   }
 
   toggleProductActions(productId: number): void {
-    this.activeProductActions = this.activeProductActions === productId ? null : productId;
+    this.activeProductActions =
+      this.activeProductActions === productId ? null : productId;
   }
 
   duplicateProduct(product: any): void {
@@ -292,7 +371,11 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     console.log('Archive product:', product);
   }
 
-  constructor(private orderService: OrderService, private userService: UserService, private cdr: ChangeDetectorRef) {
+  constructor(
+    private orderService: OrderService,
+    private userService: UserService,
+    private cdr: ChangeDetectorRef
+  ) {
     // Default: last 30 days
     const today = new Date();
     const prior = new Date();
@@ -421,7 +504,8 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
 
   openTableModal(type: 'sales' | 'products'): void {
     this.currentTableType = type;
-    this.currentTableTitle = type === 'sales' ? 'Sales Analytics' : 'Top Products';
+    this.currentTableTitle =
+      type === 'sales' ? 'Sales Analytics' : 'Top Products';
     this.showTableModal = true;
     setTimeout(() => this.assignSorts(), 0);
   }
@@ -499,7 +583,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   setQuickRange(range: 'today' | 'week' | 'month' | 'quarter'): void {
     const today = new Date();
     const prior = new Date();
-    
+
     switch (range) {
       case 'today':
         this.dateFrom = today.toISOString().slice(0, 10);
@@ -546,9 +630,15 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     }, 2000);
   }
 
-  exportCurrentTable(): void {
+  exportCurrentTable(format: 'pdf' | 'excel' = 'excel'): void {
     // Implement table export logic
-    console.log('Exporting current table:', this.currentTableType);
+    this.exportTable(format);
+    console.log(
+      'Exporting current table:',
+      this.currentTableType,
+      'Format:',
+      format
+    );
   }
 
   // Refresh methods
@@ -562,7 +652,11 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
 
   // Computed properties
   get totalCustomers(): number {
-    return this.normalCustomerCount + this.loyaltyCustomerCount + this.vipCustomerCount;
+    return (
+      this.normalCustomerCount +
+      this.loyaltyCustomerCount +
+      this.vipCustomerCount
+    );
   }
 
   get profitMargin(): number {
@@ -571,7 +665,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   }
 
   get filteredPredefinedReasons(): string[] {
-    return this.predefinedReasons.filter(r => r !== 'Other');
+    return this.predefinedReasons.filter((r) => r !== 'Other');
   }
 
   fetchStats(): void {
@@ -589,42 +683,44 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       error: (err) => {
         this.error = 'Failed to load dashboard stats.';
         this.loading = false;
-      }
+      },
     });
   }
 
   fetchSalesTrend(): void {
-    this.orderService.getSalesTrend(this.dateFrom, this.dateTo, this.groupBy).subscribe({
-      next: (data: any[]) => {
-        this.salesTrend = data;
-        this.chartLabels = data.map(d => d.period);
-        this.salesData = data.map(d => d.sales);
-        this.costData = data.map(d => d.cost);
-        this.profitData = data.map(d => d.profit);
-        
-        // Add margin and orderCount to sales trend data for table
-        const salesTrendWithMargin = data.map((item, index) => ({
-          ...item,
-          margin: item.sales > 0 ? (item.profit / item.sales) * 100 : 0,
-          orderCount: item.orderCount || 0
-        }));
-        this.salesTrendDataSource.data = salesTrendWithMargin;
-        this.salesTrendDataSource._updateChangeSubscription(); // Force table refresh
-        
-        this.updateChartOptions();
-        this.refreshSorting();
-      },
-      error: () => {
-        this.salesTrend = [];
-        this.chartLabels = [];
-        this.salesData = [];
-        this.costData = [];
-        this.profitData = [];
-        this.salesTrendDataSource.data = [];
-        this.salesTrendDataSource._updateChangeSubscription();
-        this.updateChartOptions();
-      }
-    });
+    this.orderService
+      .getSalesTrend(this.dateFrom, this.dateTo, this.groupBy)
+      .subscribe({
+        next: (data: any[]) => {
+          this.salesTrend = data;
+          this.chartLabels = data.map((d) => d.period);
+          this.salesData = data.map((d) => d.sales);
+          this.costData = data.map((d) => d.cost);
+          this.profitData = data.map((d) => d.profit);
+
+          // Add margin and orderCount to sales trend data for table
+          const salesTrendWithMargin = data.map((item, index) => ({
+            ...item,
+            margin: item.sales > 0 ? (item.profit / item.sales) * 100 : 0,
+            orderCount: item.orderCount || 0,
+          }));
+          this.salesTrendDataSource.data = salesTrendWithMargin;
+          this.salesTrendDataSource._updateChangeSubscription(); // Force table refresh
+
+          this.updateChartOptions();
+          this.refreshSorting();
+        },
+        error: () => {
+          this.salesTrend = [];
+          this.chartLabels = [];
+          this.salesData = [];
+          this.costData = [];
+          this.profitData = [];
+          this.salesTrendDataSource.data = [];
+          this.salesTrendDataSource._updateChangeSubscription();
+          this.updateChartOptions();
+        },
+      });
   }
 
   updateChartOptions() {
@@ -633,7 +729,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       series: [
         { name: 'Sales', data: this.salesData },
         { name: 'Cost', data: this.costData },
-        { name: 'Profit', data: this.profitData }
+        { name: 'Profit', data: this.profitData },
       ],
       xaxis: { categories: this.chartLabels },
       chart: { ...this.chartOptions.chart, type: this.chartType },
@@ -644,7 +740,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       series: [
         { name: 'Sales', data: this.salesData },
         { name: 'Cost', data: this.costData },
-        { name: 'Profit', data: this.profitData }
+        { name: 'Profit', data: this.profitData },
       ],
       xaxis: { categories: this.chartLabels },
       chart: { ...this.modalChartOptions.chart, type: this.chartType },
@@ -672,7 +768,10 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   }
 
   get totalLostAmount(): number {
-    return this.lostProducts.reduce((sum, item) => sum + item.totalPurchasePriceLost, 0);
+    return this.lostProducts.reduce(
+      (sum, item) => sum + item.totalPurchasePriceLost,
+      0
+    );
   }
 
   fetchDailyOrders(date: string) {
@@ -681,7 +780,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       next: (data: any[]) => {
         this.dailyOrders = data;
         this.dailyOrdersDataSource.data = data;
-        
+
         // Ensure sorting is properly set up
         setTimeout(() => {
           if (this.dailyOrdersSort) {
@@ -693,7 +792,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       error: () => {
         this.dailyOrders = [];
         this.dailyOrdersDataSource.data = [];
-      }
+      },
     });
   }
 
@@ -732,7 +831,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       next: (data: any[]) => {
         const rankedProducts = data.map((product, index) => ({
           ...product,
-          rank: index + 1
+          rank: index + 1,
         }));
         this.bestSellers = rankedProducts;
         this.bestSellersDataSource.data = rankedProducts;
@@ -744,7 +843,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
         this.bestSellers = [];
         this.bestSellersDataSource.data = [];
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
@@ -763,9 +862,252 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     this.fetchSalesTrend();
   }
 
-  exportTable() {
-    // Implement table export
-    console.log('Exporting table data');
+  exportTable(format: 'pdf' | 'excel' = 'excel') {
+    const title = 'Sales Analytics Report';
+    const dateRange =
+      this.dateFrom && this.dateTo
+        ? `Date Range: ${this.dateFrom} to ${this.dateTo}`
+        : '';
+    const generated = `Generated: ${new Date().toLocaleString()}`;
+    const columns = [
+      { header: 'Period', dataKey: 'period' },
+      { header: 'Sales', dataKey: 'sales' },
+      { header: 'COGS', dataKey: 'cost' },
+      { header: 'Profit', dataKey: 'profit' },
+      { header: 'Margin', dataKey: 'margin' },
+      { header: 'Orders', dataKey: 'orderCount' },
+    ];
+    const rows = this.salesTrendDataSource.data.map((row: any) => ({
+      period: row.period,
+      sales: row.sales ? `MMK ${row.sales.toLocaleString()}` : '',
+      cost: row.cost ? `MMK ${row.cost.toLocaleString()}` : '',
+      profit: row.profit ? `MMK ${row.profit.toLocaleString()}` : '',
+      margin: row.margin !== undefined ? `${row.margin.toFixed(1)}%` : '',
+      orderCount: row.orderCount !== undefined ? row.orderCount : '',
+    }));
+    if (format === 'excel') {
+      const header = [
+        [title],
+        [dateRange],
+        [generated],
+        [],
+        columns.map((col) => col.header),
+      ];
+      const rowArr = this.salesTrendDataSource.data.map((row: any) => [
+        row.period,
+        row.sales ? `MMK ${row.sales.toLocaleString()}` : '',
+        row.cost ? `MMK ${row.cost.toLocaleString()}` : '',
+        row.profit ? `MMK ${row.profit.toLocaleString()}` : '',
+        row.margin !== undefined ? `${row.margin.toFixed(1)}%` : '',
+        row.orderCount !== undefined ? row.orderCount : '',
+      ]);
+      const ws = XLSX.utils.aoa_to_sheet(header);
+      XLSX.utils.sheet_add_aoa(ws, rowArr, { origin: -1 });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'SalesAnalytics');
+      XLSX.writeFile(wb, 'sales-analytics-report.xlsx');
+    } else if (format === 'pdf') {
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.text(title, pageWidth / 2, 15, { align: 'center' });
+      doc.setFontSize(12);
+      let y = 28;
+      if (dateRange) {
+        doc.text(dateRange, 10, y);
+        y += 8;
+      }
+      doc.text(generated, 10, y);
+      y += 8;
+      autoTable(doc, {
+        columns,
+        body: rows,
+        startY: y + 4,
+        styles: {
+          textColor: [0, 0, 0],
+          fillColor: [255, 255, 255],
+          lineColor: [0, 0, 0],
+          lineWidth: 0.1,
+        },
+        headStyles: {
+          textColor: [0, 0, 0],
+          fillColor: [255, 255, 255],
+          lineColor: [0, 0, 0],
+          lineWidth: 0.1,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [255, 255, 255],
+        },
+      });
+      doc.save('sales-analytics-report.pdf');
+    }
+  }
+
+  exportTopProductsTable(format: 'pdf' | 'excel' = 'excel') {
+    const title = 'Top Products Report';
+    const generated = `Generated: ${new Date().toLocaleString()}`;
+    const columns = [
+      { header: 'Rank', dataKey: 'rank' },
+      { header: 'Product Name', dataKey: 'productName' },
+      { header: 'Variant', dataKey: 'variantName' },
+      { header: 'Qty Sold', dataKey: 'totalQuantitySold' },
+      { header: 'Sales', dataKey: 'totalSales' },
+      { header: 'Cost', dataKey: 'totalCost' },
+      { header: 'Profit', dataKey: 'totalProfit' },
+      { header: 'Margin %', dataKey: 'profitMargin' },
+    ];
+    const rows = this.bestSellersDataSource.data.map((row: any) => ({
+      rank: row.rank,
+      productName: row.productName,
+      variantName: row.variantName,
+      totalQuantitySold: row.totalQuantitySold,
+      totalSales: row.totalSales
+        ? `MMK ${row.totalSales.toLocaleString()}`
+        : '',
+      totalCost: row.totalCost ? `MMK ${row.totalCost.toLocaleString()}` : '',
+      totalProfit: row.totalProfit
+        ? `MMK ${row.totalProfit.toLocaleString()}`
+        : '',
+      profitMargin:
+        row.profitMargin !== undefined ? `${row.profitMargin.toFixed(1)}%` : '',
+    }));
+    if (format === 'excel') {
+      const header = [
+        [title],
+        [generated],
+        [],
+        columns.map((col) => col.header),
+      ];
+      const rowArr = this.bestSellersDataSource.data.map((row: any) => [
+        row.rank,
+        row.productName,
+        row.variantName,
+        row.totalQuantitySold,
+        row.totalSales ? `MMK ${row.totalSales.toLocaleString()}` : '',
+        row.totalCost ? `MMK ${row.totalCost.toLocaleString()}` : '',
+        row.totalProfit ? `MMK ${row.totalProfit.toLocaleString()}` : '',
+        row.profitMargin !== undefined ? `${row.profitMargin.toFixed(1)}%` : '',
+      ]);
+      const ws = XLSX.utils.aoa_to_sheet(header);
+      XLSX.utils.sheet_add_aoa(ws, rowArr, { origin: -1 });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'TopProducts');
+      XLSX.writeFile(wb, 'top-products-report.xlsx');
+    } else if (format === 'pdf') {
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.text(title, pageWidth / 2, 15, { align: 'center' });
+      doc.setFontSize(12);
+      let y = 28;
+      doc.text(generated, 10, y);
+      y += 8;
+      autoTable(doc, {
+        columns,
+        body: rows,
+        startY: y + 4,
+        styles: {
+          textColor: [0, 0, 0],
+          fillColor: [255, 255, 255],
+          lineColor: [0, 0, 0],
+          lineWidth: 0.1,
+        },
+        headStyles: {
+          textColor: [0, 0, 0],
+          fillColor: [255, 255, 255],
+          lineColor: [0, 0, 0],
+          lineWidth: 0.1,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [255, 255, 255],
+        },
+      });
+      doc.save('top-products-report.pdf');
+    }
+  }
+
+  exportLostProductsTable(format: 'pdf' | 'excel' = 'excel') {
+    const title = 'Lost Products Analytics Report';
+    const columns = [
+      { header: 'Product', dataKey: 'product' },
+      { header: 'SKU', dataKey: 'sku' },
+      { header: 'Category', dataKey: 'category' },
+      { header: 'Reason', dataKey: 'reason' },
+      { header: 'Qty Lost', dataKey: 'quantityLost' },
+      { header: 'Purchase Lost', dataKey: 'purchaseLost' },
+      { header: 'Last Reduced', dataKey: 'lastReduced' },
+      { header: 'Admin', dataKey: 'admin' },
+    ];
+    const rows = this.lostProductsDataSource.data.map((row: any) => ({
+      product:
+        row.productName +
+        (row.variantAttributes ? ` (${row.variantAttributes})` : ''),
+      sku: row.sku,
+      category: row.category,
+      reason: row.reductionReason,
+      quantityLost: row.totalQuantityLost,
+      purchaseLost: row.totalPurchasePriceLost
+        ? `MMK ${row.totalPurchasePriceLost.toLocaleString()}`
+        : '',
+      lastReduced: row.lastReducedAt
+        ? new Date(row.lastReducedAt).toLocaleDateString()
+        : '',
+      admin: row.adminName + (row.adminId ? ` (${row.adminId})` : ''),
+    }));
+    if (format === 'excel') {
+      const header = [[title], [], columns.map((col) => col.header)];
+      const rowArr = this.lostProductsDataSource.data.map((row: any) => [
+        row.productName +
+          (row.variantAttributes ? ` (${row.variantAttributes})` : ''),
+        row.sku,
+        row.category,
+        row.reductionReason,
+        row.totalQuantityLost,
+        row.totalPurchasePriceLost
+          ? `MMK ${row.totalPurchasePriceLost.toLocaleString()}`
+          : '',
+        row.lastReducedAt
+          ? new Date(row.lastReducedAt).toLocaleDateString()
+          : '',
+        row.adminName + (row.adminId ? ` (${row.adminId})` : ''),
+      ]);
+      const ws = XLSX.utils.aoa_to_sheet(header);
+      XLSX.utils.sheet_add_aoa(ws, rowArr, { origin: -1 });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'LostProducts');
+      XLSX.writeFile(wb, 'lost-products-analytics-report.xlsx');
+    } else if (format === 'pdf') {
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.text(title, pageWidth / 2, 15, { align: 'center' });
+      doc.setFontSize(12);
+      let y = 28;
+      autoTable(doc, {
+        columns,
+        body: rows,
+        startY: y + 4,
+        styles: {
+          textColor: [0, 0, 0],
+          fillColor: [255, 255, 255],
+          lineColor: [0, 0, 0],
+          lineWidth: 0.1,
+        },
+        headStyles: {
+          textColor: [0, 0, 0],
+          fillColor: [255, 255, 255],
+          lineColor: [0, 0, 0],
+          lineWidth: 0.1,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [255, 255, 255],
+        },
+      });
+      doc.save('lost-products-analytics-report.pdf');
+    }
   }
 
   sortCurrencyData = (a: number, b: number, isAsc: boolean) => {
@@ -779,7 +1121,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   refreshSorting() {
     // Assign sorts to data sources
     if (this.bestSellersSort) {
-        this.bestSellersDataSource.sort = this.bestSellersSort;
+      this.bestSellersDataSource.sort = this.bestSellersSort;
     }
     if (this.bestSellersModalSort) {
       this.bestSellersDataSource.sort = this.bestSellersModalSort;
@@ -819,7 +1161,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         console.error('Error loading product categories:', error);
-      }
+      },
     });
   }
 
@@ -831,12 +1173,12 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
 
   performProductSearch(): void {
     this.isProductSearchLoading = true;
-    
+
     const searchParams: ProductSearchParams = {
       query: this.productSearchQuery,
       type: this.productSearchType,
       category: this.productSearchCategory || undefined,
-      stockStatus: this.productSearchStockStatus || undefined
+      stockStatus: this.productSearchStockStatus || undefined,
     };
 
     this.orderService.searchProducts(searchParams).subscribe({
@@ -847,7 +1189,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       error: (error) => {
         console.error('Error searching products:', error);
         this.isProductSearchLoading = false;
-      }
+      },
     });
   }
 
@@ -917,15 +1259,15 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       error: () => {
         this.topCategories = [];
         this.updateTopCategoriesChart();
-      }
+      },
     });
   }
 
   updateTopCategoriesChart(): void {
     this.topCategoriesChartOptions = {
-      series: this.topCategories.map(c => c.totalSales),
+      series: this.topCategories.map((c) => c.totalSales),
       chart: { type: 'pie', height: 350 },
-      labels: this.topCategories.map(c => c.categoryName),
+      labels: this.topCategories.map((c) => c.categoryName),
       title: { text: 'Top Categories by Sales' },
       legend: { show: true },
       tooltip: { enabled: true },
@@ -933,16 +1275,18 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   }
 
   fetchCustomerGrowth(): void {
-    this.userService.getCustomerGrowth(this.dateFrom, this.dateTo, this.groupBy).subscribe({
-      next: (data) => {
-        this.customerGrowth = data;
-        this.updateCustomerGrowthChart();
-      },
-      error: () => {
-        this.customerGrowth = [];
-        this.updateCustomerGrowthChart();
-      }
-    });
+    this.userService
+      .getCustomerGrowth(this.dateFrom, this.dateTo, this.groupBy)
+      .subscribe({
+        next: (data) => {
+          this.customerGrowth = data;
+          this.updateCustomerGrowthChart();
+        },
+        error: () => {
+          this.customerGrowth = [];
+          this.updateCustomerGrowthChart();
+        },
+      });
   }
 
   updateCustomerGrowthChart(): void {
@@ -950,18 +1294,23 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       series: [
         {
           name: 'Cumulative Signups',
-          data: this.customerGrowth.map(d => d.cumulativeCount)
-        }
+          data: this.customerGrowth.map((d) => d.cumulativeCount),
+        },
       ],
       chart: { type: 'area', height: 350 },
-      xaxis: { categories: this.customerGrowth.map(d => d.period) },
+      xaxis: { categories: this.customerGrowth.map((d) => d.period) },
       title: { text: 'Customer Growth (Cumulative Signups)' },
       dataLabels: { enabled: false },
       legend: { show: true },
       tooltip: { enabled: true },
       colors: ['#775DD0'],
       stroke: { curve: 'smooth' },
-      grid: { show: true, borderColor: '#e7e7e7', strokeDashArray: 4, position: 'back' },
+      grid: {
+        show: true,
+        borderColor: '#e7e7e7',
+        strokeDashArray: 4,
+        position: 'back',
+      },
     };
   }
 
@@ -970,28 +1319,37 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     if (reasonParam === '__other__') {
       reasonParam = '';
     }
-    this.orderService.getLostProductsAnalytics(this.dateFrom, this.dateTo, reasonParam).subscribe({
-      next: (data) => {
-        let filtered = data;
-        if (this.selectedLostReason === '__other__') {
-          filtered = data.filter(item => !this.predefinedReasons.includes(item.reductionReason));
-        }
-        this.lostProducts = filtered;
-        this.lostProductsDataSource.data = filtered;
-        // Extract unique reasons for filter dropdown
-        const reasons = [...new Set(data.map(item => item.reductionReason))];
-        this.otherReasons = reasons.filter(
-          reason => !this.predefinedReasons.includes(reason) && reason !== 'Other'
-        ).sort();
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.lostProducts = [];
-        this.lostProductsDataSource.data = [];
-        this.otherReasons = [];
-        this.cdr.detectChanges();
-      }
-    });
+    this.orderService
+      .getLostProductsAnalytics(this.dateFrom, this.dateTo, reasonParam)
+      .subscribe({
+        next: (data) => {
+          let filtered = data;
+          if (this.selectedLostReason === '__other__') {
+            filtered = data.filter(
+              (item) => !this.predefinedReasons.includes(item.reductionReason)
+            );
+          }
+          this.lostProducts = filtered;
+          this.lostProductsDataSource.data = filtered;
+          // Extract unique reasons for filter dropdown
+          const reasons = [
+            ...new Set(data.map((item) => item.reductionReason)),
+          ];
+          this.otherReasons = reasons
+            .filter(
+              (reason) =>
+                !this.predefinedReasons.includes(reason) && reason !== 'Other'
+            )
+            .sort();
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.lostProducts = [];
+          this.lostProductsDataSource.data = [];
+          this.otherReasons = [];
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   loadReductionReasons(): void {
@@ -1001,7 +1359,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       },
       error: () => {
         this.predefinedReasons = [];
-      }
+      },
     });
   }
 
@@ -1043,108 +1401,120 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       // We'll filter client-side after fetching all data for the date range
       reasonParam = '';
     }
-    this.orderService.getLostProductsAnalytics(this.modalDateFrom, this.modalDateTo, reasonParam).subscribe({
-      next: (data) => {
-        // If filtering for 'Other Reasons', filter client-side
-        let filtered = data;
-        if (this.selectedLostReason === '__other__') {
-          filtered = data.filter(item => !this.predefinedReasons.includes(item.reductionReason));
-        }
-        this.lostProducts = filtered;
-        this.lostProductsDataSource.data = filtered;
-        // Extract unique reasons for filter dropdown
-        const reasons = [...new Set(data.map(item => item.reductionReason))];
-        this.otherReasons = reasons.filter(reason => !this.predefinedReasons.includes(reason)).sort();
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.lostProducts = [];
-        this.lostProductsDataSource.data = [];
-        this.otherReasons = [];
-        this.cdr.detectChanges();
-      }
-    });
+    this.orderService
+      .getLostProductsAnalytics(
+        this.modalDateFrom,
+        this.modalDateTo,
+        reasonParam
+      )
+      .subscribe({
+        next: (data) => {
+          // If filtering for 'Other Reasons', filter client-side
+          let filtered = data;
+          if (this.selectedLostReason === '__other__') {
+            filtered = data.filter(
+              (item) => !this.predefinedReasons.includes(item.reductionReason)
+            );
+          }
+          this.lostProducts = filtered;
+          this.lostProductsDataSource.data = filtered;
+          // Extract unique reasons for filter dropdown
+          const reasons = [
+            ...new Set(data.map((item) => item.reductionReason)),
+          ];
+          this.otherReasons = reasons
+            .filter((reason) => !this.predefinedReasons.includes(reason))
+            .sort();
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.lostProducts = [];
+          this.lostProductsDataSource.data = [];
+          this.otherReasons = [];
+          this.cdr.detectChanges();
+        },
+      });
   }
 }
 
 // --- Interfaces moved outside the component for best practice ---
 
 export interface DashboardStats {
-  totalSales: number
-  profit: number
-  transactionCount: number
-  totalPurchaseAmount: number
-  normalCustomerCount: number
-  loyaltyCustomerCount: number
-  vipCustomerCount: number
-  averageOrderValue?: number
-  totalOrders?: number
-  conversionRate?: number
+  totalSales: number;
+  profit: number;
+  transactionCount: number;
+  totalPurchaseAmount: number;
+  normalCustomerCount: number;
+  loyaltyCustomerCount: number;
+  vipCustomerCount: number;
+  averageOrderValue?: number;
+  totalOrders?: number;
+  conversionRate?: number;
 }
 
 export interface SalesTrendData {
-  period: string
-  sales: number
-  cost: number
-  profit: number
-  orderCount?: number
-  averageOrderValue?: number
+  period: string;
+  sales: number;
+  cost: number;
+  profit: number;
+  orderCount?: number;
+  averageOrderValue?: number;
 }
 
 export interface GroupByOption {
-  value: "day" | "week" | "month" | "quarter" | "year"
-  label: string
+  value: 'day' | 'week' | 'month' | 'quarter' | 'year';
+  label: string;
 }
 
 export interface DateRange {
-  from: string
-  to: string
+  from: string;
+  to: string;
 }
 
 export interface CustomerSegment {
-  type: "normal" | "loyalty" | "vip"
-  count: number
-  percentage: number
-  totalSpent?: number
-  averageOrderValue?: number
+  type: 'normal' | 'loyalty' | 'vip';
+  count: number;
+  percentage: number;
+  totalSpent?: number;
+  averageOrderValue?: number;
 }
 
 export interface ChartConfig {
-  type: "line" | "bar" | "area"
-  height: number
-  colors?: string[]
-  showDataLabels: boolean
-  showLegend: boolean
+  type: 'line' | 'bar' | 'area';
+  height: number;
+  colors?: string[];
+  showDataLabels: boolean;
+  showLegend: boolean;
 }
 
 export interface DashboardStatsResponse {
-  success: boolean
-  data: DashboardStats
-  message?: string
+  success: boolean;
+  data: DashboardStats;
+  message?: string;
 }
 
 export interface SalesTrendResponse {
-  success: boolean
-  data: SalesTrendData[]
-  message?: string
+  success: boolean;
+  data: SalesTrendData[];
+  message?: string;
 }
 
 export interface ApiErrorResponse {
-  success: false
-  message: string
-  error?: any
-  statusCode?: number
+  success: false;
+  message: string;
+  error?: any;
+  statusCode?: number;
 }
 
 export interface LoadingState {
-  stats: boolean
-  trend: boolean
-  export: boolean
+  stats: boolean;
+  trend: boolean;
+  export: boolean;
 }
 
 export interface ExportOptions {
-  format: "csv" | "excel" | "pdf"
-  includeChart: boolean
-  dateRange: DateRange
-  groupBy: string
+  format: 'csv' | 'excel' | 'pdf';
+  includeChart: boolean;
+  dateRange: DateRange;
+  groupBy: string;
 }

@@ -1,5 +1,4 @@
 <div class="admin-dashboard">
-  
   <!-- Top Navigation Bar -->
   <div class="top-nav">
     <div class="nav-content">
@@ -7,46 +6,51 @@
         <div class="logo-section">
           <div class="logo-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <path d="M9 9h6v6H9z"/>
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <path d="M9 9h6v6H9z" />
             </svg>
           </div>
           <span class="logo-text">Admin Dashboard</span>
         </div>
-        
+
         <div class="breadcrumb">
           <span class="breadcrumb-item">Dashboard</span>
-          <svg class="breadcrumb-separator" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polyline points="9,18 15,12 9,6"/>
+          <svg
+            class="breadcrumb-separator"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <polyline points="9,18 15,12 9,6" />
           </svg>
           <span class="breadcrumb-item active">Analytics</span>
         </div>
       </div>
-      
+
       <div class="nav-right">
         <button class="nav-btn" (click)="openFiltersModal()" title="Filters">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"/>
+            <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46" />
           </svg>
         </button>
-        
+
         <button class="nav-btn" (click)="openExportModal()" title="Export">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-            <polyline points="7,10 12,15 17,10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7,10 12,15 17,10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
         </button>
-        
+
         <button class="nav-btn" (click)="refreshDashboard()" title="Refresh">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polyline points="23,4 23,10 17,10"/>
-            <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+            <polyline points="23,4 23,10 17,10" />
+            <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
           </svg>
         </button>
-        
+
         <div class="date-range-display">
-          {{ dateFrom | date:'MMM d' }} - {{ dateTo | date:'MMM d, y' }}
+          {{ dateFrom | date : "MMM d" }} - {{ dateTo | date : "MMM d, y" }}
         </div>
       </div>
     </div>
@@ -54,7 +58,6 @@
 
   <!-- Main Content -->
   <div class="main-content">
-    
     <!-- Loading Overlay -->
     <div class="loading-overlay" *ngIf="loading">
       <div class="loading-spinner"></div>
@@ -63,10 +66,15 @@
 
     <!-- Error Alert -->
     <div class="alert alert-error" *ngIf="error && !loading">
-      <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="15" y1="9" x2="9" y2="15"/>
-        <line x1="9" y1="9" x2="15" y2="15"/>
+      <svg
+        class="alert-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="15" y1="9" x2="9" y2="15" />
+        <line x1="9" y1="9" x2="15" y2="15" />
       </svg>
       <div class="alert-content">
         <div class="alert-title">Error Loading Dashboard</div>
@@ -77,29 +85,29 @@
 
     <!-- Dashboard Grid -->
     <div class="dashboard-grid" *ngIf="stats && !loading && !error">
-      
       <!-- KPI Cards Row -->
       <div class="grid-section kpi-section">
         <div class="kpi-cards">
-          
           <div class="kpi-card primary">
             <div class="kpi-header">
               <div class="kpi-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <line x1="12" y1="1" x2="12" y2="23"/>
-                  <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                  <line x1="12" y1="1" x2="12" y2="23" />
+                  <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
                 </svg>
               </div>
               <div class="kpi-trend up">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/>
-                  <polyline points="17,6 23,6 23,12"/>
+                  <polyline points="23,6 13.5,15.5 8.5,10.5 1,18" />
+                  <polyline points="17,6 23,6 23,12" />
                 </svg>
                 <span>+12.5%</span>
               </div>
             </div>
             <div class="kpi-body">
-              <div class="kpi-value">{{ totalSales | currency:'MMK ':'symbol':'1.0-0' }}</div>
+              <div class="kpi-value">
+                {{ totalSales | currency : "MMK " : "symbol" : "1.0-0" }}
+              </div>
               <div class="kpi-label">Total Sales</div>
             </div>
           </div>
@@ -108,47 +116,67 @@
             <div class="kpi-header">
               <div class="kpi-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="9" cy="21" r="1"/>
-                  <circle cx="20" cy="21" r="1"/>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                  <circle cx="9" cy="21" r="1" />
+                  <circle cx="20" cy="21" r="1" />
+                  <path
+                    d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
+                  />
                 </svg>
               </div>
               <div class="kpi-trend down">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="23,18 13.5,8.5 8.5,13.5 1,6"/>
-                  <polyline points="17,18 23,18 23,12"/>
+                  <polyline points="23,18 13.5,8.5 8.5,13.5 1,6" />
+                  <polyline points="17,18 23,18 23,12" />
                 </svg>
                 <span>+8.2%</span>
               </div>
             </div>
             <div class="kpi-body">
-              <div class="kpi-value">{{ totalCost | currency:'MMK ':'symbol':'1.0-0' }}</div>
+              <div class="kpi-value">
+                {{ totalCost | currency : "MMK " : "symbol" : "1.0-0" }}
+              </div>
               <div class="kpi-label">Total COGS</div>
             </div>
           </div>
 
-          <div class="kpi-card" [ngClass]="totalProfit >= 0 ? 'success' : 'danger'">
+          <div
+            class="kpi-card"
+            [ngClass]="totalProfit >= 0 ? 'success' : 'danger'"
+          >
             <div class="kpi-header">
               <div class="kpi-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+                  <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
                 </svg>
               </div>
-              <div class="kpi-trend" [ngClass]="totalProfit >= 0 ? 'up' : 'down'">
-                <svg *ngIf="totalProfit >= 0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/>
-                  <polyline points="17,6 23,6 23,12"/>
+              <div
+                class="kpi-trend"
+                [ngClass]="totalProfit >= 0 ? 'up' : 'down'"
+              >
+                <svg
+                  *ngIf="totalProfit >= 0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <polyline points="23,6 13.5,15.5 8.5,10.5 1,18" />
+                  <polyline points="17,6 23,6 23,12" />
                 </svg>
-                <svg *ngIf="totalProfit < 0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="23,18 13.5,8.5 8.5,13.5 1,6"/>
-                  <polyline points="17,18 23,18 23,12"/>
+                <svg
+                  *ngIf="totalProfit < 0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <polyline points="23,18 13.5,8.5 8.5,13.5 1,6" />
+                  <polyline points="17,18 23,18 23,12" />
                 </svg>
-                <span>{{ profitMargin | number:'1.1-1' }}%</span>
+                <span>{{ profitMargin | number : "1.1-1" }}%</span>
               </div>
             </div>
             <div class="kpi-body">
-              <div class="kpi-value" [ngClass]="{'negative': totalProfit < 0}">
-                {{ totalProfit | currency:'MMK ':'symbol':'1.0-0' }}
+              <div class="kpi-value" [ngClass]="{ negative: totalProfit < 0 }">
+                {{ totalProfit | currency : "MMK " : "symbol" : "1.0-0" }}
               </div>
               <div class="kpi-label">Net Profit</div>
             </div>
@@ -158,20 +186,22 @@
             <div class="kpi-header">
               <div class="kpi-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                  <line x1="1" y1="10" x2="23" y2="10"/>
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                  <line x1="1" y1="10" x2="23" y2="10" />
                 </svg>
               </div>
               <div class="kpi-trend up">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/>
-                  <polyline points="17,6 23,6 23,12"/>
+                  <polyline points="23,6 13.5,15.5 8.5,10.5 1,18" />
+                  <polyline points="17,6 23,6 23,12" />
                 </svg>
                 <span>+15.3%</span>
               </div>
             </div>
             <div class="kpi-body">
-              <div class="kpi-value">{{ totalTransactions | number:'1.0-0' }}</div>
+              <div class="kpi-value">
+                {{ totalTransactions | number : "1.0-0" }}
+              </div>
               <div class="kpi-label">Transactions</div>
             </div>
           </div>
@@ -180,21 +210,27 @@
             <div class="kpi-header">
               <div class="kpi-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/>
-                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  <path
+                    d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                  />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
               </div>
               <div class="kpi-trend down">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="23,18 13.5,8.5 8.5,13.5 1,6"/>
-                  <polyline points="17,18 23,18 23,12"/>
+                  <polyline points="23,18 13.5,8.5 8.5,13.5 1,6" />
+                  <polyline points="17,18 23,18 23,12" />
                 </svg>
-                <span>{{ totalLostAmount | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                <span>{{
+                  totalLostAmount | currency : "MMK " : "symbol" : "1.0-0"
+                }}</span>
               </div>
             </div>
             <div class="kpi-body">
-              <div class="kpi-value">{{ totalLostAmount | currency:'MMK ':'symbol':'1.0-0' }}</div>
+              <div class="kpi-value">
+                {{ totalLostAmount | currency : "MMK " : "symbol" : "1.0-0" }}
+              </div>
               <div class="kpi-label">Total Lost</div>
             </div>
           </div>
@@ -208,31 +244,33 @@
             <h3 class="panel-title">Sales Trend</h3>
             <div class="panel-actions">
               <div class="chart-type-toggle">
-                <button 
-                  class="toggle-btn" 
+                <button
+                  class="toggle-btn"
                   [class.active]="currentChartType === 'line'"
-                  (click)="toggleChartType('line')">
+                  (click)="toggleChartType('line')"
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/>
+                    <polyline points="23,6 13.5,15.5 8.5,10.5 1,18" />
                   </svg>
                 </button>
-                <button 
-                  class="toggle-btn" 
+                <button
+                  class="toggle-btn"
                   [class.active]="currentChartType === 'bar'"
-                  (click)="toggleChartType('bar')">
+                  (click)="toggleChartType('bar')"
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <line x1="12" y1="20" x2="12" y2="10"/>
-                    <line x1="18" y1="20" x2="18" y2="4"/>
-                    <line x1="6" y1="20" x2="6" y2="16"/>
+                    <line x1="12" y1="20" x2="12" y2="10" />
+                    <line x1="18" y1="20" x2="18" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="16" />
                   </svg>
                 </button>
               </div>
               <button class="panel-btn" (click)="openChartModal()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M15 3h6v6"/>
-                  <path d="M10 14L21 3"/>
-                  <path d="M21 3v6"/>
-                  <path d="M21 3h-6"/>
+                  <path d="M15 3h6v6" />
+                  <path d="M10 14L21 3" />
+                  <path d="M21 3v6" />
+                  <path d="M21 3h-6" />
                 </svg>
               </button>
             </div>
@@ -248,7 +286,8 @@
               [legend]="modalChartOptions.legend"
               [tooltip]="modalChartOptions.tooltip"
               [colors]="modalChartOptions.colors"
-              [grid]="modalChartOptions.grid">
+              [grid]="modalChartOptions.grid"
+            >
             </apx-chart>
           </div>
         </div>
@@ -258,14 +297,18 @@
           <div class="panel-header">
             <h3 class="panel-title">Top Categories</h3>
           </div>
-          <div class="chart-container" *ngIf="topCategories && topCategories.length">
+          <div
+            class="chart-container"
+            *ngIf="topCategories && topCategories.length"
+          >
             <apx-chart
               [series]="topCategoriesChartOptions.series"
               [chart]="topCategoriesChartOptions.chart"
               [labels]="topCategoriesChartOptions.labels"
               [title]="topCategoriesChartOptions.title"
               [legend]="topCategoriesChartOptions.legend"
-              [tooltip]="topCategoriesChartOptions.tooltip">
+              [tooltip]="topCategoriesChartOptions.tooltip"
+            >
             </apx-chart>
           </div>
         </div>
@@ -275,7 +318,10 @@
           <div class="panel-header">
             <h3 class="panel-title">Customer Growth</h3>
           </div>
-          <div class="chart-container" *ngIf="customerGrowth && customerGrowth.length">
+          <div
+            class="chart-container"
+            *ngIf="customerGrowth && customerGrowth.length"
+          >
             <apx-chart
               [series]="customerGrowthChartOptions.series"
               [chart]="customerGrowthChartOptions.chart"
@@ -286,7 +332,8 @@
               [tooltip]="customerGrowthChartOptions.tooltip"
               [colors]="customerGrowthChartOptions.colors"
               [stroke]="customerGrowthChartOptions.stroke"
-              [grid]="customerGrowthChartOptions.grid">
+              [grid]="customerGrowthChartOptions.grid"
+            >
             </apx-chart>
           </div>
         </div>
@@ -296,31 +343,58 @@
             <h3 class="panel-title">Customer Segments</h3>
             <button class="panel-btn" (click)="openCustomerModal()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
               </svg>
             </button>
           </div>
           <div class="customer-stats">
             <div class="customer-item">
-              <div class="customer-count">{{ normalCustomerCount | number:'1.0-0' }}</div>
+              <div class="customer-count">
+                {{ normalCustomerCount | number : "1.0-0" }}
+              </div>
               <div class="customer-label">Normal</div>
               <div class="customer-bar">
-                <div class="bar-fill normal" [style.width.%]="totalCustomers ? (normalCustomerCount / totalCustomers) * 100 : 0"></div>
+                <div
+                  class="bar-fill normal"
+                  [style.width.%]="
+                    totalCustomers
+                      ? (normalCustomerCount / totalCustomers) * 100
+                      : 0
+                  "
+                ></div>
               </div>
             </div>
             <div class="customer-item">
-              <div class="customer-count">{{ loyaltyCustomerCount | number:'1.0-0' }}</div>
+              <div class="customer-count">
+                {{ loyaltyCustomerCount | number : "1.0-0" }}
+              </div>
               <div class="customer-label">Loyalty</div>
               <div class="customer-bar">
-                <div class="bar-fill loyalty" [style.width.%]="totalCustomers ? (loyaltyCustomerCount / totalCustomers) * 100 : 0"></div>
+                <div
+                  class="bar-fill loyalty"
+                  [style.width.%]="
+                    totalCustomers
+                      ? (loyaltyCustomerCount / totalCustomers) * 100
+                      : 0
+                  "
+                ></div>
               </div>
             </div>
             <div class="customer-item">
-              <div class="customer-count">{{ vipCustomerCount | number:'1.0-0' }}</div>
+              <div class="customer-count">
+                {{ vipCustomerCount | number : "1.0-0" }}
+              </div>
               <div class="customer-label">VIP</div>
               <div class="customer-bar">
-                <div class="bar-fill vip" [style.width.%]="totalCustomers ? (vipCustomerCount / totalCustomers) * 100 : 0"></div>
+                <div
+                  class="bar-fill vip"
+                  [style.width.%]="
+                    totalCustomers
+                      ? (vipCustomerCount / totalCustomers) * 100
+                      : 0
+                  "
+                ></div>
               </div>
             </div>
           </div>
@@ -329,7 +403,6 @@
 
       <!-- Data Tables Row -->
       <div class="grid-section tables-section">
-        
         <!-- Sales Trend Table -->
         <div class="table-panel">
           <div class="panel-header">
@@ -337,23 +410,131 @@
             <div class="panel-actions">
               <button class="panel-btn" (click)="openTableModal('sales')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M15 3h6v6"/>
-                  <path d="M10 14L21 3"/>
+                  <path d="M15 3h6v6" />
+                  <path d="M10 14L21 3" />
                 </svg>
               </button>
-              <button class="panel-btn" (click)="exportTable()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                  <polyline points="7,10 12,15 17,10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-              </button>
+              <div style="position: relative; display: inline-block">
+                <button
+                  class="panel-btn"
+                  (click)="showExportDropdownSales = !showExportDropdownSales"
+                  title="Export Sales Analytics"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7,10 12,15 17,10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </button>
+                <div
+                  *ngIf="showExportDropdownSales"
+                  class="custom-export-dropdown"
+                  (mouseleave)="showExportDropdownSales = false"
+                  style="
+                    position: absolute;
+                    right: 0;
+                    top: 40px;
+                    background: #fff;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                    border-radius: 12px;
+                    min-width: 180px;
+                    z-index: 10;
+                    padding: 8px 0;
+                  "
+                >
+                  <button
+                    (click)="
+                      exportTable('pdf'); showExportDropdownSales = false
+                    "
+                    style="
+                      display: flex;
+                      align-items: center;
+                      width: 100%;
+                      background: none;
+                      border: none;
+                      padding: 10px 20px;
+                      font-size: 16px;
+                      cursor: pointer;
+                      gap: 12px;
+                      color: #222;
+                    "
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                        stroke-width="2"
+                      />
+                      <path d="M8 7h8v4H8z" stroke-width="2" />
+                      <path d="M8 15h8" stroke-width="2" />
+                    </svg>
+                    Export as PDF
+                  </button>
+                  <button
+                    (click)="
+                      exportTable('excel'); showExportDropdownSales = false
+                    "
+                    style="
+                      display: flex;
+                      align-items: center;
+                      width: 100%;
+                      background: none;
+                      border: none;
+                      padding: 10px 20px;
+                      font-size: 16px;
+                      cursor: pointer;
+                      gap: 12px;
+                      color: #222;
+                    "
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                        stroke-width="2"
+                      />
+                      <path d="M7 7h10v10H7z" stroke-width="2" />
+                      <path d="M9 9l6 6" stroke-width="2" />
+                      <path d="M15 9l-6 6" stroke-width="2" />
+                    </svg>
+                    Export as Excel
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="table-container">
-            <table mat-table [dataSource]="salesTrendDataSource" matSort class="compact-table" #salesTrendSort="matSort">
+            <table
+              mat-table
+              [dataSource]="salesTrendDataSource"
+              matSort
+              class="compact-table"
+              #salesTrendSort="matSort"
+            >
               <ng-container matColumnDef="period">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Period</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                  Period
+                </th>
                 <td mat-cell *matCellDef="let row">
                   <span class="period-badge">{{ row.period }}</span>
                 </td>
@@ -362,46 +543,61 @@
               <ng-container matColumnDef="sales">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Sales</th>
                 <td mat-cell *matCellDef="let row">
-                  <span class="amount sales">{{ row.sales | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                  <span class="amount sales">{{
+                    row.sales | currency : "MMK " : "symbol" : "1.0-0"
+                  }}</span>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="cost">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>COGS</th>
                 <td mat-cell *matCellDef="let row">
-                  <span class="amount cost">{{ row.cost | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                  <span class="amount cost">{{
+                    row.cost | currency : "MMK " : "symbol" : "1.0-0"
+                  }}</span>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="profit">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Profit</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                  Profit
+                </th>
                 <td mat-cell *matCellDef="let row">
                   <span class="amount profit" [class.negative]="row.profit < 0">
-                    {{ row.profit | currency:'MMK ':'symbol':'1.0-0' }}
+                    {{ row.profit | currency : "MMK " : "symbol" : "1.0-0" }}
                   </span>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="margin">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Margin</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                  Margin
+                </th>
                 <td mat-cell *matCellDef="let row">
                   <span class="margin-badge" [class.negative]="row.margin < 0">
-                    {{ row.margin | number:'1.1-1' }}%
+                    {{ row.margin | number : "1.1-1" }}%
                   </span>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="orderCount">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Orders</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                  Orders
+                </th>
                 <td mat-cell *matCellDef="let row">
-                  <span class="count">{{ row.orderCount | number:'1.0-0' }}</span>
+                  <span class="count">{{
+                    row.orderCount | number : "1.0-0"
+                  }}</span>
                 </td>
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="salesTrendColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: salesTrendColumns;"></tr>
+              <tr mat-row *matRowDef="let row; columns: salesTrendColumns"></tr>
             </table>
-            <div class="table-footer" *ngIf="salesTrendDataSource.data.length > 5">
+            <div
+              class="table-footer"
+              *ngIf="salesTrendDataSource.data.length > 5"
+            >
               <button class="view-all-btn" (click)="openTableModal('sales')">
                 View All {{ salesTrendDataSource.data.length }} Records
               </button>
@@ -416,76 +612,232 @@
             <div class="panel-actions">
               <button class="panel-btn" (click)="openTableModal('products')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M15 3h6v6"/>
-                  <path d="M10 14L21 3"/>
+                  <path d="M15 3h6v6" />
+                  <path d="M10 14L21 3" />
                 </svg>
               </button>
               <button class="panel-btn" (click)="refreshBestSellers()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polyline points="23,4 23,10 17,10"/>
-                  <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+                  <polyline points="23,4 23,10 17,10" />
+                  <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
                 </svg>
               </button>
+              <div style="position: relative; display: inline-block">
+                <button
+                  class="panel-btn"
+                  (click)="
+                    showExportDropdownTopProducts =
+                      !showExportDropdownTopProducts
+                  "
+                  title="Export Top Products"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7,10 12,15 17,10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </button>
+                <div
+                  *ngIf="showExportDropdownTopProducts"
+                  class="custom-export-dropdown"
+                  (mouseleave)="showExportDropdownTopProducts = false"
+                  style="
+                    position: absolute;
+                    right: 0;
+                    top: 40px;
+                    background: #fff;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                    border-radius: 12px;
+                    min-width: 180px;
+                    z-index: 10;
+                    padding: 8px 0;
+                  "
+                >
+                  <button
+                    (click)="
+                      exportTopProductsTable('pdf');
+                      showExportDropdownTopProducts = false
+                    "
+                    style="
+                      display: flex;
+                      align-items: center;
+                      width: 100%;
+                      background: none;
+                      border: none;
+                      padding: 10px 20px;
+                      font-size: 16px;
+                      cursor: pointer;
+                      gap: 12px;
+                      color: #222;
+                    "
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                        stroke-width="2"
+                      />
+                      <path d="M8 7h8v4H8z" stroke-width="2" />
+                      <path d="M8 15h8" stroke-width="2" />
+                    </svg>
+                    Export as PDF
+                  </button>
+                  <button
+                    (click)="
+                      exportTopProductsTable('excel');
+                      showExportDropdownTopProducts = false
+                    "
+                    style="
+                      display: flex;
+                      align-items: center;
+                      width: 100%;
+                      background: none;
+                      border: none;
+                      padding: 10px 20px;
+                      font-size: 16px;
+                      cursor: pointer;
+                      gap: 12px;
+                      color: #222;
+                    "
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                        stroke-width="2"
+                      />
+                      <path d="M7 7h10v10H7z" stroke-width="2" />
+                      <path d="M9 9l6 6" stroke-width="2" />
+                      <path d="M15 9l-6 6" stroke-width="2" />
+                    </svg>
+                    Export as Excel
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="table-container">
             <div class="table-container full">
               <!-- Products Table -->
-              <table mat-table [dataSource]="bestSellersDataSource" matSort class="data-table" *ngIf="!showTableModal" #bestSellersSort="matSort">
+              <table
+                mat-table
+                [dataSource]="bestSellersDataSource"
+                matSort
+                class="data-table"
+                *ngIf="!showTableModal"
+                #bestSellersSort="matSort"
+              >
                 <ng-container matColumnDef="rank">
                   <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
                   <td mat-cell *matCellDef="let product">
-                    <span class="rank-badge" [class.top-3]="product.rank <= 3">{{ product.rank }}</span>
+                    <span
+                      class="rank-badge"
+                      [class.top-3]="product.rank <= 3"
+                      >{{ product.rank }}</span
+                    >
                   </td>
                 </ng-container>
                 <ng-container matColumnDef="productName">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Product Name</th>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    Product Name
+                  </th>
                   <td mat-cell *matCellDef="let product">
                     <span class="product-name">{{ product.productName }}</span>
                   </td>
                 </ng-container>
                 <ng-container matColumnDef="variantName">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Variant</th>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    Variant
+                  </th>
                   <td mat-cell *matCellDef="let product">
                     <span class="variant-name">{{ product.variantName }}</span>
                   </td>
                 </ng-container>
                 <ng-container matColumnDef="totalQuantitySold">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Qty Sold</th>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    Qty Sold
+                  </th>
                   <td mat-cell *matCellDef="let product">
-                    <span class="quantity-badge">{{ product.totalQuantitySold | number:'1.0-0' }}</span>
+                    <span class="quantity-badge">{{
+                      product.totalQuantitySold | number : "1.0-0"
+                    }}</span>
                   </td>
                 </ng-container>
                 <ng-container matColumnDef="totalSales">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Sales</th>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    Sales
+                  </th>
                   <td mat-cell *matCellDef="let product">
-                    <span class="amount sales">{{ product.totalSales | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                    <span class="amount sales">{{
+                      product.totalSales
+                        | currency : "MMK " : "symbol" : "1.0-0"
+                    }}</span>
                   </td>
                 </ng-container>
                 <ng-container matColumnDef="totalCost">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Cost</th>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    Cost
+                  </th>
                   <td mat-cell *matCellDef="let product">
-                    <span class="amount cost">{{ product.totalCost | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                    <span class="amount cost">{{
+                      product.totalCost | currency : "MMK " : "symbol" : "1.0-0"
+                    }}</span>
                   </td>
                 </ng-container>
                 <ng-container matColumnDef="totalProfit">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Profit</th>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    Profit
+                  </th>
                   <td mat-cell *matCellDef="let product">
-                    <span class="amount profit" [class.negative]="product.totalProfit < 0">
-                      {{ product.totalProfit | currency:'MMK ':'symbol':'1.0-0' }}
+                    <span
+                      class="amount profit"
+                      [class.negative]="product.totalProfit < 0"
+                    >
+                      {{
+                        product.totalProfit
+                          | currency : "MMK " : "symbol" : "1.0-0"
+                      }}
                     </span>
                   </td>
                 </ng-container>
                 <ng-container matColumnDef="profitMargin">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Margin %</th>
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    Margin %
+                  </th>
                   <td mat-cell *matCellDef="let product">
-                    <span class="margin-badge" [class.negative]="product.profitMargin < 0">
-                      {{ product.profitMargin | number:'1.1-1' }}%
+                    <span
+                      class="margin-badge"
+                      [class.negative]="product.profitMargin < 0"
+                    >
+                      {{ product.profitMargin | number : "1.1-1" }}%
                     </span>
                   </td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="bestSellersColumns"></tr>
-                <tr mat-row *matRowDef="let product; columns: bestSellersColumns;"></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let product; columns: bestSellersColumns"
+                ></tr>
               </table>
             </div>
           </div>
@@ -500,44 +852,184 @@
             <div class="panel-actions">
               <div class="filter-controls horizontal-filters">
                 <div class="modal-date-filters">
-                  <input type="date" [(ngModel)]="modalDateFrom" (change)="onModalDateChange()" class="date-input">
+                  <input
+                    type="date"
+                    [(ngModel)]="modalDateFrom"
+                    (change)="onModalDateChange()"
+                    class="date-input"
+                  />
                   <span class="date-separator">to</span>
-                  <input type="date" [(ngModel)]="modalDateTo" (change)="onModalDateChange()" class="date-input">
+                  <input
+                    type="date"
+                    [(ngModel)]="modalDateTo"
+                    (change)="onModalDateChange()"
+                    class="date-input"
+                  />
                 </div>
-                <select [(ngModel)]="selectedLostReason" (change)="onLostReasonChange()" class="filter-select">
+                <select
+                  [(ngModel)]="selectedLostReason"
+                  (change)="onLostReasonChange()"
+                  class="filter-select"
+                >
                   <option value="">All Reasons</option>
-                  <option *ngFor="let reason of filteredPredefinedReasons" [value]="reason">{{ reason }}</option>
-                  <option *ngIf="otherReasons.length > 0" value="__other__">Other</option>
+                  <option
+                    *ngFor="let reason of filteredPredefinedReasons"
+                    [value]="reason"
+                  >
+                    {{ reason }}
+                  </option>
+                  <option *ngIf="otherReasons.length > 0" value="__other__">
+                    Other
+                  </option>
                 </select>
               </div>
               <button class="panel-btn" (click)="openLostProductsModal()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M15 3h6v6"/>
-                  <path d="M10 14L21 3"/>
+                  <path d="M15 3h6v6" />
+                  <path d="M10 14L21 3" />
                 </svg>
               </button>
-              <button class="panel-btn" (click)="exportTable()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                  <polyline points="7,10 12,15 17,10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-              </button>
+              <div style="position: relative; display: inline-block">
+                <button
+                  class="panel-btn"
+                  (click)="
+                    showExportDropdownLostProducts =
+                      !showExportDropdownLostProducts
+                  "
+                  title="Export Lost Products"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7,10 12,15 17,10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </button>
+                <div
+                  *ngIf="showExportDropdownLostProducts"
+                  class="custom-export-dropdown"
+                  (mouseleave)="showExportDropdownLostProducts = false"
+                  style="
+                    position: absolute;
+                    right: 0;
+                    top: 40px;
+                    background: #fff;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                    border-radius: 12px;
+                    min-width: 180px;
+                    z-index: 10;
+                    padding: 8px 0;
+                  "
+                >
+                  <button
+                    (click)="
+                      exportLostProductsTable('pdf');
+                      showExportDropdownLostProducts = false
+                    "
+                    style="
+                      display: flex;
+                      align-items: center;
+                      width: 100%;
+                      background: none;
+                      border: none;
+                      padding: 10px 20px;
+                      font-size: 16px;
+                      cursor: pointer;
+                      gap: 12px;
+                      color: #222;
+                    "
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                        stroke-width="2"
+                      />
+                      <path d="M8 7h8v4H8z" stroke-width="2" />
+                      <path d="M8 15h8" stroke-width="2" />
+                    </svg>
+                    Export as PDF
+                  </button>
+                  <button
+                    (click)="
+                      exportLostProductsTable('excel');
+                      showExportDropdownLostProducts = false
+                    "
+                    style="
+                      display: flex;
+                      align-items: center;
+                      width: 100%;
+                      background: none;
+                      border: none;
+                      padding: 10px 20px;
+                      font-size: 16px;
+                      cursor: pointer;
+                      gap: 12px;
+                      color: #222;
+                    "
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                        stroke-width="2"
+                      />
+                      <path d="M7 7h10v10H7z" stroke-width="2" />
+                      <path d="M9 9l6 6" stroke-width="2" />
+                      <path d="M15 9l-6 6" stroke-width="2" />
+                    </svg>
+                    Export as Excel
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="table-container">
-            <table mat-table [dataSource]="lostProductsDataSource" matSort class="compact-table" #lostProductsSort="matSort">
+            <table
+              mat-table
+              [dataSource]="lostProductsDataSource"
+              matSort
+              class="compact-table"
+              #lostProductsSort="matSort"
+            >
               <ng-container matColumnDef="product">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Product</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                  Product
+                </th>
                 <td mat-cell *matCellDef="let item">
                   <div class="product-info">
                     <div class="product-image" *ngIf="item.imageUrl">
-                      <img [src]="item.imageUrl" [alt]="item.productName" class="product-thumbnail">
+                      <img
+                        [src]="item.imageUrl"
+                        [alt]="item.productName"
+                        class="product-thumbnail"
+                      />
                     </div>
-                                      <div class="product-details">
-                    <div class="product-name">{{ item.productName }}</div>
-                    <div class="variant-name" *ngIf="item.variantAttributes">{{ item.variantAttributes }}</div>
-                  </div>
+                    <div class="product-details">
+                      <div class="product-name">{{ item.productName }}</div>
+                      <div class="variant-name" *ngIf="item.variantAttributes">
+                        {{ item.variantAttributes }}
+                      </div>
+                    </div>
                   </div>
                 </td>
               </ng-container>
@@ -550,39 +1042,54 @@
               </ng-container>
 
               <ng-container matColumnDef="category">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                  Category
+                </th>
                 <td mat-cell *matCellDef="let item">
                   <span class="category-badge">{{ item.category }}</span>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="reason">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Reason</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                  Reason
+                </th>
                 <td mat-cell *matCellDef="let item">
                   <span class="reason-badge">{{ item.reductionReason }}</span>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="quantityLost">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Qty Lost</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                  Qty Lost
+                </th>
                 <td mat-cell *matCellDef="let item">
-                  <span class="quantity-badge lost">{{ item.totalQuantityLost | number:'1.0-0' }}</span>
+                  <span class="quantity-badge lost">{{
+                    item.totalQuantityLost | number : "1.0-0"
+                  }}</span>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="purchasePriceLost">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Purchase Lost</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                  Purchase Lost
+                </th>
                 <td mat-cell *matCellDef="let item">
-                  <span class="amount cost">{{ item.totalPurchasePriceLost | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                  <span class="amount cost">{{
+                    item.totalPurchasePriceLost
+                      | currency : "MMK " : "symbol" : "1.0-0"
+                  }}</span>
                 </td>
               </ng-container>
 
-
-
               <ng-container matColumnDef="lastReduced">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Reduced</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                  Last Reduced
+                </th>
                 <td mat-cell *matCellDef="let item">
-                  <span class="date-badge">{{ item.lastReducedAt | date:'MMM dd, yyyy' }}</span>
+                  <span class="date-badge">{{
+                    item.lastReducedAt | date : "MMM dd, yyyy"
+                  }}</span>
                 </td>
               </ng-container>
 
@@ -594,9 +1101,15 @@
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="lostProductsColumns"></tr>
-              <tr mat-row *matRowDef="let item; columns: lostProductsColumns;"></tr>
+              <tr
+                mat-row
+                *matRowDef="let item; columns: lostProductsColumns"
+              ></tr>
             </table>
-            <div class="table-footer" *ngIf="lostProductsDataSource.data.length > 5">
+            <div
+              class="table-footer"
+              *ngIf="lostProductsDataSource.data.length > 5"
+            >
               <button class="view-all-btn" (click)="openLostProductsModal()">
                 View All {{ lostProductsDataSource.data.length }} Records
               </button>
@@ -615,10 +1128,10 @@
             <button class="action-card" (click)="openDailyOrdersModal()">
               <div class="action-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
               </div>
               <div class="action-content">
@@ -630,10 +1143,12 @@
             <button class="action-card" (click)="openReportsModal()">
               <div class="action-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                  <polyline points="14,2 14,8 20,8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <path
+                    d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
+                  />
+                  <polyline points="14,2 14,8 20,8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
                 </svg>
               </div>
               <div class="action-content">
@@ -645,8 +1160,10 @@
             <button class="action-card" (click)="openSettingsModal()">
               <div class="action-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="3"/>
-                  <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                  <circle cx="12" cy="12" r="3" />
+                  <path
+                    d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"
+                  />
                 </svg>
               </div>
               <div class="action-content">
@@ -658,8 +1175,8 @@
             <button class="action-card" (click)="openProductSearchModal()">
               <div class="action-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="M21 21l-4.35-4.35"/>
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
                 </svg>
               </div>
               <div class="action-content">
@@ -674,16 +1191,20 @@
   </div>
 
   <!-- Modals -->
-  
+
   <!-- Filters Modal -->
-  <div class="modal-overlay" *ngIf="showFiltersModal" (click)="closeModal('filters')">
+  <div
+    class="modal-overlay"
+    *ngIf="showFiltersModal"
+    (click)="closeModal('filters')"
+  >
     <div class="modal-container" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3 class="modal-title">Dashboard Filters</h3>
         <button class="modal-close" (click)="closeModal('filters')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
@@ -692,12 +1213,12 @@
           <div class="form-group">
             <label class="form-label">Date Range</label>
             <div class="date-range-inputs">
-              <input type="date" [(ngModel)]="dateFrom" class="form-input">
+              <input type="date" [(ngModel)]="dateFrom" class="form-input" />
               <span class="date-separator">to</span>
-              <input type="date" [(ngModel)]="dateTo" class="form-input">
+              <input type="date" [(ngModel)]="dateTo" class="form-input" />
             </div>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">Group By</label>
             <select [(ngModel)]="groupBy" class="form-select">
@@ -706,34 +1227,50 @@
               </option>
             </select>
           </div>
-          
+
           <div class="form-group">
             <label class="form-label">Quick Ranges</label>
             <div class="quick-ranges">
-              <button class="range-btn" (click)="setQuickRange('today')">Today</button>
-              <button class="range-btn" (click)="setQuickRange('week')">This Week</button>
-              <button class="range-btn" (click)="setQuickRange('month')">This Month</button>
-              <button class="range-btn" (click)="setQuickRange('quarter')">This Quarter</button>
+              <button class="range-btn" (click)="setQuickRange('today')">
+                Today
+              </button>
+              <button class="range-btn" (click)="setQuickRange('week')">
+                This Week
+              </button>
+              <button class="range-btn" (click)="setQuickRange('month')">
+                This Month
+              </button>
+              <button class="range-btn" (click)="setQuickRange('quarter')">
+                This Quarter
+              </button>
             </div>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="resetFilters()">Reset</button>
-        <button class="btn btn-primary" (click)="applyFilters()">Apply Filters</button>
+        <button class="btn btn-secondary" (click)="resetFilters()">
+          Reset
+        </button>
+        <button class="btn btn-primary" (click)="applyFilters()">
+          Apply Filters
+        </button>
       </div>
     </div>
   </div>
 
   <!-- Export Modal -->
-  <div class="modal-overlay" *ngIf="showExportModal" (click)="closeModal('export')">
+  <div
+    class="modal-overlay"
+    *ngIf="showExportModal"
+    (click)="closeModal('export')"
+  >
     <div class="modal-container" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3 class="modal-title">Export Data</h3>
         <button class="modal-close" (click)="closeModal('export')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
@@ -743,43 +1280,70 @@
             <label class="option-label">Export Format</label>
             <div class="radio-group">
               <label class="radio-option">
-                <input type="radio" name="exportFormat" value="excel" [(ngModel)]="exportFormat">
+                <input
+                  type="radio"
+                  name="exportFormat"
+                  value="excel"
+                  [(ngModel)]="exportFormat"
+                />
                 <span class="radio-custom"></span>
                 <span class="radio-label">Excel (.xlsx)</span>
               </label>
               <label class="radio-option">
-                <input type="radio" name="exportFormat" value="csv" [(ngModel)]="exportFormat">
+                <input
+                  type="radio"
+                  name="exportFormat"
+                  value="csv"
+                  [(ngModel)]="exportFormat"
+                />
                 <span class="radio-custom"></span>
                 <span class="radio-label">CSV (.csv)</span>
               </label>
               <label class="radio-option">
-                <input type="radio" name="exportFormat" value="pdf" [(ngModel)]="exportFormat">
+                <input
+                  type="radio"
+                  name="exportFormat"
+                  value="pdf"
+                  [(ngModel)]="exportFormat"
+                />
                 <span class="radio-custom"></span>
                 <span class="radio-label">PDF (.pdf)</span>
               </label>
             </div>
           </div>
-          
+
           <div class="option-group">
             <label class="option-label">Include Data</label>
             <div class="checkbox-group">
               <label class="checkbox-option">
-                <input type="checkbox" [(ngModel)]="exportOptions.includeKPIs">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="exportOptions.includeKPIs"
+                />
                 <span class="checkbox-custom"></span>
                 <span class="checkbox-label">KPI Summary</span>
               </label>
               <label class="checkbox-option">
-                <input type="checkbox" [(ngModel)]="exportOptions.includeTrend">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="exportOptions.includeTrend"
+                />
                 <span class="checkbox-custom"></span>
                 <span class="checkbox-label">Sales Trend</span>
               </label>
               <label class="checkbox-option">
-                <input type="checkbox" [(ngModel)]="exportOptions.includeProducts">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="exportOptions.includeProducts"
+                />
                 <span class="checkbox-custom"></span>
                 <span class="checkbox-label">Best Sellers</span>
               </label>
               <label class="checkbox-option">
-                <input type="checkbox" [(ngModel)]="exportOptions.includeChart">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="exportOptions.includeChart"
+                />
                 <span class="checkbox-custom"></span>
                 <span class="checkbox-label">Chart Image</span>
               </label>
@@ -788,8 +1352,14 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeModal('export')">Cancel</button>
-        <button class="btn btn-primary" (click)="performExport()" [disabled]="loadingState.export">
+        <button class="btn btn-secondary" (click)="closeModal('export')">
+          Cancel
+        </button>
+        <button
+          class="btn btn-primary"
+          (click)="performExport()"
+          [disabled]="loadingState.export"
+        >
           <span *ngIf="!loadingState.export">Export Data</span>
           <span *ngIf="loadingState.export">Exporting...</span>
         </button>
@@ -798,29 +1368,35 @@
   </div>
 
   <!-- Chart Modal -->
-  <div class="modal-overlay" *ngIf="showChartModal" (click)="closeModal('chart')">
+  <div
+    class="modal-overlay"
+    *ngIf="showChartModal"
+    (click)="closeModal('chart')"
+  >
     <div class="modal-container large" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3 class="modal-title">Sales Trend Analysis</h3>
         <div class="modal-actions">
           <div class="chart-type-toggle">
-            <button 
-              class="toggle-btn" 
+            <button
+              class="toggle-btn"
               [class.active]="currentChartType === 'line'"
-              (click)="toggleChartType('line')">
+              (click)="toggleChartType('line')"
+            >
               Line
             </button>
-            <button 
-              class="toggle-btn" 
+            <button
+              class="toggle-btn"
               [class.active]="currentChartType === 'bar'"
-              (click)="toggleChartType('bar')">
+              (click)="toggleChartType('bar')"
+            >
               Bar
             </button>
           </div>
           <button class="modal-close" (click)="closeModal('chart')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
@@ -837,7 +1413,8 @@
             [legend]="modalChartOptions.legend"
             [tooltip]="modalChartOptions.tooltip"
             [colors]="modalChartOptions.colors"
-            [grid]="modalChartOptions.grid">
+            [grid]="modalChartOptions.grid"
+          >
           </apx-chart>
         </div>
       </div>
@@ -845,40 +1422,190 @@
   </div>
 
   <!-- Table Modal -->
-  <div class="modal-overlay" *ngIf="showTableModal" (click)="closeModal('table')">
+  <div
+    class="modal-overlay"
+    *ngIf="showTableModal"
+    (click)="closeModal('table')"
+  >
     <div class="modal-container large" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3 class="modal-title">{{ currentTableTitle }}</h3>
         <div class="modal-actions">
-          <button class="btn btn-sm" (click)="exportCurrentTable()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-              <polyline points="7,10 12,15 17,10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Export
-          </button>
+          <div
+            class="export-btn-row"
+            style="position: relative; display: inline-block"
+          >
+            <button
+              class="export-icon-btn no-border export-menu-btn"
+              aria-label="Export options"
+              (click)="showExportDropdownModal = !showExportDropdownModal"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="10" y1="4" x2="10" y2="13" />
+                <polyline points="6,10 10,14 14,10" />
+              </svg>
+            </button>
+            <div
+              *ngIf="showExportDropdownModal"
+              class="custom-export-dropdown"
+              (mouseleave)="showExportDropdownModal = false"
+              style="
+                position: absolute;
+                right: 0;
+                top: 45px;
+                background: #fff;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                border-radius: 12px;
+                min-width: 180px;
+                z-index: 10;
+                padding: 8px 0;
+              "
+            >
+              <button
+                (click)="
+                  exportCurrentTable('pdf'); showExportDropdownModal = false
+                "
+                style="
+                  display: flex;
+                  align-items: center;
+                  width: 100%;
+                  background: none;
+                  border: none;
+                  padding: 10px 20px;
+                  font-size: 16px;
+                  cursor: pointer;
+                  gap: 12px;
+                  color: #222;
+                "
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="2"
+                    ry="2"
+                    stroke-width="2"
+                  />
+                  <path d="M8 7h8v4H8z" stroke-width="2" />
+                  <path d="M8 15h8" stroke-width="2" />
+                </svg>
+                Export as PDF
+              </button>
+              <button
+                (click)="
+                  exportCurrentTable('excel'); showExportDropdownModal = false
+                "
+                style="
+                  display: flex;
+                  align-items: center;
+                  width: 100%;
+                  background: none;
+                  border: none;
+                  padding: 10px 20px;
+                  font-size: 16px;
+                  cursor: pointer;
+                  gap: 12px;
+                  color: #222;
+                "
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="2"
+                    ry="2"
+                    stroke-width="2"
+                  />
+                  <path d="M7 7h10v10H7z" stroke-width="2" />
+                  <path d="M9 9l6 6" stroke-width="2" />
+                  <path d="M15 9l-6 6" stroke-width="2" />
+                </svg>
+                Export as Excel
+              </button>
+            </div>
+          </div>
           <button class="modal-close" (click)="closeModal('table')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
       </div>
       <div class="modal-body">
         <!-- Top Products Date Filter UI (only in modal) -->
-        <div *ngIf="currentTableType === 'products'" style="padding: 16px; display: flex; align-items: center; gap: 16px;">
-          <button class="range-btn" [class.active]="topProductsQuickRange === 'week'" (click)="setTopProductsRange('week')">This Week</button>
-          <button class="range-btn" [class.active]="topProductsQuickRange === 'month'" (click)="setTopProductsRange('month')">This Month</button>
-          <button class="range-btn" [class.active]="topProductsQuickRange === 'custom'" (click)="setTopProductsRange('custom')">Custom</button>
-          <input type="date" [(ngModel)]="topProductsFrom" (change)="onTopProductsDateChange()" [disabled]="topProductsQuickRange !== 'custom'">
+        <div
+          *ngIf="currentTableType === 'products'"
+          style="padding: 16px; display: flex; align-items: center; gap: 16px"
+        >
+          <button
+            class="range-btn"
+            [class.active]="topProductsQuickRange === 'week'"
+            (click)="setTopProductsRange('week')"
+          >
+            This Week
+          </button>
+          <button
+            class="range-btn"
+            [class.active]="topProductsQuickRange === 'month'"
+            (click)="setTopProductsRange('month')"
+          >
+            This Month
+          </button>
+          <button
+            class="range-btn"
+            [class.active]="topProductsQuickRange === 'custom'"
+            (click)="setTopProductsRange('custom')"
+          >
+            Custom
+          </button>
+          <input
+            type="date"
+            [(ngModel)]="topProductsFrom"
+            (change)="onTopProductsDateChange()"
+            [disabled]="topProductsQuickRange !== 'custom'"
+          />
           <span>to</span>
-          <input type="date" [(ngModel)]="topProductsTo" (change)="onTopProductsDateChange()" [disabled]="topProductsQuickRange !== 'custom'">
+          <input
+            type="date"
+            [(ngModel)]="topProductsTo"
+            (change)="onTopProductsDateChange()"
+            [disabled]="topProductsQuickRange !== 'custom'"
+          />
         </div>
         <div class="table-container full">
           <!-- Sales Table -->
-          <table mat-table [dataSource]="salesTrendDataSource" matSort class="data-table" *ngIf="currentTableType === 'sales'" #salesTrendModalSort="matSort">
+          <table
+            mat-table
+            [dataSource]="salesTrendDataSource"
+            matSort
+            class="data-table"
+            *ngIf="currentTableType === 'sales'"
+            #salesTrendModalSort="matSort"
+          >
             <ng-container matColumnDef="period">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Period</th>
               <td mat-cell *matCellDef="let row">
@@ -889,14 +1616,18 @@
             <ng-container matColumnDef="sales">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Sales</th>
               <td mat-cell *matCellDef="let row">
-                <span class="amount sales">{{ row.sales | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                <span class="amount sales">{{
+                  row.sales | currency : "MMK " : "symbol" : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="cost">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>COGS</th>
               <td mat-cell *matCellDef="let row">
-                <span class="amount cost">{{ row.cost | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                <span class="amount cost">{{
+                  row.cost | currency : "MMK " : "symbol" : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
@@ -904,7 +1635,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Profit</th>
               <td mat-cell *matCellDef="let row">
                 <span class="amount profit" [class.negative]="row.profit < 0">
-                  {{ row.profit | currency:'MMK ':'symbol':'1.0-0' }}
+                  {{ row.profit | currency : "MMK " : "symbol" : "1.0-0" }}
                 </span>
               </td>
             </ng-container>
@@ -913,7 +1644,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Margin</th>
               <td mat-cell *matCellDef="let row">
                 <span class="margin-badge" [class.negative]="row.margin < 0">
-                  {{ row.margin | number:'1.1-1' }}%
+                  {{ row.margin | number : "1.1-1" }}%
                 </span>
               </td>
             </ng-container>
@@ -921,25 +1652,38 @@
             <ng-container matColumnDef="orderCount">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Orders</th>
               <td mat-cell *matCellDef="let row">
-                <span class="count">{{ row.orderCount | number:'1.0-0' }}</span>
+                <span class="count">{{
+                  row.orderCount | number : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="salesTrendColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: salesTrendColumns;"></tr>
+            <tr mat-row *matRowDef="let row; columns: salesTrendColumns"></tr>
           </table>
 
           <!-- Products Table -->
-          <table mat-table [dataSource]="bestSellersDataSource" matSort class="data-table" *ngIf="currentTableType === 'products' && showTableModal" #bestSellersModalSort="matSort">
+          <table
+            mat-table
+            [dataSource]="bestSellersDataSource"
+            matSort
+            class="data-table"
+            *ngIf="currentTableType === 'products' && showTableModal"
+            #bestSellersModalSort="matSort"
+          >
             <ng-container matColumnDef="rank">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
               <td mat-cell *matCellDef="let product">
-                <span class="rank-badge" [class.top-3]="product.rank <= 3">{{ product.rank }}</span>
+                <span class="rank-badge" [class.top-3]="product.rank <= 3">{{
+                  product.rank
+                }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="productName">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Product Name</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Product Name
+              </th>
               <td mat-cell *matCellDef="let product">
                 <span class="product-name">{{ product.productName }}</span>
               </td>
@@ -953,46 +1697,67 @@
             </ng-container>
 
             <ng-container matColumnDef="totalQuantitySold">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Qty Sold</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Qty Sold
+              </th>
               <td mat-cell *matCellDef="let product">
-                <span class="quantity-badge">{{ product.totalQuantitySold | number:'1.0-0' }}</span>
+                <span class="quantity-badge">{{
+                  product.totalQuantitySold | number : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="totalSales">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Sales</th>
               <td mat-cell *matCellDef="let product">
-                <span class="amount sales">{{ product.totalSales | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                <span class="amount sales">{{
+                  product.totalSales | currency : "MMK " : "symbol" : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="totalCost">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Cost</th>
               <td mat-cell *matCellDef="let product">
-                <span class="amount cost">{{ product.totalCost | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                <span class="amount cost">{{
+                  product.totalCost | currency : "MMK " : "symbol" : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="totalProfit">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Profit</th>
               <td mat-cell *matCellDef="let product">
-                <span class="amount profit" [class.negative]="product.totalProfit < 0">
-                  {{ product.totalProfit | currency:'MMK ':'symbol':'1.0-0' }}
+                <span
+                  class="amount profit"
+                  [class.negative]="product.totalProfit < 0"
+                >
+                  {{
+                    product.totalProfit | currency : "MMK " : "symbol" : "1.0-0"
+                  }}
                 </span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="profitMargin">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Margin %</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Margin %
+              </th>
               <td mat-cell *matCellDef="let product">
-                <span class="margin-badge" [class.negative]="product.profitMargin < 0">
-                  {{ product.profitMargin | number:'1.1-1' }}%
+                <span
+                  class="margin-badge"
+                  [class.negative]="product.profitMargin < 0"
+                >
+                  {{ product.profitMargin | number : "1.1-1" }}%
                 </span>
               </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="bestSellersColumns"></tr>
-            <tr mat-row *matRowDef="let product; columns: bestSellersColumns;"></tr>
+            <tr
+              mat-row
+              *matRowDef="let product; columns: bestSellersColumns"
+            ></tr>
           </table>
         </div>
       </div>
@@ -1000,46 +1765,67 @@
   </div>
 
   <!-- Daily Orders Modal -->
-  <div class="modal-overlay" *ngIf="showDailyOrdersModal" (click)="closeModal('dailyOrders')">
+  <div
+    class="modal-overlay"
+    *ngIf="showDailyOrdersModal"
+    (click)="closeModal('dailyOrders')"
+  >
     <div class="modal-container large" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3 class="modal-title">Daily Orders</h3>
         <div class="modal-actions">
-          <input type="date" [(ngModel)]="selectedDate" (change)="fetchDailyOrders(selectedDate)" class="form-input sm">
+          <input
+            type="date"
+            [(ngModel)]="selectedDate"
+            (change)="fetchDailyOrders(selectedDate)"
+            class="form-input sm"
+          />
           <button class="btn btn-sm" (click)="refreshDailyOrders()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <polyline points="23,4 23,10 17,10"/>
-              <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+              <polyline points="23,4 23,10 17,10" />
+              <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
             </svg>
             Refresh
           </button>
           <button class="modal-close" (click)="closeModal('dailyOrders')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
       </div>
       <div class="modal-body">
         <div class="table-container full" *ngIf="dailyOrders.length">
-          <table mat-table [dataSource]="dailyOrdersDataSource" matSort class="data-table" #dailyOrdersSort="matSort">
+          <table
+            mat-table
+            [dataSource]="dailyOrdersDataSource"
+            matSort
+            class="data-table"
+            #dailyOrdersSort="matSort"
+          >
             <ng-container matColumnDef="orderId">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Order ID</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Order ID
+              </th>
               <td mat-cell *matCellDef="let order">
                 <span class="order-id">#{{ order.orderId }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="customerName">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Customer
+              </th>
               <td mat-cell *matCellDef="let order">
                 <span class="customer-name">{{ order.customerName }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="trackingCode">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Tracking</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Tracking
+              </th>
               <td mat-cell *matCellDef="let order">
                 <span class="tracking-code">{{ order.trackingCode }}</span>
               </td>
@@ -1048,21 +1834,29 @@
             <ng-container matColumnDef="sales">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Sales</th>
               <td mat-cell *matCellDef="let order">
-                <span class="amount sales">{{ order.sales | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                <span class="amount sales">{{
+                  order.sales | currency : "MMK " : "symbol" : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="cost">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Cost</th>
               <td mat-cell *matCellDef="let order">
-                <span class="amount cost">{{ order.cost | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                <span class="amount cost">{{
+                  order.cost | currency : "MMK " : "symbol" : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="deliveryFee">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Delivery</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Delivery
+              </th>
               <td mat-cell *matCellDef="let order">
-                <span class="amount delivery">{{ order.deliveryFee | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                <span class="amount delivery">{{
+                  order.deliveryFee | currency : "MMK " : "symbol" : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
@@ -1070,7 +1864,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Profit</th>
               <td mat-cell *matCellDef="let order">
                 <span class="amount profit" [class.negative]="order.profit < 0">
-                  {{ order.profit | currency:'MMK ':'symbol':'1.0-0' }}
+                  {{ order.profit | currency : "MMK " : "symbol" : "1.0-0" }}
                 </span>
               </td>
             </ng-container>
@@ -1078,75 +1872,121 @@
             <ng-container matColumnDef="status">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
               <td mat-cell *matCellDef="let order">
-                <span class="status-badge" [class]="order.status.toLowerCase()">{{ order.status }}</span>
+                <span
+                  class="status-badge"
+                  [class]="order.status.toLowerCase()"
+                  >{{ order.status }}</span
+                >
               </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="dailyOrdersColumns"></tr>
-            <tr mat-row *matRowDef="let order; columns: dailyOrdersColumns;"></tr>
+            <tr
+              mat-row
+              *matRowDef="let order; columns: dailyOrdersColumns"
+            ></tr>
           </table>
         </div>
         <div class="empty-state" *ngIf="!dailyOrders.length">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
           <h4>No Orders Found</h4>
-          <p>No orders were found for {{ selectedDate | date:'mediumDate' }}</p>
+          <p>
+            No orders were found for {{ selectedDate | date : "mediumDate" }}
+          </p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Lost Products Modal -->
-  <div class="modal-overlay" *ngIf="showLostProductsModal" (click)="closeModal('lostProducts')">
+  <div
+    class="modal-overlay"
+    *ngIf="showLostProductsModal"
+    (click)="closeModal('lostProducts')"
+  >
     <div class="modal-container large" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3 class="modal-title">Lost Products Analytics</h3>
         <div class="modal-actions">
           <div class="filter-controls horizontal-filters">
             <div class="modal-date-filters">
-              <input type="date" [(ngModel)]="modalDateFrom" (change)="onModalDateChange()" class="date-input">
+              <input
+                type="date"
+                [(ngModel)]="modalDateFrom"
+                (change)="onModalDateChange()"
+                class="date-input"
+              />
               <span class="date-separator">to</span>
-              <input type="date" [(ngModel)]="modalDateTo" (change)="onModalDateChange()" class="date-input">
+              <input
+                type="date"
+                [(ngModel)]="modalDateTo"
+                (change)="onModalDateChange()"
+                class="date-input"
+              />
             </div>
-            <select [(ngModel)]="selectedLostReason" (change)="onLostReasonChange()" class="filter-select">
+            <select
+              [(ngModel)]="selectedLostReason"
+              (change)="onLostReasonChange()"
+              class="filter-select"
+            >
               <option value="">All Reasons</option>
-              <option *ngFor="let reason of filteredPredefinedReasons" [value]="reason">{{ reason }}</option>
-              <option *ngIf="otherReasons.length > 0" value="__other__">Other</option>
+              <option
+                *ngFor="let reason of filteredPredefinedReasons"
+                [value]="reason"
+              >
+                {{ reason }}
+              </option>
+              <option *ngIf="otherReasons.length > 0" value="__other__">
+                Other
+              </option>
             </select>
           </div>
           <button class="btn btn-sm" (click)="exportCurrentTable()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-              <polyline points="7,10 12,15 17,10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="7,10 12,15 17,10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             Export
           </button>
           <button class="modal-close" (click)="closeModal('lostProducts')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
       </div>
       <div class="modal-body">
         <div class="table-container full">
-          <table mat-table [dataSource]="lostProductsDataSource" matSort class="data-table" #lostProductsModalSort="matSort">
+          <table
+            mat-table
+            [dataSource]="lostProductsDataSource"
+            matSort
+            class="data-table"
+            #lostProductsModalSort="matSort"
+          >
             <ng-container matColumnDef="product">
               <th mat-header-cell *matHeaderCellDef mat-sort-header>Product</th>
               <td mat-cell *matCellDef="let item">
                 <div class="product-info">
                   <div class="product-image" *ngIf="item.imageUrl">
-                    <img [src]="item.imageUrl" [alt]="item.productName" class="product-thumbnail">
+                    <img
+                      [src]="item.imageUrl"
+                      [alt]="item.productName"
+                      class="product-thumbnail"
+                    />
                   </div>
                   <div class="product-details">
                     <div class="product-name">{{ item.productName }}</div>
-                    <div class="variant-name" *ngIf="item.variantAttributes">{{ item.variantAttributes }}</div>
+                    <div class="variant-name" *ngIf="item.variantAttributes">
+                      {{ item.variantAttributes }}
+                    </div>
                   </div>
                 </div>
               </td>
@@ -1160,7 +2000,9 @@
             </ng-container>
 
             <ng-container matColumnDef="category">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Category
+              </th>
               <td mat-cell *matCellDef="let item">
                 <span class="category-badge">{{ item.category }}</span>
               </td>
@@ -1174,25 +2016,36 @@
             </ng-container>
 
             <ng-container matColumnDef="quantityLost">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Qty Lost</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Qty Lost
+              </th>
               <td mat-cell *matCellDef="let item">
-                <span class="quantity-badge lost">{{ item.totalQuantityLost | number:'1.0-0' }}</span>
+                <span class="quantity-badge lost">{{
+                  item.totalQuantityLost | number : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="purchasePriceLost">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Purchase Lost</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Purchase Lost
+              </th>
               <td mat-cell *matCellDef="let item">
-                <span class="amount cost">{{ item.totalPurchasePriceLost | currency:'MMK ':'symbol':'1.0-0' }}</span>
+                <span class="amount cost">{{
+                  item.totalPurchasePriceLost
+                    | currency : "MMK " : "symbol" : "1.0-0"
+                }}</span>
               </td>
             </ng-container>
 
-
-
             <ng-container matColumnDef="lastReduced">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Reduced</th>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                Last Reduced
+              </th>
               <td mat-cell *matCellDef="let item">
-                <span class="date-badge">{{ item.lastReducedAt | date:'MMM dd, yyyy' }}</span>
+                <span class="date-badge">{{
+                  item.lastReducedAt | date : "MMM dd, yyyy"
+                }}</span>
               </td>
             </ng-container>
 
@@ -1204,7 +2057,10 @@
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="lostProductsColumns"></tr>
-            <tr mat-row *matRowDef="let item; columns: lostProductsColumns;"></tr>
+            <tr
+              mat-row
+              *matRowDef="let item; columns: lostProductsColumns"
+            ></tr>
           </table>
         </div>
       </div>
@@ -1213,29 +2069,38 @@
 
   <!-- Product Search Modal -->
   <!-- Product Search Modal -->
-  <div class="modal-overlay" *ngIf="showProductSearchModal" (click)="closeModal('productSearch')">
+  <div
+    class="modal-overlay"
+    *ngIf="showProductSearchModal"
+    (click)="closeModal('productSearch')"
+  >
     <div class="modal-container extra-large" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3 class="modal-title">
-          <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="M21 21l-4.35-4.35"/>
+          <svg
+            class="modal-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
           </svg>
           Product Search & Analytics
         </h3>
         <div class="modal-actions">
           <button class="btn btn-sm" (click)="exportProductSearch()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-              <polyline points="7,10 12,15 17,10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="7,10 12,15 17,10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             Export Results
           </button>
           <button class="modal-close" (click)="closeModal('productSearch')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
@@ -1247,7 +2112,9 @@
           <div class="search-header">
             <h4 class="search-title">Search Criteria</h4>
             <div class="search-stats" *ngIf="productSearchResults.length > 0">
-              <span class="results-count">{{ productSearchResults.length }} results</span>
+              <span class="results-count"
+                >{{ productSearchResults.length }} results</span
+              >
               <span class="search-time">Search completed in 0.12s</span>
             </div>
           </div>
@@ -1255,49 +2122,62 @@
           <div class="search-controls-grid">
             <div class="search-main">
               <div class="search-type-tabs">
-                <button 
-                  class="search-tab" 
+                <button
+                  class="search-tab"
                   [class.active]="productSearchType === 'all'"
-                  (click)="setSearchType('all')">
+                  (click)="setSearchType('all')"
+                >
                   All Fields
                 </button>
-                <button 
-                  class="search-tab" 
+                <button
+                  class="search-tab"
                   [class.active]="productSearchType === 'productId'"
-                  (click)="setSearchType('productId')">
+                  (click)="setSearchType('productId')"
+                >
                   Product ID
                 </button>
-                <button 
-                  class="search-tab" 
+                <button
+                  class="search-tab"
                   [class.active]="productSearchType === 'sku'"
-                  (click)="setSearchType('sku')">
+                  (click)="setSearchType('sku')"
+                >
                   SKU
                 </button>
-                <button 
-                  class="search-tab" 
+                <button
+                  class="search-tab"
                   [class.active]="productSearchType === 'name'"
-                  (click)="setSearchType('name')">
+                  (click)="setSearchType('name')"
+                >
                   Name
                 </button>
               </div>
-              
+
               <div class="search-input-container">
                 <div class="search-input-wrapper">
-                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="M21 21l-4.35-4.35"/>
+                  <svg
+                    class="search-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
                   </svg>
-                  <input 
-                    type="text" 
-                    [(ngModel)]="productSearchQuery" 
+                  <input
+                    type="text"
+                    [(ngModel)]="productSearchQuery"
                     (input)="onProductSearch()"
                     [placeholder]="getSearchPlaceholder()"
                     class="search-input"
+                  />
+                  <button
+                    class="clear-search"
+                    *ngIf="productSearchQuery"
+                    (click)="clearProductSearch()"
                   >
-                  <button class="clear-search" *ngIf="productSearchQuery" (click)="clearProductSearch()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="18" y1="6" x2="6" y2="18"/>
-                      <line x1="6" y1="6" x2="18" y2="18"/>
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                   </button>
                 </div>
@@ -1308,15 +2188,28 @@
               <div class="filter-row">
                 <div class="filter-item">
                   <label class="filter-label">Category</label>
-                  <select [(ngModel)]="productSearchCategory" (change)="onProductSearch()" class="filter-select">
+                  <select
+                    [(ngModel)]="productSearchCategory"
+                    (change)="onProductSearch()"
+                    class="filter-select"
+                  >
                     <option value="">All Categories</option>
-                    <option *ngFor="let category of productCategories" [value]="category">{{ category }}</option>
+                    <option
+                      *ngFor="let category of productCategories"
+                      [value]="category"
+                    >
+                      {{ category }}
+                    </option>
                   </select>
                 </div>
-                
+
                 <div class="filter-item">
                   <label class="filter-label">Stock Status</label>
-                  <select [(ngModel)]="productSearchStockStatus" (change)="onProductSearch()" class="filter-select">
+                  <select
+                    [(ngModel)]="productSearchStockStatus"
+                    (change)="onProductSearch()"
+                    class="filter-select"
+                  >
                     <option value="">All Stock</option>
                     <option value="in_stock">In Stock</option>
                     <option value="low_stock">Low Stock</option>
@@ -1326,7 +2219,11 @@
 
                 <div class="filter-item">
                   <label class="filter-label">Price Range</label>
-                  <select [(ngModel)]="productSearchPriceRange" (change)="onProductSearch()" class="filter-select">
+                  <select
+                    [(ngModel)]="productSearchPriceRange"
+                    (change)="onProductSearch()"
+                    class="filter-select"
+                  >
                     <option value="">All Prices</option>
                     <option value="0-10000">Under 10K</option>
                     <option value="10000-50000">10K - 50K</option>
@@ -1344,30 +2241,44 @@
           <div class="results-header">
             <div class="results-info">
               <h4 class="results-title">Search Results</h4>
-              <p class="results-subtitle">{{ productSearchResults.length }} products found</p>
+              <p class="results-subtitle">
+                {{ productSearchResults.length }} products found
+              </p>
             </div>
             <div class="results-actions">
               <div class="view-toggle">
-                <button class="toggle-btn" [class.active]="productViewMode === 'grid'" (click)="setViewMode('grid')">
+                <button
+                  class="toggle-btn"
+                  [class.active]="productViewMode === 'grid'"
+                  (click)="setViewMode('grid')"
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="3" y="3" width="7" height="7"/>
-                    <rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/>
-                    <rect x="3" y="14" width="7" height="7"/>
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
                   </svg>
                 </button>
-                <button class="toggle-btn" [class.active]="productViewMode === 'list'" (click)="setViewMode('list')">
+                <button
+                  class="toggle-btn"
+                  [class.active]="productViewMode === 'list'"
+                  (click)="setViewMode('list')"
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <line x1="8" y1="6" x2="21" y2="6"/>
-                    <line x1="8" y1="12" x2="21" y2="12"/>
-                    <line x1="8" y1="18" x2="21" y2="18"/>
-                    <line x1="3" y1="6" x2="3.01" y2="6"/>
-                    <line x1="3" y1="12" x2="3.01" y2="12"/>
-                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
                   </svg>
                 </button>
               </div>
-              <select class="sort-select" [(ngModel)]="productSortBy" (change)="sortProducts()">
+              <select
+                class="sort-select"
+                [(ngModel)]="productSortBy"
+                (change)="sortProducts()"
+              >
                 <option value="name">Sort by Name</option>
                 <option value="sales">Sort by Sales</option>
                 <option value="profit">Sort by Profit</option>
@@ -1379,8 +2290,13 @@
 
           <!-- Grid View -->
           <div class="products-grid" *ngIf="productViewMode === 'grid'">
-            <div class="product-card-enhanced" *ngFor="let product of productSearchResults; trackBy: trackByProductId">
-              
+            <div
+              class="product-card-enhanced"
+              *ngFor="
+                let product of productSearchResults;
+                trackBy: trackByProductId
+              "
+            >
               <!-- Product Header -->
               <div class="product-card-header">
                 <div class="product-id-section">
@@ -1388,13 +2304,23 @@
                   <span class="product-id-value">#{{ product.productId }}</span>
                 </div>
                 <div class="product-status-indicators">
-                  <div class="status-indicator stock" [class]="getStockStatusClass(product.stockQuantity)">
+                  <div
+                    class="status-indicator stock"
+                    [class]="getStockStatusClass(product.stockQuantity)"
+                  >
                     <div class="indicator-dot"></div>
-                    <span class="indicator-text">{{ getStockStatusText(product.stockQuantity) }}</span>
+                    <span class="indicator-text">{{
+                      getStockStatusText(product.stockQuantity)
+                    }}</span>
                   </div>
-                  <div class="status-indicator profit" [class]="getProfitStatusClass(product.profitMargin)">
+                  <div
+                    class="status-indicator profit"
+                    [class]="getProfitStatusClass(product.profitMargin)"
+                  >
                     <div class="indicator-dot"></div>
-                    <span class="indicator-text">{{ product.profitMargin | number:'1.1-1' }}%</span>
+                    <span class="indicator-text"
+                      >{{ product.profitMargin | number : "1.1-1" }}%</span
+                    >
                   </div>
                 </div>
               </div>
@@ -1403,17 +2329,39 @@
               <div class="product-card-body">
                 <div class="product-visual-section">
                   <div class="product-image-container">
-                    <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName" class="product-image">
-                    <div *ngIf="!product.imageUrl" class="product-image-placeholder">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                        <polyline points="21,15 16,10 5,21"/>
+                    <img
+                      *ngIf="product.imageUrl"
+                      [src]="product.imageUrl"
+                      [alt]="product.productName"
+                      class="product-image"
+                    />
+                    <div
+                      *ngIf="!product.imageUrl"
+                      class="product-image-placeholder"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <rect
+                          x="3"
+                          y="3"
+                          width="18"
+                          height="18"
+                          rx="2"
+                          ry="2"
+                        />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21,15 16,10 5,21" />
                       </svg>
                     </div>
                     <div class="image-overlay">
-                      <div class="stock-badge" [class]="getStockBadgeClass(product.stockQuantity)">
-                        {{ product.stockQuantity | number:'1.0-0' }} in stock
+                      <div
+                        class="stock-badge"
+                        [class]="getStockBadgeClass(product.stockQuantity)"
+                      >
+                        {{ product.stockQuantity | number : "1.0-0" }} in stock
                       </div>
                     </div>
                   </div>
@@ -1427,11 +2375,15 @@
                       </div>
                       <div class="meta-item" *ngIf="product.variantName">
                         <span class="meta-label">Variant:</span>
-                        <span class="meta-value">{{ product.variantName }}</span>
+                        <span class="meta-value">{{
+                          product.variantName
+                        }}</span>
                       </div>
                       <div class="meta-item">
                         <span class="meta-label">Category:</span>
-                        <span class="meta-value category">{{ product.category }}</span>
+                        <span class="meta-value category">{{
+                          product.category
+                        }}</span>
                       </div>
                     </div>
                   </div>
@@ -1441,17 +2393,38 @@
                 <div class="financial-metrics">
                   <div class="metrics-header">
                     <h6 class="metrics-title">Financial Performance</h6>
-                    <div class="performance-indicator" [class]="getPerformanceClass(product.profitMargin)">
-                      <svg *ngIf="product.profitMargin > 20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/>
-                        <polyline points="17,6 23,6 23,12"/>
+                    <div
+                      class="performance-indicator"
+                      [class]="getPerformanceClass(product.profitMargin)"
+                    >
+                      <svg
+                        *ngIf="product.profitMargin > 20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <polyline points="23,6 13.5,15.5 8.5,10.5 1,18" />
+                        <polyline points="17,6 23,6 23,12" />
                       </svg>
-                      <svg *ngIf="product.profitMargin <= 20 && product.profitMargin >= 0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <line x1="1" y1="12" x2="23" y2="12"/>
+                      <svg
+                        *ngIf="
+                          product.profitMargin <= 20 &&
+                          product.profitMargin >= 0
+                        "
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <line x1="1" y1="12" x2="23" y2="12" />
                       </svg>
-                      <svg *ngIf="product.profitMargin < 0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="23,18 13.5,8.5 8.5,13.5 1,6"/>
-                        <polyline points="17,18 23,18 23,12"/>
+                      <svg
+                        *ngIf="product.profitMargin < 0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <polyline points="23,18 13.5,8.5 8.5,13.5 1,6" />
+                        <polyline points="17,18 23,18 23,12" />
                       </svg>
                     </div>
                   </div>
@@ -1459,53 +2432,99 @@
                   <div class="metrics-grid">
                     <div class="metric-item primary">
                       <div class="metric-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <line x1="12" y1="1" x2="12" y2="23"/>
-                          <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <line x1="12" y1="1" x2="12" y2="23" />
+                          <path
+                            d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"
+                          />
                         </svg>
                       </div>
                       <div class="metric-content">
                         <div class="metric-label">Selling Price</div>
-                        <div class="metric-value">{{ product.sellingPrice | currency:'MMK ':'symbol':'1.0-0' }}</div>
+                        <div class="metric-value">
+                          {{
+                            product.sellingPrice
+                              | currency : "MMK " : "symbol" : "1.0-0"
+                          }}
+                        </div>
                       </div>
                     </div>
 
                     <div class="metric-item secondary">
                       <div class="metric-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <circle cx="9" cy="21" r="1"/>
-                          <circle cx="20" cy="21" r="1"/>
-                          <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <circle cx="9" cy="21" r="1" />
+                          <circle cx="20" cy="21" r="1" />
+                          <path
+                            d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"
+                          />
                         </svg>
                       </div>
                       <div class="metric-content">
                         <div class="metric-label">Purchase Price</div>
-                        <div class="metric-value">{{ product.purchasePrice | currency:'MMK ':'symbol':'1.0-0' }}</div>
+                        <div class="metric-value">
+                          {{
+                            product.purchasePrice
+                              | currency : "MMK " : "symbol" : "1.0-0"
+                          }}
+                        </div>
                       </div>
                     </div>
 
                     <div class="metric-item success">
                       <div class="metric-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
                         </svg>
                       </div>
                       <div class="metric-content">
                         <div class="metric-label">Total Sales</div>
-                        <div class="metric-value">{{ product.totalSales | currency:'MMK ':'symbol':'1.0-0' }}</div>
+                        <div class="metric-value">
+                          {{
+                            product.totalSales
+                              | currency : "MMK " : "symbol" : "1.0-0"
+                          }}
+                        </div>
                       </div>
                     </div>
 
-                    <div class="metric-item" [class]="product.totalProfit >= 0 ? 'success' : 'danger'">
+                    <div
+                      class="metric-item"
+                      [class]="product.totalProfit >= 0 ? 'success' : 'danger'"
+                    >
                       <div class="metric-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                          />
                         </svg>
                       </div>
                       <div class="metric-content">
                         <div class="metric-label">Total Profit</div>
-                        <div class="metric-value" [class.negative]="product.totalProfit < 0">
-                          {{ product.totalProfit | currency:'MMK ':'symbol':'1.0-0' }}
+                        <div
+                          class="metric-value"
+                          [class.negative]="product.totalProfit < 0"
+                        >
+                          {{
+                            product.totalProfit
+                              | currency : "MMK " : "symbol" : "1.0-0"
+                          }}
                         </div>
                       </div>
                     </div>
@@ -1518,30 +2537,53 @@
                     <h6 class="analytics-title">Sales Analytics</h6>
                     <div class="analytics-period">Last 30 days</div>
                   </div>
-                  
+
                   <div class="analytics-stats">
                     <div class="stat-row">
                       <div class="stat-item">
                         <div class="stat-label">Quantity Sold</div>
-                        <div class="stat-value quantity">{{ product.quantitySold | number:'1.0-0' }} units</div>
+                        <div class="stat-value quantity">
+                          {{ product.quantitySold | number : "1.0-0" }} units
+                        </div>
                       </div>
                       <div class="stat-item">
                         <div class="stat-label">Profit Margin</div>
-                        <div class="stat-value margin" [class.negative]="product.profitMargin < 0">
-                          {{ product.profitMargin | number:'1.1-1' }}%
+                        <div
+                          class="stat-value margin"
+                          [class.negative]="product.profitMargin < 0"
+                        >
+                          {{ product.profitMargin | number : "1.1-1" }}%
                         </div>
                       </div>
                     </div>
-                    
+
                     <div class="stat-row">
                       <div class="stat-item">
                         <div class="stat-label">Total Investment</div>
-                        <div class="stat-value investment">{{ product.totalPurchasePrice | currency:'MMK ':'symbol':'1.0-0' }}</div>
+                        <div class="stat-value investment">
+                          {{
+                            product.totalPurchasePrice
+                              | currency : "MMK " : "symbol" : "1.0-0"
+                          }}
+                        </div>
                       </div>
                       <div class="stat-item">
                         <div class="stat-label">ROI</div>
-                        <div class="stat-value roi" [class]="getROIClass(product.totalProfit, product.totalPurchasePrice)">
-                          {{ calculateROI(product.totalProfit, product.totalPurchasePrice) | number:'1.1-1' }}%
+                        <div
+                          class="stat-value roi"
+                          [class]="
+                            getROIClass(
+                              product.totalProfit,
+                              product.totalPurchasePrice
+                            )
+                          "
+                        >
+                          {{
+                            calculateROI(
+                              product.totalProfit,
+                              product.totalPurchasePrice
+                            ) | number : "1.1-1"
+                          }}%
                         </div>
                       </div>
                     </div>
@@ -1551,10 +2593,17 @@
                   <div class="mini-chart">
                     <div class="chart-header">
                       <span class="chart-title">Sales Trend</span>
-                      <span class="chart-trend" [class]="getTrendClass(product)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/>
-                          <polyline points="17,6 23,6 23,12"/>
+                      <span
+                        class="chart-trend"
+                        [class]="getTrendClass(product)"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <polyline points="23,6 13.5,15.5 8.5,10.5 1,18" />
+                          <polyline points="17,6 23,6 23,12" />
                         </svg>
                         +12%
                       </span>
@@ -1577,58 +2626,116 @@
               <!-- Product Actions -->
               <div class="product-card-footer">
                 <div class="action-buttons">
-                  <button class="action-btn primary" (click)="viewProductDetails(product)" title="View Details">
+                  <button
+                    class="action-btn primary"
+                    (click)="viewProductDetails(product)"
+                    title="View Details"
+                  >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                      <circle cx="12" cy="12" r="3"/>
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
                     </svg>
                     <span>Details</span>
                   </button>
-                  
-                  <button class="action-btn secondary" (click)="editProduct(product)" title="Edit Product">
+
+                  <button
+                    class="action-btn secondary"
+                    (click)="editProduct(product)"
+                    title="Edit Product"
+                  >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      <path
+                        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+                      />
+                      <path
+                        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                      />
                     </svg>
                     <span>Edit</span>
                   </button>
-                  
-                  <button class="action-btn info" (click)="viewProductHistory(product)" title="View History">
+
+                  <button
+                    class="action-btn info"
+                    (click)="viewProductHistory(product)"
+                    title="View History"
+                  >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <circle cx="12" cy="12" r="10"/>
-                      <polyline points="12,6 12,12 16,14"/>
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12,6 12,12 16,14" />
                     </svg>
                     <span>History</span>
                   </button>
-                  
+
                   <div class="action-dropdown">
-                    <button class="action-btn dropdown-toggle" (click)="toggleProductActions(product.productId)">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <circle cx="12" cy="12" r="1"/>
-                        <circle cx="19" cy="12" r="1"/>
-                        <circle cx="5" cy="12" r="1"/>
+                    <button
+                      class="action-btn dropdown-toggle"
+                      (click)="toggleProductActions(product.productId)"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <circle cx="12" cy="12" r="1" />
+                        <circle cx="19" cy="12" r="1" />
+                        <circle cx="5" cy="12" r="1" />
                       </svg>
                     </button>
-                    <div class="dropdown-menu" *ngIf="activeProductActions === product.productId">
-                      <button class="dropdown-item" (click)="exportProduct(product)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                          <polyline points="7,10 12,15 17,10"/>
-                          <line x1="12" y1="15" x2="12" y2="3"/>
+                    <div
+                      class="dropdown-menu"
+                      *ngIf="activeProductActions === product.productId"
+                    >
+                      <button
+                        class="dropdown-item"
+                        (click)="exportProduct(product)"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                          <polyline points="7,10 12,15 17,10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
                         Export Data
                       </button>
-                      <button class="dropdown-item" (click)="duplicateProduct(product)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                      <button
+                        class="dropdown-item"
+                        (click)="duplicateProduct(product)"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <rect
+                            x="9"
+                            y="9"
+                            width="13"
+                            height="13"
+                            rx="2"
+                            ry="2"
+                          />
+                          <path
+                            d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
+                          />
                         </svg>
                         Duplicate
                       </button>
-                      <button class="dropdown-item danger" (click)="archiveProduct(product)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <polyline points="3,6 5,6 21,6"/>
-                          <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                      <button
+                        class="dropdown-item danger"
+                        (click)="archiveProduct(product)"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <polyline points="3,6 5,6 21,6" />
+                          <path
+                            d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                          />
                         </svg>
                         Archive
                       </button>
@@ -1653,96 +2760,176 @@
               <div class="list-column">Margin</div>
               <div class="list-column">Actions</div>
             </div>
-            
-            <div class="list-item" *ngFor="let product of productSearchResults; trackBy: trackByProductId">
+
+            <div
+              class="list-item"
+              *ngFor="
+                let product of productSearchResults;
+                trackBy: trackByProductId
+              "
+            >
               <div class="list-column product-column">
                 <div class="product-list-info">
                   <div class="product-list-image">
-                    <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.productName">
-                    <div *ngIf="!product.imageUrl" class="list-image-placeholder">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                        <polyline points="21,15 16,10 5,21"/>
+                    <img
+                      *ngIf="product.imageUrl"
+                      [src]="product.imageUrl"
+                      [alt]="product.productName"
+                    />
+                    <div
+                      *ngIf="!product.imageUrl"
+                      class="list-image-placeholder"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <rect
+                          x="3"
+                          y="3"
+                          width="18"
+                          height="18"
+                          rx="2"
+                          ry="2"
+                        />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21,15 16,10 5,21" />
                       </svg>
                     </div>
                   </div>
                   <div class="product-list-details">
-                    <div class="product-list-name">{{ product.productName }}</div>
+                    <div class="product-list-name">
+                      {{ product.productName }}
+                    </div>
                     <div class="product-list-id">#{{ product.productId }}</div>
-                    <div class="product-list-category">{{ product.category }}</div>
+                    <div class="product-list-category">
+                      {{ product.category }}
+                    </div>
                   </div>
                 </div>
               </div>
-              
+
               <div class="list-column sku-column">
                 <span class="sku-value">{{ product.sku }}</span>
               </div>
-              
+
               <div class="list-column stock-column">
                 <div class="stock-info">
-                  <span class="stock-quantity" [class]="getStockStatusClass(product.stockQuantity)">
-                    {{ product.stockQuantity | number:'1.0-0' }}
+                  <span
+                    class="stock-quantity"
+                    [class]="getStockStatusClass(product.stockQuantity)"
+                  >
+                    {{ product.stockQuantity | number : "1.0-0" }}
                   </span>
-                  <span class="stock-status">{{ getStockStatusText(product.stockQuantity) }}</span>
+                  <span class="stock-status">{{
+                    getStockStatusText(product.stockQuantity)
+                  }}</span>
                 </div>
               </div>
-              
+
               <div class="list-column price-column">
                 <div class="price-info">
-                  <div class="selling-price">{{ product.sellingPrice | currency:'MMK ':'symbol':'1.0-0' }}</div>
-                  <div class="purchase-price">Cost: {{ product.purchasePrice | currency:'MMK ':'symbol':'1.0-0' }}</div>
+                  <div class="selling-price">
+                    {{
+                      product.sellingPrice
+                        | currency : "MMK " : "symbol" : "1.0-0"
+                    }}
+                  </div>
+                  <div class="purchase-price">
+                    Cost:
+                    {{
+                      product.purchasePrice
+                        | currency : "MMK " : "symbol" : "1.0-0"
+                    }}
+                  </div>
                 </div>
               </div>
-              
+
               <div class="list-column quantity-column">
                 <div class="quantity-info">
-                  <div class="quantity-sold">{{ product.quantitySold | number:'1.0-0' }} units</div>
+                  <div class="quantity-sold">
+                    {{ product.quantitySold | number : "1.0-0" }} units
+                  </div>
                 </div>
               </div>
-              
+
               <div class="list-column purchase-column">
                 <div class="purchase-info">
-                  <div class="total-purchase">{{ product.totalPurchasePrice | currency:'MMK ':'symbol':'1.0-0' }}</div>
+                  <div class="total-purchase">
+                    {{
+                      product.totalPurchasePrice
+                        | currency : "MMK " : "symbol" : "1.0-0"
+                    }}
+                  </div>
                 </div>
               </div>
-              
+
               <div class="list-column sales-column">
                 <div class="sales-info">
-                  <div class="sales-amount">{{ product.totalSales | currency:'MMK ':'symbol':'1.0-0' }}</div>
+                  <div class="sales-amount">
+                    {{
+                      product.totalSales
+                        | currency : "MMK " : "symbol" : "1.0-0"
+                    }}
+                  </div>
                 </div>
               </div>
-              
+
               <div class="list-column profit-column">
-                <span class="profit-amount" [class.negative]="product.totalProfit < 0">
-                  {{ product.totalProfit | currency:'MMK ':'symbol':'1.0-0' }}
+                <span
+                  class="profit-amount"
+                  [class.negative]="product.totalProfit < 0"
+                >
+                  {{
+                    product.totalProfit | currency : "MMK " : "symbol" : "1.0-0"
+                  }}
                 </span>
               </div>
-              
+
               <div class="list-column margin-column">
-                <span class="margin-value" [class.negative]="product.profitMargin < 0">
-                  {{ product.profitMargin | number:'1.1-1' }}%
+                <span
+                  class="margin-value"
+                  [class.negative]="product.profitMargin < 0"
+                >
+                  {{ product.profitMargin | number : "1.1-1" }}%
                 </span>
               </div>
-              
+
               <div class="list-column actions-column">
                 <div class="list-actions">
-                  <button class="list-action-btn" (click)="viewProductDetails(product)" title="View Details">
+                  <button
+                    class="list-action-btn"
+                    (click)="viewProductDetails(product)"
+                    title="View Details"
+                  >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                      <circle cx="12" cy="12" r="3"/>
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
                     </svg>
                   </button>
-                  <button class="list-action-btn" (click)="editProduct(product)" title="Edit">
+                  <button
+                    class="list-action-btn"
+                    (click)="editProduct(product)"
+                    title="Edit"
+                  >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      <path
+                        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+                      />
+                      <path
+                        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                      />
                     </svg>
                   </button>
-                  <button class="list-action-btn" (click)="viewProductHistory(product)" title="History">
+                  <button
+                    class="list-action-btn"
+                    (click)="viewProductHistory(product)"
+                    title="History"
+                  >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <circle cx="12" cy="12" r="10"/>
-                      <polyline points="12,6 12,12 16,14"/>
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12,6 12,12 16,14" />
                     </svg>
                   </button>
                 </div>
@@ -1751,16 +2938,22 @@
           </div>
 
           <!-- Empty State -->
-          <div class="empty-search-state" *ngIf="productSearchQuery && productSearchResults.length === 0">
+          <div
+            class="empty-search-state"
+            *ngIf="productSearchQuery && productSearchResults.length === 0"
+          >
             <div class="empty-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="M21 21l-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
               </svg>
             </div>
             <h4 class="empty-title">No Products Found</h4>
             <p class="empty-message">
-              No products match your search criteria "<strong>{{ productSearchQuery }}</strong>"
+              No products match your search criteria "<strong>{{
+                productSearchQuery
+              }}</strong
+              >"
             </p>
             <div class="empty-suggestions">
               <p>Try:</p>
@@ -1773,24 +2966,28 @@
             </div>
             <button class="btn btn-primary" (click)="clearProductSearch()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <polyline points="23,4 23,10 17,10"/>
-                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+                <polyline points="23,4 23,10 17,10" />
+                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
               </svg>
               Clear Search
             </button>
           </div>
 
           <!-- Initial State -->
-          <div class="initial-search-state" *ngIf="!productSearchQuery && productSearchResults.length === 0">
+          <div
+            class="initial-search-state"
+            *ngIf="!productSearchQuery && productSearchResults.length === 0"
+          >
             <div class="initial-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="M21 21l-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
               </svg>
             </div>
             <h4 class="initial-title">Product Search & Analytics</h4>
             <p class="initial-message">
-              Search for products by ID, SKU, name, or category to view detailed analytics and performance metrics.
+              Search for products by ID, SKU, name, or category to view detailed
+              analytics and performance metrics.
             </p>
             <div class="search-tips">
               <h5>Search Tips:</h5>
@@ -1798,8 +2995,8 @@
                 <div class="tip-item">
                   <div class="tip-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M9 12l2 2 4-4"/>
-                      <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/>
+                      <path d="M9 12l2 2 4-4" />
+                      <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z" />
                     </svg>
                   </div>
                   <span>Use Product ID for exact matches</span>
@@ -1807,8 +3004,8 @@
                 <div class="tip-item">
                   <div class="tip-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M9 12l2 2 4-4"/>
-                      <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/>
+                      <path d="M9 12l2 2 4-4" />
+                      <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z" />
                     </svg>
                   </div>
                   <span>Search by SKU for inventory tracking</span>
@@ -1816,8 +3013,8 @@
                 <div class="tip-item">
                   <div class="tip-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M9 12l2 2 4-4"/>
-                      <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/>
+                      <path d="M9 12l2 2 4-4" />
+                      <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z" />
                     </svg>
                   </div>
                   <span>Use filters to narrow results</span>
@@ -1825,8 +3022,8 @@
                 <div class="tip-item">
                   <div class="tip-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M9 12l2 2 4-4"/>
-                      <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/>
+                      <path d="M9 12l2 2 4-4" />
+                      <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z" />
                     </svg>
                   </div>
                   <span>Switch between grid and list views</span>
