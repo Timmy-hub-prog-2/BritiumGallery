@@ -5,28 +5,27 @@ import { Faq, FAQService } from '../faq.service';
   selector: 'app-faqlist',
   standalone: false,
   templateUrl: './faqlist.component.html',
-  styleUrl: './faqlist.component.css'
+  styleUrls: ['./faqlist.component.css']
 })
 export class FAQListComponent implements OnInit {
   faqs: Faq[] = [];
   expandedFaqIds: Set<number> = new Set();
-   groupedFaqs: { [category: string]: Faq[] } = {};
+  groupedFaqs: { [category: string]: Faq[] } = {};
   filteredFaqs: Faq[] = [];
   searchQuery: string = '';
   objectKeys = Object.keys;
-
 
   constructor(private faqService: FAQService) {}
 
   ngOnInit(): void {
     this.faqService.getFaqs().subscribe(data => {
       this.faqs = data;
-       this.filteredFaqs = data;
-        this.groupByCategory(this.faqs);
+      this.filteredFaqs = data;
+      this.groupByCategory(this.faqs);
     });
   }
 
-    groupByCategory(faqs: Faq[]) {
+  groupByCategory(faqs: Faq[]): void {
     this.groupedFaqs = {};
     faqs.forEach(faq => {
       const cat = faq.category || 'Other';
@@ -49,7 +48,6 @@ export class FAQListComponent implements OnInit {
     return this.expandedFaqIds.has(id);
   }
 
-  
   onSearchChange(): void {
     const query = this.searchQuery.toLowerCase();
     this.filteredFaqs = this.faqs.filter(f =>
@@ -57,6 +55,6 @@ export class FAQListComponent implements OnInit {
       f.answer.toLowerCase().includes(query)
     );
     
+    this.groupByCategory(this.filteredFaqs); // Re-group the filtered FAQs
   }
-
 }

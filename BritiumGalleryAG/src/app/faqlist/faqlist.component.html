@@ -1,22 +1,40 @@
 <div class="faq-user-view">
-  <h2>FAQs</h2>
-  <p>Welcome to our Frequently Asked Questions page. Here you’ll find answers about our products, orders, shipping, and more.</p>
+  <h2 class="faq-title">
+    <i class="fa fa-question-circle faq-icon"></i> Frequently Asked Questions
+  </h2>
+  <p class="faq-subtitle">
+    Find answers to common questions about orders, shipping, returns, and more. Can't find what you're looking for? Contact our support team.
+  </p>
 
-  <!-- <mat-form-field appearance="outline" class="search-bar">
-    <mat-label>Search FAQ</mat-label>
-    <input matInput placeholder="Search..." [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()" />
-  </mat-form-field> -->
+  <div class="faq-list-container">
+    <!-- Search Bar -->
+    <div class="search-container">
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (input)="onSearchChange()" 
+        placeholder="Search FAQs..." 
+        class="search-input" 
+      />
+    </div>
 
-  <div *ngFor="let category of objectKeys(groupedFaqs)">
-    <h3 class="faq-category">{{ category }}</h3>
-
-    <div class="faq-item" *ngFor="let faq of groupedFaqs[category]">
-      <div class="faq-question" (click)="toggleAnswer(faq.id!)">
-        <span class="faq-toggle">{{ isExpanded(faq.id!) ? '−' : '+' }}</span>
-        {{ faq.question }}
-      </div>
-      <div class="faq-answer" *ngIf="isExpanded(faq.id!)">
-        {{ faq.answer }}
+    <!-- FAQ Categories and Items -->
+    <div *ngFor="let category of objectKeys(groupedFaqs)">
+      <div class="category-section">
+        <h3 class="category-title">
+          {{ category }} 
+          <span class="question-count">({{ groupedFaqs[category].length }} questions)</span>
+        </h3>
+        <div *ngFor="let faq of groupedFaqs[category]" class="faq-item">
+          <div class="faq-question" (click)="toggleAnswer(faq.id!)">
+            <p>{{ faq.question }}</p>
+            <!-- Add Up/Down Arrow -->
+            <i class="fa" [ngClass]="isExpanded(faq.id!) ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          </div>
+          <div *ngIf="isExpanded(faq.id!)" class="faq-answer">
+            <p>{{ faq.answer }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

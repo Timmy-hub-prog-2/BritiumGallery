@@ -8,7 +8,9 @@ export interface BlogPost {
   content: string;
   author: string;
   imageUrl?: string;
+  videoUrl?: string;
   publishDate: string;
+  isMain?: boolean;
 }
 
 @Component({
@@ -27,6 +29,7 @@ export class BlogCreateComponent implements OnInit {
   };
 
   selectedFile!: File;
+  isVideo: boolean = false;
   blogs: BlogPost[] = [];
   editingId?: number;
 
@@ -40,13 +43,28 @@ export class BlogCreateComponent implements OnInit {
 
   onFileSelected(event: any) {
     this.selectedFile = event.target.files[0];
+    this.isVideo = this.selectedFile?.type.startsWith('video/');
   }
 
   submit() {
+    if (!this.blog.title.trim() || !this.blog.summary.trim() || !this.blog.content.trim() || !this.blog.author.trim() || !this.blog.publishDate) {
+      alert('Please fill in all fields before submitting the blog.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('post', new Blob([JSON.stringify(this.blog)], { type: 'application/json' }));
+
     if (this.selectedFile) {
-      formData.append('image', this.selectedFile);
+      const fileType = this.selectedFile.type;
+      if (fileType.startsWith('video/')) {
+        formData.append('video', this.selectedFile);
+      } else if (fileType.startsWith('image/')) {
+        formData.append('image', this.selectedFile);
+      } else {
+        alert('Only image or video files are allowed.');
+        return;
+      }
     }
 
     if (this.editingId) {
@@ -66,6 +84,7 @@ export class BlogCreateComponent implements OnInit {
 
   loadBlogs() {
     this.blogService.getAll().subscribe(data => {
+      
       this.blogs = data;
     });
   }
@@ -78,6 +97,15 @@ export class BlogCreateComponent implements OnInit {
   deleteBlog(id: number) {
     if (confirm('Are you sure you want to delete this blog?')) {
       this.blogService.delete(id).subscribe(() => {
+        this.loadBlogs();
+      });
+    }
+  }
+
+  setAsMain(blogId: number) {
+    if (confirm('Set this blog as the main blog?')) {
+      this.blogService.setMain(blogId).subscribe(() => {
+        alert('Main blog set successfully!');
         this.loadBlogs();
       });
     }

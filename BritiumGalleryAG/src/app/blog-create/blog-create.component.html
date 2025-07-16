@@ -1,5 +1,4 @@
 <div class="admin-blog">
-
   <!-- Page Header -->
   <div class="management-header">
     <div class="header-content">
@@ -18,7 +17,6 @@
   <!-- Blog Form -->
   <div class="form-section card">
     <h3 class="section-title">{{ editingId ? 'Edit Blog Post' : 'Create New Blog Post' }}</h3>
-
     <form (ngSubmit)="submit()" enctype="multipart/form-data">
       <div class="form-group">
         <label class="form-label">Title</label>
@@ -27,7 +25,8 @@
 
       <div class="form-group">
         <label class="form-label">Author</label>
-        <input type="text" [(ngModel)]="blog.author" name="author" class="form-input" required placeholder="Author name" />
+        <input type="text" [(ngModel)]="blog.author" name="author" class="form-input" required
+          placeholder="Author name" />
       </div>
 
       <div class="form-group">
@@ -37,17 +36,19 @@
 
       <div class="form-group">
         <label class="form-label">Summary</label>
-        <textarea [(ngModel)]="blog.summary" name="summary" rows="2" class="form-input" placeholder="Brief summary..."></textarea>
+        <textarea [(ngModel)]="blog.summary" name="summary" rows="2" class="form-input"
+          placeholder="Brief summary..."></textarea>
       </div>
 
       <div class="form-group">
         <label class="form-label">Content</label>
-        <textarea [(ngModel)]="blog.content" name="content" rows="5" class="form-input" placeholder="Main content..."></textarea>
+        <textarea [(ngModel)]="blog.content" name="content" rows="5" class="form-input"
+          placeholder="Main content..."></textarea>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Image Upload</label>
-        <input type="file" (change)="onFileSelected($event)" class="form-input" />
+        <label class="form-label">Media Upload (Image/Video)</label>
+        <input type="file" accept="image/*,video/*" (change)="onFileSelected($event)" class="form-input" />
       </div>
 
       <div class="footer-actions">
@@ -57,24 +58,37 @@
     </form>
   </div>
 
-  <!-- Blog List -->
-  <div class="blog-list card" *ngIf="blogs.length">
-    <h3 class="section-title">All Blog Posts</h3>
-
-    <div *ngFor="let b of blogs" class="blog-item">
-      <div class="blog-image-wrapper" *ngIf="b.imageUrl">
+ <!-- Blog List -->
+<div class="blog-list card" *ngIf="blogs && blogs.length > 0">
+  <h3 class="section-title">All Blog Posts</h3>
+  <div *ngFor="let b of blogs" class="blog-item">
+    <div class="blog-media-wrapper">
+      <ng-container *ngIf="b.imageUrl">
         <img [src]="b.imageUrl" alt="Image" class="blog-image" />
-      </div>
-      <div class="blog-details">
-        <h4>{{ b.title }}</h4>
-        <p><strong>Author:</strong> {{ b.author }}</p>
-        <p><strong>Date:</strong> {{ b.publishDate | date }}</p>
-        <p><strong>Summary:</strong> {{ b.summary }}</p>
-        <div class="action-buttons">
-          <button class="btn icon" (click)="editBlog(b)">Edit</button>
-          <button class="btn icon danger" (click)="deleteBlog(b.id!)">Delete</button>
-        </div>
+      </ng-container>
+      <ng-container *ngIf="b.videoUrl">
+        <video [src]="b.videoUrl" controls class="blog-video"></video>
+      </ng-container>
+    </div>
+    <div class="blog-details">
+      <h4>
+        {{ b.title }}
+        <span *ngIf="b.isMain" class="main-badge">★ Main</span>
+      </h4>
+
+      <p><strong>Author:</strong> {{ b.author }}</p>
+      <p><strong>Date:</strong> {{ b.publishDate | date }}</p>
+      <p><strong>Summary:</strong> {{ b.summary }}</p>
+      <div class="action-buttons">
+        <button class="btn icon" (click)="editBlog(b)">Edit</button>
+        <button class="btn icon danger" (click)="deleteBlog(b.id!)">Delete</button>
+        <button class="btn icon" [disabled]="b.isMain" (click)="setAsMain(b.id!)">
+          {{ b.isMain ? 'Main Blog' : 'Set as Main' }}
+        </button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ✅ Show message or debug -->
+<p *ngIf="blogs && blogs.length === 0">No blogs found.</p>

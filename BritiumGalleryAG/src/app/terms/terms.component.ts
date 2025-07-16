@@ -33,21 +33,32 @@ export class TermsComponent implements OnInit {
     });
   }
 
-  saveTerm() {
-    const term = this.termsForm.value;
-    if (this.editingId) {
-      this.termsService.updateTerms(this.editingId, term).subscribe(() => {
-        this.loadTerms();
-        this.termsForm.reset({ active: true });
-        this.editingId = null;
-      });
-    } else {
-      this.termsService.createTerms(term).subscribe(() => {
-        this.loadTerms();
-        this.termsForm.reset({ active: true });
-      });
-    }
+ saveTerm() {
+  const term = this.termsForm.value;
+
+  // Manual validation with trim check
+  if (
+    !term.title || !term.title.trim() ||
+    !term.content || !term.content.trim()
+  ) {
+    alert('Please fill in both title and content before saving.');
+    return;
   }
+
+  if (this.editingId) {
+    this.termsService.updateTerms(this.editingId, term).subscribe(() => {
+      this.loadTerms();
+      this.termsForm.reset({ active: true });
+      this.editingId = null;
+    });
+  } else {
+    this.termsService.createTerms(term).subscribe(() => {
+      this.loadTerms();
+      this.termsForm.reset({ active: true });
+    });
+  }
+}
+
 
   editTerm(term: Terms) {
     this.editingId = term.id!;

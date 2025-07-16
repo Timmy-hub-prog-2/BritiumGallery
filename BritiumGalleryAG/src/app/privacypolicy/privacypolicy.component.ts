@@ -32,27 +32,35 @@ export class PrivacypolicyComponent implements OnInit {
   }
 
   savePolicy(): void {
-    const payload = {
-      content: this.form.value.content,
-      active: this.form.value.active
-    };
+  const content = this.form.value.content?.trim();
 
-    if (this.policyId) {
-      this.http.put<any>(`http://localhost:8080/api/privacy-policy/${this.policyId}`, payload)
-        .subscribe(() => {
-          alert('Policy updated!');
-          this.resetForm();
-          this.fetchPolicies();
-        });
-    } else {
-      this.http.post<any>('http://localhost:8080/api/privacy-policy', payload)
-        .subscribe(() => {
-          alert('Policy created!');
-          this.resetForm();
-          this.fetchPolicies();
-        });
-    }
+  if (!content) {
+    alert('Please enter the privacy policy content before saving.');
+    return;
   }
+
+  const payload = {
+    content: content,
+    active: this.form.value.active
+  };
+
+  if (this.policyId) {
+    this.http.put<any>(`http://localhost:8080/api/privacy-policy/${this.policyId}`, payload)
+      .subscribe(() => {
+        alert('Policy updated!');
+        this.resetForm();
+        this.fetchPolicies();
+      });
+  } else {
+    this.http.post<any>('http://localhost:8080/api/privacy-policy', payload)
+      .subscribe(() => {
+        alert('Policy created!');
+        this.resetForm();
+        this.fetchPolicies();
+      });
+  }
+}
+
 
   resetForm(): void {
     this.form.reset();

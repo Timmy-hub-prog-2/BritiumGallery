@@ -1,0 +1,80 @@
+/* Layout Container */
+.admin-blog {
+  padding: 32px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+/* Header */
+.management-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 40px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 20px;
+}
+
+.header-icon {
+  margin-right: 16px;
+  color: #2c3e50;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.page-subtitle {
+  margin-top: 5px;
+  color: #666;
+  font-size: 16px;
+}
+
+/* Long Text Blocks */
+.about-full-card {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.about-long-block {
+  background-color: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border-left: 6px solid #2c3e50;
+}
+
+.long-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #2c3e50;
+}
+
+.long-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+  white-space: pre-wrap; /* allow long content to wrap naturally */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 22px;
+  }
+
+  .long-title {
+    font-size: 20px;
+  }
+
+  .long-text {
+    font-size: 15px;
+  }
+
+  .about-long-block {
+    padding: 24px;
+  }
+}

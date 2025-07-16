@@ -1,0 +1,39 @@
+<div class="admin-blog">
+  <!-- Page Header -->
+  <div class="management-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 6h18M6 6v14a2 2 0 002 2h8a2 2 0 002-2V6M9 10h6M9 14h6" />
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">About Us</h1>
+        <p class="page-subtitle">Who we are and what we stand for</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Us Long Text View -->
+  <div *ngFor="let about of aboutList" class="about-full-card">
+    <div class="about-long-block">
+      <h2 class="long-title">Our Mission</h2>
+      <p class="long-text">{{ about.mission }}</p>
+    </div>
+
+    <div class="about-long-block">
+      <h2 class="long-title">Our Vision</h2>
+      <p class="long-text">{{ about.vision }}</p>
+    </div>
+
+    <div class="about-long-block">
+      <h2 class="long-title">Our Story</h2>
+      <p class="long-text">{{ about.story }}</p>
+    </div>
+
+    <div class="about-long-block">
+      <h2 class="long-title">Our Values</h2>
+      <p class="long-text">{{ about.valueText }}</p>
+    </div>
+  </div>
+</div>

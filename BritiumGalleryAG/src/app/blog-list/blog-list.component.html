@@ -1,0 +1,30 @@
+<div class="user-blog-list">
+  <h3 class="section-title">Blog Posts</h3>
+
+  <div *ngIf="blogs && blogs.length > 0; else noBlogs" class="blog-list">
+    <a *ngFor="let b of blogs" [routerLink]="['/blogdetail', b.id]" class="blog-item-link">
+      <div class="blog-item">
+        <div class="blog-media-wrapper">
+          <ng-container *ngIf="b.imageUrl">
+            <img [src]="b.imageUrl" alt="Image" class="blog-image" />
+          </ng-container>
+          <ng-container *ngIf="b.videoUrl">
+            <video [src]="b.videoUrl" controls class="blog-video"></video>
+          </ng-container>
+          <span *ngIf="b.isMain" class="main-badge">★ Main</span>
+        </div>
+
+        <div class="blog-details">
+          <h4>{{ b.title }}</h4>
+          <p><strong>Author:</strong> {{ b.author }}</p>
+          <p><strong>Published on:</strong> {{ b.publishDate | date }}</p>
+          <p>{{ b.summary }}</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <ng-template #noBlogs>
+    <p>No blogs available at the moment.</p>
+  </ng-template>
+</div>
