@@ -24,6 +24,10 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
     @Query("DELETE FROM ProductEntity p WHERE p.category.id = :categoryId")
     void deleteByCategoryId(@Param("categoryId") Long categoryId);
 
+    List<ProductEntity> findByBrandId(Long brandId);
+
+    List<ProductEntity> findByBrandIdAndCategoryId(Long brandId, Long categoryId);
+
 
     // You can add custom query methods here if needed, e.g.:
     // List<ProductEntity> findByCategory_Id(Long categoryId);

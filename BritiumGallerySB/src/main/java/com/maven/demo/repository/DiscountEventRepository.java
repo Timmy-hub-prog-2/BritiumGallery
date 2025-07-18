@@ -1,9 +1,10 @@
 package com.maven.demo.repository;
-import com.maven.demo.entity.DiscountEvent;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.time.LocalDate;
 import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.maven.demo.entity.DiscountEvent;
 
 public interface DiscountEventRepository extends JpaRepository<DiscountEvent, Long> {
     List<DiscountEvent> findByActiveTrueAndStartDateBeforeAndEndDateAfter(LocalDate now1, LocalDate now2);
@@ -13,4 +14,6 @@ public interface DiscountEventRepository extends JpaRepository<DiscountEvent, Lo
     
     // Find active events created by specific admin
     List<DiscountEvent> findByAdminIdAndActiveTrue(Long adminId);
+
+    List<DiscountEvent> findByActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqual(java.time.LocalDate start, java.time.LocalDate end);
 }

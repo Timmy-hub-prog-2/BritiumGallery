@@ -140,10 +140,19 @@
 
     <!-- Other Recommendations Section -->
     <div class="recommendations-section">
-      <h3>Other recommendations for your business</h3>
-      <div class="recommendations-placeholder">
-        <!-- Placeholder for recommendation items -->
-        <p>Recommendation items will be displayed here</p>
+      <h3>Other recommendations items</h3>
+      <div class="recommendations-list">
+        <ng-container *ngIf="recommendations.length > 0; else noRecommendations">
+          <div *ngFor="let rec of recommendations" class="recommendation-item" (click)="goToProductDetail(rec.productId)">
+            <img [src]="rec.imageUrl || 'assets/img/default.jpg'" alt="{{ rec.productName }}" class="recommendation-image" />
+            <div class="recommendation-name">{{ rec.productName }}</div>
+          </div>
+        </ng-container>
+        <ng-template #noRecommendations>
+          <div class="recommendations-placeholder">
+            <p>No recommendations available.</p>
+          </div>
+        </ng-template>
       </div>
     </div>
 

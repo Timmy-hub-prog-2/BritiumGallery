@@ -1,63 +1,106 @@
-<h2 class="form-title">{{ isEdit ? "Edit" : "Create" }} Payment Register</h2>
-
-<form
-  [formGroup]="paymentForm"
-  (ngSubmit)="submit()"
-  enctype="multipart/form-data"
-  novalidate
-  class="payment-form"
->
-  <!-- Name Field -->
-  <label for="name" class="form-label">Name:</label>
-  <input id="name" formControlName="name" class="form-input" />
-  <div
-    *ngIf="paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched"
-    class="error"
-  >
-    Name is required
+<div class="payment-register-container">
+  <div class="form-header">
+    <h2 class="form-title">
+      <span class="title-icon">{{ isEdit ? "✏️" : "➕" }}</span>
+      {{ isEdit ? "Edit" : "Create" }} Payment Register
+    </h2>
   </div>
 
-  <!-- Admin ID Field -->
-  <label for="admin_id" class="form-label">Admin ID:</label>
-  <input
-    id="admin_id"
-    type="number"
-    formControlName="admin_id"
-    class="form-input"
-    readonly
-  />
-
-  <div
-    *ngIf="
-      paymentForm.get('admin_id')?.invalid &&
-      paymentForm.get('admin_id')?.touched
-    "
-    class="error"
+  <form
+    [formGroup]="paymentForm"
+    (ngSubmit)="submit()"
+    enctype="multipart/form-data"
+    novalidate
+    class="payment-form"
   >
-    Admin ID must be a positive number
-  </div>
+    <!-- Name Field -->
+    <div class="form-group">
+      <label for="name" class="form-label">
+        <span class="label-icon">📝</span>
+        Payment Name
+      </label>
+      <input 
+        id="name" 
+        formControlName="name" 
+        class="form-input" 
+        placeholder="Enter payment name"
+      />
+      <div
+        *ngIf="paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched"
+        class="error-message"
+      >
+        <span class="error-icon">⚠️</span>
+        Name is required
+      </div>
+    </div>
 
-  <!-- QR Code Upload -->
-  <label for="qrPhotos" class="form-label">Upload QR Code Images:</label>
-  <input
-    id="qrPhotos"
-    type="file"
-    (change)="onFileChange($event)"
-    multiple
-    accept="image/*"
-    class="file-input"
-  />
-  <div *ngIf="fileError" class="error">{{ fileError }}</div>
+    <!-- Admin ID Field -->
+    <div class="form-group">
+      <label for="admin_id" class="form-label">
+        <span class="label-icon">👤</span>
+        Admin ID
+      </label>
+      <input
+        id="admin_id"
+        type="number"
+        formControlName="admin_id"
+        class="form-input readonly"
+        readonly
+        placeholder="Auto-generated"
+      />
+      <div
+        *ngIf="
+          paymentForm.get('admin_id')?.invalid &&
+          paymentForm.get('admin_id')?.touched
+        "
+        class="error-message"
+      >
+        <span class="error-icon">⚠️</span>
+        Admin ID must be a positive number
+      </div>
+    </div>
 
-  <!-- Buttons -->
-  <button
-    type="submit"
-    [disabled]="paymentForm.invalid || (!isEdit && selectedFiles.length === 0)"
-    class="btn submit-btn"
-  >
-    {{ isEdit ? "Update" : "Create" }}
-  </button>
-  <button type="button" (click)="cancel()" class="btn cancel-btn">
-    Cancel
-  </button>
-</form>
+    <!-- QR Code Upload -->
+    <div class="form-group">
+      <label for="qrPhotos" class="form-label">
+        <span class="label-icon">📷</span>
+        Upload QR Code Images
+      </label>
+      <div class="file-upload-wrapper">
+        <input
+          id="qrPhotos"
+          type="file"
+          (change)="onFileChange($event)"
+          multiple
+          accept="image/*"
+          class="file-input"
+        />
+        <div class="file-upload-area">
+          <span class="upload-icon">📁</span>
+          <span class="upload-text">Click to upload or drag and drop</span>
+          <span class="upload-subtext">Multiple images accepted</span>
+        </div>
+      </div>
+      <div *ngIf="fileError" class="error-message">
+        <span class="error-icon">⚠️</span>
+        {{ fileError }}
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="form-actions">
+      <button
+        type="submit"
+        [disabled]="paymentForm.invalid || (!isEdit && selectedFiles.length === 0)"
+        class="btn submit-btn"
+      >
+        <span class="btn-icon">{{ isEdit ? "💾" : "✅" }}</span>
+        {{ isEdit ? "Update Payment" : "Create Payment" }}
+      </button>
+      <button type="button" (click)="cancel()" class="btn cancel-btn">
+        <span class="btn-icon">❌</span>
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

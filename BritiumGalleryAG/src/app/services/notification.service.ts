@@ -80,4 +80,10 @@ export class NotificationService {
   getUserScheduledNotifications(userId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/scheduled/user/${userId}`);
   }
+
+  registerRestockNotification(userId: number, productVariantId: number) {
+    return this.http.post<any>(`http://localhost:8080/restock-notification/register`, null, {
+      params: { userId: userId.toString(), productVariantId: productVariantId.toString() }
+    });
+  }
 } 

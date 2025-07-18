@@ -1,22 +1,40 @@
     package com.maven.demo.controller;
 
-    import com.maven.demo.dto.LoginRequestDTO;
-    import com.maven.demo.dto.LoginResponseDTO;
-    import com.maven.demo.dto.UserDTO;
-    import com.maven.demo.dto.UserResponseDTO;
-    import com.maven.demo.dto.CustomerGrowthDTO;
-    import com.maven.demo.service.AddressService;
-    import com.maven.demo.service.CloudinaryUploadService;
-    import com.maven.demo.service.UserService;
-    import com.maven.demo.service.UserService1;
+    import java.io.IOException;
+    import java.util.ArrayList;
+    import java.util.Collections;
+    import java.util.HashMap;
+    import java.util.List;
+    import java.util.Map;
+    import java.util.Optional;
+
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.http.HttpStatus;
     import org.springframework.http.ResponseEntity;
-    import org.springframework.web.bind.annotation.*;
-    import org.springframework.web.multipart.MultipartFile;
+    import org.springframework.web.bind.annotation.CrossOrigin;
+    import org.springframework.web.bind.annotation.GetMapping;
+    import org.springframework.web.bind.annotation.PathVariable;
+    import org.springframework.web.bind.annotation.PostMapping;
+    import org.springframework.web.bind.annotation.PutMapping;
+    import org.springframework.web.bind.annotation.RequestBody;
+    import org.springframework.web.bind.annotation.RequestMapping;
+    import org.springframework.web.bind.annotation.RequestParam;
+    import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-    import java.io.IOException;
-    import java.util.*;
+import com.maven.demo.dto.CustomerGrowthDTO;
+import com.maven.demo.dto.LoginRequestDTO;
+import com.maven.demo.dto.LoginResponseDTO;
+import com.maven.demo.dto.PeopleDTO;
+import com.maven.demo.dto.UserDTO;
+import com.maven.demo.dto.UserResponseDTO;
+import com.maven.demo.entity.AddressEntity;
+import com.maven.demo.entity.UserEntity;
+import com.maven.demo.service.AddressService;
+import com.maven.demo.service.CloudinaryUploadService;
+import com.maven.demo.service.UserService;
+import com.maven.demo.service.UserService1;
 
     @CrossOrigin(origins = "http://localhost:4200")
     @RestController
@@ -104,6 +122,46 @@
             return userService1.getUserProfileById(id)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
+        }
+
+        @GetMapping("/people/{id}")
+        public ResponseEntity<PeopleDTO> getPeopleById(@PathVariable Long id) {
+            Optional<UserEntity> userOpt = userService1.getUserEntityById(id);
+            if (userOpt.isEmpty()) return ResponseEntity.notFound().build();
+            UserEntity user = userOpt.get();
+            PeopleDTO dto = new PeopleDTO();
+            dto.id = user.getId();
+            dto.name = user.getName();
+            dto.email = user.getEmail();
+            dto.gender = user.getGender();
+            dto.phoneNumber = user.getPhoneNumber();
+            // Set profilePic (first image URL if available)
+            if (user.getImageUrls() != null && !user.getImageUrls().isEmpty()) {
+                dto.profilePic = user.getImageUrls().get(0);
+            }
+            // Set customerType
+            if (user.getCustomerType() != null) {
+                dto.customerType = user.getCustomerType().getType();
+            }
+            // Find main address
+            AddressEntity mainAddr = null;
+            if (user.getAddresses() != null) {
+                mainAddr = user.getAddresses().stream().filter(AddressEntity::isMainAddress).findFirst().orElse(null);
+            }
+            if (mainAddr != null) {
+                PeopleDTO.Address addr = new PeopleDTO.Address();
+                addr.houseNumber = mainAddr.getHouseNumber();
+                addr.wardName = mainAddr.getWardName();
+                addr.street = mainAddr.getStreet();
+                addr.township = mainAddr.getTownship();
+                addr.city = mainAddr.getCity();
+                addr.state = mainAddr.getState();
+                addr.country = mainAddr.getCountry();
+                addr.latitude = mainAddr.getLatitude();
+                addr.longitude = mainAddr.getLongitude();
+                dto.address = addr;
+            }
+            return ResponseEntity.ok(dto);
         }
 
         @PutMapping("/profile/{id}")

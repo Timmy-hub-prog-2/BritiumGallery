@@ -1,0 +1,34 @@
+<div *ngFor="let event of eventDiscountGroups" class="event-group">
+  <div class="event-header">
+    <div class="event-title-row">
+      <h2 class="event-title">{{ event.eventName }}</h2>
+      <span class="event-countdown" [ngClass]="{'ended': countdowns[event.eventId] === 'Ended'}">
+        <i class="fa fa-clock-o"></i>
+        <span *ngIf="countdowns[event.eventId]">{{ countdowns[event.eventId] }}</span>
+      </span>
+    </div>
+    <span class="event-due-date">
+      Ends: {{ event.eventDueDate | date:'mediumDate' }}
+    </span>
+  </div>
+  <div class="event-product-list">
+    <div class="event-product-card" *ngFor="let product of event.products"
+         [routerLink]="['/product-detail', product.productId]" 
+         style="text-decoration: none; color: inherit;" 
+         tabindex="0">
+      <div class="image-container">
+        <img [src]="product.imageUrl" alt="Product photo" />
+        <span class="discount-badge" *ngIf="product.discountPercent">-{{ product.discountPercent }}%</span>
+      </div>
+      <div class="product-name">{{ product.productName }}</div>
+      <div class="product-attributes" *ngIf="product.attributes">
+        <ng-container *ngFor="let attr of getAttributeList(product.attributes)">
+          <span class="attribute-pill">{{ attr }}</span>
+        </ng-container>
+      </div>
+      <div class="sku">SKU: {{ product.sku }}</div>
+      <div class="original-price">Original: <span>{{ product.originalPrice | currency:'MMK' }}</span></div>
+      <div class="discounted-price">Now: <span>{{ product.discountedPrice | currency:'MMK' }}</span></div>
+    </div>
+  </div>
+</div>

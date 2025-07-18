@@ -330,9 +330,12 @@ export class NavigationComponent implements OnInit, OnDestroy {
     return undefined;
   }
 
-  goToProductDetail(productId: number): void {
-    this.router.navigate(['/product-detail', productId]);
-    this.hideMegaMenu();
+  goToProductDetail(productId: number | undefined) {
+    if (productId !== undefined && productId !== null) {
+      this.router.navigate(['/product-detail', productId]);
+      this.closeNotifications();
+      this.selectedNotification = null;
+    }
   }
 
   goToCategoryProduct(categoryId: number): void {

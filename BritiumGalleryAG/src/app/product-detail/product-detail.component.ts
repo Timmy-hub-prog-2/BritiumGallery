@@ -8,6 +8,9 @@ import { ProductResponse, VariantResponse } from '../ProductResponse';
 import { CartService, CartItem } from '../services/cart.service';
 import { UserService } from '../services/user.service';
 import { User } from '../../user.model';
+import Swal from 'sweetalert2';
+import { NotificationService } from '../services/notification.service';
+import { ProductRecommendation } from '../services/product.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -27,14 +30,17 @@ export class ProductDetailComponent implements OnInit {
   currentImageIndex: number = 0;
   quantity: number = 1;
   currentUser: User | null = null;
+  recommendations: ProductRecommendation[] = [];
 
-  constructor(private authService:AuthService,
+  constructor(
+    private authService:AuthService,
     private wishlistService:WishlistService, private snackBar: MatSnackBar,
     private route: ActivatedRoute, private productService: ProductService,
-     private cdr: ChangeDetectorRef,
-     private cartService: CartService,
-     private router: Router,
-     private userService: UserService
+    private cdr: ChangeDetectorRef,
+    private cartService: CartService,
+    private router: Router,
+    private userService: UserService,
+    private notificationService: NotificationService // <-- Injected
   ) {}
 
   ngOnInit(): void {
@@ -46,6 +52,8 @@ export class ProductDetailComponent implements OnInit {
            this.breadcrumb = data;
             this.loadWishlist(); 
       });
+      // Fetch recommendations after product detail
+      this.fetchRecommendations();
     });
     this.loadCurrentUser();
   }
@@ -95,6 +103,13 @@ export class ProductDetailComponent implements OnInit {
         this.selectedVariantImage = this.productImages[0];
         this.currentImageIndex = 0;
       }
+      this.cdr.detectChanges();
+    });
+  }
+
+  fetchRecommendations(): void {
+    this.productService.getRecommendedProducts(this.productId, 8).subscribe(data => {
+      this.recommendations = data;
       this.cdr.detectChanges();
     });
   }
@@ -407,7 +422,35 @@ loadWishlist(): void {
     }
 
     if (selectedVariant.stock === 0 || this.quantity > selectedVariant.stock) {
-      this.snackBar.open('Item is out of stock or requested quantity exceeds stock.', 'Close', { duration: 3000 });
+      Swal.fire({
+        icon: 'warning',
+        title: 'Out of Stock',
+        text: 'This item is out of stock. Would you like to be notified when it is restocked?',
+        showCancelButton: true,
+        confirmButtonText: 'Remind Me',
+        cancelButtonText: 'Cancel',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.notificationService.registerRestockNotification(this.currentUser!.id, selectedVariant.id).subscribe({
+            next: (res) => {
+              console.log('Restock notification success:', res);
+              Swal.fire('Registered!', 'You will be notified when this product is restocked.', 'success');
+            },
+            error: (err) => {
+              console.log('Restock notification error:', err);
+              let msg = 'Failed to register for restock notification.';
+              if (err && err.status === 400 && err.error && typeof err.error.message === 'string') {
+                if (err.error.message.includes('already registered')) {
+                  msg = 'You have already added this product to your reminder list.';
+                } else {
+                  msg = err.error.message;
+                }
+              }
+              Swal.fire('Notice', msg, 'info');
+            }
+          });
+        }
+      });
       return;
     }
 
@@ -462,6 +505,10 @@ loadWishlist(): void {
       if (!variant.attributes) return false;
       return Object.entries(this.selectedVariations).every(([type, value]) => variant.attributes[type] === value);
     }) || this.latestProductDetail.variants[0];
+  }
+
+  goToProductDetail(productId: number): void {
+    this.router.navigate(['/product-detail', productId]);
   }
 }
 

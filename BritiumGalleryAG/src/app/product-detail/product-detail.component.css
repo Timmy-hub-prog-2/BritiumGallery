@@ -546,17 +546,18 @@
 
 /* Other Recommendations Section */
 .recommendations-section {
-  background: white;
+  margin-top: 3em;
+  background: rgb(255, 255, 255);
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
 }
 
 .recommendations-section h3 {
   font-size: 20px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 16px;
+ 
 }
 
 .recommendations-placeholder {
@@ -570,6 +571,48 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.recommendations-list {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-top: 8px;
+}
+
+.recommendation-item {
+  min-width: 200px;
+  max-width: 230px;
+  flex: 0 0 auto;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 10px;
+ 
+  padding: 18px 10px 14px 10px;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.18s;
+  
+}
+.recommendation-item:hover {
+ 
+  transform: scale(1.045);
+}
+.recommendation-image {
+  width: 200px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: #f2f2f2;
+}
+.recommendation-name {
+  font-size: 1.08em;
+  font-weight: 600;
+  color: #222;
+  white-space: normal;
+  word-break: break-word;
+  margin-top: 2px;
 }
 
 /* Product Description Section */

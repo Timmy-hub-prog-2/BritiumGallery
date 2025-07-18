@@ -27,6 +27,14 @@ html, body {
   
 }
 
+body.customer-homepage-active .content-wrap {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
 
 .custom-swal-close {
   width: 20px !important;

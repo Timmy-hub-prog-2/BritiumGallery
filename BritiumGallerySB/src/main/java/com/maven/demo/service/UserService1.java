@@ -1,11 +1,13 @@
 package com.maven.demo.service;
 
-import com.maven.demo.dto.UserDTO;
-import com.maven.demo.dto.UserResponseDTO;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import com.maven.demo.dto.UserDTO;
+import com.maven.demo.dto.UserResponseDTO;
+import com.maven.demo.entity.UserEntity;
 
 public interface UserService1 {
     List<UserResponseDTO> getAdmins();
@@ -15,5 +17,5 @@ public interface UserService1 {
 
     Optional<UserResponseDTO> updateUserProfile(Long id, UserDTO userDto, MultipartFile imageFile);
 
-
+    Optional<UserEntity> getUserEntityById(Long id);
 }

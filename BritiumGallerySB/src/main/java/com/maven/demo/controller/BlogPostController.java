@@ -1,16 +1,25 @@
 package com.maven.demo.controller;
 
-import com.maven.demo.entity.BlogPost;
-import com.maven.demo.service.BlogPostService;
-import com.maven.demo.service.CloudinaryUploadService;
+import java.io.IOException;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.List;
+import com.maven.demo.entity.BlogPost;
+import com.maven.demo.service.BlogPostService;
+import com.maven.demo.service.CloudinaryUploadService;
 
 @RestController
 @RequestMapping("/api/blogs")
@@ -78,6 +87,11 @@ public class BlogPostController {
     @GetMapping("/{id}")
     public BlogPost getOne(@PathVariable Long id) {
         return blogPostService.getById(id);
+    }
+
+    @GetMapping("/main")
+    public BlogPost getMainBlog() {
+        return blogPostService.getMainBlog();
     }
 
     @DeleteMapping("/{id}")

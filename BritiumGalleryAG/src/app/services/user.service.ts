@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { User } from '../../user.model';
+import { People } from '../People';
 
 export interface CustomerGrowthDTO {
   period: string;
@@ -120,5 +121,9 @@ export class UserService {
 
   getCustomerGrowth(from: string, to: string, groupBy: string = 'day'): Observable<CustomerGrowthDTO[]> {
     return this.http.get<CustomerGrowthDTO[]>(`${this.userBase}/admin/customer-growth?from=${from}&to=${to}&groupBy=${groupBy}`);
+  }
+
+  getPeopleById(id: number): Observable<People> {
+    return this.http.get<People>(`${this.userBase}/people/${id}`);
   }
 }

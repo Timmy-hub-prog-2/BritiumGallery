@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -9,6 +10,12 @@ import { Component, OnInit } from '@angular/core';
 export class AppComponent implements OnInit {
   title = 'BritiumGalleryAG';
   roleId: number | null = null;
+
+  constructor(public router: Router) {}
+
+  get isHomePage(): boolean {
+    return this.router.url === '/customer-homepage';
+  }
 
   ngOnInit() {
     const user = localStorage.getItem('loggedInUser');

@@ -265,7 +265,7 @@
       <a href="#" class="dropdown-item">My Alibaba</a>
       <a href="/customer-order-list" class="dropdown-item">Orders</a>
       <a href="/customer-order-refund-list" class="dropdown-item">Refunds</a>
-      <a href="#" class="dropdown-item">Messages</a>
+      <a href="/customer-message" class="dropdown-item">Messages</a>
       <a href="#" class="dropdown-item">RFQs</a>
       <a href="#" class="dropdown-item">Favorites</a>
       <a href="/view-profile" class="dropdown-item">Account</a>
@@ -365,8 +365,17 @@
         </div>
       </div>
     </div>
-    <div class="modal-footer" *ngIf="hasAction(selectedNotification)">
-      <button class="modal-action-btn primary" (click)="handleNotificationAction(selectedNotification)">
+    <div class="modal-footer" *ngIf="selectedNotification">
+      <button 
+        *ngIf="selectedNotification.type === 'RESTOCK'" 
+        class="modal-action-btn primary" 
+        (click)="goToProductDetail(selectedNotification.relatedObjectId)">
+        View Product
+      </button>
+      <button 
+        *ngIf="hasAction(selectedNotification) && selectedNotification.type !== 'RESTOCK'" 
+        class="modal-action-btn primary" 
+        (click)="handleNotificationAction(selectedNotification)">
         {{ getActionLabel(selectedNotification.type) }}
       </button>
       <button class="modal-action-btn secondary" (click)="closeNotificationDetail()">

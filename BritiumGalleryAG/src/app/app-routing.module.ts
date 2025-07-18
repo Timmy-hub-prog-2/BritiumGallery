@@ -55,6 +55,12 @@ import { BrandRegisterComponent } from './brand-register/brand-register.componen
 import { ShippingReturnsPolicyComponent } from './shipping-returns-policy/shipping-returns-policy.component';
 import { AboutComponent } from './about/about.component';
 import { BlogCreateComponent } from './blog-create/blog-create.component';
+import { CustomerHomepageComponent } from './customer-homepage/customer-homepage.component';
+import { DiscountedItemsComponent } from './discounted-items/discounted-items.component';
+import { BlogDetailComponent } from './blog-detail/blog-detail.component';
+import { BlogListComponent } from './blog-list/blog-list.component';
+import { CustomerMessageComponent } from './customer-message/customer-message.component';
+import { AdminMessageComponent } from './admin-message/admin-message.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -113,7 +119,14 @@ const routes: Routes = [
   { path: 'brand-register', component: BrandRegisterComponent },
   {path:'shippingpolicy',component:ShippingReturnsPolicyComponent},
   {path:'about',component:AboutComponent},
-   {path:'blog',component:BlogCreateComponent}
+   {path:'blog',component:BlogCreateComponent},
+   {path:'customer-homepage',component:CustomerHomepageComponent},
+   {path:'discounted-items/:eventId',component:DiscountedItemsComponent},
+   {path:'blog-detail/:id',component:BlogDetailComponent},
+   {path:'blog-list',component:BlogListComponent},
+   {path:'customer-message',component:CustomerMessageComponent},
+   {path:'admin-message',component:AdminMessageComponent}
+
 
 
 

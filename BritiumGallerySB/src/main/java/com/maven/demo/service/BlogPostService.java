@@ -1,13 +1,15 @@
 package com.maven.demo.service;
 
-import com.maven.demo.entity.BlogPost;
-import com.maven.demo.repository.BlogPostRepository;
-import jakarta.transaction.Transactional;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.maven.demo.entity.BlogPost;
+import com.maven.demo.repository.BlogPostRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class BlogPostService {
@@ -41,4 +43,7 @@ public class BlogPostService {
         blogPostRepository.save(blog);
     }
 
+    public BlogPost getMainBlog() {
+        return blogPostRepository.findFirstByIsMainTrue();
+    }
 }

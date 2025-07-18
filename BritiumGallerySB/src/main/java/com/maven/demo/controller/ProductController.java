@@ -7,11 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.maven.demo.entity.BrandEntity;
-import com.maven.demo.repository.BrandRepository;
-import com.maven.demo.service.ExcelService;
-import jakarta.servlet.http.HttpServletResponse;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.DataValidation;
+import org.apache.poi.ss.usermodel.DataValidationConstraint;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,19 +32,24 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.maven.demo.dto.AddStockRequestDTO;
-import com.maven.demo.dto.LostProductAnalyticsDTO;
 import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
+import com.maven.demo.dto.ProductSearchResultDTO;
 import com.maven.demo.dto.PurchaseHistoryResponseDTO;
 import com.maven.demo.dto.ReduceStockHistoryResponseDTO;
 import com.maven.demo.dto.ReduceStockRequestDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
+import com.maven.demo.entity.BrandEntity;
 import com.maven.demo.entity.ProductVariantEntity;
+import com.maven.demo.repository.BrandRepository;
 import com.maven.demo.repository.ProductVariantRepository;
 import com.maven.demo.service.CloudinaryUploadService;
+import com.maven.demo.service.ExcelService;
 import com.maven.demo.service.ProductService;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -450,6 +456,12 @@ public class ProductController {
         excelService.parseAndInsertExcelData(file, categoryId, adminId);
         // Pass categoryId
         return ResponseEntity.ok(Map.of("success", true, "message", "Upload successful"));
+    }
+
+    @GetMapping("/{productId}/recommendations")
+    public ResponseEntity<List<ProductSearchResultDTO>> getRecommendedProducts(@PathVariable Long productId, @RequestParam(defaultValue = "8") int limit) {
+        List<ProductSearchResultDTO> recommendations = productService.getRecommendedProducts(productId, limit);
+        return ResponseEntity.ok(recommendations);
     }
 
 }

@@ -1,21 +1,21 @@
 package com.maven.demo.service;
 
-import com.maven.demo.dto.UserDTO;
-import com.maven.demo.dto.UserResponseDTO;
-import com.maven.demo.dto.AddressDTO;
-import com.maven.demo.dto.CustomerGrowthDTO;
-import com.maven.demo.entity.AddressEntity;
-import com.maven.demo.entity.UserEntity;
-import com.maven.demo.repository.ShopAddressRepository;
-import com.maven.demo.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.maven.demo.dto.AddressDTO;
+import com.maven.demo.dto.UserDTO;
+import com.maven.demo.dto.UserResponseDTO;
+import com.maven.demo.entity.AddressEntity;
+import com.maven.demo.entity.UserEntity;
+import com.maven.demo.repository.ShopAddressRepository;
+import com.maven.demo.repository.UserRepository;
 
 @Service
 public class UserServiceImpl implements UserService1 {
@@ -111,6 +111,11 @@ public class UserServiceImpl implements UserService1 {
     public Optional<UserResponseDTO> getUserProfileById(Long id) {
         return userRepository.findById(id)
                 .map(this::convertToDto);
+    }
+
+    @Override
+    public Optional<UserEntity> getUserEntityById(Long id) {
+        return userRepository.findById(id);
     }
 
     @Override

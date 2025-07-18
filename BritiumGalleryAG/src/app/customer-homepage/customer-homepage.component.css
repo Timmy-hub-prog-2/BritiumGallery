@@ -1,0 +1,579 @@
+:host ::ng-deep .content-wrap {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+
+:host {
+  display: block;
+  padding: 0 !important;
+  margin-bottom: 5em;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.hero-section, .new-arrivals-hero {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+
+
+.homepage-section {
+  margin-top: 2em;
+  padding-left: 20px;
+  padding-right: 20px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.homepage-section h2 {
+  margin-left: 30px;
+  margin-top: 3em;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.product-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.product-card {
+  background: #fff;
+  overflow: hidden;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s;
+}
+
+.product-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+}
+
+.product-card img {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  margin-top: 1rem;
+}
+
+.product-info {
+  padding: 1rem;
+  text-align: center;
+}
+
+.product-info h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.25rem 0;
+}
+
+.product-info p {
+  margin: 0.25rem 0;
+  color: #444;
+}
+
+.price {
+  color: #111;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.nike-hero-list {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.nike-hero-card {
+  flex: 0 0 50%;
+  width: 50%;
+  height: 580px;
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+  display: flex;
+  align-items: flex-end;
+  box-shadow: none;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.nike-hero-card img {
+  width: 100%;
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
+  z-index: 1;
+}
+
+.nike-hero-info {
+  position: absolute;
+  left: 0; bottom: 0;
+  z-index: 2;
+  background: linear-gradient(0deg, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.0) 100%);
+  color: #fff;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.nike-hero-name {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.nike-hero-price {
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin-bottom: 1.2rem;
+}
+
+.nike-hero-btn {
+  background: #fff;
+  color: #111;
+  border: none;
+  border-radius: 24px;
+  padding: 0.6rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transition: background 0.2s, color 0.2s;
+}
+.nike-hero-btn:hover {
+  background: #111;
+  color: #fff;
+}
+
+.full-bleed {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  max-width: 100%;
+  position: static;
+  left: unset;
+  right: unset;
+  box-sizing: border-box;
+}
+
+.top-best-sellers-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.top-best-sellers-row {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 2.5rem;
+  margin: 3rem 0 2rem 0;
+}
+
+.top-best-seller-card {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 400px;
+  aspect-ratio: 3/4;
+  position: relative;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+}
+
+.top-best-seller-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 1;
+}
+
+.nike-best-seller-btn {
+  position: relative;
+  z-index: 2;
+  margin: 0 0 2rem 2rem;
+  padding: 0.8rem 3rem;
+  
+  background: #fff;
+  color: #111;
+  border: none;
+  border-radius: 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nike-best-seller-btn:hover {
+  background: #111;
+  color: #fff;
+}
+
+.event-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+.event-header h2 {
+  margin: 0;
+}
+.event-due-date {
+  color: #888;
+  font-size: 1em;
+}
+.event-product-carousel {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5em;
+  padding-bottom: 0.5em;
+  scroll-snap-type: x mandatory;
+}
+.event-product-card {
+  min-width: 190px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scroll-snap-align: start;
+  padding: 1em;
+  transition: box-shadow 0.2s;
+  position: relative;
+}
+
+.event-product-card img {
+  border-radius: 14px;
+  aspect-ratio: 2/3;
+  width: 240px;
+  height: 200px;
+  object-fit: contain;
+  margin-bottom: 1em;
+}
+.event-product-name {
+  font-size: 1.1em;
+  font-weight: 500;
+  text-align: center;
+}
+.event-product-card.view-all-card {
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  background: #f5f5f5;
+  color: #111;
+  cursor: pointer;
+  min-width: 180px;
+  border: 2px dashed #bbb;
+  box-shadow: none;
+  transition: background 0.2s, border 0.2s;
+}
+.event-product-card.view-all-card:hover {
+  background: #e0e0e0;
+  border-color: #888;
+}
+.view-all-text {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: center;
+}
+
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  right: 7px;
+  background: #e53935;
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.8em;
+  padding: 0.3em 0.7em;
+  border-radius: 16px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.image-ratio-box {
+  position: relative;
+  width: 160px;
+  aspect-ratio: 4/5; /* 1:1 square, change to 4/5 for vertical */
+  border-radius: 8px;
+  overflow: hidden;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-ratio-box img {
+ 
+  object-fit: cover;
+  display: block;
+}
+
+.discount-event-intro {
+  margin-top: -4em;
+  margin-bottom: 4em;
+  text-align: center;
+}
+.discount-event-title-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+.discount-event-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  margin: 0 0 0.3em 0;
+  letter-spacing: 0.01em;
+}
+.discount-event-desc {
+  font-size: 1.15rem;
+  color: #555;
+  margin: 0;
+  max-width: 520px;
+}
+
+.top-categories-row {
+  margin-top: 3em;
+  margin-bottom: 3em;
+  width: 100%;
+  padding: 0 12px; /* Add more horizontal space on sides */
+  box-sizing: border-box;
+}
+.top-categories-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.3vw;
+  justify-content: center;
+  align-items: stretch;
+}
+.top-category-card {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  aspect-ratio: 1/1;
+  max-width: 400px;
+  display: flex;
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+  overflow: hidden;
+  border-radius: 0;
+  text-decoration: none;
+  transition: transform 0.18s, box-shadow 0.18s;
+  box-shadow: none;
+  cursor: pointer;
+}
+.top-category-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 1;
+  transition: transform 0.18s;
+}
+/* .top-category-card:hover img {
+  transform: scale(1.04);
+} */
+.top-category-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.48); /* Increased darkness */
+  z-index: 2;
+  pointer-events: none;
+}
+.top-category-name {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-weight: 400;
+  font-size: 2.3rem;
+  text-align: center;
+  width: 100%;
+  margin: 0;
+  color: #fff;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+}
+/* Remove hover effect on image and text */
+.top-category-card:hover img,
+.top-category-card:hover .top-category-name {
+  transform: none;
+  filter: none;
+  color: #fff;
+}
+.top-categories-header {
+  text-align: left;
+  font-size: 1.7rem; 
+  font-weight: 400;
+  color: #181818;
+  letter-spacing: 0.01em;
+  margin-bottom: 1.5em;
+  margin-top: 1em;
+  padding-left: 8px;
+  padding-right: 16px;
+  width: 100%;
+  text-shadow: 0 2px 8px rgba(255,255,255,0.5);
+}
+@media (max-width: 900px) {
+  .top-categories-row {
+    padding: 0 8px;
+  }
+  .top-categories-grid {
+    flex-wrap: wrap;
+    gap: 2vw;
+  }
+  .top-category-card {
+    min-width: 45vw;
+    max-width: 100vw;
+    aspect-ratio: 1/1;
+    margin-bottom: 2vw;
+  }
+}
+.main-blog-hero {
+  position: relative;
+  width: 100vw;
+  left: 0;
+  transform: none;
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 60px;
+  min-height: 620px;
+  max-height: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.main-blog-hero-bg {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 1;
+  filter: brightness(0.7) contrast(1.1) saturate(1.1);
+}
+.main-blog-hero-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(90deg, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.15) 100%);
+  z-index: 2;
+}
+.main-blog-hero-content {
+  position: relative;
+  z-index: 3;
+  color: #fff;
+  max-width: 700px;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 2vw;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+.main-blog-hero-subtitle {
+  
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin-bottom: 1.2rem;
+  opacity: 0.92;
+  letter-spacing: 0.01em;
+}
+.main-blog-hero-title {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-size: 2.5rem;
+  font-weight: 500;
+  line-height: 1.3;
+  margin-bottom: 2.1rem;
+  letter-spacing: 0.01em;
+  text-shadow: 0 4px 24px rgba(0,0,0,0.22);
+}
+.main-blog-hero-summary {
+  font-size: 1rem;
+  font-weight: 400;
+
+  margin-bottom: 2.2rem;
+  max-width: 90%;
+  opacity: 0.96;
+}
+.main-blog-hero-btn {
+  background: #fff;
+  color: #111;
+  border: none;
+  border-radius: 2rem;
+  padding: 0.9rem 2.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+  transition: background 0.2s, color 0.2s;
+  margin-top: 0.5rem;
+  cursor: pointer;
+}
+.main-blog-hero-btn:hover {
+  background: #111;
+  color: #fff;
+}
+@media (max-width: 900px) {
+  .main-blog-hero {
+    min-height: 320px;
+    max-height: 420px;
+  }
+  .main-blog-hero-title {
+    font-size: 2.1rem;
+  }
+  .main-blog-hero-content {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 2vw;
+    max-width: 98vw;
+    text-align: left;
+  }
+}

@@ -11,6 +11,7 @@ import {
   ProductSearchResult,
   CategoryAnalyticsDTO,
   LostProductAnalyticsDTO,
+  BestSellerProductDTO,
 } from '../services/order.service';
 import { UserService, CustomerGrowthDTO } from '../services/user.service';
 import { MatSort, Sort } from '@angular/material/sort';
@@ -172,8 +173,10 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   ];
   bestSellersColumns: string[] = [
     'rank',
+    'image',
     'productName',
-    'variantName',
+    'variantAttributes',
+    'sku',
     'totalQuantitySold',
     'totalSales',
     'totalCost',
@@ -828,7 +831,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     const from = this.topProductsFrom;
     const to = this.topProductsTo;
     this.orderService.getBestSellerProducts(limit, from, to).subscribe({
-      next: (data: any[]) => {
+      next: (data: BestSellerProductDTO[]) => {
         const rankedProducts = data.map((product, index) => ({
           ...product,
           rank: index + 1,
@@ -862,7 +865,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     this.fetchSalesTrend();
   }
 
-  exportTable(format: 'pdf' | 'excel' = 'excel') {
+  async exportTable(format: 'pdf' | 'excel' = 'excel') {
     const title = 'Sales Analytics Report';
     const dateRange =
       this.dateFrom && this.dateTo
@@ -908,70 +911,111 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       XLSX.writeFile(wb, 'sales-analytics-report.xlsx');
     } else if (format === 'pdf') {
       const doc = new jsPDF();
-      doc.setFontSize(16);
-      const pageWidth = doc.internal.pageSize.getWidth();
-      doc.text(title, pageWidth / 2, 15, { align: 'center' });
-      doc.setFontSize(12);
-      let y = 28;
-      if (dateRange) {
-        doc.text(dateRange, 10, y);
-        y += 8;
+      const shopName = 'Britium Gallery';
+      const shopEmail = 'britiumgallery@gmail.com';
+      const shopPhone = '09678878539';
+      let y = 15;
+      let logoBase64;
+      try {
+        logoBase64 = await this.getLogoBase64();
+      } catch {}
+      if (logoBase64) {
+        doc.addImage(logoBase64, 'PNG', 10, 10, 24, 24);
+        y = 38; // moderate space after logo
       }
+      doc.setFontSize(18);
+      doc.text(shopName, 40, 18);
+      doc.setFontSize(11);
+      doc.text(`Email: ${shopEmail}`, 40, 25);
+      doc.text(`Phone: ${shopPhone}`, 40, 31);
+      y += 8; // moderate space before title
+      doc.setFontSize(16);
+      doc.text(title, doc.internal.pageSize.getWidth() / 2, y, { align: 'center' });
+      y += 6; // moderate space after title
+      doc.setFontSize(10);
       doc.text(generated, 10, y);
-      y += 8;
+      // Add margin-bottom before table
       autoTable(doc, {
         columns,
         body: rows,
-        startY: y + 4,
+        startY: y + 8, // moderate space before table
         styles: {
-          textColor: [0, 0, 0],
+          textColor: [34, 34, 34],
           fillColor: [255, 255, 255],
-          lineColor: [0, 0, 0],
-          lineWidth: 0.1,
+          lineColor: [220, 220, 220],
+          lineWidth: 0.3,
+          fontSize: 10,
+          cellPadding: 3,
         },
         headStyles: {
-          textColor: [0, 0, 0],
-          fillColor: [255, 255, 255],
-          lineColor: [0, 0, 0],
-          lineWidth: 0.1,
+          textColor: [255, 255, 255],
+          fillColor: [33, 37, 41], // dark header
+          lineColor: [220, 220, 220],
+          lineWidth: 0.3,
           fontStyle: 'bold',
+          fontSize: 11,
         },
         alternateRowStyles: {
-          fillColor: [255, 255, 255],
+          fillColor: [245, 247, 250], // subtle alternate row
         },
+        tableLineColor: [220, 220, 220],
+        tableLineWidth: 0.3,
+        margin: { left: 10, right: 10 },
       });
       doc.save('sales-analytics-report.pdf');
     }
   }
 
-  exportTopProductsTable(format: 'pdf' | 'excel' = 'excel') {
+  // Add a helper to load the logo as base64
+  async getLogoBase64(): Promise<string> {
+    // This will only work if the image is accessible via HTTP (served by Angular)
+    const response = await fetch('/assets/img/britiumgallerylogo.png');
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async exportTopProductsTable(format: 'pdf' | 'excel' = 'excel') {
     const title = 'Top Products Report';
     const generated = `Generated: ${new Date().toLocaleString()}`;
+    const shopName = 'Britium Gallery';
+    const shopEmail = 'britiumgallery@gmail.com';
+    const shopPhone = '09678878539';
+    const logoBase64 = format === 'pdf' ? await this.getLogoBase64() : undefined;
     const columns = [
       { header: 'Rank', dataKey: 'rank' },
+      ...(format === 'excel' ? [{ header: 'Image', dataKey: 'imageUrl' }] : []),
       { header: 'Product Name', dataKey: 'productName' },
-      { header: 'Variant', dataKey: 'variantName' },
+      { header: 'Attributes', dataKey: 'variantAttributes' },
+      { header: 'SKU', dataKey: 'sku' },
       { header: 'Qty Sold', dataKey: 'totalQuantitySold' },
       { header: 'Sales', dataKey: 'totalSales' },
       { header: 'Cost', dataKey: 'totalCost' },
       { header: 'Profit', dataKey: 'totalProfit' },
       { header: 'Margin %', dataKey: 'profitMargin' },
     ];
-    const rows = this.bestSellersDataSource.data.map((row: any) => ({
-      rank: row.rank,
-      productName: row.productName,
-      variantName: row.variantName,
-      totalQuantitySold: row.totalQuantitySold,
-      totalSales: row.totalSales
-        ? `MMK ${row.totalSales.toLocaleString()}`
-        : '',
-      totalCost: row.totalCost ? `MMK ${row.totalCost.toLocaleString()}` : '',
-      totalProfit: row.totalProfit
-        ? `MMK ${row.totalProfit.toLocaleString()}`
-        : '',
-      profitMargin:
-        row.profitMargin !== undefined ? `${row.profitMargin.toFixed(1)}%` : '',
-    }));
+    const rows = this.bestSellersDataSource.data.map((row: any) => {
+      const base = {
+        rank: row.rank,
+        productName: row.productName,
+        variantAttributes: row.variantAttributes,
+        sku: row.sku,
+        totalQuantitySold: row.totalQuantitySold,
+        totalSales: row.totalSales ? `MMK ${row.totalSales.toLocaleString()}` : '',
+        totalCost: row.totalCost ? `MMK ${row.totalCost.toLocaleString()}` : '',
+        totalProfit: row.totalProfit ? `MMK ${row.totalProfit.toLocaleString()}` : '',
+        profitMargin: row.profitMargin !== undefined ? `${row.profitMargin.toFixed(1)}%` : '',
+      };
+      if (format === 'excel') {
+        return { imageUrl: row.imageUrl, ...base };
+      } else {
+        return base;
+      }
+    });
     if (format === 'excel') {
       const header = [
         [title],
@@ -981,8 +1025,10 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       ];
       const rowArr = this.bestSellersDataSource.data.map((row: any) => [
         row.rank,
+        row.imageUrl,
         row.productName,
-        row.variantName,
+        row.variantAttributes,
+        row.sku,
         row.totalQuantitySold,
         row.totalSales ? `MMK ${row.totalSales.toLocaleString()}` : '',
         row.totalCost ? `MMK ${row.totalCost.toLocaleString()}` : '',
@@ -996,40 +1042,56 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       XLSX.writeFile(wb, 'top-products-report.xlsx');
     } else if (format === 'pdf') {
       const doc = new jsPDF();
+      let y = 15;
+      if (logoBase64) {
+        doc.addImage(logoBase64, 'PNG', 10, 10, 24, 24);
+        y = 38; // moderate space after logo
+      }
+      doc.setFontSize(18);
+      doc.text(shopName, 40, 18);
+      doc.setFontSize(11);
+      doc.text(`Email: ${shopEmail}`, 40, 25);
+      doc.text(`Phone: ${shopPhone}`, 40, 31);
+      y += 8; // moderate space before title
       doc.setFontSize(16);
-      const pageWidth = doc.internal.pageSize.getWidth();
-      doc.text(title, pageWidth / 2, 15, { align: 'center' });
-      doc.setFontSize(12);
-      let y = 28;
+      doc.text(title, doc.internal.pageSize.getWidth() / 2, y, { align: 'center' });
+      y += 6; // moderate space after title
+      doc.setFontSize(10);
       doc.text(generated, 10, y);
-      y += 8;
       autoTable(doc, {
         columns,
         body: rows,
-        startY: y + 4,
+        startY: y + 8,
         styles: {
-          textColor: [0, 0, 0],
+          textColor: [34, 34, 34],
           fillColor: [255, 255, 255],
-          lineColor: [0, 0, 0],
+          lineColor: [200, 200, 200],
           lineWidth: 0.1,
+          fontSize: 10,
+          cellPadding: 3,
         },
         headStyles: {
-          textColor: [0, 0, 0],
-          fillColor: [255, 255, 255],
-          lineColor: [0, 0, 0],
+          textColor: [255, 255, 255],
+          fillColor: [33, 37, 41],
+          lineColor: [200, 200, 200],
           lineWidth: 0.1,
           fontStyle: 'bold',
+          fontSize: 11,
         },
         alternateRowStyles: {
-          fillColor: [255, 255, 255],
+          fillColor: [245, 245, 245],
         },
+        margin: { left: 10, right: 10 },
+        tableLineColor: [200, 200, 200],
+        tableLineWidth: 0.1,
       });
       doc.save('top-products-report.pdf');
     }
   }
 
-  exportLostProductsTable(format: 'pdf' | 'excel' = 'excel') {
+  async exportLostProductsTable(format: 'pdf' | 'excel' = 'excel') {
     const title = 'Lost Products Analytics Report';
+    const generated = `Generated: ${new Date().toLocaleString()}`;
     const columns = [
       { header: 'Product', dataKey: 'product' },
       { header: 'SKU', dataKey: 'sku' },
@@ -1080,31 +1142,56 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       XLSX.writeFile(wb, 'lost-products-analytics-report.xlsx');
     } else if (format === 'pdf') {
       const doc = new jsPDF();
+      const shopName = 'Britium Gallery';
+      const shopEmail = 'britiumgallery@gmail.com';
+      const shopPhone = '09678878539';
+      let y = 15;
+      let logoBase64;
+      try {
+        logoBase64 = await this.getLogoBase64();
+      } catch {}
+      if (logoBase64) {
+        doc.addImage(logoBase64, 'PNG', 10, 10, 24, 24);
+        y = 38; // moderate space after logo
+      }
+      doc.setFontSize(18);
+      doc.text(shopName, 40, 18);
+      doc.setFontSize(11);
+      doc.text(`Email: ${shopEmail}`, 40, 25);
+      doc.text(`Phone: ${shopPhone}`, 40, 31);
+      y += 8; // moderate space before title
       doc.setFontSize(16);
-      const pageWidth = doc.internal.pageSize.getWidth();
-      doc.text(title, pageWidth / 2, 15, { align: 'center' });
-      doc.setFontSize(12);
-      let y = 28;
+      doc.text(title, doc.internal.pageSize.getWidth() / 2, y, { align: 'center' });
+      y += 6; // moderate space after title
+      doc.setFontSize(10);
+      doc.text(generated, 10, y);
+      // Add margin-bottom before table
       autoTable(doc, {
         columns,
         body: rows,
-        startY: y + 4,
+        startY: y + 8, // moderate space before table
         styles: {
-          textColor: [0, 0, 0],
+          textColor: [34, 34, 34],
           fillColor: [255, 255, 255],
-          lineColor: [0, 0, 0],
-          lineWidth: 0.1,
+          lineColor: [220, 220, 220],
+          lineWidth: 0.3,
+          fontSize: 10,
+          cellPadding: 3,
         },
         headStyles: {
-          textColor: [0, 0, 0],
-          fillColor: [255, 255, 255],
-          lineColor: [0, 0, 0],
-          lineWidth: 0.1,
+          textColor: [255, 255, 255],
+          fillColor: [33, 37, 41], // dark header
+          lineColor: [220, 220, 220],
+          lineWidth: 0.3,
           fontStyle: 'bold',
+          fontSize: 11,
         },
         alternateRowStyles: {
-          fillColor: [255, 255, 255],
+          fillColor: [245, 247, 250], // subtle alternate row
         },
+        tableLineColor: [220, 220, 220],
+        tableLineWidth: 0.3,
+        margin: { left: 10, right: 10 },
       });
       doc.save('lost-products-analytics-report.pdf');
     }

@@ -1,61 +1,170 @@
-/* Container and Table styling */
+/* Payment Container Styling */
 .payment-container {
-  max-width: 800px;
-  margin: 20px auto;
-  font-family: Arial, sans-serif;
-  color: #000;
+  max-width: 1200px;
+  margin: 40px auto;
+  font-family: 'Segoe UI', sans-serif;
+  color: #333;
 }
 
-.top-bar {
-  margin-bottom: 16px;
+/* Header Section */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 2px solid #ccc;
+}
+
+.page-title {
+  font-size: 1.8em;
+  font-weight: 600;
+  color: #222;
 }
 
 .create-button {
-  padding: 8px 12px;
-  border: 1px solid black;
-  background-color: white;
+  padding: 8px 18px;
+  border: none;
+  background-color: #333;
+  color: #fff;
   cursor: pointer;
-  font-weight: bold;
+  transition: background-color 0.3s ease;
+  font-size: 1em;
 }
 
 .create-button:hover {
-  background-color: #f0f0f0;
+  background-color: #555;
 }
 
-.payment-table {
-  width: 100%;
-  border-collapse: collapse;
+.button-icon {
+  font-size: 1.2em;
+  margin-right: 6px;
 }
 
-.payment-table th,
-.payment-table td {
-  border: 1px solid black;
-  padding: 8px;
-  text-align: left;
+/* Payment Cards Grid */
+.payment-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
 }
 
-.qr-images img {
-  max-width: 60px;
-  margin-right: 4px;
+.payment-card {
+  background-color: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  flex: 1 0 30%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-header {
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #eee;
+}
+
+.payment-name {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #333;
+}
+
+.payment-id {
+  font-size: 0.9em;
+  color: #777;
+}
+
+.card-body {
+  padding: 15px;
+}
+
+.admin-info {
+  font-size: 0.95em;
+  margin-bottom: 10px;
+}
+
+.admin-label {
+  font-weight: bold;
+}
+
+.admin-value {
+  color: #555;
+}
+
+.qr-section {
+  margin-top: 10px;
+}
+
+.qr-label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.qr-image-container {
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.qr-image {
+  max-width: 70px;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
 
-/* Buttons inside payment table */
-.payment-table button {
-  padding: 6px 12px;
-  border: 1px solid black;
-  background-color: white;
+.card-actions {
+  padding: 15px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+}
+
+.action-btn {
+  padding: 8px 12px;
+  border: none;
+  background-color: #333;
+  color: #fff;
   cursor: pointer;
-  font-weight: bold;
+  transition: background-color 0.3s ease;
+  font-size: 0.9em;
 }
 
-.payment-table button:first-child {
-  margin-right: 8px; /* Space between Edit and Delete buttons */
+.edit-btn {
+  background-color: #007bff;
 }
 
-/* Modal Styling */
-.modal {
+.edit-btn:hover {
+  background-color: #0056b3;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
+
+.btn-icon {
+  margin-right: 4px;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  margin: 50px 0;
+  color: #888;
+}
+
+.empty-icon {
+  font-size: 4em;
+  margin-bottom: 10px;
+}
+
+/* Modal Overlay */
+.modal-overlay {
   display: none; /* hidden by default */
   position: fixed;
   z-index: 1000;
@@ -67,75 +176,156 @@
   background-color: rgba(0, 0, 0, 0.5); /* dark overlay */
 }
 
-.modal.show {
+.modal-overlay.show {
   display: block;
 }
 
 .modal-content {
   background-color: #fff;
-  margin: 10% auto;
-  padding: 24px 32px;
-  border-radius: 8px;
-  max-width: 400px;
+  margin: 12% auto;
+  padding: 24px;
+  border-radius: 10px;
+  max-width: 500px;
   position: relative;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.close {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 28px;
-  font-weight: bold;
-  color: #555;
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.modal-title {
+  font-size: 1.4em;
+  font-weight: 500;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5em;
   cursor: pointer;
+  color: #888;
 }
 
-.close:hover {
-  color: #000;
+.close-btn:hover {
+  color: #444;
 }
 
-/* Form inside modal */
-form label {
-  display: block;
-  margin-top: 12px;
-  font-weight: bold;
-}
-
-form input[type="text"],
-form input[type="file"] {
-  width: 100%;
-  padding: 6px 8px;
-  margin-top: 4px;
-  border: 1px solid #aaa;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-form button {
+.modal-form {
   margin-top: 20px;
-  padding: 10px 16px;
-  background-color: white;
-  border: 1px solid black;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.form-input {
+  width: calc(100% - 16px);
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+  border-color: #999;
+}
+
+.file-input-container {
+  position: relative;
+}
+
+.file-input {
+  width: calc(100% - 16px);
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  transition: border-color 0.3s ease;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.file-input-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  background-color: #f7f7f7;
+  border: 1px dashed #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95em;
+  color: #666;
   cursor: pointer;
-  font-weight: bold;
-  width: 48%;
-  margin-right: 4%;
+  pointer-events: none;
 }
 
-form button:last-child {
-  margin-right: 0;
-  background-color: #f0f0f0;
+.file-icon {
+  margin-right: 6px;
 }
 
-form button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.form-actions {
+  display: flex;
+  justify-content: space-between;
 }
 
-/* Error messages */
-.error {
-  color: red;
+.submit-btn {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  flex: 0 0 48%;
+}
+
+.submit-btn:hover {
+  background-color: #218c3c;
+}
+
+.cancel-btn {
+  padding: 10px 20px;
+  background-color: #ffc107;
+  color: #212529;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  flex: 0 0 48%;
+}
+
+.cancel-btn:hover {
+  background-color: #e0a800;
+}
+
+.error-message {
+  color: #e3342f;
   font-size: 0.85em;
-  margin-top: 4px;
+  margin-top: 5px;
+}
+
+.error-icon {
+  margin-right: 4px;
 }

@@ -1,0 +1,204 @@
+<div class="customer-message-container">
+  <div *ngIf="!selectedSession" class="no-session">
+    <div class="no-session-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+      </svg>
+    </div>
+    <div class="no-session-content">
+      <h3>Start Messaging</h3>
+      <p>Send us a message and our support team will respond as soon as possible.</p>
+      <button class="start-chat-btn" (click)="startNewSession()">Start Chat</button>
+    </div>
+  </div>
+  <div *ngIf="selectedSession" class="message-panel">
+    <div *ngIf="selectedSession" class="chat-container">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <span class="chat-header-avatar">
+            <img src="/assets/img/britiumgallerylogo.png" alt="Britium Gallery" />
+          </span>
+          <div class="chat-header-info">
+            <span class="chat-header-name">Britium Gallery</span>
+            <span class="chat-header-status">Support Team</span>
+          </div>
+        </div>
+        <div class="chat-header-right">
+          <span class="chat-header-agent">
+            <span class="assigned-indicator">
+              <div class="status-dot online"></div>
+              Online
+            </span>
+          </span>
+          <div class="header-actions">
+            <button class="header-action-btn" title="Call Support">
+              <svg viewBox="0 0 24 24">
+                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+              </svg>
+            </button>
+            <button class="header-action-btn" title="More Options">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages Container -->
+      <div class="messages" id="messagesContainer" #messagesContainer>
+        <div class="messages-inner">
+          <!-- Welcome Message: only show if no messages -->
+          <!-- <div *ngIf="messages.length === 0" class="welcome-banner">
+            <div class="welcome-content">
+              <div class="chat-avatar" style="margin-right: 16px;">
+                <ng-container *ngIf="selectedSession?.customerName; else chatMsgInitial">
+                  {{ selectedSession.customerName[0] }}
+                </ng-container>
+                <ng-template #chatMsgInitial>?</ng-template>
+              </div>
+              <div class="welcome-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <div class="welcome-text">
+                <h4>Welcome to Britium Gallery Support</h4>
+                <p>We're here to help! Our team typically responds within a few minutes.</p>
+              </div>
+            </div>
+          </div> -->
+          <div *ngFor="let msg of messages" class="chat-row" [ngClass]="{'agent': msg.agent, 'customer': !msg.agent}">
+            <!-- Customer Messages -->
+            <ng-container *ngIf="!msg.agent">
+              <div class="message-group customer-message">
+                <div class="message-content" style="display: flex; flex-direction: column; align-items: flex-end;">
+                  <div class="message-meta-top" style="align-self: flex-end;">
+                     <span class="message-time">{{ msg.sentAt || msg.time | date:'shortTime' }}</span>
+                  </div>
+                  <div class="chat-bubble customer-bubble">
+                    <div class="chat-content">{{ msg.content }}</div>
+                  </div>
+                 
+                 <!-- <svg *ngIf="!msg.isRead" viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                      </svg> -->
+                  <span class="message-status-text" *ngIf="!msg.agent">
+                    {{ msg.isRead ? 'Seen' : 'Delivered' }}
+                  </span>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Agent Messages -->
+            <ng-container *ngIf="msg.agent">
+              <div class="message-group agent-message">
+                <div class="agent-avatar">
+                  <img src="/assets/img/britiumgallerylogo.png" alt="Support" />
+                </div>
+                <div class="message-content">
+                  <div class="message-meta-top">
+                    <span class="chat-name">Britium Gallery</span>
+                    <span class="chat-time">{{ msg.time | date:'shortTime' }}</span>
+                  </div>
+                  <div class="chat-bubble agent-bubble">
+                    <div class="chat-content">{{ msg.content }}</div>
+                  </div>
+                  <span class="message-time">{{ msg.sentAt || msg.time | date:'shortTime' }}</span>
+                  
+                </div>
+              </div>
+            </ng-container>
+          </div>
+         <div *ngIf="isTyping" class="typing-indicator agent-message" style="margin-left: 47px;">
+        <span class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+        <span class="typing-text">Britium Gallery is typing...</span>
+      </div>
+
+          <!-- No Messages State -->
+          <div *ngIf="messages.length === 0" class="no-messages">
+            <div class="no-messages-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+              </svg>
+            </div>
+            <div class="no-messages-text">
+              <h4>No Messages Yet</h4>
+              <p>Be the first one who says "Hi"</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Message Input: always visible at the bottom -->
+      <div  class="message-input-container">
+        <div *ngIf="messages.length === 0" class="quick-replies" >
+          <div  class="quick-replies-inner">
+            <button class="quick-reply-btn" (click)="sendQuickReply('Hello! I need help with my order')">
+              <svg viewBox="0 0 24 24">
+                <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+              </svg>
+              Order Help
+            </button>
+            <button class="quick-reply-btn" (click)="sendQuickReply('I have a question about shipping')">
+              <svg viewBox="0 0 24 24">
+                <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+              </svg>
+              Shipping
+            </button>
+            <button class="quick-reply-btn" (click)="sendQuickReply('I want to return an item')">
+              <svg viewBox="0 0 24 24">
+                <path d="M9 17l3-2.94c-.39-.04-.68-.06-1-.06-2.67 0-8 1.34-8 4v2h9l-3-3zm2-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 11 2zM7.07 18.28c.43-.9 3.05-1.78 4.93-1.78s4.51.88 4.93 1.78C15.57 19.36 13.86 20 12 20s-3.57-.64-4.93-1.72z"/>
+              </svg>
+              Returns
+            </button>
+          </div>
+        </div>
+         <!-- Typing Indicator -->
+      <!-- <div class="typing-indicator" *ngIf="isAgentTyping">
+        <div class="agent-avatar small">
+          <img src="/assets/img/britiumgallerylogo.png" alt="Support" />
+        </div>
+        <div class="typing-bubble">
+          <div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div> -->
+        <div class="message-input-wrapper">
+          <div class="input-inner">
+            <button class="attachment-btn" title="Attach file">
+              <svg viewBox="0 0 24 24">
+                <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/>
+              </svg>
+            </button>
+            <input [(ngModel)]="newMessage" 
+                   placeholder="Type your message..." 
+                   class="message-input"
+                   (keypress)="onKeyPress($event)"
+                   (focus)="hideQuickReplies()" />
+            <button class="emoji-btn" title="Add emoji">
+              <svg viewBox="0 0 24 24">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+              </svg>
+            </button>
+            <button (click)="sendMessage()" class="send-btn" [disabled]="!newMessage?.trim()">
+              <svg viewBox="0 0 24 24">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      
+      
+    </div>
+  </div>
+</div>

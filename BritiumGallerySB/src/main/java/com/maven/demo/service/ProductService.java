@@ -17,10 +17,12 @@ import org.springframework.stereotype.Service;
 
 import com.maven.demo.dto.AddStockRequestDTO;
 import com.maven.demo.dto.AttributeOptionDTO;
+import com.maven.demo.dto.EventDiscountProductsDTO;
 import com.maven.demo.dto.LostProductAnalyticsDTO;
 import com.maven.demo.dto.PriceHistoryResponseDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
+import com.maven.demo.dto.ProductSearchResultDTO;
 import com.maven.demo.dto.PurchaseHistoryResponseDTO;
 import com.maven.demo.dto.ReduceStockHistoryResponseDTO;
 import com.maven.demo.dto.ReduceStockRequestDTO;
@@ -29,6 +31,7 @@ import com.maven.demo.dto.VariantResponseDTO;
 import com.maven.demo.entity.AttributeEntity;
 import com.maven.demo.entity.AttributeOptions;
 import com.maven.demo.entity.CategoryEntity;
+import com.maven.demo.entity.DiscountEvent;
 import com.maven.demo.entity.DiscountRule;
 import com.maven.demo.entity.ProductEntity;
 import com.maven.demo.entity.ProductVariantEntity;
@@ -42,12 +45,14 @@ import com.maven.demo.repository.AttributeOptionRepository;
 import com.maven.demo.repository.AttributeRepository;
 import com.maven.demo.repository.BrandRepository;
 import com.maven.demo.repository.CategoryRepository;
+import com.maven.demo.repository.DiscountEventRepository;
 import com.maven.demo.repository.DiscountRuleRepository;
 import com.maven.demo.repository.ProductRepository;
 import com.maven.demo.repository.ProductVariantPriceHistoryRepository;
 import com.maven.demo.repository.ProductVariantRepository;
 import com.maven.demo.repository.PurchaseHistoryRepository;
 import com.maven.demo.repository.ReduceStockHistoryRepository;
+import com.maven.demo.repository.RestockNotificationRepository;
 import com.maven.demo.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -93,6 +98,14 @@ public class ProductService {
 
     @Autowired
     private ReduceStockHistoryRepository reduceStockHistoryRepository;
+
+    @Autowired
+    private DiscountEventRepository discountEventRepository;
+
+    @Autowired
+    private RestockNotificationRepository restockNotificationRepository;
+    @Autowired
+    private NotificationService notificationService;
 
     @Transactional
     public void saveProductWithVariants(ProductRequestDTO dto) {
@@ -715,6 +728,38 @@ public class ProductService {
         variant.setPrice(request.getSellingPrice());
         variantRepository.save(variant);
 
+        // After stock is increased:
+        if (request.getQuantity() > 0) {
+            java.util.List<com.maven.demo.entity.RestockNotificationEntity> notifications = restockNotificationRepository.findByVariantId(variantId);
+            for (com.maven.demo.entity.RestockNotificationEntity restock : notifications) {
+                // Build product name and attributes string
+                String productName = variant.getProduct().getName();
+                StringBuilder attrBuilder = new StringBuilder();
+                if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
+                    for (var attrVal : variant.getAttributeValues()) {
+                        if (attrBuilder.length() > 0) attrBuilder.append(", ");
+                        attrBuilder.append(attrVal.getAttribute().getName()).append(": ").append(attrVal.getValue());
+                    }
+                }
+                String attrString = attrBuilder.length() > 0 ? attrBuilder.toString() : "";
+                String message = String.format(
+                        "Good news! The product you were waiting for — </b> <b>%s</b>%s — is now <b>back in stock</b>!<br>" +
+                                "Don't miss your chance to grab it before it sells out again. Click below to check it out.",
+                        productName,
+                        attrString.isEmpty() ? "" : " (" + attrString + ")"
+                );
+
+                notificationService.createUserNotification(
+                    restock.getUser(),
+                    "Product Restocked",
+                    message,
+                    "RESTOCK",
+                    variant.getProduct().getId() // Use product ID instead of variant ID
+                );
+                restockNotificationRepository.delete(restock);
+            }   
+        }
+
         return convertToVariantResponseDTO(variant);
     }
 
@@ -984,6 +1029,247 @@ public class ProductService {
         return products.stream().map(this::convertToProductResponseDTO).collect(Collectors.toList());
     }
 
+    // Returns the latest added products (by created_at desc)
+    public List<ProductSearchResultDTO> getLatestProducts(int limit) {
+        List<ProductEntity> products = proRepo.findAll();
+        products.sort((a, b) -> b.getCreated_at().compareTo(a.getCreated_at()));
+        return products.stream()
+            .limit(limit)
+            .map(product -> {
+                ProductSearchResultDTO dto = new ProductSearchResultDTO();
+                dto.setProductId(product.getId());
+                dto.setProductName(product.getName());
+                dto.setCategory(product.getCategory() != null ? product.getCategory().getName() : null);
+                dto.setImageUrl(product.getBasePhotoUrl());
+                // Optionally, set a price (e.g., min price among variants)
+                if (product.getVariants() != null && !product.getVariants().isEmpty()) {
+                    int minPrice = product.getVariants().stream().mapToInt(v -> v.getPrice()).min().orElse(0);
+                    dto.setSellingPrice(java.math.BigDecimal.valueOf(minPrice));
+                }
+                if (product.getBrand() != null && product.getBrand().getName() != null) {
+                    dto.setBrandName(product.getBrand().getName());
+                }
+                return dto;
+            })
+            .toList();
+    }
+
+    // Returns products that are part of active discount events
+    public List<ProductSearchResultDTO> getEventDiscountProducts(int limit) {
+        // Find all active discount rules
+        List<DiscountRule> activeRules = discountRuleRepository.findAll().stream()
+            .filter(DiscountRule::isActive)
+            .toList();
+        Set<Long> variantIds = new HashSet<>();
+        for (DiscountRule rule : activeRules) {
+            if (rule.getProductVariantId() != null) {
+                variantIds.add(rule.getProductVariantId());
+            }
+        }
+        return variantIds.stream()
+            .limit(limit)
+            .map(variantId -> variantRepository.findById(variantId).orElse(null))
+            .filter(variant -> variant != null)
+            .map(variant -> {
+                ProductEntity product = variant.getProduct();
+                ProductSearchResultDTO dto = new ProductSearchResultDTO();
+                if (product != null) {
+                    dto.setProductId(product.getId());
+                    dto.setProductName(product.getName());
+                }
+                dto.setVariantId(variant.getId());
+                dto.setVariantName(variant.getSku()); // or build from attributes
+                dto.setSku(variant.getSku());
+                dto.setSellingPrice(java.math.BigDecimal.valueOf(variant.getPrice()));
+                dto.setStockQuantity(variant.getStock());
+                if (variant.getImages() != null && !variant.getImages().isEmpty()) {
+                    dto.setImageUrl(variant.getImages().get(0).getImageUrl());
+                }
+                // --- Discount percent logic ---
+                Double discountPercent = null;
+                // 1. Variant discount (highest priority)
+                List<DiscountRule> variantDiscounts = discountRuleRepository.findAllByProductVariantIdAndActive(variant.getId());
+                if (!variantDiscounts.isEmpty()) {
+                    discountPercent = variantDiscounts.get(0).getDiscountPercent();
+                } else {
+                    // 2. Product discount
+                    List<DiscountRule> productDiscounts = discountRuleRepository.findActiveProductDiscounts(product.getId());
+                    if (!productDiscounts.isEmpty()) {
+                        discountPercent = productDiscounts.get(0).getDiscountPercent();
+                    } else {
+                        // 3. Category discount (check all ancestors, closest first)
+                        CategoryEntity cat = product.getCategory();
+                        while (cat != null && discountPercent == null) {
+                            List<DiscountRule> categoryDiscounts = discountRuleRepository.findActiveCategoryDiscounts(cat.getId());
+                            if (!categoryDiscounts.isEmpty()) {
+                                discountPercent = categoryDiscounts.get(0).getDiscountPercent();
+                                break;
+                            }
+                            cat = cat.getParentCategory();
+                        }
+                        // 4. Brand discount (lowest priority)
+                        if (discountPercent == null && product.getBrand() != null) {
+                            List<DiscountRule> brandDiscounts = discountRuleRepository.findActiveBrandDiscounts(product.getBrand().getId());
+                            if (!brandDiscounts.isEmpty()) {
+                                discountPercent = brandDiscounts.get(0).getDiscountPercent();
+                            }
+                        }
+                    }
+                }
+                if (discountPercent != null && discountPercent > 0) {
+                    dto.setDiscountPercent(discountPercent);
+                } else {
+                    dto.setDiscountPercent(null);
+                }
+                // --- End discount percent logic ---
+                return dto;
+            })
+            .toList();
+    }
+
+    // Returns products grouped by active discount events (category, product, brand, variant level)
+    public List<EventDiscountProductsDTO> getEventDiscountProductsGrouped() {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        List<DiscountEvent> activeEvents = discountEventRepository.findByActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqual(today, today);
+        System.out.println("Active events: " + activeEvents.size());
+        List<EventDiscountProductsDTO> result = new ArrayList<>();
+        for (DiscountEvent event : activeEvents) {
+            System.out.println("Event: " + event.getName() + ", rules: " + event.getRules().size());
+            List<DiscountRule> rules = event.getRules();
+            Set<Long> variantIds = new HashSet<>();
+            for (DiscountRule rule : rules) {
+                if (rule.getCategoryId() != null) {
+                    System.out.println("  Category rule: " + rule.getCategoryId());
+                    List<Long> categoryIds = new ArrayList<>();
+                    categoryIds.add(rule.getCategoryId());
+                    categoryIds.addAll(categoryService.getAllDescendantCategoryIds(rule.getCategoryId()));
+                    List<ProductEntity> products = proRepo.findByCategoryIdIn(categoryIds);
+                    for (ProductEntity product : products) {
+                        for (ProductVariantEntity variant : product.getVariants()) {
+                            variantIds.add(variant.getId());
+                        }
+                    }
+                } else if (rule.getProductId() != null) {
+                    System.out.println("  Product rule: " + rule.getProductId());
+                    Optional<ProductEntity> productOpt = proRepo.findById(rule.getProductId());
+                    if (productOpt.isPresent()) {
+                        for (ProductVariantEntity variant : productOpt.get().getVariants()) {
+                            variantIds.add(variant.getId());
+                        }
+                    }
+                } else if (rule.getBrandId() != null) {
+                    System.out.println("  Brand rule: " + rule.getBrandId());
+                    List<ProductEntity> products = proRepo.findByBrandId(rule.getBrandId());
+                    for (ProductEntity product : products) {
+                        for (ProductVariantEntity variant : product.getVariants()) {
+                            variantIds.add(variant.getId());
+                        }
+                    }
+                } else if (rule.getProductVariantId() != null) {
+                    System.out.println("  Variant rule: " + rule.getProductVariantId());
+                    variantIds.add(rule.getProductVariantId());
+                }
+            }
+            System.out.println("  Total variants for event: " + variantIds.size());
+            List<ProductSearchResultDTO> products = variantIds.stream()
+                .map(variantId -> variantRepository.findById(variantId).orElse(null))
+                .filter(variant -> variant != null)
+                .map(variant -> {
+                    ProductEntity product = variant.getProduct();
+                    ProductSearchResultDTO dto = new ProductSearchResultDTO();
+                    if (product != null) {
+                        dto.setProductId(product.getId());
+                        dto.setProductName(product.getName());
+                    }
+                    dto.setVariantId(variant.getId());
+                    dto.setVariantName(variant.getSku());
+                    dto.setSku(variant.getSku());
+                    dto.setSellingPrice(java.math.BigDecimal.valueOf(variant.getPrice()));
+                    dto.setStockQuantity(variant.getStock());
+                    if (variant.getImages() != null && !variant.getImages().isEmpty()) {
+                        dto.setImageUrl(variant.getImages().get(0).getImageUrl());
+                    }
+                    // --- Discount percent logic ---
+                    Double discountPercent = null;
+                    // 1. Variant discount (highest priority)
+                    List<DiscountRule> variantDiscounts = discountRuleRepository.findAllByProductVariantIdAndActive(variant.getId());
+                    if (!variantDiscounts.isEmpty()) {
+                        discountPercent = variantDiscounts.get(0).getDiscountPercent();
+                    } else {
+                        // 2. Product discount
+                        List<DiscountRule> productDiscounts = discountRuleRepository.findActiveProductDiscounts(product.getId());
+                        if (!productDiscounts.isEmpty()) {
+                            discountPercent = productDiscounts.get(0).getDiscountPercent();
+                        } else {
+                            // 3. Category discount (check all ancestors, closest first)
+                            CategoryEntity cat = product.getCategory();
+                            while (cat != null && discountPercent == null) {
+                                List<DiscountRule> categoryDiscounts = discountRuleRepository.findActiveCategoryDiscounts(cat.getId());
+                                if (!categoryDiscounts.isEmpty()) {
+                                    discountPercent = categoryDiscounts.get(0).getDiscountPercent();
+                                    break;
+                                }
+                                cat = cat.getParentCategory();
+                            }
+                            // 4. Brand discount (lowest priority)
+                            if (discountPercent == null && product.getBrand() != null) {
+                                List<DiscountRule> brandDiscounts = discountRuleRepository.findActiveBrandDiscounts(product.getBrand().getId());
+                                if (!brandDiscounts.isEmpty()) {
+                                    discountPercent = brandDiscounts.get(0).getDiscountPercent();
+                                }
+                            }
+                        }
+                    }
+                    if (discountPercent != null && discountPercent > 0) {
+                        dto.setDiscountPercent(discountPercent);
+                    } else {
+                        dto.setDiscountPercent(null);
+                    }
+                    // --- End discount percent logic ---
+                    // Set attributes from variant attribute values
+                    java.util.Map<String, String> attributes = new java.util.HashMap<>();
+                    if (variant.getAttributeValues() != null) {
+                        for (var vav : variant.getAttributeValues()) {
+                            attributes.put(vav.getAttribute().getName(), vav.getValue());
+                        }
+                    }
+                    dto.setAttributes(attributes);
+                    return dto;
+                })
+                .toList();
+            if (!products.isEmpty()) {
+                EventDiscountProductsDTO eventDto = new EventDiscountProductsDTO();
+                eventDto.setEventId(event.getId());
+                eventDto.setEventName(event.getName());
+                eventDto.setEventDueDate(event.getEndDate());
+                // Map ProductSearchResultDTO to DiscountedProductDTO
+                List<EventDiscountProductsDTO.DiscountedProductDTO> discountedProducts = products.stream().map(product -> {
+                    EventDiscountProductsDTO.DiscountedProductDTO d = new EventDiscountProductsDTO.DiscountedProductDTO();
+                    d.setProductId(product.getProductId());
+                    d.setVariantId(product.getVariantId());
+                    d.setProductName(product.getProductName());
+                    d.setImageUrl(product.getImageUrl());
+                    d.setSku(product.getSku());
+                    d.setOriginalPrice(product.getSellingPrice());
+                    d.setDiscountPercent(product.getDiscountPercent());
+                    if (product.getSellingPrice() != null && product.getDiscountPercent() != null) {
+                        double percent = product.getDiscountPercent();
+                        d.setDiscountedPrice(product.getSellingPrice().multiply(java.math.BigDecimal.valueOf(1 - percent / 100.0)));
+                    } else {
+                        d.setDiscountedPrice(null);
+                    }
+                    // Copy attributes to DiscountedProductDTO
+                    d.setAttributes(product.getAttributes());
+                    return d;
+                }).toList();
+                eventDto.setProducts(discountedProducts);
+                result.add(eventDto);
+            }
+        }
+        System.out.println("Returning " + result.size() + " event discount groups");
+        return result;
+    }
+
     // Get all unique brands for a category
     public List<String> getBrandsForCategory(Long categoryId) {
         List<Long> categoryIds = new ArrayList<>();
@@ -1052,5 +1338,47 @@ public class ProductService {
         }
 
         return columns;
+    }
+
+    public List<ProductSearchResultDTO> getRecommendedProducts(Long productId, int limit) {
+        ProductEntity current = proRepo.findById(productId).orElse(null);
+        if (current == null) return List.of();
+        List<ProductSearchResultDTO> result = new ArrayList<>();
+        // 1. Same brand and same category
+        if (current.getBrand() != null && current.getCategory() != null) {
+            List<ProductEntity> sameBrandCat = proRepo.findByBrandIdAndCategoryId(current.getBrand().getId(), current.getCategory().getId());
+            for (ProductEntity p : sameBrandCat) {
+                if (p.getId() != productId && result.size() < limit) {
+                    result.add(toSearchResultDTO(p));
+                }
+            }
+        }
+        // 2. Same category
+        if (current.getCategory() != null && result.size() < limit) {
+            List<ProductEntity> sameCat = proRepo.findByCategoryId(current.getCategory().getId());
+            for (ProductEntity p : sameCat) {
+                if (p.getId() != productId && result.stream().noneMatch(r -> r.getProductId().equals(p.getId())) && result.size() < limit) {
+                    result.add(toSearchResultDTO(p));
+                }
+            }
+        }
+        // 3. Same brand, different category
+        if (current.getBrand() != null && result.size() < limit) {
+            List<ProductEntity> sameBrand = proRepo.findByBrandId(current.getBrand().getId());
+            for (ProductEntity p : sameBrand) {
+                if (p.getId() != productId && (p.getCategory() == null || p.getCategory().getId() != current.getCategory().getId()) && result.stream().noneMatch(r -> r.getProductId().equals(p.getId())) && result.size() < limit) {
+                    result.add(toSearchResultDTO(p));
+                }
+            }
+        }
+        return result.stream().limit(limit).toList();
+    }
+
+    private ProductSearchResultDTO toSearchResultDTO(ProductEntity p) {
+        ProductSearchResultDTO dto = new ProductSearchResultDTO();
+        dto.setProductId(p.getId());
+        dto.setProductName(p.getName());
+        dto.setImageUrl(p.getBasePhotoUrl());
+        return dto;
     }
 }

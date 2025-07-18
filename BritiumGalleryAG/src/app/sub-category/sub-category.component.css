@@ -25,7 +25,7 @@
 /* Main Container */
 .subcategory-container {
   min-height: 100vh;
-  
+  margin-top: 2em;
   position: relative;
 }
 
@@ -34,6 +34,7 @@
   background: var(--bg-primary);
  
   border-bottom: 1px solid var(--border-color);
+ 
 }
 
 .header-content {

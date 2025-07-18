@@ -74,6 +74,22 @@ export interface LostProductAnalyticsDTO {
   reductionCount: number;
 }
 
+export interface BestSellerProductDTO {
+  productId: number;
+  productName: string;
+  variantId: number;
+  variantName: string;
+  variantAttributes: string;
+  sku: string;
+  imageUrl?: string;
+  totalQuantitySold: number;
+  totalSales: number;
+  totalCost: number;
+  totalProfit: number;
+  profitMargin: number;
+  rank?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -179,12 +195,12 @@ export class OrderService {
   /**
    * Get best seller products (limit default 10)
    */
-  getBestSellerProducts(limit: number = 10, from?: string, to?: string): Observable<any[]> {
+  getBestSellerProducts(limit: number = 10, from?: string, to?: string): Observable<BestSellerProductDTO[]> {
     let url = `${this.baseUrl}/admin/best-sellers?limit=${limit}`;
     if (from && to) {
       url += `&from=${from}&to=${to}`;
     }
-    return this.http.get<any[]>(url);
+    return this.http.get<BestSellerProductDTO[]>(url);
   }
 
   /**

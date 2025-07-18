@@ -1,77 +1,118 @@
 <div class="payment-container">
-  <div class="top-bar">
-    <button class="create-button" (click)="openModal()">Create Payment</button>
+  <!-- Header Section -->
+  <div class="header-section">
+    <h1 class="page-title">Payment Management</h1>
+    <button class="create-button" (click)="openModal()">
+      <span class="button-icon">+</span>
+      Create Payment
+    </button>
   </div>
 
-  <table class="payment-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Admin ID</th>
-        <th>QR Codes</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let payment of payments">
-        <td>{{ payment.id }}</td>
-        <td>{{ payment.name }}</td>
-        <td>{{ payment.admin_id }}</td>
-        <td class="qr-images">
-          <img
-            *ngFor="let url of payment.qrPhotoUrls"
-            [src]="url"
-            alt="QR Code"
-          />
-        </td>
-        <td>
-          <button (click)="openModal(payment)">Edit</button>
-          <button (click)="delete(payment.id)">Delete</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Payment Cards Grid -->
+  <div class="payment-grid" *ngIf="payments.length > 0">
+    <div class="payment-card" *ngFor="let payment of payments">
+      <div class="card-header">
+        <h3 class="payment-name">{{ payment.name }}</h3>
+        <div class="payment-id">ID: {{ payment.id }}</div>
+      </div>
+      
+      <div class="card-body">
+        <div class="admin-info">
+          <span class="admin-label">Admin ID:</span>
+          <span class="admin-value">{{ payment.admin_id }}</span>
+        </div>
+        
+        <div class="qr-section" *ngIf="payment.qrPhotoUrls.length > 0">
+          <div class="qr-label">QR Codes:</div>
+          <div class="qr-images">
+            <div class="qr-image-container" *ngFor="let url of payment.qrPhotoUrls">
+              <img [src]="url" alt="QR Code" class="qr-image" />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-actions">
+        <button class="action-btn edit-btn" (click)="openModal(payment)">
+          <span class="btn-icon">✎</span>
+          Edit
+        </button>
+        <button class="action-btn delete-btn" (click)="delete(payment.id)">
+          <span class="btn-icon">🗑</span>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="payments.length === 0">
+    <div class="empty-icon">📋</div>
+    <h3>No payments registered yet</h3>
+    <p>Create your first payment to get started</p>
+    <button class="create-button" (click)="openModal()">
+      <span class="button-icon">+</span>
+      Create Payment
+    </button>
+  </div>
 
   <!-- Modal -->
-  <div class="modal" [class.show]="modalVisible">
-    <div class="modal-content">
-      <span class="close" (click)="closeModal()">&times;</span>
+  <div class="modal-overlay" [class.show]="modalVisible" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">{{ editingPayment ? "Edit" : "Create" }} Payment Register</h2>
+        <button class="close-btn" (click)="closeModal()">
+          <span>&times;</span>
+        </button>
+      </div>
 
-      <h2>{{ editingPayment ? "Edit" : "Create" }} Payment Register</h2>
-
-      <form [formGroup]="paymentForm" (ngSubmit)="submit()">
-        <label for="name">Name:</label>
-        <input id="name" formControlName="name" />
-        <div
-          *ngIf="
-            paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched
-          "
-          class="error"
-        >
-          Name is required.
+      <form [formGroup]="paymentForm" (ngSubmit)="submit()" class="modal-form">
+        <div class="form-group">
+          <label for="name" class="form-label">Payment Name</label>
+          <input id="name" formControlName="name" class="form-input" placeholder="Enter payment name" />
+          <div
+            *ngIf="paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched"
+            class="error-message"
+          >
+            <span class="error-icon">⚠</span>
+            Name is required.
+          </div>
         </div>
 
-        <label for="qrPhotos">Upload QR Code Images:</label>
-        <input
-          id="qrPhotos"
-          type="file"
-          (change)="onFileChange($event)"
-          multiple
-          accept="image/*"
-        />
-        <div *ngIf="fileError" class="error">{{ fileError }}</div>
+        <div class="form-group">
+          <label for="qrPhotos" class="form-label">Upload QR Code Images</label>
+          <div class="file-input-container">
+            <input
+              id="qrPhotos"
+              type="file"
+              (change)="onFileChange($event)"
+              multiple
+              accept="image/*"
+              class="file-input"
+            />
+            <div class="file-input-label">
+              <span class="file-icon">📁</span>
+              Choose files or drag and drop
+            </div>
+          </div>
+          <div *ngIf="fileError" class="error-message">
+            <span class="error-icon">⚠</span>
+            {{ fileError }}
+          </div>
+        </div>
 
-        <button
-          type="submit"
-          [disabled]="
-            paymentForm.invalid ||
-            (!editingPayment && selectedFiles.length === 0)
-          "
-        >
-          {{ editingPayment ? "Update" : "Create" }}
-        </button>
-        <button type="button" (click)="closeModal()">Cancel</button>
+        <div class="form-actions">
+          <button
+            type="submit"
+            [disabled]="paymentForm.invalid || (!editingPayment && selectedFiles.length === 0)"
+            class="submit-btn"
+          >
+            {{ editingPayment ? "Update Payment" : "Create Payment" }}
+          </button>
+          <button type="button" (click)="closeModal()" class="cancel-btn">
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
   </div>

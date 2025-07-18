@@ -3,6 +3,11 @@ package com.maven.demo.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class ProductSearchResultDTO {
     private Long productId;
     private Long variantId;
@@ -23,6 +28,9 @@ public class ProductSearchResultDTO {
     private String imageUrl;
     private Integer quantitySold;
     private Integer totalPurchasePrice;
+    private String brandName;
+    private Double discountPercent;
+    private java.util.Map<String, String> attributes;
 
     // Constructors
     public ProductSearchResultDTO() {}
@@ -227,4 +235,21 @@ public class ProductSearchResultDTO {
     public void setTotalPurchasePrice(Integer totalPurchasePrice) {
         this.totalPurchasePrice = totalPurchasePrice;
     }
+
+    public String getBrandName() {
+        return brandName;
+    }
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
+
+    public Double getDiscountPercent() {
+        return discountPercent;
+    }
+    public void setDiscountPercent(Double discountPercent) {
+        this.discountPercent = discountPercent;
+    }
+
+    public java.util.Map<String, String> getAttributes() { return attributes; }
+    public void setAttributes(java.util.Map<String, String> attributes) { this.attributes = attributes; }
 } 

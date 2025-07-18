@@ -16,5 +16,7 @@ export interface People {
   email: string;
   gender: string;
   phoneNumber: string;
-  address: Address; 
+  address: Address;
+  profilePic?: string;
+  customerType?: string;
 }

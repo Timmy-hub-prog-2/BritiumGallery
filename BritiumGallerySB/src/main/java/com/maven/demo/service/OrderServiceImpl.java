@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.maven.demo.dto.AddressDTO;
 import com.maven.demo.dto.BestSellerProductDTO;
 import com.maven.demo.dto.CartItemDTO;
+import com.maven.demo.dto.CategoryAnalyticsDTO;
 import com.maven.demo.dto.CheckoutRequestDTO;
 import com.maven.demo.dto.DailyOrderDetailDTO;
 import com.maven.demo.dto.DashboardStatsDTO;
@@ -28,7 +29,6 @@ import com.maven.demo.dto.PaymentResponseDTO;
 import com.maven.demo.dto.ProductSalesHistoryDTO;
 import com.maven.demo.dto.ProductSearchResultDTO;
 import com.maven.demo.dto.SalesTrendDTO;
-import com.maven.demo.dto.CategoryAnalyticsDTO;
 import com.maven.demo.entity.AddressEntity;
 import com.maven.demo.entity.CouponEntity;
 import com.maven.demo.entity.CustomerTypeEntity;
@@ -946,25 +946,20 @@ public class OrderServiceImpl implements OrderService {
     public List<BestSellerProductDTO> getBestSellerProducts(int limit) {
         Map<String, BestSellerProductDTO> productMap = new HashMap<>();
         List<TransactionEntity> transactions = transactionRepository.findByStatus(TransactionStatus.SUCCESS);
-        
         for (TransactionEntity tx : transactions) {
             OrderEntity order = tx.getOrder();
-            
             if (order.getOrderDetails() != null) {
                 for (OrderDetailEntity detail : order.getOrderDetails()) {
                     ProductVariantEntity variant = detail.getVariant();
-                    if (variant == null) continue;
+                    if (variant == null || variant.getProduct() == null) continue;
                     String key = String.valueOf(variant.getId());
                     BestSellerProductDTO dto = productMap.get(key);
                     int quantity = detail.getQuantity();
-                    // Exclude refunded quantities
                     int refundedQty = detail.getRefundedQty() != null ? detail.getRefundedQty() : 0;
                     int netQuantity = quantity - refundedQty;
-                    if (netQuantity <= 0) continue; // skip fully refunded
-                    
+                    if (netQuantity <= 0) continue;
                     int sales = netQuantity * detail.getPrice();
                     int cost = 0;
-                    // Calculate cost from FIFO mappings (only for netQuantity)
                     List<SaleFifoMappingEntity> mappings = saleFifoMappingRepository.findByOrderDetail(detail);
                     int qtyLeft = netQuantity;
                     for (SaleFifoMappingEntity mapping : mappings) {
@@ -973,32 +968,45 @@ public class OrderServiceImpl implements OrderService {
                         qtyLeft -= usedQty;
                         if (qtyLeft <= 0) break;
                     }
-                    
-                    // Use netQuantity everywhere below
-                    if (dto == null) {
-                        String productName = variant.getProduct() != null ? variant.getProduct().getName() : "Unknown Product";
-                        
-                        // Build variant name from attributes
-                        StringBuilder variantNameBuilder = new StringBuilder();
-                        if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
-                            for (int i = 0; i < variant.getAttributeValues().size(); i++) {
-                                if (i > 0) variantNameBuilder.append(" - ");
-                                variantNameBuilder.append(variant.getAttributeValues().get(i).getValue());
-                            }
-                        } else {
-                            variantNameBuilder.append("Default");
+                    String productName = variant.getProduct().getName();
+                    String basePhotoUrl = variant.getProduct().getBasePhotoUrl();
+                    String sku = variant.getSku();
+                    String imageUrl = (variant.getImages() != null && !variant.getImages().isEmpty()) ? variant.getImages().get(0).getImageUrl() : basePhotoUrl;
+                    // Format attributes
+                    java.util.Map<String, String> attributes = new java.util.HashMap<>();
+                    if (variant.getAttributeValues() != null) {
+                        for (var value : variant.getAttributeValues()) {
+                            if (value.getAttribute() != null && value.getValue() != null)
+                                attributes.put(value.getAttribute().getName(), value.getValue());
                         }
-                        String variantName = variantNameBuilder.toString();
-                        
+                    }
+                    String variantAttributes = (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty())
+                        ? variant.getAttributeValues().stream().map(av -> av.getValue()).collect(java.util.stream.Collectors.joining("-"))
+                        : "Default";
+                    StringBuilder variantNameBuilder = new StringBuilder();
+                    if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
+                        for (int i = 0; i < variant.getAttributeValues().size(); i++) {
+                            if (i > 0) variantNameBuilder.append(" - ");
+                            variantNameBuilder.append(variant.getAttributeValues().get(i).getValue());
+                        }
+                    } else {
+                        variantNameBuilder.append("Default");
+                    }
+                    String variantName = variantNameBuilder.toString();
+                    if (dto == null) {
                         dto = new BestSellerProductDTO(
-                            variant.getId(),
+                            variant.getProduct() != null ? variant.getProduct().getId() : null,
                             productName,
+                            variant.getId(),
                             variantName,
+                            variantAttributes,
+                            sku,
+                            imageUrl,
                             netQuantity,
                             sales,
                             cost,
-                            0, // No delivery fee for best sellers
-                            sales - cost, // Profit without delivery fee
+                            0,
+                            sales - cost,
                             0.0
                         );
                         productMap.put(key, dto);
@@ -1006,13 +1014,12 @@ public class OrderServiceImpl implements OrderService {
                         dto.setTotalQuantitySold(dto.getTotalQuantitySold() + netQuantity);
                         dto.setTotalSales(dto.getTotalSales() + sales);
                         dto.setTotalCost(dto.getTotalCost() + cost);
-                        dto.setTotalDeliveryFee(0); // No delivery fee for best sellers
+                        dto.setTotalDeliveryFee(0);
                         dto.setTotalProfit(dto.getTotalProfit() + (sales - cost));
                     }
                 }
             }
         }
-        
         // Calculate profit margins and sort by total profit
         List<BestSellerProductDTO> result = new ArrayList<>(productMap.values());
         for (BestSellerProductDTO dto : result) {
@@ -1021,13 +1028,10 @@ public class OrderServiceImpl implements OrderService {
                 dto.setProfitMargin(margin);
             }
         }
-        
         result.sort((a, b) -> Integer.compare(b.getTotalProfit(), a.getTotalProfit()));
-        
         if (limit > 0 && result.size() > limit) {
             return result.subList(0, limit);
         }
-        
         return result;
     }
 
@@ -1062,6 +1066,20 @@ public class OrderServiceImpl implements OrderService {
                     }
                     if (dto == null) {
                         String productName = variant.getProduct() != null ? variant.getProduct().getName() : "Unknown Product";
+                        String basePhotoUrl = variant.getProduct() != null ? variant.getProduct().getBasePhotoUrl() : null;
+                        String sku = variant.getSku();
+                        String imageUrl = (variant.getImages() != null && !variant.getImages().isEmpty()) ? variant.getImages().get(0).getImageUrl() : basePhotoUrl;
+                        // Format attributes
+                        java.util.Map<String, String> attributes = new java.util.HashMap<>();
+                        if (variant.getAttributeValues() != null) {
+                            for (var value : variant.getAttributeValues()) {
+                                if (value.getAttribute() != null && value.getValue() != null)
+                                    attributes.put(value.getAttribute().getName(), value.getValue());
+                            }
+                        }
+                        String variantAttributes = (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty())
+                            ? variant.getAttributeValues().stream().map(av -> av.getValue()).collect(java.util.stream.Collectors.joining("-"))
+                            : "Default";
                         StringBuilder variantNameBuilder = new StringBuilder();
                         if (variant.getAttributeValues() != null && !variant.getAttributeValues().isEmpty()) {
                             for (int i = 0; i < variant.getAttributeValues().size(); i++) {
@@ -1073,9 +1091,13 @@ public class OrderServiceImpl implements OrderService {
                         }
                         String variantName = variantNameBuilder.toString();
                         dto = new BestSellerProductDTO(
-                            variant.getId(),
+                            variant.getProduct() != null ? variant.getProduct().getId() : null,
                             productName,
+                            variant.getId(),
                             variantName,
+                            variantAttributes,
+                            sku,
+                            imageUrl,
                             netQuantity,
                             sales,
                             cost,

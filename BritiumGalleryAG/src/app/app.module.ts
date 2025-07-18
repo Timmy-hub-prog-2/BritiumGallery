@@ -92,6 +92,14 @@ import { BrandRegisterComponent } from './brand-register/brand-register.componen
 import { ShippingReturnsPolicyComponent } from './shipping-returns-policy/shipping-returns-policy.component';
 import { AboutComponent } from './about/about.component';
 import { BlogCreateComponent } from './blog-create/blog-create.component';
+import { CustomerHomepageComponent } from './customer-homepage/customer-homepage.component';
+import { DiscountedItemsComponent } from './discounted-items/discounted-items.component';
+import { NotificationService } from './services/notification.service';
+import { BlogDetailComponent } from './blog-detail/blog-detail.component';
+import { BlogListComponent } from './blog-list/blog-list.component';
+import { CustomerMessageComponent } from './customer-message/customer-message.component';
+import { CustomerChatService } from './services/customer-chat.service';
+import { AdminMessageComponent } from './admin-message/admin-message.component';
 
 @NgModule({
   declarations: [
@@ -158,15 +166,21 @@ import { BlogCreateComponent } from './blog-create/blog-create.component';
     ManagerSidebarComponent,
     ShippingReturnsPolicyComponent,
     AboutComponent,
-    BlogCreateComponent
+    BlogCreateComponent,
+    CustomerHomepageComponent,
+    DiscountedItemsComponent,
+    BlogDetailComponent,
+    BlogListComponent,
+    CustomerMessageComponent,
+    AdminMessageComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     RouterModule,
     FormsModule,
-    BrowserAnimationsModule,
     HttpClientModule,
+    BrowserAnimationsModule,
     ReactiveFormsModule,
     MatTableModule,
     MatSortModule,
@@ -187,9 +201,13 @@ import { BlogCreateComponent } from './blog-create/blog-create.component';
     NgxEditorModule,
     MapToAttributeLinePipe,
     BrandRegisterComponent
+
     
   ],
-  providers: [],
+  providers: [
+    NotificationService,
+    CustomerChatService
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

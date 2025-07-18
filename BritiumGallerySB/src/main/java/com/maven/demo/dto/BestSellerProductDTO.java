@@ -10,13 +10,20 @@ public class BestSellerProductDTO {
     private int totalDeliveryFee;
     private int totalProfit;
     private double profitMargin;
+    private String basePhotoUrl;
+    private Long variantId;
+    private String sku;
+    private String imageUrl;
+    private String variantAttributes;
 
-    public BestSellerProductDTO(Long productId, String productName, String variantName,
-                               int totalQuantitySold, int totalSales, int totalCost, 
-                               int totalDeliveryFee, int totalProfit, double profitMargin) {
+    public BestSellerProductDTO(Long productId, String productName, Long variantId, String variantName, String variantAttributes, String sku, String imageUrl, int totalQuantitySold, int totalSales, int totalCost, int totalDeliveryFee, int totalProfit, double profitMargin) {
         this.productId = productId;
         this.productName = productName;
+        this.variantId = variantId;
         this.variantName = variantName;
+        this.variantAttributes = variantAttributes;
+        this.sku = sku;
+        this.imageUrl = imageUrl;
         this.totalQuantitySold = totalQuantitySold;
         this.totalSales = totalSales;
         this.totalCost = totalCost;
@@ -51,4 +58,16 @@ public class BestSellerProductDTO {
     
     public double getProfitMargin() { return profitMargin; }
     public void setProfitMargin(double profitMargin) { this.profitMargin = profitMargin; }
+
+    public String getBasePhotoUrl() { return basePhotoUrl; }
+    public void setBasePhotoUrl(String basePhotoUrl) { this.basePhotoUrl = basePhotoUrl; }
+
+    public Long getVariantId() { return variantId; }
+    public void setVariantId(Long variantId) { this.variantId = variantId; }
+    public String getSku() { return sku; }
+    public void setSku(String sku) { this.sku = sku; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getVariantAttributes() { return variantAttributes; }
+    public void setVariantAttributes(String variantAttributes) { this.variantAttributes = variantAttributes; }
 } 

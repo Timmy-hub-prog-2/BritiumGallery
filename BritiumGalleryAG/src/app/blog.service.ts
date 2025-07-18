@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BlogPost } from './blog-create/blog-create.component';
+import { map } from 'rxjs/operators';
+
 @Injectable({ providedIn: 'root' })
 
 export class BlogService {
@@ -31,6 +33,10 @@ export class BlogService {
 
   setMain(id: number): Observable<void> {
   return this.http.put<void>(`${this.apiUrl}/${id}/set-main`, null);
+}
+
+  getMainBlog(): Observable<BlogPost> {
+  return this.http.get<BlogPost>(`${this.apiUrl}/main`);
 }
 
 }

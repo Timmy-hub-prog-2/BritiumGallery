@@ -5,6 +5,12 @@ import { Observable } from 'rxjs';
 import { ProductResponse, VariantResponse } from '../ProductResponse';
 import { Product } from '../Product';
 
+export interface ProductRecommendation {
+  productId: number;
+  productName: string;
+  imageUrl?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -124,5 +130,9 @@ export class ProductService {
 
   getMinMaxPriceForCategory(categoryId: number): Observable<{ min: number, max: number }> {
     return this.http.get<{ min: number, max: number }>(`${this.baseUrl}/${categoryId}/price-range`);
+  }
+
+  getRecommendedProducts(productId: number, limit: number = 8): Observable<ProductRecommendation[]> {
+    return this.http.get<ProductRecommendation[]>(`${this.baseUrl}/${productId}/recommendations?limit=${limit}`);
   }
 }
