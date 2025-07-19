@@ -51,27 +51,37 @@ export class ShopaddresslistComponent implements OnInit {
       console.error('User not logged in');
     }
   }
+initializeMaps(): void {
+  this.addresses.forEach((address) => {
+    const lat = address.latitude;
+    const lng = address.longitude;
+    const mapElementId = `map-${address.id}`;
 
-  initializeMaps(): void {
-    this.addresses.forEach((address) => {
-      const lat = address.latitude;
-      const lng = address.longitude;
-      const mapElementId = `map-${address.id}`;
+    const mapElement = document.getElementById(mapElementId);
 
-      if (lat && lng) {
-        const map = L.map(mapElementId).setView([lat, lng], 13);
+    // 💡 Skip if the element doesn't exist (maybe still rendering)
+    if (!mapElement) return;
 
-        L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors',
-          maxZoom: 20,
-        }).addTo(map);
+    // ❌ Avoid reinitializing Leaflet map on same DOM
+    if ((mapElement as any)._leaflet_id) return;
 
-        L.marker([lat, lng], { icon: this.locationIcon, draggable: true }) // <-- Custom icon used here
-          .addTo(map)
-          .bindPopup(`<b>${address.houseNumber}</b><br>${address.street}`);
-      }
-    });
-  }
+    if (lat && lng) {
+      const map = L.map(mapElementId).setView([lat, lng], 15); // Zoomed in
+
+      L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 20,
+      }).addTo(map);
+
+      L.marker([lat, lng], {
+        icon: this.locationIcon,
+        draggable: false
+      }).addTo(map)
+        .bindPopup(`<b>${address.houseNumber}</b><br>${address.street}`)
+        ;
+    }
+  });
+}
 
   editAddress(address: any): void {
     this.router.navigate(['/shopaddressedit'], {

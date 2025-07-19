@@ -45,6 +45,23 @@ export class CouponComponent implements OnInit {
   selectedCustomerType: string = '';
   noExpiry: boolean = false;
 
+  selectedStatus: string = ''; // default to show all
+filterByStatus(status: string): void {
+  console.log('Selected status:', status);  // Track the status
+  this.selectedStatus = status;
+
+  if (!status) {
+    // Show all coupons
+    this.filteredCoupons = this.coupons;
+  } else {
+    // Filter by selected status
+    this.filteredCoupons = this.coupons.filter(c => c.status === status);
+  }
+
+  this.filterCoupons(); // Reapply search term filtering if needed
+}
+
+
   constructor(private couponService: CouponService, private snackBar: MatSnackBar) {
     const today = new Date();
     this.todayDate = today.toISOString().split('T')[0];
@@ -57,6 +74,10 @@ export class CouponComponent implements OnInit {
       verticalPosition: 'top'
     });
   }
+getCustomerTypeName(id: number): string {
+  const type = this.customerTypes.find(ct => ct.id === id);
+  return type ? type.name : 'Unknown';
+}
 
   ngOnInit(): void {
     this.loadCoupons();
@@ -64,22 +85,37 @@ export class CouponComponent implements OnInit {
 
   loadCoupons(): void {
     this.couponService.getCoupons().subscribe(data => {
+      console.log(data); 
       this.coupons = data;
       this.filterCoupons();
     });
   }
 
+  // filterCoupons(): void {
+  //   const term = this.searchTerm.toLowerCase().trim();
+  //   if (!term) {
+  //     this.filteredCoupons = this.coupons;
+  //   } else {
+  //     this.filteredCoupons = this.coupons.filter(coupon =>
+  //       coupon.code?.toLowerCase().includes(term) ||
+  //       coupon.type?.toLowerCase().includes(term)
+  //     );
+  //   }
+  // }
+
   filterCoupons(): void {
-    const term = this.searchTerm.toLowerCase().trim();
-    if (!term) {
-      this.filteredCoupons = this.coupons;
-    } else {
-      this.filteredCoupons = this.coupons.filter(coupon =>
-        coupon.code?.toLowerCase().includes(term) ||
-        coupon.type?.toLowerCase().includes(term)
-      );
-    }
-  }
+  const term = this.searchTerm.toLowerCase().trim();
+  this.filteredCoupons = this.coupons.filter(coupon => {
+    // Check if coupon code or type matches the search term
+    const matchesSearch = coupon.code?.toLowerCase().includes(term) || coupon.type?.toLowerCase().includes(term);
+
+    // Apply the status filter (either Active, Inactive, or All)
+    const matchesStatus = this.selectedStatus ? coupon.status === this.selectedStatus : true;
+
+    // Return true if both conditions match
+    return matchesSearch && matchesStatus;
+  });
+}
 
   openModal(): void {
     this.resetForm();
@@ -191,9 +227,9 @@ export class CouponComponent implements OnInit {
       this.newCoupon.endDate = null;
     }
 
-    const request = this.isEditMode
-      ? this.couponService.updateCoupon(this.newCoupon)
-      : this.couponService.createCoupon(this.newCoupon);
+   const request = this.isEditMode
+  ? this.couponService.updateCouponWithRules(this.newCoupon)
+  : this.couponService.createCoupon(this.newCoupon);
 
     request.subscribe(() => {
       this.loadCoupons();
@@ -204,19 +240,40 @@ export class CouponComponent implements OnInit {
     });
   }
 
-  editCoupon(coupon: Coupon): void {
-    this.newCoupon = { ...coupon };
-    this.isEditMode = true;
-    this.showModal = true;
+ editCoupon(coupon: Coupon): void {
+  this.newCoupon = { ...coupon };
+  this.isEditMode = true;
+  this.showModal = true;
 
-    this.customerTypes.forEach(type => {
-      const rule = coupon.rules?.find(r => r.customerTypeId === type.id);
-      type.enabled = !!rule;
-      if (rule) {
-        this.setUsageTimes(type.id, rule.times);
+  // Reset all types
+  this.customerTypes.forEach(type => (type.enabled = false));
+  this.usageRules = [];
+
+  // Set usageRules and enabled types
+  if (coupon.rules && coupon.rules.length > 0) {
+    for (let rule of coupon.rules) {
+      this.usageRules.push({ customerTypeId: rule.customerTypeId, times: rule.times });
+
+      const type = this.customerTypes.find(t => t.id === rule.customerTypeId);
+      if (type) {
+        type.enabled = true;
       }
-    });
+    }
+
+    const enabledTypes = this.customerTypes.filter(t => t.enabled);
+
+    // Auto select customer type in dropdown
+    if (enabledTypes.length === this.customerTypes.length) {
+      this.selectedCustomerType = 'all';
+    } else if (enabledTypes.length === 1) {
+      this.selectedCustomerType = enabledTypes[0].name.toLowerCase();
+    } else {
+      this.selectedCustomerType = '';
+    }
+  } else {
+    this.selectedCustomerType = '';
   }
+}
 
   updateCoupon(): void {
     this.couponService.updateCoupon(this.newCoupon).subscribe(() => {
@@ -226,18 +283,26 @@ export class CouponComponent implements OnInit {
     });
   }
 
-  deleteCoupon(code: string | undefined): void {
-    if (!code) {
-      alert('Coupon code is missing.');
-      return;
-    }
-
-    if (confirm('Are you sure you want to delete this coupon?')) {
-      this.couponService.deleteCoupon(code).subscribe(() => {
-        this.loadCoupons();
-      });
-    }
+deleteCoupon(code: string | undefined): void {
+  if (!code) {
+    alert('Coupon code is missing.');
+    return;
   }
+
+  if (confirm('Are you sure you want to delete this coupon?')) {
+    this.couponService.deleteCoupon(code).subscribe({
+      next: () => {
+        this.loadCoupons(); // Reload the coupons after deletion
+        alert('Coupon deleted successfully.');
+      },
+      error: (err) => {
+        console.error(err);
+        alert('An error occurred while deleting the coupon.');
+      }
+    });
+  }
+}
+
 
   sortCoupons(field: string): void {
     if (this.sortField === field) {
@@ -312,4 +377,17 @@ export class CouponComponent implements OnInit {
       this.generateAndSetCode();
     }
   }
+
+  get activeCouponsCount(): number {
+  return this.coupons.filter(c => c.status === 'Active').length;
+}
+
+get inactiveCouponsCount(): number {
+  return this.coupons.filter(c => c.status === 'Inactive').length;
+}
+
+get totalRulesCount(): number {
+  return this.coupons.reduce((acc, c) => acc + (c.rules?.length || 0), 0);
+}
+
 }

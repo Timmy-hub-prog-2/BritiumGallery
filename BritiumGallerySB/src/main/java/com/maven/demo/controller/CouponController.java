@@ -55,8 +55,12 @@ public class CouponController {
 
     @DeleteMapping("/{code}")
     public ResponseEntity<?> deleteCoupon(@PathVariable String code) {
-        couponService.deleteByCode(code);
-        return ResponseEntity.ok().build();
+        try {
+            couponService.deleteByCode(code);
+            return ResponseEntity.ok().build(); // Return a successful response
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Coupon not found or unable to delete.");
+        }
     }
 
 
@@ -101,6 +105,19 @@ public class CouponController {
             response.put("discountValue", coupon.getDiscount());
 
             return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(java.util.Collections.singletonMap("message", e.getMessage()));
+        }
+    }
+    @GetMapping("/with-rules")
+    public ResponseEntity<List<CouponWithRulesDTO>> getAllCouponsWithRules() {
+        return ResponseEntity.ok(couponService.getAllCouponsWithRules());
+    }
+
+    @PutMapping("/with-rules/{code}")
+    public ResponseEntity<?> updateCouponWithRules(@PathVariable String code, @RequestBody CouponWithRulesDTO dto) {
+        try {
+            return ResponseEntity.ok(couponService.updateCouponWithRules(code, dto));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(java.util.Collections.singletonMap("message", e.getMessage()));
         }

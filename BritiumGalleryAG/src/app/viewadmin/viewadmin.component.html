@@ -1,4 +1,14 @@
+<!-- Page Title -->
 <h2 class="title">Admin List</h2>
+
+<!-- Filter by Role -->
+<div class="filter-bar">
+  <label for="roleFilter">Filter by Role:</label>
+  <select id="roleFilter" [(ngModel)]="selectedRole" (change)="onRoleFilterChange()">
+    <option value="">All</option>
+    <option *ngFor="let role of roles" [value]="role.type">{{ role.type }}</option>
+  </select>
+</div>
 
 <!-- Top Bar: Search + Paginator -->
 <div class="top-bar">
@@ -8,7 +18,11 @@
   </div>
 
   <!-- Paginator -->
-  <mat-paginator [pageSizeOptions]="[5, 10, 25]" (page)="onPageChange($event)" showFirstLastButtons class="custom-paginator">
+  <mat-paginator
+    [pageSizeOptions]="[5, 10, 25]"
+    (page)="onPageChange($event)"
+    showFirstLastButtons
+    class="custom-paginator">
   </mat-paginator>
 </div>
 
@@ -21,16 +35,34 @@
     <td mat-cell *matCellDef="let row; let i = index">{{ getRowNumber(i) }}</td>
   </ng-container>
 
-  <!-- Name Column -->
+  <!-- Name Column with Avatar -->
   <ng-container matColumnDef="name">
     <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-    <td mat-cell *matCellDef="let admin">{{ admin.name }}</td>
+    <td mat-cell *matCellDef="let admin">
+      <div class="admin-info">
+        <img *ngIf="admin.avatarUrl; else defaultAvatar"
+             [src]="admin.avatarUrl"
+             alt="Avatar"
+             class="avatar" />
+        <ng-template #defaultAvatar>
+          <div class="avatar placeholder-avatar">
+            {{ admin.name.charAt(0).toUpperCase() }}
+          </div>
+        </ng-template>
+        <span class="admin-name">{{ admin.name }}</span>
+      </div>
+    </td>
   </ng-container>
 
-  <!-- Email Column -->
+  <!-- Email Column with Icon -->
   <ng-container matColumnDef="email">
     <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
-    <td mat-cell *matCellDef="let admin">{{ admin.email }}</td>
+    <td mat-cell *matCellDef="let admin">
+      <div class="email-info">
+        <span class="material-icons email-icon">email</span>
+        {{ admin.email }}
+      </div>
+    </td>
   </ng-container>
 
   <!-- Gender Column -->
@@ -45,16 +77,20 @@
     <td mat-cell *matCellDef="let admin">{{ admin.phoneNumber }}</td>
   </ng-container>
 
- <!-- Address Column -->
-<ng-container matColumnDef="address">
-  <th mat-header-cell *matHeaderCellDef>Address</th>
-  <td mat-cell *matCellDef="let admin">
-    {{ getFullAddress(admin.address) }}
-  </td>
-</ng-container>
+  <!-- Address Column -->
+  <ng-container matColumnDef="address">
+    <th mat-header-cell *matHeaderCellDef>Address</th>
+    <td mat-cell *matCellDef="let admin">{{ getFullAddress(admin.address) }}</td>
+  </ng-container>
 
+  <!-- Role Column -->
+  <ng-container matColumnDef="role">
+    <th mat-header-cell *matHeaderCellDef>Role</th>
+    <td mat-cell *matCellDef="let admin">{{ admin.roleName }}</td>
+  </ng-container>
 
-  
+  <!-- Row Definitions -->
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
 </table>

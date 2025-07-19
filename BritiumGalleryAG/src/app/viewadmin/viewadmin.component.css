@@ -1,79 +1,181 @@
+/* ====== Container & Layout ====== */
+.admin-container {
+  padding: 24px 32px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f8;
+  min-height: 100vh;
+}
+
+/* ====== Title ====== */
 .title {
-  font-size: 28px;
-  font-weight: bold;
-  color: #222;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: #333;
+}
+
+/* ====== Filter Bar ====== */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
-/* Top bar styling */
+.filter-bar label {
+  font-weight: 500;
+  color: #555;
+}
+
+.filter-bar select {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: white;
+  font-size: 14px;
+}
+
+/* ====== Top Bar ====== */
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
+  gap: 10px;
 }
 
-/* Search bar */
 .search-bar input {
-  width: 250px;
-  padding: 10px;
+  padding: 8px 12px;
+  width: 280px;
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 14px;
 }
 
-/* Table styling */
+/* ====== Paginator ====== */
+.custom-paginator {
+  margin-left: auto;
+}
+
+/* ====== Table ====== */
 .customer-table {
   width: 100%;
-  margin-bottom: 20px;
-  border-radius: 8px;
+  background-color: #ffffff;
+  border-radius: 12px;
   overflow: hidden;
 }
 
-/* Sticky paginator */
-.custom-paginator {
-  position: sticky;
-  bottom: 0;
-  background-color: #fff;
-  padding: 10px;
-  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.08);
-  border-radius: 0 0 8px 8px;
-  z-index: 10;
+.mat-header-cell {
+  background-color: #1976d2;
+  color: white;
+  font-weight: 600;
+  padding: 12px 16px;
 }
 
-/* Styling inside paginator */
-.custom-paginator .mat-paginator-page-size-label,
-.custom-paginator .mat-paginator-range-label {
+.mat-cell {
+  padding: 12px 16px;
   font-size: 14px;
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.mat-row:hover {
+  background-color: #f9f9f9;
+}
+
+/* ====== Name Column Avatar ====== */
+.admin-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ccc;
+}
+
+.placeholder-avatar {
+  width: 36px;
+  height: 36px;
+  background-color: #1976d2;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-name {
+  font-weight: 500;
   color: #333;
 }
 
-.custom-paginator .mat-select-value {
-  font-size: 14px;
-  padding: 4px 6px;
+/* ====== Email Icon Column ====== */
+.email-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.custom-paginator .mat-paginator-navigation-previous,
-.custom-paginator .mat-paginator-navigation-next,
-.custom-paginator .mat-paginator-navigation-first,
-.custom-paginator .mat-paginator-navigation-last {
-  color: white;
+.email-icon {
+  font-size: 18px;
+  color: #1976d2;
+}
+
+/* ====== Role Badge ====== */
+.badge-role {
   background-color: #1976d2;
-  border-radius: 4px;
-  margin: 0 4px;
-  transition: background-color 0.3s;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  display: inline-block;
 }
 
-.custom-paginator .mat-paginator-navigation-previous:hover,
-.custom-paginator .mat-paginator-navigation-next:hover,
-.custom-paginator .mat-paginator-navigation-first:hover,
-.custom-paginator .mat-paginator-navigation-last:hover {
-  background-color: #115293;
+/* ====== Action Icon Buttons ====== */
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #1976d2;
+  transition: color 0.2s ease;
 }
 
-.custom-paginator .mat-paginator-navigation-disabled {
-  background-color: #e0e0e0 !important;
-  color: #999 !important;
-  cursor: not-allowed;
+.icon-button:hover {
+  color: #004ba0;
+}
+
+/* ====== Tabs ====== */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  padding: 8px 16px;
+  border: none;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.tabs button:hover {
+  background-color: #bbdefb;
+}
+
+.tabs .active {
+  background-color: #1976d2;
+  color: white;
+  font-weight: bold;
 }

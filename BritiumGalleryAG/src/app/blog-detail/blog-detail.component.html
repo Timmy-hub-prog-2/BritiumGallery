@@ -1,12 +1,19 @@
 <div class="blog-container">
+
+   <nav class="breadcrumb">
+    <a routerLink="/" class="breadcrumb-link">Home</a>/
+    <a routerLink="/bloglist" class="breadcrumb-link">Blogs</a>/
+    <span class="breadcrumb-current">{{ blog?.title }}</span>
+  </nav>
+
   <!-- Hero Section -->
   <div class="hero-section" *ngIf="blog">
     <div class="hero-overlay"></div>
     <div class="hero-content">
-      
-      
+
+
       <div class="hero-text">
-        
+
         <h1 class="hero-title">{{ blog?.title }}</h1>
         <div class="hero-meta">
           <div class="author-info">
@@ -27,7 +34,7 @@
               </svg>
               <span>{{ blog?.publishDate | date }}</span>
             </div>
-            
+
           </div>
         </div>
       </div>
@@ -47,7 +54,7 @@
               <li><a href="#content" class="toc-link">Main Content</a></li>
             </ul>
           </div>
-          
+
           <div class="share-section">
             <h3>Share Article</h3>
             <div class="share-buttons">
@@ -86,7 +93,7 @@
           <div class="media-wrapper">
             <img *ngIf="blog?.imageUrl" [src]="blog?.imageUrl" class="detail-image" />
             <video *ngIf="blog?.videoUrl" [src]="blog?.videoUrl" controls class="detail-video"></video>
-            
+
   </div>
 </div>
 
@@ -104,7 +111,7 @@
             </div>
             <div class="summary-card">
               <div class="summary-icon">
-                
+
               </div>
               <p class="summary-text">{{ blog?.summary }}</p>
             </div>

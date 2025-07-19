@@ -22,9 +22,20 @@ export class CouponService {
     );
   }
 
+  // getCoupons(): Observable<Coupon[]> {
+  //   return this.http.get<Coupon[]>(this.baseUrl);
+  // }
+   // ✅ GET coupons with rules
   getCoupons(): Observable<Coupon[]> {
-    return this.http.get<Coupon[]>(this.baseUrl);
+    return this.http.get<Coupon[]>(`${this.baseUrl}/with-rules`).pipe(
+      catchError(this.handleError)
+    );
   }
+updateCouponWithRules(coupon: Coupon): Observable<any> {
+  return this.http.put(`${this.baseUrl}/with-rules/${coupon.code}`, coupon).pipe(
+    catchError(this.handleError)
+  );
+}
 
   updateCoupon(coupon: Coupon): Observable<Coupon> {
     return this.http.put<Coupon>(`${this.baseUrl}/${coupon.code}`, coupon);
@@ -48,4 +59,10 @@ export class CouponService {
     );
   }
   
+   // ✅ Centralized error handler
+  private handleError(error: any) {
+    const msg = error.error?.message || error.error || error.message || 'Something went wrong';
+    alert(msg);
+    return throwError(() => new Error(msg));
+  }
 }

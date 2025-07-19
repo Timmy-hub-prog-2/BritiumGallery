@@ -35,6 +35,19 @@ import com.maven.demo.service.AddressService;
 import com.maven.demo.service.CloudinaryUploadService;
 import com.maven.demo.service.UserService;
 import com.maven.demo.service.UserService1;
+    import com.maven.demo.dto.*;
+    import com.maven.demo.service.AddressService;
+    import com.maven.demo.service.CloudinaryUploadService;
+    import com.maven.demo.service.UserService;
+    import com.maven.demo.service.UserService1;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.http.ResponseEntity;
+    import org.springframework.web.bind.annotation.*;
+    import org.springframework.web.multipart.MultipartFile;
+
+    import java.io.IOException;
+    import java.util.*;
 
     @CrossOrigin(origins = "http://localhost:4200")
     @RestController
@@ -215,6 +228,34 @@ import com.maven.demo.service.UserService1;
                 return ResponseEntity.badRequest()
                         .body(Collections.singletonMap("message", ex.getMessage()));
             }
+        }
+        @PostMapping("/superadmin/createAdmin")
+        public ResponseEntity<Map<String, String>> createAdmin(@RequestBody UserDTO userDto) {
+            String result = userService.createAdmin(userDto);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", result);
+
+            if ("Email already exists".equals(result) || "Phone number already exists".equals(result)) {
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            return ResponseEntity.ok(response);
+        }
+
+        @PostMapping("/auth/forgot-password")
+        public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
+            String email = request.get("email");
+            userService.processForgotPassword(email);
+            return ResponseEntity.ok("Reset code sent");
+        }
+        @PostMapping("/auth/validate-code")
+        public ResponseEntity<?> validateCode(@RequestBody ResetPasswordRequest request) {
+            System.out.println("Code: " + request.getCode());  // ✅ should be 6 digits
+            System.out.println("New Password: " + request.getNewPassword());
+
+            userService.validateVerificationCode(request.getCode(), request.getNewPassword());
+            return ResponseEntity.ok("Password has been reset");
         }
 
 

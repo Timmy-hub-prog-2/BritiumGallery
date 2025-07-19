@@ -52,25 +52,34 @@ export class AddresslistComponent implements OnInit {
     }
   }
 
-  initializeMaps(): void {
-    this.addresses.forEach((address) => {
-      const lat = address.latitude;
-      const lng = address.longitude;
-      const mapElementId = `map-${address.id}`;
+ initializeMaps(): void {
+  this.addresses.forEach((address) => {
+    const lat = address.latitude;
+    const lng = address.longitude;
+    const mapElementId = `map-${address.id}`;
 
-      if (lat && lng) {
-        const map = L.map(mapElementId).setView([lat, lng], 13);
+    // Ensure DOM element exists
+    const mapElement = document.getElementById(mapElementId);
+    if (!mapElement) return;
 
-       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+    // ❌ Prevent re-initializing map on same div
+    if ((mapElement as any)._leaflet_id) {
+      return;
+    }
 
-        L.marker([lat, lng], { icon: this.locationIcon, draggable: true }) // <-- Custom icon used here
-          .addTo(map)
-          .bindPopup(`<b>${address.houseNumber}</b><br>${address.street}`);
-      }
-    });
-  }
+    if (lat && lng) {
+      const map = L.map(mapElementId).setView([lat, lng], 15);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      L.marker([lat, lng], { icon: this.locationIcon })
+        .addTo(map)
+        .bindPopup(`<b>${address.houseNumber}</b><br>${address.street}`);
+    }
+  });
+}
 
   editAddress(address: any): void {
     this.router.navigate(['/addressedit'], {

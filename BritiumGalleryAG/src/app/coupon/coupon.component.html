@@ -1,8 +1,38 @@
-<button (click)="openModal()">Create Coupon</button>
-<br><br>
-<!-- Search box (placed below the 'Create Coupon' button) -->
-<input type="text" placeholder="Search coupon by code or type..." [(ngModel)]="searchTerm"
-  (ngModelChange)="filterCoupons()" class="search-box" />
+<div class="coupon-header">
+  <h1>Coupon Management</h1>
+  <p>Configure and manage your coupons and discounts</p>
+</div>
+
+<div class="summary-cards">
+  <div class="card summary total">
+    <div class="label">Total Coupons</div>
+    <div class="value">{{ coupons.length }}</div>
+  </div>
+  <div class="card summary active">
+    <div class="label">Active</div>
+    <div class="value">{{ activeCouponsCount }}</div>
+  </div>
+  <div class="card summary inactive">
+    <div class="label">Inactive</div>
+    <div class="value">{{ inactiveCouponsCount }}</div>
+  </div>
+  <div class="card summary rules">
+    <div class="label">Customer Rules</div>
+    <div class="value">{{ totalRulesCount }}</div>
+  </div>
+</div>
+
+<div class="action-bar">
+  <button (click)="openModal()" class="create-btn">+ Create Coupon</button>
+  <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="filterCoupons()" placeholder="Search by code or type..."
+    class="search-box" />
+</div>
+
+<div class="coupon-tabs">
+  <button [class.active]="!selectedStatus" (click)="filterByStatus('')">All Coupons</button>
+  <button [class.active]="selectedStatus === 'Active'" (click)="filterByStatus('Active')">Active</button>
+  <button [class.active]="selectedStatus === 'Inactive'" (click)="filterByStatus('Inactive')">Inactive</button>
+</div>
 
 <!-- Modal -->
 <div class="modal" *ngIf="showModal">
@@ -10,14 +40,10 @@
     <h2>{{ isEditMode ? 'Edit Coupon' : 'Create Coupon' }}</h2>
 
     <form (ngSubmit)="createCoupon()" #couponForm="ngForm">
-      <label>Coupon Code:</label><div style="display: flex; align-items: stretch; margin-bottom: 16px;">
-        <input
-          [(ngModel)]="newCoupon.code"
-          name="code"
-          required
-          (input)="validateCouponCode()"
-          placeholder="Enter coupon code"
-          style="
+      <label>Coupon Code:</label>
+      <div style="display: flex; align-items: stretch; margin-bottom: 16px;">
+        <input [(ngModel)]="newCoupon.code" name="code" required (input)="validateCouponCode()"
+          placeholder="Enter coupon code" style="
             flex: 3 1 0%;
             border: 1px solid #007bff;
             border-right: none;
@@ -28,12 +54,8 @@
             box-sizing: border-box;
             outline: none;
             background: #fff;
-          "
-        />
-        <button
-          type="button"
-          (click)="generateAndSetCode()"
-          style="
+          " />
+        <button type="button" (click)="generateAndSetCode()" style="
             flex: 1 1 0%;
             border: 1px solid #007bff;
             border-left: none;
@@ -54,12 +76,8 @@
             transition: background 0.2s, color 0.2s;
             min-width: 120px;
             max-width: 200px;
-          "
-          onfocus="this.style.outline='none';"
-          onblur="this.style.outline='none';"
-          onmouseover="this.style.background='#f0f8ff'"
-          onmouseout="this.style.background='#fff'"
-        >
+          " onfocus="this.style.outline='none';" onblur="this.style.outline='none';"
+          onmouseover="this.style.background='#f0f8ff'" onmouseout="this.style.background='#fff'">
           Auto Generate Code
         </button>
       </div>
@@ -86,10 +104,12 @@
       <!-- Customer Type Rules Section -->
       <div class="customer-type-rules">
         <h4>Customer Type Rules</h4>
-        
+
         <!-- Customer Type Selection Dropdown -->
         <label>Select Customer Type:</label>
-        <select [(ngModel)]="selectedCustomerType" (change)="onCustomerTypeSelectionChange()" name="customerTypeSelection" style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px;">
+        <select [(ngModel)]="selectedCustomerType" (change)="onCustomerTypeSelectionChange()"
+          name="customerTypeSelection"
+          style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px;">
           <option value="">-- Select Customer Type --</option>
           <option value="all">All</option>
           <option value="normal">Normal</option>
@@ -112,52 +132,30 @@
               <tr *ngFor="let type of customerTypes">
                 <td>{{ type.name }}</td>
                 <td>
-                  <input
-                    type="checkbox"
-                    [(ngModel)]="type.enabled"
-                    name="enabled-{{ type.id }}"
-                    (change)="onCustomerTypeChange()"
-                    style="accent-color: #007bff;"
-                  />
+                  <input type="checkbox" [(ngModel)]="type.enabled" name="enabled-{{ type.id }}"
+                    (change)="onCustomerTypeChange()" style="accent-color: #007bff;" />
                 </td>
                 <td>
-                  <input
-                    type="number"
-                    [disabled]="!type.enabled"
-                    [ngModel]="getUsageTimes(type.id)"
-                    (ngModelChange)="setUsageTimes(type.id, $event)"
-                    name="usage-{{ type.id }}"
-                    min="1"
-                    class="form-control"
-                  />
+                  <input type="number" [disabled]="!type.enabled" [ngModel]="getUsageTimes(type.id)"
+                    (ngModelChange)="setUsageTimes(type.id, $event)" name="usage-{{ type.id }}" min="1"
+                    class="form-control" />
                 </td>
               </tr>
             </ng-container>
-            
+
             <!-- Show only selected type -->
             <ng-container *ngIf="selectedCustomerType !== 'all'">
               <tr *ngFor="let type of customerTypes">
                 <ng-container *ngIf="type.name.toLowerCase() === selectedCustomerType">
                   <td>{{ type.name }}</td>
                   <td>
-                    <input
-                      type="checkbox"
-                      [(ngModel)]="type.enabled"
-                      name="enabled-{{ type.id }}"
-                      (change)="onCustomerTypeChange()"
-                      style="accent-color: #007bff;"
-                    />
+                    <input type="checkbox" [(ngModel)]="type.enabled" name="enabled-{{ type.id }}"
+                      (change)="onCustomerTypeChange()" style="accent-color: #007bff;" />
                   </td>
                   <td>
-                    <input
-                      type="number"
-                      [disabled]="!type.enabled"
-                      [ngModel]="getUsageTimes(type.id)"
-                      (ngModelChange)="setUsageTimes(type.id, $event)"
-                      name="usage-{{ type.id }}"
-                      min="1"
-                      class="form-control"
-                    />
+                    <input type="number" [disabled]="!type.enabled" [ngModel]="getUsageTimes(type.id)"
+                      (ngModelChange)="setUsageTimes(type.id, $event)" name="usage-{{ type.id }}" min="1"
+                      class="form-control" />
                   </td>
                 </ng-container>
               </tr>
@@ -182,47 +180,68 @@
     </form>
   </div>
 </div>
-
 <!-- Coupon Table -->
 <table>
   <thead>
     <tr>
       <th (click)="sortCoupons('code')">
-        Code
-        <span *ngIf="sortField === 'code'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        Code <span *ngIf="sortField === 'code'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
       </th>
       <th (click)="sortCoupons('type')">
-        Type
-        <span *ngIf="sortField === 'type'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        Type <span *ngIf="sortField === 'type'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
       </th>
       <th (click)="sortCoupons('discount')">
-        Discount
-        <span *ngIf="sortField === 'discount'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        Discount <span *ngIf="sortField === 'discount'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
       </th>
       <th>Status</th>
       <th (click)="sortCoupons('startDate')">
-        Start Date
-        <span *ngIf="sortField === 'startDate'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        Start Date <span *ngIf="sortField === 'startDate'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
       </th>
       <th (click)="sortCoupons('endDate')">
-        End Date
-        <span *ngIf="sortField === 'endDate'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+        End Date <span *ngIf="sortField === 'endDate'">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
       </th>
+      <th>Customer Rules</th>
       <th>Actions</th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let c of filteredCoupons">
-      <td>{{ c.code || 'N/A' }}</td>
-      <td>{{ c.type }}</td>
-      <td>{{ c.discount }}</td>
-      <td [ngStyle]="{ 'color': c.status === 'Active' ? 'green' : 'red' }">{{ c.status }}</td>
-      <td>{{ c.startDate | date }}</td>
-      <td>{{ c.endDate | date }}</td>
-      <td>
-        <button class="edit-btn" (click)="editCoupon(c)">Edit</button>
-        <button class="delete-btn" (click)="deleteCoupon(c.code)">Delete</button>
-      </td>
-    </tr>
+    <ng-container *ngFor="let c of filteredCoupons">
+      <tr>
+        <td>{{ c.code || 'N/A' }}</td>
+        <td>{{ c.type }}</td>
+        <td>{{ c.discount }}</td>
+        <td [ngStyle]="{ 'color': c.status === 'Active' ? 'green' : 'red' }">{{ c.status }}</td>
+        <td>{{ c.startDate | date }}</td>
+        <td>{{ c.endDate | date }}</td>
+        <td>
+          <ng-container *ngIf="c.rules && c.rules.length > 0; else noRules">
+            <ul style="padding-left: 18px; margin: 0;">
+              <li *ngFor="let rule of c.rules">
+                {{ getCustomerTypeName(rule.customerTypeId) }}: {{ rule.times }} time{{ rule.times > 1 ? 's' : '' }}
+              </li>
+            </ul>
+          </ng-container>
+          <ng-template #noRules>
+            <span style="color: #aaa;">–</span>
+          </ng-template>
+        </td>
+        <td>
+          <button class="icon-button" (click)="editCoupon(c)" title="Edit">✏️</button>
+          <button class="icon-button" (click)="deleteCoupon(c.code)" title="Delete">🗑️</button>
+        </td>
+
+
+      </tr>
+      <!-- <tr *ngIf="c.rules && c.rules.length > 0">
+        <td colspan="7" style="background: #f9f9f9; border-left: 3px solid #007bff;">
+          <strong>Customer Type Usage Rules:</strong>
+          <ul style="margin: 8px 0 0 15px;">
+            <li *ngFor="let rule of c.rules">
+              {{ getCustomerTypeName(rule.customerTypeId) }}: {{ rule.times }} time{{ rule.times > 1 ? 's' : '' }}
+            </li>
+          </ul>
+        </td>
+      </tr> -->
+    </ng-container>
   </tbody>
 </table>
