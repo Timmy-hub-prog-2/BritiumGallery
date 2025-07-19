@@ -1,0 +1,437 @@
+<div class="admin-order-refund-list-container">
+  <div class="refund-detail-header">
+    <div class="header-main">
+      <div class="header-title">
+        <div class="title-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2v4"/>
+            <path d="M2 2l20 20"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+        </div>
+        <div class="title-content">
+          <span class="header-label">Refund Order Management</span>
+          <span class="header-tracking"><b>Discount Events</b></span>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="meta-item">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+          </svg>
+          <span class="meta-customer">{{ events.length }}</span>
+        </div>
+        <div class="meta-count">{{ events.length }} events</div>
+        <button class="create-event-btn" (click)="showCreateModal = true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          CREATE EVENT
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filters-content">
+      <div style="display: flex; flex: 2; gap: 24px; flex-wrap: wrap; align-items: flex-end;">
+        <div class="filter-group">
+          <label class="filter-label">
+            <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            Event Name Search
+          </label>
+          <div class="search-wrapper">
+            <div class="search-input-container">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input 
+                type="text" 
+                [(ngModel)]="filterEventName" 
+                (keyup.enter)="applyEventNameFilter()" 
+                class="search-input" 
+                placeholder="Search by event name..."
+              />
+              <button 
+                class="clear-btn" 
+                *ngIf="filterEventName" 
+                (click)="filterEventName=''; applyEventNameFilter()"
+                type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <button class="search-btn" (click)="applyEventNameFilter()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              Search
+            </button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="selectedStatus" class="status-select" (change)="filterByStatus(selectedStatus)">
+              <option value="all">All Events</option>
+              <option value="active">Active Only</option>
+              <option value="inactive">Inactive Only</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: flex-end;">
+        <div class="filter-group" style="min-width: 220px;">
+          <label class="filter-label">Date Range</label>
+          <div class="date-inputs">
+            <input 
+              type="date" 
+              [(ngModel)]="filterStartDate" 
+              class="date-input" 
+              placeholder="Start Date" 
+              (change)="applyDateFilter()"
+            >
+            <span class="date-separator">to</span>
+            <input 
+              type="date" 
+              [(ngModel)]="filterEndDate" 
+              class="date-input" 
+              placeholder="End Date" 
+              (change)="applyDateFilter()"
+            >
+          </div>
+        </div>
+        <button class="clear-filters-btn" (click)="filterStartDate=''; filterEndDate=''; filterEventName=''; selectedStatus='all'; applyFilters()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 6h18"/>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+          </svg>
+          Clear Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-content">
+      <div class="loading-animation">
+        <div class="loading-spinner"></div>
+        <div class="loading-pulse"></div>
+      </div>
+      <h3 class="loading-title">Loading Discount Events</h3>
+      <p class="loading-text">Please wait while we fetch the events...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="error && !loading">
+    <div class="error-content">
+      <div class="error-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <h3 class="error-title">Unable to Load Events</h3>
+      <p class="error-message">{{ error }}</p>
+      <div class="error-actions">
+        <button class="retry-btn" (click)="fetchEvents()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="23,4 23,10 17,10"/>
+            <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+          </svg>
+          Try Again
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Events Section -->
+  <div class="orders-section" *ngIf="!loading && !error">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="events && events.length === 0">
+      <div class="empty-content">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+            <polyline points="3.27,6.96 12,12.01 20.73,6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <h3 class="empty-title">No Events Found</h3>
+        <p class="empty-message">No discount events match the current filters.</p>
+        <div class="empty-actions">
+          <button class="browse-btn" (click)="filterStartDate=''; filterEndDate=''; filterEventName=''; selectedStatus='all'; applyFilters()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M3 6h18l-2 13H5L3 6z"/>
+              <path d="M3 6L2.25 3H1"/>
+            </svg>
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Events List -->
+    <div class="orders-list" *ngIf="events && events.length > 0">
+      <div class="list-header">
+        <div class="list-title">
+          <svg class="list-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M9 12l2 2 4-4"/>
+            <path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/>
+          </svg>
+          Discount Events
+        </div>
+        <div class="list-count">{{ events.length }} events</div>
+      </div>
+
+      <div class="order-card" *ngFor="let event of events; let i = index">
+        <div class="card-number">{{ i + 1 }}</div>
+        <div class="order-header">
+          <div class="order-meta">
+            <div class="order-id-section">
+              <span class="order-label">Event</span>
+              <h3 class="order-id">#{{ event.name }}</h3>
+              <span class="order-real-id" style="font-size: 12px; color: #888; font-weight: 500;">Event ID: {{ event.id }}</span>
+            </div>
+            
+            <div class="order-date-section">
+              <span class="date-label">Start Date</span>
+              <span class="order-date">{{ formatDate(event.startDate) }}</span>
+            </div>
+          </div>
+
+          <div class="order-status-section">
+            <span class="refund-status-badge"
+              [ngClass]="{
+                'pending': !isEventActive(event),
+                'approved': isEventActive(event),
+                'processing': false
+              }">
+              {{ isEventActive(event) ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="order-summary">
+          <div class="summary-stats">
+            <div class="stat-item">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              <div class="stat-content">
+                <div class="stat-label">End Date</div>
+                <div class="stat-value">{{ formatDate(event.endDate) }}</div>
+              </div>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item">
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                <circle cx="8.5" cy="7" r="4"/>
+                <line x1="20" y1="8" x2="20" y2="14"/>
+                <line x1="23" y1="11" x2="17" y2="11"/>
+              </svg>
+              <div class="customer-section">
+                <span class="customer-label">Admin</span>
+                <span class="customer-name">{{ event.adminId || 'N/A' }}</span>
+              </div>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item">
+              <div class="stat-content">
+                <span class="full-order-badge-inline">
+                  <svg class="full-order-badge-icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                    <path d="M8 12l2 2 4-4" stroke-width="2"/>
+                  </svg>
+                  {{ event.rules?.length || 0 }} Rules
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="order-actions">
+          <div class="actions-right">
+            <button class="action-btn primary" (click)="openEditModal(event)">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              Edit Event
+            </button>
+            <button class="action-btn secondary" (click)="viewHistory(event.id)">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M3 21v-5h5"/>
+              </svg>
+              History
+            </button>
+            <button class="action-btn danger" (click)="deleteEvent(event.id)">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Event Modal (Keep existing modal content) -->
+<div class="modal-backdrop" *ngIf="showCreateModal">
+  <div class="modal wide create-modal" [ngClass]="{'dropdown-open': showCategoryDropdown}">
+    <button class="close-btn" (click)="showCreateModal = false" aria-label="Close">&times;</button>
+    <h3 class="create-title">Create Discount Event</h3>
+    <form (ngSubmit)="createEvent()" #eventForm="ngForm" autocomplete="off">
+      <div class="create-fields-row">
+        <div class="create-field">
+          <label for="eventName">Event Name</label>
+          <input id="eventName" type="text" [(ngModel)]="newEvent.name" name="name" required placeholder="Enter event name" class="create-input" [class.error-input]="nameError" #eventNameInput="ngModel" />
+          <div *ngIf="eventNameInput.invalid && eventForm.submitted" class="error-message">Event name is required</div>
+        </div>
+        <div class="create-field">
+          <label for="eventStart">Start Date</label>
+          <input id="eventStart" type="date" [(ngModel)]="newEvent.startDate" name="startDate" required [min]="todayString" class="create-input" [class.error-input]="startDateError" #eventStartInput="ngModel" />
+          <div *ngIf="eventStartInput.invalid && eventForm.submitted" class="error-message">Start date is required</div>
+        </div>
+        <div class="create-field">
+          <label for="eventEnd">End Date</label>
+          <input id="eventEnd" type="date" [(ngModel)]="newEvent.endDate" name="endDate" required [min]="newEvent.startDate || todayString" class="create-input" [class.error-input]="endDateError" #endDateInput="ngModel" />
+          <div *ngIf="endDateInput.invalid && eventForm.submitted" class="error-message">End date is required</div>
+        </div>
+      </div>
+      <div class="rules-section">
+        <div class="rules-header">
+          <h4>Discount Rules</h4>
+          <button type="button" class="add-rule-btn-modern add-rule-btn-primary" (click)="addNewRule()">
+            <span class="plus-icon">+</span> Add Rule
+          </button>
+        </div>
+        
+        <!-- Discount Hierarchy Information -->
+        <div class="discount-hierarchy-info" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 0.9rem;">
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <i class="fa fa-info-circle" style="color: #007bff; margin-right: 8px;"></i>
+            <strong style="color: #495057;">Discount Hierarchy Rules</strong>
+          </div>
+          <div style="color: #6c757d; line-height: 1.5;">
+            <p style="margin: 0 0 8px 0;">Discounts follow a hierarchy to prevent conflicts:</p>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Category</span>
+              <i class="fa fa-arrow-right" style="color: #6c757d;"></i>
+              <span style="background: #ffc107; color: #212529; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Product</span>
+              <i class="fa fa-arrow-right" style="color: #6c757d;"></i>
+              <span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Variant</span>
+            </div>
+            <p style="margin: 8px 0 0 0; font-size: 0.85rem;">
+              <strong>Rule:</strong> You cannot create a lower-level discount when a higher-level discount already exists for the same item.
+            </p>
+          </div>
+        </div>
+
+        <!-- Rules List -->
+        <div class="rules-list-modern" *ngIf="newEvent.rules.length > 0">
+          <div *ngFor="let rule of newEvent.rules; let i = index" class="rule-item-modern">
+            <div class="rule-row-flex improved-rule-row">
+              <span class="rule-circle">{{i + 1}}</span>
+              <div class="vertical-divider"></div>
+              <select [(ngModel)]="rule.targetType" name="ruleType{{i}}" class="rule-type-select-modern compact-select"
+                      (ngModelChange)="updateRuleType(i, $event)">
+                <option value="category">Category</option>
+                <option value="product">Product</option>
+                <option value="brand">Brand</option>
+              </select>
+              <div class="rule-controls-group" style="display: flex; align-items: center; gap: 8px;">
+                <label class="discount-label-modern" for="discount{{i}}">Discount</label>
+                <input type="number" min="1" max="100" [(ngModel)]="rule.discountPercent" name="discount{{i}}" class="discount-input-modern compact-input" />
+                <span class="percent-symbol-modern large-percent">%</span>
+                <ng-container *ngIf="currentRuleIndex === i && showRuleBuilder">
+                  <button type="button" class="inline-tick-btn large-action-icon" (click)="confirmRule(i)"><i class="fa fa-check"></i></button>
+                  <!-- Change cross to just close builder, not delete rule -->
+                  <button type="button" class="inline-cancel-btn large-action-icon" (click)="showRuleBuilder = false"><i class="fa fa-times"></i></button>
+                </ng-container>
+                <ng-container *ngIf="!(currentRuleIndex === i && showRuleBuilder)">
+                  <button type="button" class="edit-rule-btn-modern" (click)="editRule(i)" title="Edit Rule"><i class="fa fa-edit"></i></button>
+                </ng-container>
+              </div>
+              <!-- Move trash button to far right, outside controls group -->
+              <button type="button" class="edit-rule-delete" (click)="removeRule(i)" title="Delete Rule">
+                <i class="fa fa-trash"></i>
+              </button>
+            </div> 
+            <div class="rule-target-modern">
+              <ng-container *ngIf="rule.selectedPath && rule.selectedPath.length > 0">
+                <span class="target-chip" style="background: #e3f2fd; color: #20262e; border-radius: 16px;font-weight: 1000;">
+                  <ng-container *ngIf="getRuleType(rule) === 'productVariant' && rule.selectedPath.length > 1">
+                    {{ rule.selectedPath[0].name }} →
+                    <span *ngFor="let attr of getVariantAttributes(rule.selectedPath[1]); let last = last">
+                      {{attr.key}}: {{attr.value}}<span *ngIf="!last">, </span>
+                    </span>
+                  </ng-container>
+                  <ng-container *ngIf="getRuleType(rule) !== 'productVariant'">
+                    {{ getPathDisplay(rule.selectedPath) }}
+                  </ng-container>
+                </span>
+              </ng-container>
+              <ng-container *ngIf="!rule.selectedPath || rule.selectedPath.length === 0">
+                <span class="no-target-selected"><i class="fa fa-exclamation-circle"></i> No target selected</span>
+              </ng-container>
+            </div>
+            <!-- Rule Builder appears directly under the rule being edited -->
+            <div *ngIf="currentRuleIndex === i && showRuleBuilder" class="rule-builder-modern">
+              <div class="builder-content">
+                <!-- Builder content here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="submit" [disabled]="!eventForm.form.valid">Create</button>
+        <button type="button" (click)="showCreateModal = false">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Event Modal (Keep existing modal) -->
+<div class="modal-backdrop" *ngIf="showEditModal">
+  <div class="modal wide create-modal" [ngClass]="{'dropdown-open': showCategoryDropdown}">
+    <button class="close-btn" (click)="closeEditModal()" aria-label="Close">&times;</button>
+    <h3 class="create-title">Edit Discount Event</h3>
+    <!-- Keep existing edit modal content -->
+  </div>
+</div>
+
+<!-- History Modal (Keep existing modal) -->
+<div class="modal-backdrop" *ngIf="showHistoryModal">
+  <div class="modal history-modal">
+    <!-- Keep existing history modal content -->
+  </div>
+</div>

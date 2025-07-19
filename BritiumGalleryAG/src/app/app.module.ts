@@ -92,6 +92,8 @@ import { BrandRegisterComponent } from './brand-register/brand-register.componen
 import { ShippingReturnsPolicyComponent } from './shipping-returns-policy/shipping-returns-policy.component';
 import { AboutComponent } from './about/about.component';
 import { BlogCreateComponent } from './blog-create/blog-create.component';
+import { CategoryFilterPipe } from './category-filter.pipe';
+import { ProductFilterPipe } from './product-filter.pipe';
 
 @NgModule({
   declarations: [
@@ -186,8 +188,9 @@ import { BlogCreateComponent } from './blog-create/blog-create.component';
     NgApexchartsModule,
     NgxEditorModule,
     MapToAttributeLinePipe,
-    BrandRegisterComponent
-    
+    BrandRegisterComponent,
+    CategoryFilterPipe,
+    ProductFilterPipe
   ],
   providers: [],
   bootstrap: [AppComponent],

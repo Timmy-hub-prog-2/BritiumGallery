@@ -1,32 +1,135 @@
 <div class="event-list-container">
   <div class="event-header-row">
-    <h2 class="event-title">Discount Events</h2>
+    <div class="header-left">
+      <h2 class="event-title">Discount Events</h2>
+      <span class="event-subtitle">Manage promotional discounts and sales events</span>
+    </div>
     <button class="create-btn-black" (click)="showCreateModal = true">
       <span class="plus-icon">+</span> Create Event
     </button>
   </div>
 
+  <!-- Add Event Filters Section -->
+  <div class="event-filters-section discount-event-filters">
+    <div class="filters-row">
+      <!-- Event Name Search -->
+      <div class="filter-group">
+        <label for="event-name-search">Search Event</label>
+        <input 
+          id="event-name-search"
+          type="text" 
+          [(ngModel)]="searchEventName" 
+          (input)="applySearch()"
+          placeholder="Search by event name..."
+          class="discount-event-search-input"
+        />
+      </div>
+
+      <!-- Status Filter -->
+      <div class="filter-group">
+        <label>Status</label>
+        <div class="status-toggle-group">
+          <button 
+            class="status-toggle-btn" 
+            [class.active]="selectedStatus === 'all'"
+            (click)="filterByStatus('all')">
+            All Events
+          </button>
+          <button 
+            class="status-toggle-btn" 
+            [class.active]="selectedStatus === 'active'"
+            (click)="filterByStatus('active')">
+            Active Only
+          </button>
+          <button 
+            class="status-toggle-btn" 
+            [class.active]="selectedStatus === 'inactive'"
+            (click)="filterByStatus('inactive')">
+            Inactive Only
+          </button>
+        </div>
+      </div>
+
+      <!-- Date Range Filter -->
+      <div class="filter-group date-range-group">
+        <label>Date Range</label>
+        <div class="date-inputs">
+          <div class="date-input-wrapper">
+            <input 
+              type="date" 
+              [(ngModel)]="filterStartDate" 
+              (change)="applyDateFilter()"
+              class="date-input"
+              [max]="filterEndDate || todayString">
+          </div>
+          <span class="date-separator">to</span>
+          <div class="date-input-wrapper">
+            <input 
+              type="date" 
+              [(ngModel)]="filterEndDate" 
+              (change)="applyDateFilter()"
+              class="date-input"
+              [min]="filterStartDate">
+          </div>
+          <button 
+            class="clear-date-btn" 
+            (click)="clearDateFilter()"
+            *ngIf="filterStartDate || filterEndDate">
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event Actions Toggle -->
+    <div *ngIf="showActionToggle" class="action-toggle-section">
+      <div class="discount-event-action-toggle-group">
+        <button 
+          class="discount-event-action-btn" 
+          (click)="toggleAction('show')" 
+          [class.active]="actionToggle === 'show'">
+          Show Event
+        </button>
+        <button 
+          class="discount-event-action-btn" 
+          (click)="toggleAction('history')" 
+          [class.active]="actionToggle === 'history'">
+          View History
+        </button>
+        <button 
+          class="discount-event-action-btn" 
+          (click)="toggleAction('delete')" 
+          [class.active]="actionToggle === 'delete'">
+          Delete Event
+        </button>
+        <button class="discount-event-action-btn clear" (click)="clearActionToggle()">
+          Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Create Event Modal -->
   <div class="modal-backdrop" *ngIf="showCreateModal">
-    <div class="modal wide create-modal">
+    <div class="modal wide create-modal" [ngClass]="{'dropdown-open': showCategoryDropdown}">
       <button class="close-btn" (click)="showCreateModal = false" aria-label="Close">&times;</button>
       <h3 class="create-title">Create Discount Event</h3>
       <form (ngSubmit)="createEvent()" #eventForm="ngForm" autocomplete="off">
         <div class="create-fields-row">
           <div class="create-field">
             <label for="eventName">Event Name</label>
-            <input id="eventName" type="text" [(ngModel)]="newEvent.name" name="name" required placeholder="Enter event name" class="create-input" [class.error-input]="nameError" />
-            <div *ngIf="nameError" class="error-message">{{ nameError }}</div>
+            <input id="eventName" type="text" [(ngModel)]="newEvent.name" name="name" required placeholder="Enter event name" class="create-input" [class.error-input]="nameError" #eventNameInput="ngModel" />
+            <div *ngIf="eventNameInput.invalid && eventForm.submitted" class="error-message">Event name is required</div>
           </div>
           <div class="create-field">
             <label for="eventStart">Start Date</label>
-            <input id="eventStart" type="date" [(ngModel)]="newEvent.startDate" name="startDate" required [min]="todayString" class="create-input" [class.error-input]="startDateError" />
-            <div *ngIf="startDateError" class="error-message">{{ startDateError }}</div>
+            <input id="eventStart" type="date" [(ngModel)]="newEvent.startDate" name="startDate" required [min]="todayString" class="create-input" [class.error-input]="startDateError" #eventStartInput="ngModel" />
+            <div *ngIf="eventStartInput.invalid && eventForm.submitted" class="error-message">Start date is required</div>
           </div>
           <div class="create-field">
             <label for="eventEnd">End Date</label>
-            <input id="eventEnd" type="date" [(ngModel)]="newEvent.endDate" name="endDate" required [min]="newEvent.startDate || todayString" class="create-input" [class.error-input]="endDateError" />
-            <div *ngIf="endDateError" class="error-message">{{ endDateError }}</div>
+            <input id="eventEnd" type="date" [(ngModel)]="newEvent.endDate" name="endDate" required [min]="newEvent.startDate || todayString" class="create-input" [class.error-input]="endDateError" #endDateInput="ngModel" />
+            <div *ngIf="endDateInput.invalid && eventForm.submitted" class="error-message">End date is required</div>
           </div>
         </div>
         <div class="rules-section">
@@ -35,6 +138,27 @@
             <button type="button" class="add-rule-btn-modern add-rule-btn-primary" (click)="addNewRule()">
               <span class="plus-icon">+</span> Add Rule
             </button>
+          </div>
+          
+          <!-- Discount Hierarchy Information -->
+          <div class="discount-hierarchy-info" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 0.9rem;">
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+              <i class="fa fa-info-circle" style="color: #007bff; margin-right: 8px;"></i>
+              <strong style="color: #495057;">Discount Hierarchy Rules</strong>
+            </div>
+            <div style="color: #6c757d; line-height: 1.5;">
+              <p style="margin: 0 0 8px 0;">Discounts follow a hierarchy to prevent conflicts:</p>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Category</span>
+                <i class="fa fa-arrow-right" style="color: #6c757d;"></i>
+                <span style="background: #ffc107; color: #212529; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Product</span>
+                <i class="fa fa-arrow-right" style="color: #6c757d;"></i>
+                <span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Variant</span>
+              </div>
+              <p style="margin: 8px 0 0 0; font-size: 0.85rem;">
+                <strong>Rule:</strong> You cannot create a lower-level discount when a higher-level discount already exists for the same item.
+              </p>
+            </div>
           </div>
 
           <!-- Rules List -->
@@ -55,16 +179,21 @@
                   <span class="percent-symbol-modern large-percent">%</span>
                   <ng-container *ngIf="currentRuleIndex === i && showRuleBuilder">
                     <button type="button" class="inline-tick-btn large-action-icon" (click)="confirmRule(i)"><i class="fa fa-check"></i></button>
-                    <button type="button" class="inline-cancel-btn large-action-icon" (click)="removeRule(i)"><i class="fa fa-times"></i></button>
+                    <!-- Change cross to just close builder, not delete rule -->
+                    <button type="button" class="inline-cancel-btn large-action-icon" (click)="showRuleBuilder = false"><i class="fa fa-times"></i></button>
                   </ng-container>
                   <ng-container *ngIf="!(currentRuleIndex === i && showRuleBuilder)">
                     <button type="button" class="edit-rule-btn-modern" (click)="editRule(i)" title="Edit Rule"><i class="fa fa-edit"></i></button>
                   </ng-container>
                 </div>
+                <!-- Move trash button to far right, outside controls group -->
+                <button type="button" class="edit-rule-delete" (click)="removeRule(i)" title="Delete Rule">
+                  <i class="fa fa-trash"></i>
+                </button>
               </div> 
               <div class="rule-target-modern">
                 <ng-container *ngIf="rule.selectedPath && rule.selectedPath.length > 0">
-                  <span class="target-chip" style="background: #e3f2fd; color: #1976d2; border-radius: 16px; padding: 4px 14px; font-weight: 600;">
+                  <span class="target-chip" style="background: #e3f2fd; color: #20262e; border-radius: 16px;font-weight: 1000;">
                     <ng-container *ngIf="getRuleType(rule) === 'productVariant' && rule.selectedPath.length > 1">
                       {{ rule.selectedPath[0].name }} →
                       <span *ngFor="let attr of getVariantAttributes(rule.selectedPath[1]); let last = last">
@@ -80,151 +209,282 @@
                   <span class="no-target-selected"><i class="fa fa-exclamation-circle"></i> No target selected</span>
                 </ng-container>
               </div>
-            </div>
-          </div>
-
-          <!-- Rule Builder -->
-          <div class="rule-builder" *ngIf="currentRule && showRuleBuilder">
-            <div class="builder-header">
-              <ng-container *ngIf="currentRule as rule">
-                <h4 class="builder-title-modern">
-                  Configure Rule {{ (currentRuleIndex || 0) + 1 }} -
-                  {{ rule.targetType ? (rule.targetType | uppercase) : '' }}
-                  <span *ngIf="rule.selectedPath && rule.selectedPath.length > 0">
-                    — {{ getPathDisplay(rule.selectedPath) }}
-                  </span>
-                </h4>
-              </ng-container>
-            </div>
-
-            <!-- Category Builder (merged with products) -->
-            <div *ngIf="builderType === 'category'" class="category-builder">
-              <div class="builder-hint">
-                💡 <strong>Single-click</strong> to expand levels, <strong>hover</strong> to preview
-              </div>
-              <div class="discount-cascade-container">
-                <ng-container *ngFor="let column of cascadeLevels; let colIdx = index">
-                  <div class="cascade-column" *ngIf="filterCategoryNodes(column).length > 0">
-                    <div class="cascade-column-header">
-                      {{getColumnHeader(colIdx)}}
+              <!-- Rule Builder appears directly under the rule being edited -->
+              <ng-container *ngIf="currentRuleIndex === i && showRuleBuilder">
+                <div class="rule-builder">
+                  <div class="builder-header">
+                    <ng-container *ngIf="currentRule as rule">
+                      <h4 class="builder-title-modern">
+                        Configure Rule {{ (currentRuleIndex || 0) + 1 }} -
+                        {{ rule.targetType ? (rule.targetType | uppercase) : '' }}
+                        <span *ngIf="rule.selectedPath && rule.selectedPath.length > 0">
+                          — {{ getPathDisplay(rule.selectedPath) }}
+                        </span>
+                      </h4>
+                    </ng-container>
+                  </div>
+                  <!-- Category Builder (hierarchical dropdown) -->
+                  <div *ngIf="builderType === 'category'" class="category-builder">
+                    <div class="builder-hint">
+                      💡 <strong>Search and select categories</strong> from the dropdown below
                     </div>
-                    <ng-container *ngFor="let node of filterCategoryNodes(column)">
-                      <div class="cascade-item"
-                           [class.cascade-selected]="isCascadeSelected(colIdx, node)"
-                           [class.cascade-in-path]="isCascadeInPath(colIdx, node)"
-                           [class.cascade-hovered]="isNodeHovered(colIdx, node)"
-                           (mouseenter)="onCascadeHover(colIdx, node)"
-                           (mouseleave)="onCascadeMouseLeave(colIdx)"
-                           (click)="onCascadeClick(colIdx, node)">
-                        <div class="cascade-item-header">
-                          <span class="cascade-item-name">{{ node.name }}</span>
-                          <span *ngIf="hasChildren(node)" class="cascade-arrow">→</span>
+                    <div class="category-dropdown-container">
+                      <div *ngIf="selectedCategories.length > 0" class="selected-categories-display">
+                        <h5 style="margin-bottom: 6px;">Selected Categories:</h5>
+                        <div class="selected-categories-list">
+                          <span
+                            *ngFor="let cat of selectedCategories"
+                            class="selected-category-chip"
+                            [ngClass]="{
+                              'category-chip-parent': isParentCategory(cat),
+                              'category-chip-child': !isParentCategory(cat)
+                            }"
+                          >
+                            {{ cat.name }}
+                            <i class="fa fa-times" (click)="toggleSelection(cat, 'category')"></i>
+                          </span>
                         </div>
-                        <div class="cascade-item-footer">
-                          <span class="node-type-badge">{{node.type}}</span>
-                          <button type="button" 
-                                  class="apply-btn" 
-                                  (click)="applySelectionToRule(colIdx, node); $event.stopPropagation()">
-                            Apply
+                      </div>
+                      <div class="category-dropdown-trigger" (click)="toggleCategoryDropdown($event)">
+                        <span>
+                          <ng-container *ngIf="selectedCategories.length > 0">
+                            <ng-container *ngIf="getParentCategoryCount() > 0">{{ getParentCategoryCount() }} categor{{getParentCategoryCount() > 1 ? 'ies' : 'y'}}</ng-container>
+                            <ng-container *ngIf="getParentCategoryCount() > 0 && getChildCategoryCount() > 0">, </ng-container>
+                            <ng-container *ngIf="getChildCategoryCount() > 0">{{ getChildCategoryCount() }} sub-categor{{getChildCategoryCount() > 1 ? 'ies' : 'y'}}</ng-container>
+                            selected
+                          </ng-container>
+                          <ng-container *ngIf="selectedCategories.length === 0">
+                            Select categories...
+                          </ng-container>
+                        </span>
+                        <i class="fa fa-chevron-down"></i>
+                      </div>
+                      <div class="category-dropdown-content" *ngIf="showCategoryDropdown">
+                        <input type="text" [(ngModel)]="categorySearchTerm" name="categorySearchTerm" placeholder="Search categories..." class="product-search-input" (input)="onCategorySearchInput($event)" />
+                        <div class="category-list-container" style="max-height: 120px; overflow-y: auto;">
+                          <div class="category-hierarchy-container">
+                            <ng-container *ngIf="filteredCategoriesForDropdown.length > 0; else noCategoriesFound">
+                              <ng-container *ngFor="let category of filteredCategoriesForDropdown; trackBy: trackByCategoryId">
+                                <!-- Parent Category -->
+                                <div>
+                                  <div class="category-item-row" [ngClass]="{'has-children': category.children && category.children.length > 0}">
+                                    <div class="category-item-left">
+                                      <input type="checkbox" [checked]="isSelected(category, 'category')" (change)="toggleSelection(category, 'category')" class="category-checkbox" />
+                                      <span class="category-name">{{ category.name }}</span>
+                                    </div>
+                                    <div class="category-item-right" *ngIf="category.children && category.children.length > 0">
+                                      <button type="button" class="expand-btn" (click)="toggleCategoryExpansion(category.id)">
+                                        <i class="fa fa-chevron-right" [class.rotated]="expandedCategoryIds.has(category.id)"></i>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <!-- Child Categories -->
+                                  <div class="subcategory-list" *ngIf="category.children && category.children.length > 0 && (expandedCategoryIds.has(category.id) || categorySearchTerm)">
+                                    <ng-container *ngFor="let child of category.children">
+                                      <div>
+                                        <div class="category-item-row" [ngClass]="{'has-children': child.children && child.children.length > 0}">
+                                          <div class="category-item-left">
+                                            <span class="child-indent"></span>
+                                            <input type="checkbox" [checked]="isSelected(child, 'category')" (change)="toggleSelection(child, 'category')" class="category-checkbox" [disabled]="isSelected(category, 'category')" />
+                                            <span class="category-name">{{ child.name }}</span>
+                                          </div>
+                                          <div class="category-item-right" *ngIf="child.children && child.children.length > 0">
+                                            <button type="button" class="expand-btn" (click)="toggleCategoryExpansion(child.id)">
+                                              <i class="fa fa-chevron-right" [class.rotated]="expandedCategoryIds.has(child.id)"></i>
+                                            </button>
+                                          </div>
+                                        </div>
+                                        <!-- Grandchild Categories (if any) -->
+                                        <div class="sub-subcategory-list" *ngIf="child.children && child.children.length > 0 && (expandedCategoryIds.has(child.id) || categorySearchTerm)">
+                                          <ng-container *ngFor="let grandchild of child.children">
+                                            <div class="category-item-row">
+                                              <div class="category-item-left">
+                                                <span class="child-indent"></span><span class="child-indent"></span>
+                                                <input type="checkbox" [checked]="isSelected(grandchild, 'category')" (change)="toggleSelection(grandchild, 'category')" class="category-checkbox" />
+                                                <span class="category-name">{{ grandchild.name }}</span>
+                                              </div>
+                                            </div>
+                                          </ng-container>
+                                        </div>
+                                      </div>
+                                    </ng-container>
+                                  </div>
+                                </div>
+                              </ng-container>
+                            </ng-container>
+                            <ng-template #noCategoriesFound>
+                              <div class="no-products-found" style="padding: 24px; text-align: center; color: #888; font-size: 1.08em;">
+                                No categories found.
+                              </div>
+                            </ng-template>
+                          </div>
+                        </div>
+                        <div class="dropdown-actions spaced-actions">
+                          <button class="apply-categories-btn" (click)="applyDiscountToSelected('category'); showCategoryDropdown = false" [disabled]="selectedCategories.length === 0">Apply to {{ selectedCategories.length }} Selected</button>
+                          <span class="spacer"></span>
+                          <button class="clear-selection-btn" (click)="clearSelection('category')">Clear Selection</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Product Builder (flat dropdown) -->
+                  <div *ngIf="builderType === 'product'" class="product-builder">
+                    <div class="builder-hint">
+                      💡 <strong>Search and select products</strong> from the dropdown below
+                    </div>
+                    <div class="category-dropdown-container">
+                      <div *ngIf="selectedProducts.length > 0 || selectedVariants.length > 0" class="selected-categories-display">
+                        <h5 style="margin-bottom: 6px;">Selected Products:</h5>
+                        <div class="selected-categories-list">
+                          <span *ngFor="let prod of selectedProducts" class="selected-category-chip category-chip-parent">
+                            {{ prod.name }}
+                            <i class="fa fa-times" (click)="toggleSelection(prod, 'product')"></i>
+                          </span>
+                          <!-- Variant chips: show only for current rule builder -->
+                          <span *ngFor="let variant of selectedVariants" class="selected-category-chip variant-chip" style="background: #ffe0b2; color: #b26a00; border-radius: 16px; font-weight: 1000; margin-left: 4px;">
+                            <ng-container *ngIf="selectedProductForVariant">
+                              {{ selectedProductForVariant.name }} →
+                            </ng-container>
+                            <ng-container *ngFor="let attr of getVariantAttributes(variant); let last = last">
+                              {{attr.key}}: {{attr.value}}<span *ngIf="!last">, </span>
+                            </ng-container>
+                            <i class="fa fa-times" (click)="toggleSelection(variant, 'variant')"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="category-dropdown-trigger" (click)="showProductDropdown = !showProductDropdown">
+                        <span>
+                          <ng-container *ngIf="selectedProducts.length > 0 || selectedVariants.length > 0">
+                            <ng-container *ngIf="selectedProducts.length > 0">{{ selectedProducts.length }} product{{selectedProducts.length > 1 ? 's' : ''}}</ng-container>
+                            <ng-container *ngIf="selectedProducts.length > 0 && selectedVariants.length > 0">, </ng-container>
+                            <ng-container *ngIf="selectedVariants.length > 0">{{ selectedVariants.length }} variant{{selectedVariants.length > 1 ? 's' : ''}}</ng-container>
+                            selected
+                          </ng-container>
+                          <ng-container *ngIf="selectedProducts.length === 0 && selectedVariants.length === 0">
+                            Select products...
+                          </ng-container>
+                        </span>
+                        <i class="fa fa-chevron-down"></i>
+                      </div>
+                      <div class="category-dropdown-content" *ngIf="showProductDropdown">
+                        <input type="text" [(ngModel)]="productSearchTerm" name="productSearchTerm" placeholder="Search products..." class="product-search-input" />
+                        <div class="category-list-container">
+                          <div class="category-hierarchy-container">
+                            <ng-container *ngIf="(products | productFilter:productSearchTerm).length > 0; else noProductsFound">
+                              <ng-container *ngFor="let product of products | productFilter:productSearchTerm">
+                                <div class="category-item-row" style="display: flex; align-items: center;">
+                                  <input type="checkbox" [checked]="isSelected(product, 'product')" (change)="toggleSelection(product, 'product')" class="category-checkbox" />
+                                  <span class="category-name" style="flex:1;">{{ product.name }}</span>
+                                  <button *ngIf="product.variants && product.variants.length > 0"
+                                          type="button"
+                                          class="expand-btn"
+                                          (click)="openProductVariantModal(product)">
+                                    <i class="fa fa-chevron-right"></i>
+                                  </button>
+                                </div>
+                              </ng-container>
+                            </ng-container>
+                            <ng-template #noProductsFound>
+                              <div class="no-products-found" style="padding: 24px; text-align: center; color: #888; font-size: 1.08em;">
+                                No products found.
+                              </div>
+                            </ng-template>
+                          </div>
+                        </div>
+                        <div class="dropdown-actions spaced-actions">
+                          <button class="apply-categories-btn" (click)="applyDiscountToSelected('product'); showProductDropdown = false" [disabled]="(selectedProducts.length + selectedVariants.length) === 0">Apply to {{ selectedProducts.length + selectedVariants.length }} Selected</button>
+                          <span class="spacer"></span>
+                          <button class="clear-selection-btn" (click)="clearSelection('product'); clearSelection('variant')">Clear Selection</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Brand Builder (Dropdown Style) -->
+                  <div *ngIf="builderType === 'brand'" class="brand-builder">
+                    <div class="builder-hint">
+                      💡 <strong>Search and select brands</strong> from the dropdown below
+                    </div>
+                    <!-- Brand Dropdown Trigger -->
+                    <div class="category-dropdown-container">
+                      <div *ngIf="selectedBrands.length > 0" class="selected-categories-display">
+                        <h5 style="margin-bottom: 6px;">Selected Brands:</h5>
+                        <div class="selected-categories-list">
+                          <span *ngFor="let brand of selectedBrands" class="selected-category-chip category-chip-parent">
+                            {{ brand.name }}
+                            <i class="fa fa-times" (click)="toggleSelection(brand, 'brand'); $event.stopPropagation()"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="category-dropdown-trigger" (click)="toggleBrandDropdown()">
+                        <span class="dropdown-placeholder">
+                          {{ selectedBrands.length > 0 ? selectedBrands.length + ' brand(s) selected' : 'Select brands...' }}
+                        </span>
+                        <i class="fa fa-chevron-down dropdown-arrow" [class.rotated]="showBrandDropdown"></i>
+                      </div>
+                      <!-- Brand Dropdown Content -->
+                      <div class="category-dropdown-content" *ngIf="showBrandDropdown">
+                        <!-- Search Input -->
+                        <div class="product-search-container">
+                          <input 
+                            type="text" 
+                            placeholder="Search brands..." 
+                            class="product-search-input"
+                            [(ngModel)]="brandSearchTerm"
+                            [ngModelOptions]="{standalone: true}"
+                            (click)="$event.stopPropagation()"
+                          />
+                        </div>
+                        <!-- Brand List -->
+                        <div class="product-list-container scrollable">
+                          <ng-container *ngIf="filteredBrands.length > 0; else noBrandsFound">
+                            <ng-container *ngFor="let brand of filteredBrands">
+                              <div class="product-item-row">
+                                <div class="product-item-left">
+                                  <input 
+                                    type="checkbox" 
+                                    [checked]="isSelected(brand, 'brand')" 
+                                    (change)="toggleSelection(brand, 'brand'); $event.stopPropagation()"
+                                    class="product-checkbox"
+                                  />
+                                  <span class="product-name">{{ brand.name }}</span>
+                                </div>
+                              </div>
+                            </ng-container>
+                          </ng-container>
+                          <ng-template #noBrandsFound>
+                            <div class="no-products-found" style="padding: 24px; text-align: center; color: #888; font-size: 1.08em;">
+                              No brands found.
+                            </div>
+                          </ng-template>
+                        </div>
+                        <!-- Action Buttons -->
+                        <div class="product-dropdown-actions">
+                          <button 
+                            type="button" 
+                            class="apply-products-btn" 
+                            [disabled]="selectedBrands.length === 0"
+                            (click)="applyDiscountToSelected('brand'); showBrandDropdown = false"
+                          >
+                            Apply to {{ selectedBrands.length }} Selected
+                          </button>
+                          <button 
+                            type="button" 
+                            class="clear-selection-btn"
+                            (click)="clearSelection('brand')"
+                          >
+                            Clear Selection
                           </button>
                         </div>
                       </div>
-                    </ng-container>
-                  </div>
-                </ng-container>
-              </div>
-            </div>
-
-            <!-- Product Builder (flat product list with sub-category badge, no search, full-width variant section) -->
-            <div *ngIf="builderType === 'product'" class="product-builder">
-              <div class="product-grid">
-                <ng-container *ngFor="let product of products">
-                  <div class="product-card" style="cursor:pointer;" (click)="toggleProductExpansion(product.id)">
-                    <div class="cascade-item-header">
-                      <span class="cascade-item-name">{{ product.name }}</span>
-                    </div>
-                    <div class="product-badge-row" style="margin-bottom: 4px;">
-                      <ng-container *ngIf="productBreadcrumbs[product.id] && productBreadcrumbs[product.id].length > 1">
-                        <span class="category-badge" style="background: #1976d2; color: #fff; border-radius: 8px; padding: 2px 10px; font-size: 0.93em; font-weight: 600; display: inline-block;">
-                          {{ productBreadcrumbs[product.id][productBreadcrumbs[product.id].length - 2] }}
-                        </span>
-                      </ng-container>
-                    </div>
-                    <div class="cascade-item-footer">
-                      <span class="node-type-badge">PRODUCT</span>
-                      <button type="button" class="apply-btn" (click)="applyProductSelection(product); $event.stopPropagation()">Apply</button>
-                      <button type="button" class="apply-btn" style="margin-left: 8px; background: #6c757d;" (click)="toggleProductExpansion(product.id); $event.stopPropagation()">
-                        {{ expandedProductIds.has(product.id) ? 'Collapse' : 'Expand' }}
-                      </button>
                     </div>
                   </div>
-                </ng-container>
-              </div>
-              <div *ngIf="expandedProductIds.size > 0 || editVariantId" class="variant-section-fullwidth">
-                <ng-container *ngIf="products && products.length">
-                  <ng-container *ngFor="let product of products">
-                    <ng-container *ngIf="isProductExpandedOrHasEditVariant(product)">
-                      <div class="variant-section-title variant-header-modern">
-                        Variants for {{product.name}}
-                      </div>
-                      <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 24px;">
-                        <label style="font-weight:600; font-size:1.05em; cursor:pointer; display:flex; align-items:center;">
-                          <input type="checkbox" [checked]="selectedVariants.length === product.variants.length && product.variants.length > 0" (change)="selectAll(product.variants, 'variant')" style="margin-right:8px;" />
-                          Select All
-                        </label>
-                        <button type="button" (click)="clearSelection('variant')" [disabled]="selectedVariants.length === 0" style="background:none; border:none; color:#1976d2; font-weight:600; cursor:pointer;">Clear Selection</button>
-                        <span *ngIf="selectedVariants.length > 0" style="color:#1976d2; font-weight:600; font-size:1.08em;">Selected: {{selectedVariants.length}}</span>
-                        <span *ngIf="currentRule && currentRule.discountPercent" style="color:#222; font-size:1.05em; margin-left:auto;">Discount: <b style="color:#43a047;">{{currentRule.discountPercent}}%</b></span>
-                      </div>
-                      <div class="variant-list-grid">
-                        <ng-container *ngFor="let variant of product.variants">
-                          <div class="variant-row-grid" [ngStyle]="(isSelected(variant, 'variant') || (editVariantId && variant.id === editVariantId)) ? {'background':'#e3f2fd', 'border':'2px solid #1976d2'} : {}">
-                            <input type="checkbox" [checked]="isSelected(variant, 'variant') || (editVariantId && variant.id === editVariantId)" (change)="toggleSelection(variant, 'variant')" style="margin-right:18px; width:20px; height:20px; align-self:center;" />
-                            <div class="variant-image-wrap">
-                              <img *ngIf="variant.imageUrls && variant.imageUrls.length > 0" [src]="variant.imageUrls[0]" alt="variant image" class="variant-image-modern">
-                            </div>
-                            <ng-container *ngFor="let attr of getVariantAttributes(variant)">
-                              <span class="variant-attr-grid"><b>{{attr.key}}:</b> {{attr.value}}</span>
-                            </ng-container>
-                            <button type="button" class="apply-variant-btn" (click)="applyVariantSelection(variant)">Apply Variant</button>
-                          </div>
-                        </ng-container>
-                      </div>
-                      <div style="margin-top: 18px; width:100%; display:flex; justify-content:flex-end; align-items:center; gap:18px;">
-                        <button type="button" class="apply-variant-btn" [disabled]="selectedVariants.length === 0" (click)="applyDiscountToSelected('variant')">
-                          Apply Discount to Selected
-                        </button>
-                      </div>
-                      <div *ngIf="showToast" style="position:fixed; bottom:32px; right:32px; background:#43a047; color:#fff; font-weight:700; font-size:1.1em; border-radius:8px; padding:16px 32px; box-shadow:0 4px 24px rgba(67,160,71,0.18); z-index:9999;">
-                        {{toastMessage}}
-                      </div>
-                    </ng-container>
-                  </ng-container>
-                </ng-container>
-              </div>
-            </div>
-
-            <!-- Brand Builder -->
-            <div *ngIf="builderType === 'brand'" class="brand-builder">
-              <div class="brand-grid">
-                <ng-container *ngFor="let brand of brands">
-                  <div class="brand-card">
-                    <div class="cascade-item-header">
-                      <span class="cascade-item-name">{{ brand.name }}</span>
+                  <div class="target-action-buttons" *ngIf="showRuleBuilder">
+                    <!-- Removed old tick/cancel buttons from the rule builder section that used no arguments -->
                     </div>
-                    <div class="cascade-item-footer">
-                      <span class="node-type-badge">BRAND</span>
-                      <button type="button" class="apply-btn" (click)="applyBrandSelection(brand); $event.stopPropagation()">Apply</button>
-                    </div>
-                  </div>
-                </ng-container>
-              </div>
+                </div>
+              </ng-container>
+                </div>
             </div>
-
-            <div class="target-action-buttons" *ngIf="showRuleBuilder">
-              <!-- Removed old tick/cancel buttons from the rule builder section that used no arguments -->
-            </div>
-          </div>
         </div>
 
         <div class="modal-actions">
@@ -233,279 +493,498 @@
         </div>
       </form>
     </div>
-  </div>
+            </div>
 
   <div *ngIf="loading" class="loading-state">Loading events...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
 
-  <table *ngIf="!loading && events.length" class="event-table">
-    <thead>
-      <tr>
-        <th>Id</th>
-        <th>Name</th>
-        <th>Status</th>
-        <th>Start Date</th>
-        <th>End Date</th>
-        <th>Rules</th>
-        <th>Admin ID</th>
-        <th>Created At</th>
-        <th>Updated At</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let event of events">
-        <td>{{ event.id }}</td>
-        <td>{{ event.name }}</td>
-        <td>
+  <!-- Event Cards Container -->
+  <div class="event-cards-container" *ngIf="!loading && events.length">
+    <div class="event-card" *ngFor="let event of events">
+      
+      <!-- Card Header -->
+      <div class="event-card-header">
+        <h3 class="event-card-title">{{ event.name }}</h3>
+        <div class="event-card-meta">
           <span class="status-badge" [ngClass]="event.active ? 'active' : 'inactive'">
             {{ event.active ? 'Active' : 'Inactive' }}
           </span>
-        </td>
-        <td>{{ event.startDate | date:'M/d/yyyy' }}</td>
-        <td>{{ event.endDate | date:'M/d/yyyy' }}</td>
-        <td>
-          <span class="rules-badge">{{event.rules?.length || 0}} rules</span>
-        </td>
-        <td>{{ event.adminId }}</td>
-        <td>{{ event.createdAt | date:'M/d/yyyy' }}</td>
-        <td>{{ event.updatedAt ? (event.updatedAt | date:'M/d/yyyy') : '-' }}</td>
-        <td class="action-buttons">
-          <button class="icon-btn" title="Edit" (click)="openEditModal(event)"><i class="fa fa-edit"></i></button>
-          <button class="icon-btn" title="Delete" (click)="deleteEvent(event.id)"><i class="fa fa-trash"></i></button>
-          <button class="icon-btn" title="History" (click)="viewHistory(event.id)"><i class="fa fa-history"></i></button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div *ngIf="!loading && !events.length" class="empty-state">No events found.</div>
+          <span class="rules-badge">
+            <i class="fas fa-tags"></i>
+            {{ event.rules?.length || 0 }} Rules
+          </span>
+        </div>
+      </div>
+      
+      <!-- Card Body -->
+      <div class="event-card-body">
+        <div class="event-card-dates">
+          <div class="event-date-row">
+            <i class="fas fa-calendar-alt event-date-icon"></i>
+            <strong>Start:</strong> {{ event.startDate | date:'MMM dd, yyyy' }}
+          </div>
+          <div class="event-date-row">
+            <i class="fas fa-calendar-check event-date-icon"></i>
+            <strong>End:</strong> {{ event.endDate | date:'MMM dd, yyyy' }}
+          </div>
+        </div>
+        
+        <!-- Additional Info -->
+        <div class="event-card-info" style="margin-top: 12px; font-size: 0.9rem; color: #6b7280;">
+          <div style="margin-bottom: 4px;">ID: {{ event.id }}</div>
+          <div style="margin-bottom: 4px;">Admin: {{ event.adminId }}</div>
+          <div style="margin-bottom: 4px;">Created: {{ event.createdAt | date:'MMM dd, yyyy' }}</div>
+          <div *ngIf="event.updatedAt">Updated: {{ event.updatedAt | date:'MMM dd, yyyy' }}</div>
+        </div>
+      </div>
+      
+      <!-- Card Footer -->
+      <div class="event-card-footer">
+        <div class="event-card-actions">
+          <button 
+            class="event-card-action-btn edit-btn" 
+            title="Edit Event" 
+            (click)="toggleAction('show'); openEditModal(event)">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button 
+            class="event-card-action-btn delete-btn" 
+            title="Delete Event" 
+            (click)="toggleAction('delete'); deleteEvent(event.id)">
+            <i class="fas fa-trash"></i>
+          </button>
+          <button 
+            class="event-card-action-btn history-btn" 
+            title="View History" 
+            (click)="toggleAction('history'); viewHistory(event.id)">
+            <i class="fas fa-history"></i>
+          </button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  
+  <!-- Empty State -->
+  <div class="empty-events-state" *ngIf="!loading && !events.length">
+    <div class="empty-icon">
+      <i class="fas fa-calendar-times"></i>
+    </div>
+    <h3>No Events Found</h3>
+    <p>There are no discount events to display. Create your first event to get started with promotional discounts.</p>
+  </div>
+  
+  <!-- Fallback Table (hidden by default) -->
+  <div class="table-container" style="display: none;">
+    <table class="event-table">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Rules</th>
+          <th>Admin ID</th>
+          <th>Created At</th>
+          <th>Updated At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let event of events">
+          <td>{{ event.id }}</td>
+          <td>{{ event.name }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="event.active ? 'active' : 'inactive'">
+              {{ event.active ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td>{{ event.startDate | date:'M/d/yyyy' }}</td>
+          <td>{{ event.endDate | date:'M/d/yyyy' }}</td>
+          <td>
+            <span class="rules-badge">{{event.rules?.length || 0}} rules</span>
+          </td>
+          <td>{{ event.adminId }}</td>
+          <td>{{ event.createdAt | date:'M/d/yyyy' }}</td>
+          <td>{{ event.updatedAt ? (event.updatedAt | date:'M/d/yyyy') : '-' }}</td>
+          <td class="action-buttons">
+            <button class="icon-btn" title="Show Event" (click)="toggleAction('show'); openEditModal(event)"><i class="fa fa-eye"></i></button>
+            <button class="icon-btn" title="View History" (click)="toggleAction('history'); viewHistory(event.id)"><i class="fa fa-history"></i></button>
+            <button class="icon-btn" title="Delete" (click)="toggleAction('delete'); deleteEvent(event.id)"><i class="fa fa-trash"></i></button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <!-- Edit Event Modal -->
   <div class="modal-backdrop" *ngIf="showEditModal">
-    <div class="modal wide">
+    <div class="modal wide create-modal" [ngClass]="{'dropdown-open': showCategoryDropdown}">
       <button class="close-btn" (click)="closeEditModal()" aria-label="Close">&times;</button>
-      <h3 class="edit-title">Edit Discount Event</h3>
+      <h3 class="create-title">Edit Discount Event</h3>
       <form (ngSubmit)="updateEvent()" #editForm="ngForm" autocomplete="off">
-        <div class="edit-fields-row">
-          <div class="edit-field">
-            <label for="editEventName">Name</label>
-            <input id="editEventName" type="text" [(ngModel)]="editEvent.name" name="editName" required class="edit-input" [class.error-input]="editNameError" />
+        <div class="create-fields-row">
+          <div class="create-field">
+            <label for="editEventName">Event Name</label>
+            <input id="editEventName" type="text" [(ngModel)]="editEvent.name" name="editName" required placeholder="Enter event name" class="create-input" [class.error-input]="editNameError" #editNameInput="ngModel" />
+            <div *ngIf="editNameInput.invalid && editForm.submitted" class="error-message">Event name is required</div>
             <div *ngIf="editNameError" class="error-message">{{ editNameError }}</div>
           </div>
-          <div class="edit-field">
+          <div class="create-field">
             <label for="editEventStart">Start Date</label>
-            <input id="editEventStart" type="date" [(ngModel)]="editEvent.startDate" name="editStartDate" required class="edit-input" [class.error-input]="editStartDateError" />
+            <input id="editEventStart" type="date" [(ngModel)]="editEvent.startDate" name="editStartDate" required class="create-input" [class.error-input]="editStartDateError" #editStartDateInput="ngModel" />
+            <div *ngIf="editStartDateInput.invalid && editForm.submitted" class="error-message">Start date is required</div>
             <div *ngIf="editStartDateError" class="error-message">{{ editStartDateError }}</div>
           </div>
-          <div class="edit-field">
+          <div class="create-field">
             <label for="editEventEnd">End Date</label>
-            <input id="editEventEnd" type="date" [(ngModel)]="editEvent.endDate" name="editEndDate" required class="edit-input" [class.error-input]="editEndDateError" />
+            <input id="editEventEnd" type="date" [(ngModel)]="editEvent.endDate" name="editEndDate" required class="create-input" [class.error-input]="editEndDateError" #editEndDateInput="ngModel" />
+            <div *ngIf="editEndDateInput.invalid && editForm.submitted" class="error-message">End date is required</div>
             <div *ngIf="editEndDateError" class="error-message">{{ editEndDateError }}</div>
           </div>
         </div>
-
-        <div class="edit-rules-section">
-          <div class="edit-rules-header">
+        <div class="rules-section">
+          <div class="rules-header">
             <h4>Discount Rules</h4>
-            <button type="button" class="add-rule-btn-black" (click)="addEditRule()">
+            <button type="button" class="add-rule-btn-modern add-rule-btn-primary" (click)="addEditRule()">
               <span class="plus-icon">+</span> Add Rule
             </button>
           </div>
-
-          <div *ngIf="editEvent && editEvent.rules && editEvent.rules.length" class="edit-rules-list">
-            <div *ngFor="let rule of editEvent.rules; let i = index" class="edit-rule-box">
-              <div class="edit-rule-header-row">
+          
+          <!-- Discount Hierarchy Information -->
+          <div class="discount-hierarchy-info" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 0.9rem;">
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+              <i class="fa fa-info-circle" style="color: #007bff; margin-right: 8px;"></i>
+              <strong style="color: #495057;">Discount Hierarchy Rules</strong>
+            </div>
+            <div style="color: #6c757d; line-height: 1.5;">
+              <p style="margin: 0 0 8px 0;">Discounts follow a hierarchy to prevent conflicts:</p>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Category</span>
+                <i class="fa fa-arrow-right" style="color: #6c757d;"></i>
+                <span style="background: #ffc107; color: #212529; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Product</span>
+                <i class="fa fa-arrow-right" style="color: #6c757d;"></i>
+                <span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Variant</span>
+              </div>
+              <p style="margin: 8px 0 0 0; font-size: 0.85rem;">
+                <strong>Rule:</strong> You cannot create a lower-level discount when a higher-level discount already exists for the same item.
+              </p>
+            </div>
+          </div>
+          <div class="rules-list-modern" *ngIf="editEvent && editEvent.rules && editEvent.rules.length">
+            <div *ngFor="let rule of editEvent.rules; let i = index" class="rule-item-modern">
+              <div class="rule-row-flex improved-rule-row">
                 <span class="rule-circle">{{i + 1}}</span>
-                <span class="edit-rule-summary-box">
-                  <ng-container *ngIf="getRuleType(rule) === 'productVariant'">
-                    Discounted: <span style="margin-left: 4px;">Product-variant</span>
-                    <span style="margin: 0 6px;">—</span>
-                    <span class="target-chip" style="background: #e3f2fd; color: #1976d2; border-radius: 16px; padding: 4px 14px; font-weight: 600;">
-                      <ng-container *ngIf="rule.selectedPath && rule.selectedPath.length > 1">
-                        {{ rule.selectedPath[0].name }} -
-                        <span *ngFor="let attr of getVariantAttributes(rule.selectedPath[1]); let last = last">
-                          {{attr.key}}: {{attr.value}}<span *ngIf="!last">, </span>
-                        </span>
-                      </ng-container>
-                      <ng-container *ngIf="(!rule.selectedPath || rule.selectedPath.length <= 1) && rule.productVariantId">
-                        {{ getRuleTargetName(rule) }}
-                      </ng-container>
-                    </span>
+                <div class="vertical-divider"></div>
+                <select [(ngModel)]="rule.targetType" name="editRuleType{{i}}" class="rule-type-select-modern compact-select" (ngModelChange)="onEditRuleTypeChange(i, $event)">
+                  <option value="category">Category</option>
+                  <option value="product">Product</option>
+                  <option value="brand">Brand</option>
+                </select>
+                <div class="rule-controls-group" style="display: flex; align-items: center; gap: 8px;">
+                  <label class="discount-label-modern" for="discount-{{i}}">Discount</label>
+                  <input id="discount-{{i}}" type="number" min="1" max="100" [(ngModel)]="rule.discountPercent" name="editDiscount{{i}}" class="discount-input-modern compact-input" />
+                  <span class="percent-symbol-modern large-percent">%</span>
+                  <ng-container *ngIf="currentEditRuleIndex === i && showEditRuleBuilder">
+                    <button type="button" class="inline-tick-btn large-action-icon" (click)="confirmEditTargetSelection(i)"><i class="fa fa-check"></i></button>
+                    <button type="button" class="inline-cancel-btn large-action-icon" (click)="cancelEditTargetSelection(i)"><i class="fa fa-times"></i></button>
                   </ng-container>
-                  <ng-container *ngIf="getRuleType(rule) !== 'productVariant'">
-                    Discounted: <span style="margin-left: 4px;">{{ getRuleType(rule) | titlecase }}</span>
-                    <span style="margin: 0 6px;">—</span>
-                    <ng-container *ngIf="rule.selectedPath && rule.selectedPath.length > 0">
-                      <span class="target-chip" style="background: #e3f2fd; color: #1976d2; border-radius: 16px; padding: 4px 14px; font-weight: 600;">
-                        {{ getPathDisplay(rule.selectedPath) }}
-                      </span>
-                    </ng-container>
-                    <ng-container *ngIf="!rule.selectedPath || rule.selectedPath.length === 0">
-                      <span style="color: #888; font-style: italic; margin-left: 0;">No target selected</span>
-                    </ng-container>
+                  <ng-container *ngIf="!(currentEditRuleIndex === i && showEditRuleBuilder)">
+                    <button type="button" class="edit-rule-btn-modern" (click)="openEditRuleBuilder(i)" title="Edit Rule"><i class="fa fa-edit"></i></button>
                   </ng-container>
-                </span>
-                <button type="button" class="edit-rule-btn-modern" (click)="openEditRuleBuilder(i)" title="Edit Rule"><i class="fa fa-edit"></i></button>
-                <button type="button" class="edit-rule-delete" (click)="removeEditRule(i)">
+                </div>
+                <button type="button" class="edit-rule-delete" (click)="removeEditRule(i)" title="Delete Rule">
                   <i class="fa fa-trash"></i>
                 </button>
               </div>
-              <div class="edit-rule-row-flex">
-                <div class="edit-rule-row-left">
-                  <label class="input-label" for="type-{{i}}">Type:</label>
-                  <select id="type-{{i}}" [(ngModel)]="rule.targetType" name="editRuleType{{i}}" class="edit-rule-type" (ngModelChange)="onEditRuleTypeChange(i, $event)" (click)="openEditRuleBuilder(i)">
-                    <option value="category">Category</option>
-                    <option value="product">Product</option>
-                    <option value="brand">Brand</option>
-                  </select>
-                  <label class="input-label" for="discount-{{i}}" style="margin-left: 16px;">Discount:</label>
-                  <input id="discount-{{i}}" type="number" min="1" max="100" [(ngModel)]="rule.discountPercent" name="editDiscount{{i}}" placeholder="%" class="edit-rule-percent" />
-                  <span class="edit-rule-percent-symbol">%</span>
-                </div>
-                <div *ngIf="currentEditRuleIndex === i && showEditRuleBuilder" class="edit-rule-actions-horizontal">
-                  <button type="button" class="inline-tick-btn large-action-icon" (click)="confirmEditTargetSelection(i)"><i class="fa fa-check"></i></button>
-                  <button type="button" class="inline-cancel-btn large-action-icon" (click)="cancelEditTargetSelection(i)"><i class="fa fa-times"></i></button>
-                </div>
+              <div class="rule-target-modern">
+                <ng-container *ngIf="rule.selectedPath && rule.selectedPath.length > 0">
+                  <span class="target-chip" style="background: #e3f2fd; color: #20262e; border-radius: 16px;font-weight: 1000;">
+                    <ng-container *ngIf="getRuleType(rule) === 'productVariant' && rule.selectedPath.length > 1">
+                      {{ rule.selectedPath[0].name }} →
+                      <span *ngFor="let attr of getVariantAttributes(rule.selectedPath[1]); let last = last">
+                        {{attr.key}}: {{attr.value}}<span *ngIf="!last">, </span>
+                      </span>
+                    </ng-container>
+                    <ng-container *ngIf="getRuleType(rule) !== 'productVariant'">
+                      {{ getPathDisplay(rule.selectedPath) }}
+                    </ng-container>
+                  </span>
+                </ng-container>
+                <ng-container *ngIf="!rule.selectedPath || rule.selectedPath.length === 0">
+                  <span class="no-target-selected"><i class="fa fa-exclamation-circle"></i> No target selected</span>
+                </ng-container>
               </div>
-              <!-- Only show the builder if editing, no more lower chip -->
-              <div *ngIf="currentEditRuleIndex === i && showEditRuleBuilder" class="rule-builder">
-                <div class="builder-header">
-                  <h4 class="builder-title-modern">
-                    Configure Rule {{ (i || 0) + 1 }} -
-                    {{ rule.targetType ? (rule.targetType | uppercase) : '' }}
-                    <span *ngIf="rule.selectedPath && rule.selectedPath.length > 0">
-                      — {{ getPathDisplay(rule.selectedPath) }}
-                    </span>
-                  </h4>
-                </div>
-                <!-- Category Builder (merged with products) -->
-                <div *ngIf="builderType === 'category'" class="category-builder">
-                  <div class="builder-hint">
-                    💡 <strong>Single-click</strong> to expand levels, <strong>hover</strong> to preview
+              <ng-container *ngIf="currentEditRuleIndex === i && showEditRuleBuilder">
+                <div class="rule-builder">
+                  <div class="builder-header">
+                    <h4 class="builder-title-modern">
+                      Configure Rule {{ (i || 0) + 1 }} -
+                      {{ rule.targetType ? (rule.targetType | uppercase) : '' }}
+                      <span *ngIf="rule.selectedPath && rule.selectedPath.length > 0">
+                        — {{ getPathDisplay(rule.selectedPath) }}
+                      </span>
+                    </h4>
                   </div>
-                  <div class="discount-cascade-container">
-                    <ng-container *ngFor="let column of cascadeLevels; let colIdx = index">
-                      <div class="cascade-column" *ngIf="filterCategoryNodes(column).length > 0">
-                        <div class="cascade-column-header">
-                          {{getColumnHeader(colIdx)}}
+                  <!-- Category Builder (hierarchical dropdown) -->
+                  <div *ngIf="builderType === 'category'" class="category-builder">
+                    <div class="builder-hint">
+                      💡 <strong>Search and select categories</strong> from the dropdown below
+                    </div>
+                    <div class="category-dropdown-container">
+                      <div *ngIf="editSelectedCategories.length > 0" class="selected-categories-display">
+                        <h5 style="margin-bottom: 6px;">Selected Categories:</h5>
+                        <div class="selected-categories-list">
+                          <span
+                            *ngFor="let cat of editSelectedCategories"
+                            class="selected-category-chip"
+                            [ngClass]="{
+                              'category-chip-parent': isParentCategory(cat),
+                              'category-chip-child': !isParentCategory(cat)
+                            }"
+                          >
+                            {{ cat.name }}
+                            <i class="fa fa-times" (click)="toggleEditSelection(cat, 'category')"></i>
+                          </span>
                         </div>
-                        <ng-container *ngFor="let node of filterCategoryNodes(column)">
-                          <div class="cascade-item"
-                               [class.cascade-selected]="isCascadeSelected(colIdx, node)"
-                               [class.cascade-in-path]="isCascadeInPath(colIdx, node)"
-                               [class.cascade-hovered]="isNodeHovered(colIdx, node)"
-                               (mouseenter)="onCascadeHover(colIdx, node)"
-                               (mouseleave)="onCascadeMouseLeave(colIdx)"
-                               (click)="onCascadeClick(colIdx, node)">
-                            <div class="cascade-item-header">
-                              <span class="cascade-item-name">{{ node.name }}</span>
-                              <span *ngIf="hasChildren(node)" class="cascade-arrow">→</span>
-                            </div>
-                            <div class="cascade-item-footer">
-                              <span class="node-type-badge">{{node.type}}</span>
-                              <button type="button" 
-                                      class="apply-btn" 
-                                      (click)="applyEditSelectionToRule(colIdx, node); $event.stopPropagation()">
-                                Apply
-                              </button>
-                            </div>
-                          </div>
-                        </ng-container>
                       </div>
-                    </ng-container>
-                  </div>
-                </div>
-                <!-- Product Builder -->
-                <div *ngIf="builderType === 'product' || getRuleType(rule) === 'productVariant'" class="product-builder">
-                  <div class="product-grid">
-                    <ng-container *ngFor="let product of products">
-                      <div class="product-card" style="cursor:pointer;" (click)="onSelectProductForVariants(product)">
-                        <div class="cascade-item-header">
-                          <span class="cascade-item-name">{{ product.name }}</span>
-                        </div>
-                        <div class="product-badge-row" style="margin-bottom: 4px;">
-                          <ng-container *ngIf="productBreadcrumbs[product.id] && productBreadcrumbs[product.id].length > 1">
-                            <span class="category-badge" style="background: #1976d2; color: #fff; border-radius: 8px; padding: 2px 10px; font-size: 0.93em; font-weight: 600; display: inline-block;">
-                              {{ productBreadcrumbs[product.id][productBreadcrumbs[product.id].length - 2] }}
-                            </span>
+                      <div class="category-dropdown-trigger" (click)="toggleCategoryDropdown()">
+                        <span>
+                          <ng-container *ngIf="editSelectedCategories.length > 0">
+                            <ng-container *ngIf="getParentCategoryCount() > 0">{{ getParentCategoryCount() }} categor{{getParentCategoryCount() > 1 ? 'ies' : 'y'}}</ng-container>
+                            <ng-container *ngIf="getParentCategoryCount() > 0 && getChildCategoryCount() > 0">, </ng-container>
+                            <ng-container *ngIf="getChildCategoryCount() > 0">{{ getChildCategoryCount() }} sub-categor{{getChildCategoryCount() > 1 ? 'ies' : 'y'}}</ng-container>
+                            selected
                           </ng-container>
+                          <ng-container *ngIf="editSelectedCategories.length === 0">
+                            Select categories...
+                          </ng-container>
+                        </span>
+                        <i class="fa fa-chevron-down"></i>
+                      </div>
+                      <div class="category-dropdown-content" *ngIf="showCategoryDropdown">
+                        <input type="text" [(ngModel)]="editCategorySearchTerm" placeholder="Search categories..." class="product-search-input" (input)="onEditCategorySearchInput($event)" />
+                        <div class="category-list-container" style="max-height: 120px; overflow-y: auto;">
+                          <div class="category-hierarchy-container">
+                            <ng-container *ngIf="filteredEditCategoriesForDropdown.length > 0; else noCategoriesFoundEdit">
+                              <ng-container *ngFor="let category of filteredEditCategoriesForDropdown; trackBy: trackByCategoryId">
+                                <!-- Parent Category -->
+                                <div>
+                                  <div class="category-item-row" [ngClass]="{'has-children': category.children && category.children.length > 0}">
+                                    <div class="category-item-left">
+                                      <input type="checkbox" [checked]="isEditSelected(category, 'category')" (change)="toggleEditSelection(category, 'category')" class="category-checkbox" />
+                                      <span class="category-name">{{ category.name }}</span>
+                                    </div>
+                                    <div class="category-item-right" *ngIf="category.children && category.children.length > 0">
+                                      <button type="button" class="expand-btn" (click)="toggleCategoryExpansion(category.id)">
+                                        <i class="fa fa-chevron-right" [class.rotated]="expandedCategoryIds.has(category.id)"></i>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <!-- Child Categories -->
+                                  <div class="subcategory-list" *ngIf="category.children && category.children.length > 0 && (expandedCategoryIds.has(category.id) || editCategorySearchTerm)">
+                                    <ng-container *ngFor="let child of category.children">
+                                      <div>
+                                        <div class="category-item-row" [ngClass]="{'has-children': child.children && child.children.length > 0}">
+                                          <div class="category-item-left">
+                                            <span class="child-indent"></span>
+                                            <input type="checkbox" [checked]="isEditSelected(child, 'category')" (change)="toggleEditSelection(child, 'category')" class="category-checkbox" [disabled]="isEditSelected(category, 'category')" />
+                                            <span class="category-name">{{ child.name }}</span>
+                                          </div>
+                                          <div class="category-item-right" *ngIf="child.children && child.children.length > 0">
+                                            <button type="button" class="expand-btn" (click)="toggleCategoryExpansion(child.id)">
+                                              <i class="fa fa-chevron-right" [class.rotated]="expandedCategoryIds.has(child.id)"></i>
+                                            </button>
+                                          </div>
+                                        </div>
+                                        <!-- Grandchild Categories (if any) -->
+                                        <div class="sub-subcategory-list" *ngIf="child.children && child.children.length > 0 && (expandedCategoryIds.has(child.id) || editCategorySearchTerm)">
+                                          <ng-container *ngFor="let grandchild of child.children">
+                                            <div class="category-item-row">
+                                              <div class="category-item-left">
+                                                <span class="child-indent"></span><span class="child-indent"></span>
+                                                <input type="checkbox" [checked]="isEditSelected(grandchild, 'category')" (change)="toggleEditSelection(grandchild, 'category')" class="category-checkbox" />
+                                                <span class="category-name">{{ grandchild.name }}</span>
+                                              </div>
+                                            </div>
+                                          </ng-container>
+                                        </div>
+                                      </div>
+                                    </ng-container>
+                                  </div>
+                                </div>
+                              </ng-container>
+                            </ng-container>
+                            <ng-template #noCategoriesFoundEdit>
+                              <div class="no-products-found" style="padding: 24px; text-align: center; color: #888; font-size: 1.08em;">
+                                No categories found.
+                              </div>
+                            </ng-template>
+                          </div>
                         </div>
-                        <div class="cascade-item-footer">
-                          <span class="node-type-badge">PRODUCT</span>
-                          <button type="button" class="apply-btn" (click)="applyProductSelection(product); $event.stopPropagation()">Apply</button>
+                        <div class="dropdown-actions spaced-actions">
+                          <button class="apply-categories-btn" (click)="applyEditDiscountToSelected('category'); showCategoryDropdown = false" [disabled]="editSelectedCategories.length === 0">Apply to {{ editSelectedCategories.length }} Selected</button>
+                          <span class="spacer"></span>
+                          <button class="clear-selection-btn" (click)="clearEditSelection('category')">Clear Selection</button>
                         </div>
                       </div>
-                    </ng-container>
+                    </div>
                   </div>
-                  <!-- Variant Section for Edit Modal -->
-                  <div *ngIf="expandedProductIds.size > 0 || editVariantId" class="variant-section-fullwidth">
-                    <ng-container *ngIf="products && products.length">
-                      <ng-container *ngFor="let product of products">
-                        <ng-container *ngIf="isProductExpandedOrHasEditVariant(product)">
-                          <div class="variant-section-title variant-header-modern">
-                            Variants for {{product.name}}
-                          </div>
-                          <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 24px;">
-                            <label style="font-weight:600; font-size:1.05em; cursor:pointer; display:flex; align-items:center;">
-                              <input type="checkbox" [checked]="selectedVariants.length === product.variants.length && product.variants.length > 0" (change)="selectAll(product.variants, 'variant')" style="margin-right:8px;" />
-                              Select All
-                            </label>
-                            <button type="button" (click)="clearSelection('variant')" [disabled]="selectedVariants.length === 0" style="background:none; border:none; color:#1976d2; font-weight:600; cursor:pointer;">Clear Selection</button>
-                            <span *ngIf="selectedVariants.length > 0" style="color:#1976d2; font-weight:600; font-size:1.08em;">Selected: {{selectedVariants.length}}</span>
-                            <span *ngIf="rule && rule.discountPercent" style="color:#222; font-size:1.05em; margin-left:auto;">Discount: <b style="color:#43a047;">{{rule.discountPercent}}%</b></span>
-                          </div>
-                          <div class="variant-list-grid">
-                            <ng-container *ngFor="let variant of product.variants">
-                              <div class="variant-row-grid" [ngStyle]="(isSelected(variant, 'variant') || (editVariantId && variant.id === editVariantId)) ? {'background':'#e3f2fd', 'border':'2px solid #1976d2'} : {}">
-                                <input type="checkbox" [checked]="isSelected(variant, 'variant') || (editVariantId && variant.id === editVariantId)" (change)="toggleSelection(variant, 'variant')" style="margin-right:18px; width:20px; height:20px; align-self:center;" />
-                                <div class="variant-image-wrap">
-                                  <img *ngIf="variant.imageUrls && variant.imageUrls.length > 0" [src]="variant.imageUrls[0]" alt="variant image" class="variant-image-modern">
+                  <!-- Product Builder (flat dropdown) -->
+                  <div *ngIf="builderType === 'product' || getRuleType(rule) === 'productVariant'" class="product-builder">
+                    <div class="builder-hint">
+                      💡 <strong>Search and select products</strong> from the dropdown below
+                    </div>
+                    <div class="category-dropdown-container">
+                      <div *ngIf="editSelectedProducts.length > 0 || editSelectedVariants.length > 0" class="selected-categories-display">
+                        <h5 style="margin-bottom: 6px;">Selected Products:</h5>
+                        <div class="selected-categories-list">
+                          <span *ngFor="let prod of editSelectedProducts" class="selected-category-chip category-chip-parent">
+                            {{ prod.name }}
+                            <i class="fa fa-times" (click)="toggleEditSelection(prod, 'product')"></i>
+                          </span>
+                          <!-- Variant chips: show only for current rule builder -->
+                          <span *ngFor="let variant of editSelectedVariants" class="selected-category-chip variant-chip" style="background: #ffe0b2; color: #b26a00; border-radius: 16px; font-weight: 1000; margin-left: 4px;">
+                            <ng-container *ngIf="selectedProductForVariant">
+                              {{ selectedProductForVariant.name }} →
+                            </ng-container>
+                            <ng-container *ngFor="let attr of getVariantAttributes(variant); let last = last">
+                              {{attr.key}}: {{attr.value}}<span *ngIf="!last">, </span>
+                            </ng-container>
+                            <i class="fa fa-times" (click)="toggleEditSelection(variant, 'variant')"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="category-dropdown-trigger" (click)="toggleProductDropdown()">
+                        <span>
+                          <ng-container *ngIf="editSelectedProducts.length > 0 || editSelectedVariants.length > 0">
+                            <ng-container *ngIf="editSelectedProducts.length > 0">{{ editSelectedProducts.length }} product{{editSelectedProducts.length > 1 ? 's' : ''}}</ng-container>
+                            <ng-container *ngIf="editSelectedProducts.length > 0 && editSelectedVariants.length > 0">, </ng-container>
+                            <ng-container *ngIf="editSelectedVariants.length > 0">{{ editSelectedVariants.length }} variant{{editSelectedVariants.length > 1 ? 's' : ''}}</ng-container>
+                            selected
+                          </ng-container>
+                          <ng-container *ngIf="editSelectedProducts.length === 0 && editSelectedVariants.length === 0">
+                            Select products...
+                          </ng-container>
+                        </span>
+                        <i class="fa fa-chevron-down"></i>
+                      </div>
+                      <div class="category-dropdown-content" *ngIf="showProductDropdown">
+                        <input type="text" [(ngModel)]="productSearchTerm" name="productSearchTerm" placeholder="Search products..." class="product-search-input" />
+                        <div class="category-list-container">
+                          <div class="category-hierarchy-container">
+                            <ng-container *ngIf="(products | productFilter:productSearchTerm).length > 0; else noProductsFoundEdit">
+                              <ng-container *ngFor="let product of products | productFilter:productSearchTerm">
+                                <div class="category-item-row" style="display: flex; align-items: center;">
+                                  <input type="checkbox" [checked]="isEditSelected(product, 'product')" (change)="toggleEditSelection(product, 'product')" class="category-checkbox" />
+                                  <span class="category-name" style="flex:1;">{{ product.name }}</span>
+                                  <button *ngIf="product.variants && product.variants.length > 0"
+                                          type="button"
+                                          class="expand-btn"
+                                          (click)="openProductVariantModal(product)">
+                                    <i class="fa fa-chevron-right"></i>
+                                  </button>
                                 </div>
-                                <ng-container *ngFor="let attr of getVariantAttributes(variant)">
-                                  <span class="variant-attr-grid"><b>{{attr.key}}:</b> {{attr.value}}</span>
-                                </ng-container>
-                                <button type="button" class="apply-variant-btn" (click)="applyVariantSelection(variant)">Apply Variant</button>
+                              </ng-container>
+                            </ng-container>
+                            <ng-template #noProductsFoundEdit>
+                              <div class="no-products-found" style="padding: 24px; text-align: center; color: #888; font-size: 1.08em;">
+                                No products found.
+                              </div>
+                            </ng-template>
+                          </div>
+                        </div>
+                        <div class="dropdown-actions spaced-actions">
+                          <button class="apply-categories-btn" (click)="applyEditDiscountToSelected('product'); showProductDropdown = false" [disabled]="(editSelectedProducts.length + editSelectedVariants.length) === 0">Apply to {{ editSelectedProducts.length + editSelectedVariants.length }} Selected</button>
+                          <span class="spacer"></span>
+                          <button class="clear-selection-btn" (click)="clearEditSelection('product'); clearEditSelection('variant')">Clear Selection</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Brand Builder (Edit Modal, multi-select like create) -->
+                  <div *ngIf="builderType === 'brand'" class="brand-builder">
+                    <div class="builder-hint">
+                      💡 <strong>Search and select brands</strong> from the dropdown below
+                    </div>
+                    <div *ngIf="editSelectedBrands.length > 0" class="selected-categories-display">
+                      <h5>Selected Brands:</h5>
+                      <div class="selected-categories-list">
+                        <span *ngFor="let brand of editSelectedBrands" class="selected-category-chip category-chip-parent">
+                          {{ brand.name }}
+                          <i class="fa fa-times" (click)="toggleEditSelection(brand, 'brand'); $event.stopPropagation()"></i>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="category-dropdown-container">
+                      <div class="category-dropdown-trigger" (click)="toggleBrandDropdown()">
+                        <span class="dropdown-placeholder">
+                          {{ editSelectedBrands.length > 0 ? editSelectedBrands.length + ' brand(s) selected' : 'Select brands...' }}
+                        </span>
+                        <i class="fa fa-chevron-down dropdown-arrow" [class.rotated]="showBrandDropdown"></i>
+                      </div>
+                      <div class="category-dropdown-content" *ngIf="showBrandDropdown">
+                        <div class="product-search-container">
+                          <input 
+                            type="text" 
+                            placeholder="Search brands..." 
+                            class="product-search-input"
+                            [(ngModel)]="brandSearchTerm"
+                            [ngModelOptions]="{standalone: true}"
+                            (click)="$event.stopPropagation()"
+                          />
+                        </div>
+                        <div class="product-list-container scrollable">
+                          <ng-container *ngIf="filteredBrands.length > 0; else noBrandsFoundEdit">
+                            <ng-container *ngFor="let brand of filteredBrands">
+                              <div class="product-item-row">
+                                <div class="product-item-left">
+                                  <input 
+                                    type="checkbox" 
+                                    [checked]="isEditSelected(brand, 'brand')" 
+                                    (change)="toggleEditSelection(brand, 'brand'); $event.stopPropagation()"
+                                    class="product-checkbox"
+                                  />
+                                  <span class="product-name">{{ brand.name }}</span>
+                                </div>
                               </div>
                             </ng-container>
-                          </div>
-                          <div style="margin-top: 18px; width:100%; display:flex; justify-content:flex-end; align-items:center; gap:18px;">
-                            <button type="button" class="apply-variant-btn" [disabled]="selectedVariants.length === 0" (click)="applyDiscountToSelected('variant')">
-                              Apply Discount to Selected
-                            </button>
-                          </div>
-                          <div *ngIf="showToast" style="position:fixed; bottom:32px; right:32px; background:#43a047; color:#fff; font-weight:700; font-size:1.1em; border-radius:8px; padding:16px 32px; box-shadow:0 4px 24px rgba(67,160,71,0.18); z-index:9999;">
-                            {{toastMessage}}
-                          </div>
-                        </ng-container>
-                      </ng-container>
-                    </ng-container>
-                  </div>
-                </div>
-                <!-- Brand Builder -->
-                <div *ngIf="builderType === 'brand'" class="brand-builder">
-                  <div class="brand-grid">
-                    <ng-container *ngFor="let brand of brands">
-                      <div class="brand-card">
-                        <div class="cascade-item-header">
-                          <span class="cascade-item-name">{{ brand.name }}</span>
+                          </ng-container>
+                          <ng-template #noBrandsFoundEdit>
+                            <div class="no-products-found" style="padding: 24px; text-align: center; color: #888; font-size: 1.08em;">
+                              No brands found.
+                            </div>
+                          </ng-template>
                         </div>
-                        <div class="cascade-item-footer">
-                          <span class="node-type-badge">BRAND</span>
-                          <button type="button" class="apply-btn" (click)="applyEditBrandSelection(brand); $event.stopPropagation()">Apply</button>
+                        <div class="product-dropdown-actions">
+                          <button 
+                            type="button" 
+                            class="apply-products-btn" 
+                            [disabled]="editSelectedBrands.length === 0"
+                            (click)="applyEditDiscountToSelected('brand'); showBrandDropdown = false"
+                          >
+                            Apply to {{ editSelectedBrands.length }} Selected
+                          </button>
+                          <button 
+                            type="button" 
+                            class="clear-selection-btn"
+                            (click)="clearEditSelection('brand')"
+                          >
+                            Clear Selection
+                          </button>
                         </div>
                       </div>
-                    </ng-container>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </ng-container>
             </div>
           </div>
         </div>
-
-        <div class="modal-actions edit-modal-actions">
-          <button type="button" class="edit-cancel-btn" (click)="closeEditModal()">Cancel</button>
-          <button type="submit" class="edit-update-btn" [disabled]="!editForm.form.valid">Update Event</button>
+        <div class="modal-actions">
+          <button type="button" class="modal-cancel-btn" (click)="closeEditModal()">Cancel</button>
+          <button type="submit" class="modal-submit-btn" [disabled]="!editForm.form.valid">Update Event</button>
         </div>
       </form>
     </div>
@@ -514,34 +993,192 @@
   <!-- History Modal -->
   <div class="modal-backdrop" *ngIf="showHistoryModal">
     <div class="modal history-modal">
-      <div class="history-header-row">
-        <h3 class="history-title">Event History</h3>
-        <button class="history-close-btn" (click)="closeHistoryModal()" aria-label="Close">&#10005;</button>
+      <div class="history-header">
+        <div class="history-header-content">
+          <div class="history-title-section">
+            <div class="history-icon">
+              <i class="fas fa-history"></i>
+            </div>
+            <div class="history-title-group">
+              <h3 class="history-title">Event History</h3>
+              <p class="history-subtitle">Track all changes made to this discount event</p>
+            </div>
+          </div>
+          <button class="history-close-btn" (click)="closeHistoryModal()" aria-label="Close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
       </div>
-      <table class="event-history-table">
-        <thead>
-          <tr>
-            <th>Action</th>
-            <th>Admin</th>
-            <th>Timestamp</th>
-            <th>Changes</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let h of eventHistory">
-            <td>{{ h.action }}</td>
-            <td>{{ h.adminId }}</td>
-            <td>{{ h.createdAt | date:'M/d/yyyy, h:mm:ss a' }}</td>
-            <td>
-              <ng-container *ngIf="h.oldValues || h.newValues">
-                <div *ngFor="let diff of getHistoryDiffs(h)" class="history-change-line">
-                  <code>{{ diff }}</code>
+      
+      <div class="history-content">
+        <div class="history-timeline">
+          <div *ngFor="let h of eventHistory; let i = index" class="history-item">
+            <div class="history-item-marker">
+              <div class="history-item-icon" [ngClass]="getActionIconClass(h.action)">
+                <i [class]="getActionIcon(h.action)"></i>
+              </div>
+              <div class="history-item-line" *ngIf="i < eventHistory.length - 1"></div>
+            </div>
+            
+            <div class="history-item-content">
+              <div class="history-item-header">
+                <div class="history-item-action">
+                  <span class="action-badge" [ngClass]="getActionBadgeClass(h.action)">
+                    {{ h.action }}
+                  </span>
                 </div>
-              </ng-container>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                <div class="history-item-meta">
+                  <div class="history-item-admin">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ getAdminName(h.adminId) }}</span>
+                  </div>
+                  <div class="history-item-time">
+                    <i class="fas fa-clock"></i>
+                    <span>{{ h.createdAt | date:'MMM dd, yyyy' }}</span>
+                    <span class="time-detail">{{ h.createdAt | date:'h:mm:ss a' }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="history-item-changes" *ngIf="h.oldValues || h.newValues">
+                <div class="changes-header">
+                  <i class="fas fa-edit"></i>
+                  <span>Changes Made</span>
+                </div>
+                <div class="changes-list">
+                  <div *ngFor="let diff of getHistoryDiffs(h)" class="change-item">
+                    <div class="change-content">
+                      <i class="fas fa-arrow-right change-arrow"></i>
+                      <span class="change-text">{{ diff }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Empty state -->
+          <div *ngIf="eventHistory.length === 0" class="history-empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-inbox"></i>
+            </div>
+            <h4>No History Available</h4>
+            <p>This event hasn't been modified yet. Changes will appear here once the event is updated.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add the product variant modal at the end of the file -->
+<div class="modal-backdrop" *ngIf="showProductVariantModal">
+  <div class="modal wide" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="closeProductVariantModal()" aria-label="Close">&times;</button>
+    <h3 class="create-title">Variants for {{ selectedProductForVariant?.name }}</h3>
+    
+    <!-- Multi-selection controls -->
+    <div style="margin-bottom: 18px; display: flex; align-items: center; gap: 24px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+      <label style="font-weight:600; font-size:1.05em; cursor:pointer; display:flex; align-items:center;">
+        <input 
+          type="checkbox" 
+          [checked]="selectedVariants.length === selectedProductForVariant?.variants?.length && selectedProductForVariant?.variants?.length > 0" 
+          (change)="selectAll(selectedProductForVariant?.variants || [], 'variant')" 
+          style="margin-right:8px;" 
+        />
+        Select All
+      </label>
+      <button 
+        type="button" 
+        (click)="clearSelection('variant')" 
+        [disabled]="selectedVariants.length === 0" 
+        style="background:none; border:none; color:#1976d2; font-weight:600; cursor:pointer;"
+      >
+        Clear Selection
+      </button>
+      <span *ngIf="selectedVariants.length > 0" style="color:#1976d2; font-weight:600; font-size:1.08em;">
+        Selected: {{selectedVariants.length}}
+      </span>
+      <span *ngIf="currentRule && currentRule.discountPercent" style="color:#222; font-size:1.05em; margin-left:auto;">
+        Discount: <b style="color:#43a047;">{{currentRule.discountPercent}}%</b>
+      </span>
+    </div>
+    
+    <div class="variant-list-container">
+      <ng-container *ngIf="selectedProductForVariant?.variants?.length; else noVariants">
+        <div class="variant-list-header">
+          <span class="variant-count">{{selectedProductForVariant.variants.length}} variants available</span>
+        </div>
+        <div class="variant-list-items">
+          <div *ngFor="let variant of selectedProductForVariant.variants" 
+               class="variant-item-card" 
+               [class.selected]="isSelected(variant, 'variant')">
+            <div class="variant-item-row">
+              <div class="variant-checkbox-section">
+                <input 
+                  type="checkbox" 
+                  [checked]="isSelected(variant, 'variant')" 
+                  (change)="toggleSelection(variant, 'variant')" 
+                  class="variant-checkbox-input" 
+                />
+              </div>
+              <div class="variant-image-section">
+                <img *ngIf="variant.imageUrls && variant.imageUrls.length > 0" 
+                     [src]="variant.imageUrls[0]" 
+                     alt="variant image" 
+                     class="variant-image-thumbnail">
+                <div *ngIf="!variant.imageUrls || variant.imageUrls.length === 0" class="variant-image-placeholder">
+                  <i class="fas fa-image"></i>
+                </div>
+              </div>
+              <div class="variant-details-section">
+                <div class="variant-size-color">
+                  <ng-container *ngFor="let attr of getVariantAttributes(variant); let last = last">
+                    <span class="variant-attribute">
+                      <span class="attr-label">{{attr.key}}</span>
+                      <span class="attr-value">{{attr.value}}</span>
+                    </span>
+                    <span *ngIf="!last" class="attr-separator">•</span>
+                  </ng-container>
+                </div>
+              </div>
+              <div class="variant-actions-section">
+                <button type="button" 
+                        class="variant-apply-btn" 
+                        (click)="applyVariantToRule(variant)"
+                       >
+                  Apply Single
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #noVariants>
+        <div class="no-variants-message">
+          <i class="fas fa-box-open"></i>
+          <p>No variants found for this product.</p>
+        </div>
+      </ng-template>
+    </div>
+    
+    <!-- Action buttons for multi-selection -->
+    <div style="margin-top: 18px; width:100%; display:flex; justify-content:flex-end; align-items:center; gap:18px;">
+      <button 
+        type="button" 
+        class="apply-variant-btn" 
+        [disabled]="selectedVariants.length === 0" 
+        (click)="addSelectedVariantsAndCloseModal()"
+      >
+        Add {{ selectedVariants.length }} Selected Variants
+      </button>
+      <button 
+        type="button" 
+        class="edit-cancel-btn" 
+        (click)="cancelVariantSelectionAndCloseModal()"
+      >
+        Cancel
+      </button>
     </div>
   </div>
 </div>

@@ -1,11 +1,15 @@
-import { Component, type OnInit } from "@angular/core"
+import { Component, type OnInit, ChangeDetectorRef } from "@angular/core"
 import { DiscountEventService } from "../discount-event.service"
 import { CategoryService } from "../category.service"
 import { ProductVariantService } from "../services/product-variant.service"
 import { ProductService } from "../services/product.service"
 import { BrandService } from "../services/brand.service"
+import { PeopleService } from "../people.service"
 import { Brand } from "../models/product.model"
 import { forkJoin } from 'rxjs'
+import { HostListener } from '@angular/core'
+import { CategoryFilterPipe } from '../category-filter.pipe'
+import { ProductFilterPipe } from '../product-filter.pipe'
 
 export interface CascadeNode {
   name: string
@@ -32,6 +36,13 @@ export interface DiscountRule {
   styleUrls: ["./discount-events.component.css"],
 })
 export class DiscountEventsComponent implements OnInit {
+  // Add new filter-related properties
+  selectedStatus: 'all' | 'active' | 'inactive' = 'all';
+  filterStartDate: string = '';
+  filterEndDate: string = '';
+  filterEventName: string = '';
+  allEvents: any[] = []; // Store all events before filtering
+
   events: any[] = []
   loading = false
   error = ""
@@ -103,12 +114,114 @@ export class DiscountEventsComponent implements OnInit {
   editStartDateError: string = '';
   editEndDateError: string = '';
 
+  // Category dropdown state
+  showCategoryDropdown: boolean = false;
+  categorySearchTerm: string = '';
+  editCategorySearchTerm: string = ''; // Separate search term for edit modal
+  expandedCategoryIds: Set<number> = new Set();
+  sortedCategories: any[] = [];
+  parentCategories: any[] = [];
+
+  showProductDropdown: boolean = false;
+  showBrandDropdown: boolean = false;
+
+  // Add modal state for product variant selection
+  showProductVariantModal = false;
+  selectedProductForVariant: any = null;
+  openVariantProductId: number | null = null;
+
+  brandSearchTerm: string = '';
+  get filteredBrands() {
+    if (!this.brandSearchTerm) return this.brands;
+    const term = this.brandSearchTerm.toLowerCase();
+    return this.brands.filter(b => b.name.toLowerCase().includes(term));
+  }
+
+  // Edit modal multi-select state
+  editSelectedProducts: CascadeNode[] = [];
+  editSelectedVariants: CascadeNode[] = [];
+  editSelectedBrands: Brand[] = [];
+  editSelectedCategories: CascadeNode[] = [];
+
+  showDateRange: boolean = false;
+
+  searchEventName: string = '';
+
+  showActionToggle: boolean = false;
+  actionToggle: 'show' | 'history' | 'delete' | null = null;
+
+  // Admin data for history
+  admins: any[] = [];
+  adminMap: { [key: number]: string } = {};
+
+  // Memoized filtered categories for dropdown
+  private _filteredCategoriesForDropdown: any[] = [];
+  private _lastCategorySearchTerm = '';
+  private _lastCategoriesSnapshot: any[] = [];
+
+  get filteredCategoriesForDropdown() {
+    // Always recalculate to ensure UI is in sync
+    this._filteredCategoriesForDropdown = this._calculateFilteredCategories(this.categorySearchTerm);
+    this._lastCategorySearchTerm = this.categorySearchTerm;
+    this._lastCategoriesSnapshot = this.categories;
+    
+    return this._filteredCategoriesForDropdown;
+  }
+
+  get filteredEditCategoriesForDropdown() {
+    // Calculate filtered categories for edit modal
+    return this._calculateFilteredCategories(this.editCategorySearchTerm);
+  }
+
+  private _calculateFilteredCategories(searchTerm?: string) {
+    const term = searchTerm?.toLowerCase() || this.categorySearchTerm?.toLowerCase() || '';
+    
+    // Helper: recursively build category tree with children
+    const buildCategoryTree = (parent: any): any => {
+      const children = this.getCategoryChildren(parent.id).map(buildCategoryTree);
+      return { ...parent, children };
+    };
+    
+    // Helper: check if category matches search term
+    const categoryMatches = (category: any): boolean => {
+      return category.name.toLowerCase().includes(term);
+    };
+    
+    // Helper: recursively filter children based on search term
+    const filterTree = (parent: any): any => {
+      const children: any[] = this.getCategoryChildren(parent.id).map(filterTree).filter(Boolean);
+      const parentMatches = categoryMatches(parent);
+      
+      if (parentMatches) {
+        // If parent matches, show only its children that also match the search term
+        const matchingChildren = this.getCategoryChildren(parent.id).map(filterTree).filter(Boolean);
+        return { ...parent, children: matchingChildren };
+      } else if (children.length > 0) {
+        // If any child matches, show only those children
+        return { ...parent, children };
+      }
+      // If neither parent nor children match, exclude
+      return null;
+    };
+    
+    // For search, we want to show ALL categories that match, not just parent categories
+    if (!term) {
+      // No search: show all parents and all children
+      return this.parentCategories.map(buildCategoryTree).filter(cat => cat && cat.id);
+    } else {
+      // Search: maintain hierarchy but show categories that match
+      return this.parentCategories.map(filterTree).filter(Boolean).filter(cat => cat && cat.id);
+    }
+  }
+
   constructor(
     private eventService: DiscountEventService,
     private categoryService: CategoryService,
     private productVariantService: ProductVariantService,
     private productService: ProductService,
     private brandService: BrandService,
+    private peopleService: PeopleService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -117,14 +230,17 @@ export class DiscountEventsComponent implements OnInit {
     this.fetchProducts()
     this.fetchProductVariants()
     this.fetchBrands()
+    this.fetchAdmins()
   }
 
   fetchEvents() {
     this.loading = true
     this.eventService.getAllEvents().subscribe({
       next: (data: any[]) => {
-        this.events = data
-        this.loading = false
+        this.allEvents = data; // Store all events
+        this.events = data; // Initial display of all events
+        this.loading = false;
+        this.applyFilters(); // Apply any existing filters
       },
       error: (err: any) => {
         this.error = "Failed to load events."
@@ -133,16 +249,279 @@ export class DiscountEventsComponent implements OnInit {
     })
   }
 
+  // Add new filter methods
+  filterByStatus(status: 'all' | 'active' | 'inactive') {
+    this.selectedStatus = status;
+    this.applyFilters();
+  }
+
+  applyDateFilter() {
+    this.applyFilters();
+  }
+
+  clearDateFilter() {
+    this.filterStartDate = '';
+    this.filterEndDate = '';
+    this.applyFilters();
+  }
+
+  applyEventNameFilter() {
+    this.applyFilters();
+  }
+
+  private applyFilters() {
+    let filteredEvents = [...this.allEvents];
+
+    // Apply status filter
+    if (this.selectedStatus !== 'all') {
+      const now = new Date();
+      filteredEvents = filteredEvents.filter(event => {
+        const startDate = new Date(event.startDate);
+        const endDate = new Date(event.endDate);
+        const isActive = startDate <= now && endDate >= now;
+        return this.selectedStatus === 'active' ? isActive : !isActive;
+      });
+    }
+
+    // Apply date range filter
+    if (this.filterStartDate || this.filterEndDate) {
+      filteredEvents = filteredEvents.filter(event => {
+        const eventStart = new Date(event.startDate);
+        const eventEnd = new Date(event.endDate);
+        
+        if (this.filterStartDate && this.filterEndDate) {
+          const filterStart = new Date(this.filterStartDate);
+          const filterEnd = new Date(this.filterEndDate);
+          // Event overlaps with filter range
+          return eventStart <= filterEnd && eventEnd >= filterStart;
+        } else if (this.filterStartDate) {
+          const filterStart = new Date(this.filterStartDate);
+          return eventEnd >= filterStart;
+        } else if (this.filterEndDate) {
+          const filterEnd = new Date(this.filterEndDate);
+          return eventStart <= filterEnd;
+        }
+        return true;
+      });
+    }
+
+    // Apply event name filter
+    if (this.filterEventName && this.filterEventName.trim() !== '') {
+      const term = this.filterEventName.trim().toLowerCase();
+      filteredEvents = filteredEvents.filter(event =>
+        event.name && event.name.toLowerCase().includes(term)
+      );
+    }
+
+    this.events = filteredEvents;
+  }
+
   fetchCategories() {
     this.categoryService.getAllCategories().subscribe({
       next: (data: any[]) => {
-        this.categories = data
-        this.tryBuildCascadeTree()
+        this.categories = data;
+        this.buildSortedCategories();
+        this.tryBuildCascadeTree();
+        // Build nested tree for dropdown
+        this.parentCategories = this.buildCategoryTree(this.categories);
       },
-      error: () => {
-        this.categories = []
+      error: (error) => {
+        this.categories = [];
       },
-    })
+    });
+  }
+
+  buildSortedCategories() {
+    // Sort categories alphabetically
+    this.sortedCategories = [...this.categories].sort((a, b) => 
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    )
+    
+    // Get parent categories (those without parent_category_id)
+    this.parentCategories = this.sortedCategories.filter(cat => 
+      cat.parent_category_id == null
+    )
+    
+    console.log('Sorted categories:', this.sortedCategories);
+    console.log('Parent categories:', this.parentCategories);
+  }
+
+  getCategoryChildren(parentId: number): any[] {
+    return this.sortedCategories.filter(cat => cat.parent_category_id === parentId)
+  }
+
+  toggleCategoryExpansion(categoryId: number) {
+    if (this.expandedCategoryIds.has(categoryId)) {
+      this.expandedCategoryIds.delete(categoryId)
+    } else {
+      this.expandedCategoryIds.add(categoryId)
+    }
+  }
+
+  isCategoryExpanded(categoryId: number): boolean {
+    return this.expandedCategoryIds.has(categoryId)
+  }
+
+  toggleCategoryDropdown(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.disableDocumentClick = true;
+    this.showCategoryDropdown = !this.showCategoryDropdown;
+    if (this.showCategoryDropdown) {
+      this.categorySearchTerm = '';
+      this.expandedCategoryIds.clear();
+      // Removed setTimeout for positionDropdown
+    }
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.disableDocumentClick = false;
+    }, 100);
+  }
+
+  onCategorySearchInput(event: any) {
+    this.categorySearchTerm = event.target.value
+    
+    // Clear previous selections when searching
+    if (this.categorySearchTerm) {
+      this.selectedCategories = [];
+      this.selectedCount = 0;
+    }
+    
+    // Auto-expand categories that match search
+    if (this.categorySearchTerm) {
+      this.expandedCategoryIds.clear()
+      this.sortedCategories.forEach(category => {
+        if (category.name.toLowerCase().includes(this.categorySearchTerm.toLowerCase())) {
+          if (category.parent_category_id) {
+            this.expandedCategoryIds.add(category.parent_category_id)
+          }
+          // Also expand the category itself if it has children
+          if (this.getCategoryChildren(category.id).length > 0) {
+            this.expandedCategoryIds.add(category.id)
+          }
+        }
+      })
+    }
+    // Force recalculation of filtered categories
+    this._filteredCategoriesForDropdown = [];
+    this._lastCategorySearchTerm = '';
+    this._lastCategoriesSnapshot = []; // Force recalculation
+    
+    // Force change detection to update UI immediately
+    this.cdr.detectChanges();
+  }
+
+  onEditCategorySearchInput(event: any) {
+    this.editCategorySearchTerm = event.target.value
+    console.log('Edit modal search term:', this.editCategorySearchTerm);
+    
+    // Auto-expand categories that match search
+    if (this.editCategorySearchTerm) {
+      this.expandedCategoryIds.clear()
+      this.sortedCategories.forEach(category => {
+        if (category.name.toLowerCase().includes(this.editCategorySearchTerm.toLowerCase())) {
+          if (category.parent_category_id) {
+            this.expandedCategoryIds.add(category.parent_category_id)
+          }
+        }
+      })
+    }
+    
+    // Force change detection to update UI immediately
+    this.cdr.detectChanges();
+  }
+
+  trackByCategoryId(index: number, category: any): number {
+    return category.id;
+  }
+
+  toggleProductDropdown() {
+    this.showProductDropdown = !this.showProductDropdown
+    if (this.showProductDropdown) {
+      this.productSearchTerm = ''
+      this.expandedProductIds.clear()
+      // Position dropdown after it's rendered
+      setTimeout(() => {
+        this.positionDropdown('.product-dropdown-trigger', '.product-dropdown-content')
+        const searchInput = document.querySelector('.product-search-input') as HTMLInputElement
+        if (searchInput) {
+          searchInput.focus()
+        }
+      }, 10)
+    }
+  }
+
+  onProductSearchInput(event: any) {
+    this.productSearchTerm = event.target.value
+    // Auto-expand products that match search
+    if (this.productSearchTerm) {
+      this.expandedProductIds.clear()
+      this.products.forEach(product => {
+        if (product.name.toLowerCase().includes(this.productSearchTerm.toLowerCase())) {
+          this.expandedProductIds.add(product.id)
+        }
+      })
+    }
+  }
+
+  get filteredProductsForDropdown() {
+    const term = (this.productSearchTerm || '').toLowerCase().trim();
+    if (!term) {
+      return this.products;
+    }
+    return this.products.filter(product => {
+      const name = (product.name || '').toLowerCase();
+      return name.includes(term);
+    });
+  }
+
+  toggleBrandDropdown() {
+    this.showBrandDropdown = !this.showBrandDropdown;
+    if (this.showBrandDropdown) {
+      // Position dropdown after it's rendered
+      setTimeout(() => {
+        this.positionDropdown('.brand-dropdown-trigger', '.brand-dropdown-content')
+      }, 10)
+    }
+  }
+
+  // Add flag to disable document click temporarily
+  private disableDocumentClick = false;
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: any) {
+    // Skip if document click is temporarily disabled
+    if (this.disableDocumentClick) return;
+    
+    // CATEGORY
+    if (this.showCategoryDropdown) {
+      const trigger = event.target.closest('.category-dropdown-trigger');
+      const content = event.target.closest('.category-dropdown-content');
+      const container = event.target.closest('.category-dropdown-container');
+      // Only close if clicking outside the entire dropdown container
+      if (!container) {
+        this.showCategoryDropdown = false;
+      }
+    }
+    // PRODUCT
+    if (this.showProductDropdown) {
+      const trigger = event.target.closest('.category-dropdown-trigger');
+      const content = event.target.closest('.category-dropdown-content');
+      const container = event.target.closest('.category-dropdown-container');
+      if (!container) {
+        this.showProductDropdown = false;
+      }
+    }
+    // BRAND
+    if (this.showBrandDropdown) {
+      const trigger = event.target.closest('.category-dropdown-trigger');
+      const content = event.target.closest('.category-dropdown-content');
+      const container = event.target.closest('.category-dropdown-container');
+      if (!container) {
+        this.showBrandDropdown = false;
+      }
+    }
   }
 
   fetchProducts() {
@@ -220,6 +599,78 @@ export class DiscountEventsComponent implements OnInit {
         this.brands = []
       },
     })
+  }
+
+  fetchAdmins() {
+    this.peopleService.getAdmins().subscribe({
+      next: (data: any[]) => {
+        this.admins = data;
+        // Create a map for quick admin name lookup
+        this.adminMap = {};
+        data.forEach(admin => {
+          this.adminMap[admin.id] = admin.name;
+        });
+      },
+      error: () => {
+        this.admins = [];
+        this.adminMap = {};
+      },
+    })
+  }
+
+  getAdminName(adminId: number): string {
+    return this.adminMap[adminId] || `Admin ${adminId}`;
+  }
+
+  getActionIcon(action: string): string {
+    switch (action?.toUpperCase()) {
+      case 'CREATED':
+        return 'fas fa-plus-circle';
+      case 'UPDATED':
+        return 'fas fa-edit';
+      case 'DELETED':
+        return 'fas fa-trash';
+      case 'ACTIVATED':
+        return 'fas fa-play-circle';
+      case 'DEACTIVATED':
+        return 'fas fa-pause-circle';
+      default:
+        return 'fas fa-circle';
+    }
+  }
+
+  getActionIconClass(action: string): string {
+    switch (action?.toUpperCase()) {
+      case 'CREATED':
+        return 'icon-created';
+      case 'UPDATED':
+        return 'icon-updated';
+      case 'DELETED':
+        return 'icon-deleted';
+      case 'ACTIVATED':
+        return 'icon-activated';
+      case 'DEACTIVATED':
+        return 'icon-deactivated';
+      default:
+        return 'icon-default';
+    }
+  }
+
+  getActionBadgeClass(action: string): string {
+    switch (action?.toUpperCase()) {
+      case 'CREATED':
+        return 'badge-created';
+      case 'UPDATED':
+        return 'badge-updated';
+      case 'DELETED':
+        return 'badge-deleted';
+      case 'ACTIVATED':
+        return 'badge-activated';
+      case 'DEACTIVATED':
+        return 'badge-deactivated';
+      default:
+        return 'badge-default';
+    }
   }
 
   private dataLoadedCount = 0
@@ -532,6 +983,11 @@ export class DiscountEventsComponent implements OnInit {
   }
 
   // Helper Methods
+  getProductNameByVariant(variant: any): string {
+    const product = this.products.find(p => Array.isArray(p.variants) && p.variants.some((v: any) => v.id === variant.id));
+    return product ? product.name : '';
+  }
+
   getProductVariants(node: CascadeNode): CascadeNode[] {
     return (node.children || []).filter((child) => child.type === "variant")
   }
@@ -578,11 +1034,30 @@ export class DiscountEventsComponent implements OnInit {
         this.showRuleBuilder = false
         this.resetCascadeState()
         this.fetchEvents()
+        this.showToastMessage("Discount event created successfully!")
       },
       error: (err) => {
-        alert("Failed to create event: " + (err?.error || "Unknown error"))
+        this.handleCreateEventError(err);
       },
     })
+  }
+
+  private handleCreateEventError(err: any) {
+    const errorMessage = err?.error || err?.message || "Unknown error";
+    
+    // Handle specific hierarchy validation error
+    if (errorMessage.includes("Cannot create product discount when category or variant discounts exist")) {
+      this.showToastMessage("⚠️ Discount Conflict: Cannot create product-level discount when category or variant discounts already exist for the same product. Please remove conflicting discounts first.");
+    } else if (errorMessage.includes("Cannot create variant discount when category or product discounts exist")) {
+      this.showToastMessage("⚠️ Discount Conflict: Cannot create variant-level discount when category or product discounts already exist for the same product. Please remove conflicting discounts first.");
+    } else if (errorMessage.includes("Cannot create category discount when product or variant discounts exist")) {
+      this.showToastMessage("⚠️ Discount Conflict: Cannot create category-level discount when product or variant discounts already exist for products in this category. Please remove conflicting discounts first.");
+    } else if (errorMessage.includes("discount hierarchy")) {
+      this.showToastMessage("⚠️ Discount Hierarchy Error: Please ensure your discount rules follow the hierarchy (Category → Product → Variant). Remove any conflicting discounts.");
+    } else {
+      // Generic error handling
+      this.showToastMessage("❌ Failed to create event: " + errorMessage);
+    }
   }
 
   // Form validation methods
@@ -727,11 +1202,35 @@ export class DiscountEventsComponent implements OnInit {
       return;
     }
 
-    this.eventService.updateEvent(this.editEvent.id, this.editEvent).subscribe(() => {
-      this.showEditModal = false
-      this.editEvent = null
-      this.fetchEvents()
+    this.eventService.updateEvent(this.editEvent.id, this.editEvent).subscribe({
+      next: () => {
+        this.showEditModal = false
+        this.editEvent = null
+        this.fetchEvents()
+        this.showToastMessage("Discount event updated successfully!")
+      },
+      error: (err) => {
+        this.handleUpdateEventError(err);
+      }
     })
+  }
+
+  private handleUpdateEventError(err: any) {
+    const errorMessage = err?.error || err?.message || "Unknown error";
+    
+    // Handle specific hierarchy validation error
+    if (errorMessage.includes("Cannot create product discount when category or variant discounts exist")) {
+      this.showToastMessage("⚠️ Discount Conflict: Cannot create product-level discount when category or variant discounts already exist for the same product. Please remove conflicting discounts first.");
+    } else if (errorMessage.includes("Cannot create variant discount when category or product discounts exist")) {
+      this.showToastMessage("⚠️ Discount Conflict: Cannot create variant-level discount when category or product discounts already exist for the same product. Please remove conflicting discounts first.");
+    } else if (errorMessage.includes("Cannot create category discount when product or variant discounts exist")) {
+      this.showToastMessage("⚠️ Discount Conflict: Cannot create category-level discount when product or variant discounts already exist for products in this category. Please remove conflicting discounts first.");
+    } else if (errorMessage.includes("discount hierarchy")) {
+      this.showToastMessage("⚠️ Discount Hierarchy Error: Please ensure your discount rules follow the hierarchy (Category → Product → Variant). Remove any conflicting discounts.");
+    } else {
+      // Generic error handling
+      this.showToastMessage("❌ Failed to update event: " + errorMessage);
+    }
   }
 
   // Edit form validation methods
@@ -910,23 +1409,33 @@ export class DiscountEventsComponent implements OnInit {
       if (key) newMap.set(key, rule);
     });
 
-    // Check for changed or removed rules
+    // Check for removed rules
+    oldMap.forEach((oldRule, key) => {
+      if (!newMap.has(key)) {
+        let target = this.getRuleTargetName(oldRule);
+        changes.push(`Removed: ${this.formatRuleLevel(oldRule)}${target ? ': ' + target : ''} — ${oldRule.discountPercent != null ? oldRule.discountPercent + '%' : ''} discount`);
+      }
+    });
+
+    // Check for added rules
+    newMap.forEach((newRule, key) => {
+      if (!oldMap.has(key)) {
+        let target = this.getRuleTargetName(newRule);
+        changes.push(`Added: ${this.formatRuleLevel(newRule)}${target ? ': ' + target : ''} — ${newRule.discountPercent != null ? newRule.discountPercent + '%' : ''} discount`);
+      }
+    });
+
+    // Check for changed discount percentages
     oldMap.forEach((oldRule, key) => {
       if (newMap.has(key)) {
         const newRule = newMap.get(key);
         if (oldRule.discountPercent !== newRule.discountPercent) {
           let target = this.getRuleTargetName(oldRule);
-          changes.push(`${this.formatRuleLevel(oldRule)}${target ? ': ' + target : ''} — ${oldRule.discountPercent}% → ${newRule.discountPercent}% discount`);
+          changes.push(`Updated: ${this.formatRuleLevel(oldRule)}${target ? ': ' + target : ''} — ${oldRule.discountPercent}% → ${newRule.discountPercent}% discount`);
         }
       }
     });
-    // Check for added rules
-    newMap.forEach((newRule, key) => {
-      if (!oldMap.has(key)) {
-        let target = this.getRuleTargetName(newRule);
-        changes.push(`${this.formatRuleLevel(newRule)}${target ? ': ' + target : ''} — ${newRule.discountPercent != null ? newRule.discountPercent + '%' : ''} discount`);
-      }
-    });
+
     return changes;
   }
 
@@ -1017,6 +1526,20 @@ export class DiscountEventsComponent implements OnInit {
     rule.productId = node.type === 'product' ? node.id : null;
     rule.productVariantId = node.type === 'variant' ? node.id : null;
     rule.brandId = null;
+  }
+
+  applyEditCategorySelection(category: any) {
+    if (this.currentEditRuleIndex === null) return;
+    const rule = this.editEvent.rules[this.currentEditRuleIndex];
+    rule.selectedPath = [category];
+    rule.targetLevel = 'category';
+    // Set correct ID fields for backend
+    rule.categoryId = category.id;
+    rule.productId = null;
+    rule.productVariantId = null;
+    rule.brandId = null;
+    this.showEditRuleBuilder = false;
+    this.resetCascadeState();
   }
 
   applyEditProductSelection(product: CascadeNode) {
@@ -1144,7 +1667,6 @@ export class DiscountEventsComponent implements OnInit {
     this.builderType = rule.targetType;
     this.cascadePath = rule.selectedPath || [];
     this.cascadeHoverPath = [];
-    // For product-variant, auto-expand product and highlight variant
     if (rule.productVariantId) {
       const variant = this.productVariants.find((v) => v.id === rule.productVariantId);
       if (variant) {
@@ -1154,7 +1676,6 @@ export class DiscountEventsComponent implements OnInit {
           this.expandedProductIds.add(prod.id);
           this.editVariantId = variant.id;
           this.selectedProduct = prod;
-          // Force: ensure product is in expandedProductIds
           if (!this.expandedProductIds.has(prod.id)) {
             this.expandedProductIds.add(prod.id);
           }
@@ -1165,6 +1686,11 @@ export class DiscountEventsComponent implements OnInit {
       this.editVariantId = null;
       this.selectedProduct = null;
     }
+    // Clear edit selections
+    this.editSelectedProducts = [];
+    this.editSelectedVariants = [];
+    this.editSelectedBrands = [];
+    this.editSelectedCategories = [];
   }
 
   // Add: Clear the selected target for a rule in edit modal
@@ -1223,7 +1749,7 @@ export class DiscountEventsComponent implements OnInit {
   }
 
   clearProductVariantSelection() {
-    this.selectedProductForVariants = null;
+    this.selectedProductForVariant = null;
   }
 
   clearSubCategorySelection() {
@@ -1339,92 +1865,177 @@ export class DiscountEventsComponent implements OnInit {
     const discountPercent = rule.discountPercent;
     let count = 0;
     switch (type) {
-      case 'variant':
+      case 'variant': {
         if (!this.selectedProduct) {
           this.showToastMessage('No product selected for variants!');
           return;
         }
         if (this.selectedVariants.length > 0) {
-          // Update the starter rule with the first selected variant
-          const firstVariant = this.selectedVariants[0];
-          rule.selectedPath = [this.selectedProduct, firstVariant];
-          rule.targetLevel = 'variant';
-          rule.categoryId = null;
-          rule.productId = null;
-          rule.productVariantId = firstVariant.id;
-          rule.brandId = null;
-          rule.discountPercent = discountPercent;
-          count++;
-          // Add new rules for the rest
-          for (let i = 1; i < this.selectedVariants.length; i++) {
-            const variant = this.selectedVariants[i];
-            this.newEvent.rules.push({
-              id: Date.now().toString() + '-' + variant.id,
-              targetType: 'product',
-              selectedPath: [this.selectedProduct, variant],
-              discountPercent: discountPercent,
-              targetLevel: 'variant',
-              categoryId: null,
-              productId: null,
-              productVariantId: variant.id,
-              brandId: null
-            });
+          // Fix: handle empty rule
+          const shouldRemoveCurrent = !rule.selectedPath || rule.selectedPath.length === 0;
+          this.selectedVariants.forEach((variant, idx) => {
+            if (idx === 0 && !shouldRemoveCurrent && this.selectedProduct) {
+              // Update the current rule
+              rule.selectedPath = [this.selectedProduct, variant];
+              rule.targetLevel = 'variant';
+              rule.categoryId = null;
+              rule.productId = this.selectedProduct.id;
+              rule.productVariantId = variant.id;
+              rule.brandId = null;
+              rule.discountPercent = discountPercent;
+            } else if (this.selectedProduct) {
+              // Add new rules for the rest (or all if current is empty)
+              this.newEvent.rules.push({
+                id: Date.now().toString() + '-' + variant.id,
+                targetType: 'product',
+                selectedPath: [this.selectedProduct, variant],
+                discountPercent: discountPercent,
+                targetLevel: 'variant',
+                categoryId: null,
+                productId: this.selectedProduct.id,
+                productVariantId: variant.id,
+                brandId: null
+              });
+            }
             count++;
+          });
+          if (shouldRemoveCurrent) {
+            this.newEvent.rules.splice(this.currentRuleIndex, 1);
+            this.currentRuleIndex = null;
           }
+          // Close the rule builder after applying
+          this.showRuleBuilder = false;
+          this.resetCascadeState();
         } else {
           this.showToastMessage('No variants selected!');
         }
         this.clearSelection('variant');
         break;
-      case 'product':
-        this.selectedProducts.forEach(product => {
+      }
+      case 'product': {
+        // Fix: handle empty rule
+        const shouldRemoveCurrent = !rule.selectedPath || rule.selectedPath.length === 0;
+        this.selectedProducts.forEach((product, idx) => {
+          if (idx === 0 && !shouldRemoveCurrent) {
+            // Update the current rule
+            rule.selectedPath = [product];
+            rule.targetLevel = 'product';
+            rule.categoryId = null;
+            rule.productId = product.id;
+            rule.productVariantId = null;
+            rule.brandId = null;
+            rule.discountPercent = discountPercent;
+          } else {
+            // Add new rules for the rest (or all if current is empty)
+            this.newEvent.rules.push({
+              id: Date.now().toString() + '-' + product.id,
+              targetType: 'product',
+              selectedPath: [product],
+              discountPercent: discountPercent,
+              targetLevel: 'product',
+              categoryId: null,
+              productId: product.id,
+              productVariantId: null,
+              brandId: null
+            });
+          }
+          count++;
+        });
+        // Also handle selectedVariants (from any product)
+        this.selectedVariants.forEach((variant, idx) => {
+          const product = this.products.find(p => Array.isArray(p.variants) && p.variants.some((v: any) => v.id === variant.id));
           this.newEvent.rules.push({
-            id: Date.now().toString() + '-' + product.id,
+            id: Date.now().toString() + '-variant-' + variant.id,
             targetType: 'product',
-            selectedPath: [product],
+            selectedPath: product ? [product, variant] : [variant],
             discountPercent: discountPercent,
-            targetLevel: 'product',
+            targetLevel: 'variant',
             categoryId: null,
-            productId: product.id,
-            productVariantId: null,
+            productId: product ? product.id : null,
+            productVariantId: variant.id,
             brandId: null
           });
           count++;
         });
+        if (shouldRemoveCurrent) {
+          this.newEvent.rules.splice(this.currentRuleIndex, 1);
+          this.currentRuleIndex = null;
+        }
         this.clearSelection('product');
+        this.clearSelection('variant');
         break;
+      }
       case 'category':
-        this.selectedCategories.forEach(category => {
-          this.newEvent.rules.push({
-            id: Date.now().toString() + '-' + category.id,
-            targetType: 'category',
-            selectedPath: [category],
-            discountPercent: discountPercent,
-            targetLevel: 'category',
-            categoryId: category.id,
-            productId: null,
-            productVariantId: null,
-            brandId: null
+        if (this.selectedCategories.length > 0) {
+          // If the current rule has no target, remove it after adding new rules
+          const shouldRemoveCurrent = !rule.selectedPath || rule.selectedPath.length === 0;
+          this.selectedCategories.forEach((category, idx) => {
+            if (idx === 0 && !shouldRemoveCurrent) {
+              // Update the current rule
+              rule.selectedPath = [category];
+              rule.targetLevel = 'category';
+              rule.categoryId = category.id;
+              rule.productId = null;
+              rule.productVariantId = null;
+              rule.brandId = null;
+              rule.discountPercent = discountPercent;
+            } else {
+              // Add new rules for the rest (or all if current is empty)
+              this.newEvent.rules.push({
+                id: Date.now().toString() + '-' + category.id,
+                targetType: 'category',
+                selectedPath: [category],
+                discountPercent: discountPercent,
+                targetLevel: 'category',
+                categoryId: category.id,
+                productId: null,
+                productVariantId: null,
+                brandId: null
+              });
+            }
+            count++;
           });
-          count++;
-        });
+          if (shouldRemoveCurrent) {
+            this.newEvent.rules.splice(this.currentRuleIndex, 1);
+            this.currentRuleIndex = null;
+          }
+        }
         this.clearSelection('category');
         break;
       case 'brand':
-        this.selectedBrands.forEach(brand => {
-          this.newEvent.rules.push({
-            id: Date.now().toString() + '-' + brand.id,
-            targetType: 'brand',
-            selectedPath: [brand],
-            discountPercent: discountPercent,
-            targetLevel: 'brand',
-            categoryId: null,
-            productId: null,
-            productVariantId: null,
-            brandId: brand.id
+        if (this.selectedBrands.length > 0) {
+          const shouldRemoveCurrent = !rule.selectedPath || rule.selectedPath.length === 0;
+          this.selectedBrands.forEach((brand, idx) => {
+            if (idx === 0 && !shouldRemoveCurrent) {
+              // Update the current rule
+              rule.selectedPath = [brand];
+              rule.targetLevel = 'brand';
+              rule.categoryId = null;
+              rule.productId = null;
+              rule.productVariantId = null;
+              rule.brandId = brand.id;
+              rule.discountPercent = discountPercent;
+            } else {
+              // Add new rules for the rest (or all if current is empty)
+              this.newEvent.rules.push({
+                id: Date.now().toString() + '-' + brand.id,
+                targetType: 'brand',
+                selectedPath: [brand],
+                discountPercent: discountPercent,
+                targetLevel: 'brand',
+                categoryId: null,
+                productId: null,
+                productVariantId: null,
+                brandId: brand.id
+              });
+            }
+            count++;
           });
-          count++;
-        });
+          if (shouldRemoveCurrent) {
+            this.newEvent.rules.splice(this.currentRuleIndex, 1);
+            this.currentRuleIndex = null;
+          }
+        }
         this.clearSelection('brand');
         break;
     }
@@ -1453,4 +2064,434 @@ export class DiscountEventsComponent implements OnInit {
       }
     }
   }
+
+  // Add: Open the product variant modal
+  openProductVariantModal(product: any) {
+    this.selectedProductForVariant = product;
+    this.selectedProduct = product; // Set the selected product for variant context (works for both create and edit)
+    this.showProductVariantModal = true;
+    this.openVariantProductId = product.id;
+    // Do NOT clear previous variant selections when opening modal
+    // this.clearSelection('variant');
+  }
+
+  // Add: Close the product variant modal and keep selectedVariants (for Add button)
+  addSelectedVariantsAndCloseModal() {
+    // For edit modal: copy selectedVariants to editSelectedVariants
+    if (this.showEditModal) {
+      this.editSelectedVariants = [...this.selectedVariants];
+    }
+    this.showProductVariantModal = false;
+    this.selectedProductForVariant = null;
+    this.selectedProduct = null;
+    this.openVariantProductId = null;
+    if (this.cdr) this.cdr.detectChanges();
+  }
+
+  // Add: Close the product variant modal and clear selectedVariants (for Cancel button)
+  cancelVariantSelectionAndCloseModal() {
+    this.showProductVariantModal = false;
+    this.selectedProductForVariant = null;
+    this.selectedProduct = null;
+    this.openVariantProductId = null;
+    this.clearSelection('variant');
+  }
+
+  // Update: Only use this for cancel logic
+  closeProductVariantModal() {
+    this.cancelVariantSelectionAndCloseModal();
+  }
+
+  // Add: Apply a variant to the current rule
+  applyVariantToRule(variant: any) {
+    // Add to selectedVariants if not already present
+    if (!this.selectedVariants.some(v => v.id === variant.id)) {
+      this.selectedVariants.push(variant);
+    }
+    this.addSelectedVariantsAndCloseModal(); // Close modal, keep selection
+    // Do not create rule here; user will use main Apply button
+    this.showToastMessage('Variant added to selection!');
+  }
+
+  // Edit modal multi-select helpers
+  isEditSelected(item: any, type: 'variant' | 'product' | 'brand' | 'category'): boolean {
+    switch (type) {
+      case 'variant': return this.editSelectedVariants.some(v => v.id === item.id);
+      case 'product': return this.editSelectedProducts.some(p => p.id === item.id);
+      case 'brand': return this.editSelectedBrands.some(b => b.id === item.id);
+      case 'category': return this.editSelectedCategories.some(c => c.id === item.id);
+    }
+  }
+
+  toggleEditSelection(item: any, type: 'variant' | 'product' | 'brand' | 'category') {
+    switch (type) {
+      case 'variant':
+        if (this.isEditSelected(item, 'variant')) {
+          this.editSelectedVariants = this.editSelectedVariants.filter(v => v.id !== item.id);
+        } else {
+          this.editSelectedVariants.push(item);
+        }
+        break;
+      case 'product':
+        if (this.isEditSelected(item, 'product')) {
+          this.editSelectedProducts = this.editSelectedProducts.filter(p => p.id !== item.id);
+        } else {
+          this.editSelectedProducts.push(item);
+        }
+        break;
+      case 'brand':
+        if (this.isEditSelected(item, 'brand')) {
+          this.editSelectedBrands = this.editSelectedBrands.filter(b => b.id !== item.id);
+        } else {
+          this.editSelectedBrands.push(item);
+        }
+        break;
+      case 'category':
+        if (this.isEditSelected(item, 'category')) {
+          this.editSelectedCategories = this.editSelectedCategories.filter(c => c.id !== item.id);
+        } else {
+          this.editSelectedCategories.push(item);
+        }
+        break;
+    }
+  }
+
+  selectAllEdit(items: any[], type: 'variant' | 'product' | 'brand' | 'category') {
+    switch (type) {
+      case 'variant':
+        if (this.editSelectedVariants.length === items.length) {
+          this.editSelectedVariants = [];
+        } else {
+          this.editSelectedVariants = [...items];
+        }
+        break;
+      case 'product':
+        if (this.editSelectedProducts.length === items.length) {
+          this.editSelectedProducts = [];
+        } else {
+          this.editSelectedProducts = [...items];
+        }
+        break;
+      case 'brand':
+        if (this.editSelectedBrands.length === items.length) {
+          this.editSelectedBrands = [];
+        } else {
+          this.editSelectedBrands = [...items];
+        }
+        break;
+      case 'category':
+        if (this.editSelectedCategories.length === items.length) {
+          this.editSelectedCategories = [];
+        } else {
+          this.editSelectedCategories = [...items];
+        }
+        break;
+    }
+  }
+
+  clearEditSelection(type: 'variant' | 'product' | 'brand' | 'category') {
+    switch (type) {
+      case 'variant': this.editSelectedVariants = []; break;
+      case 'product': this.editSelectedProducts = []; break;
+      case 'brand': this.editSelectedBrands = []; break;
+      case 'category': this.editSelectedCategories = []; break;
+    }
+  }
+
+  // Apply discount to selected (edit modal)
+  applyEditDiscountToSelected(type: 'variant' | 'product' | 'brand' | 'category') {
+    console.log('applyEditDiscountToSelected called with type:', type);
+    console.log('editSelectedProducts:', this.editSelectedProducts);
+    console.log('editSelectedVariants:', this.editSelectedVariants);
+    if (this.currentEditRuleIndex === null) return;
+    const rule = this.editEvent.rules[this.currentEditRuleIndex];
+    const discountPercent = rule.discountPercent;
+    let count = 0;
+    switch (type) {
+      case 'variant': {
+        if (!this.selectedProduct) return;
+        if (this.editSelectedVariants.length > 0) {
+          const shouldRemoveCurrent = !rule.selectedPath || rule.selectedPath.length === 0;
+          this.editSelectedVariants.forEach((variant, idx) => {
+            if (idx === 0 && !shouldRemoveCurrent && this.selectedProduct) {
+              rule.selectedPath = [this.selectedProduct, variant];
+              rule.targetLevel = 'variant';
+              rule.categoryId = null;
+              rule.productId = this.selectedProduct.id;
+              rule.productVariantId = variant.id;
+              rule.brandId = null;
+              rule.discountPercent = discountPercent;
+            } else if (this.selectedProduct) {
+              this.editEvent.rules.push({
+                id: Date.now().toString() + '-' + variant.id,
+                targetType: 'product',
+                selectedPath: [this.selectedProduct, variant],
+                discountPercent: discountPercent,
+                targetLevel: 'variant',
+                categoryId: null,
+                productId: this.selectedProduct.id,
+                productVariantId: variant.id,
+                brandId: null
+              });
+            }
+            count++;
+          });
+          if (shouldRemoveCurrent) {
+            this.editEvent.rules.splice(this.currentEditRuleIndex, 1);
+            this.currentEditRuleIndex = null;
+          }
+          this.showEditRuleBuilder = false;
+          this.resetCascadeState();
+        }
+        this.clearEditSelection('variant');
+        break;
+      }
+      case 'product': {
+        const shouldRemoveCurrent = !rule.selectedPath || rule.selectedPath.length === 0;
+        this.editSelectedProducts.forEach((product, idx) => {
+          if (idx === 0 && !shouldRemoveCurrent) {
+            rule.selectedPath = [product];
+            rule.targetLevel = 'product';
+            rule.categoryId = null;
+            rule.productId = product.id;
+            rule.productVariantId = null;
+            rule.brandId = null;
+            rule.discountPercent = discountPercent;
+          } else {
+            this.editEvent.rules.push({
+              id: Date.now().toString() + '-' + product.id,
+              targetType: 'product',
+              selectedPath: [product],
+              discountPercent: discountPercent,
+              targetLevel: 'product',
+              categoryId: null,
+              productId: product.id,
+              productVariantId: null,
+              brandId: null
+            });
+          }
+          count++;
+        });
+        // Also handle selectedVariants
+        this.editSelectedVariants.forEach((variant, idx) => {
+          const product = this.products.find(p => Array.isArray(p.variants) && p.variants.some((v: any) => v.id === variant.id));
+          this.editEvent.rules.push({
+            id: Date.now().toString() + '-variant-' + variant.id,
+            targetType: 'product',
+            selectedPath: product ? [product, variant] : [variant],
+            discountPercent: discountPercent,
+            targetLevel: 'variant',
+            categoryId: null,
+            productId: product ? product.id : null,
+            productVariantId: variant.id,
+            brandId: null
+          });
+          count++;
+        });
+        if (shouldRemoveCurrent) {
+          this.editEvent.rules.splice(this.currentEditRuleIndex, 1);
+          this.currentEditRuleIndex = null;
+        }
+        this.clearEditSelection('product');
+        this.clearEditSelection('variant');
+        this.showEditRuleBuilder = false;
+        this.resetCascadeState();
+        break;
+      }
+      case 'brand': {
+        if (this.editSelectedBrands.length > 0) {
+          const shouldRemoveCurrent = !rule.selectedPath || rule.selectedPath.length === 0;
+          this.editSelectedBrands.forEach((brand, idx) => {
+            if (idx === 0 && !shouldRemoveCurrent) {
+              rule.selectedPath = [brand];
+              rule.targetLevel = 'brand';
+              rule.categoryId = null;
+              rule.productId = null;
+              rule.productVariantId = null;
+              rule.brandId = brand.id;
+              rule.discountPercent = discountPercent;
+            } else {
+              this.editEvent.rules.push({
+                id: Date.now().toString() + '-' + brand.id,
+                targetType: 'brand',
+                selectedPath: [brand],
+                discountPercent: discountPercent,
+                targetLevel: 'brand',
+                categoryId: null,
+                productId: null,
+                productVariantId: null,
+                brandId: brand.id
+              });
+            }
+            count++;
+          });
+          if (shouldRemoveCurrent) {
+            this.editEvent.rules.splice(this.currentEditRuleIndex, 1);
+            this.currentEditRuleIndex = null;
+          }
+          this.clearEditSelection('brand');
+          this.showEditRuleBuilder = false;
+          this.resetCascadeState();
+        }
+        break;
+      }
+      case 'category': {
+        if (this.editSelectedCategories.length > 0) {
+          const shouldRemoveCurrent = !rule.selectedPath || rule.selectedPath.length === 0;
+          this.editSelectedCategories.forEach((category, idx) => {
+            if (idx === 0 && !shouldRemoveCurrent) {
+              rule.selectedPath = [category];
+              rule.targetLevel = 'category';
+              rule.categoryId = category.id;
+              rule.productId = null;
+              rule.productVariantId = null;
+              rule.brandId = null;
+              rule.discountPercent = discountPercent;
+            } else {
+              this.editEvent.rules.push({
+                id: Date.now().toString() + '-' + category.id,
+                targetType: 'category',
+                selectedPath: [category],
+                discountPercent: discountPercent,
+                targetLevel: 'category',
+                categoryId: category.id,
+                productId: null,
+                productVariantId: null,
+                brandId: null
+              });
+            }
+            count++;
+          });
+          if (shouldRemoveCurrent) {
+            this.editEvent.rules.splice(this.currentEditRuleIndex, 1);
+            this.currentEditRuleIndex = null;
+          }
+          this.clearEditSelection('category');
+          this.showEditRuleBuilder = false;
+          this.resetCascadeState();
+        }
+        break;
+      }
+    }
+    console.log('editEvent.rules after apply:', this.editEvent.rules);
+    if (count > 0) {
+      this.showToastMessage(`Discount applied to ${count} ${type}${count > 1 ? 's' : ''}!`);
+    }
+  }
+
+  // Add or update the applySearch method to use searchEventName
+  applySearch() {
+    this.filterEventName = this.searchEventName;
+    this.applyFilters();
+  }
+
+  toggleAction(action: 'show' | 'history' | 'delete') {
+    this.actionToggle = action;
+  }
+
+  clearActionToggle() {
+    this.actionToggle = null;
+    this.showActionToggle = false;
+  }
+
+  // Method to position dropdowns dynamically
+  private positionDropdown(triggerSelector: string, dropdownSelector: string): void {
+    const trigger = document.querySelector(triggerSelector) as HTMLElement;
+    const dropdown = document.querySelector(dropdownSelector) as HTMLElement;
+    
+    if (!trigger || !dropdown) return;
+    
+    const triggerRect = trigger.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const dropdownHeight = 300; // Max height from CSS
+    const dropdownWidth = Math.min(500, Math.max(300, triggerRect.width)); // Between 300-500px
+    
+    // Calculate position
+    let top = triggerRect.bottom + window.scrollY;
+    let left = triggerRect.left + window.scrollX;
+    
+    // Check if dropdown would go off-screen vertically
+    if (triggerRect.bottom + dropdownHeight > viewportHeight) {
+      // Position above the trigger if there's space
+      if (triggerRect.top - dropdownHeight > 0) {
+        top = triggerRect.top + window.scrollY - dropdownHeight;
+      } else {
+        // Position at the bottom of viewport with some padding
+        top = viewportHeight - dropdownHeight - 20 + window.scrollY;
+      }
+    }
+    
+    // Check if dropdown would go off-screen horizontally
+    if (left + dropdownWidth > viewportWidth) {
+      left = viewportWidth - dropdownWidth - 20;
+    }
+    
+    // Ensure dropdown doesn't go off-screen to the left
+    if (left < 20) {
+      left = 20;
+    }
+    
+    // Apply positioning
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = `${top}px`;
+    dropdown.style.left = `${left}px`;
+    dropdown.style.width = `${dropdownWidth}px`;
+    dropdown.style.zIndex = '10001';
+    
+    // Removed backdrop to prevent shadow effect and unwanted closing
+  }
+
+  // DEBUG: Force open dropdown
+  debugOpenDropdown() {
+    // Temporarily disable document click
+    this.disableDocumentClick = true;
+    
+    this.currentRuleIndex = 0;
+    this.showRuleBuilder = true;
+    this.builderType = 'category';
+    this.showCategoryDropdown = true;
+    console.log('[Debug] Force open dropdown called. showCategoryDropdown set to', this.showCategoryDropdown);
+    this.cdr.detectChanges();
+    
+    // Re-enable document click after a short delay
+    setTimeout(() => {
+      this.disableDocumentClick = false;
+    }, 100);
+  }
+
+  // Add this function to build a nested category tree from a flat array
+  private buildCategoryTree(flatCategories: any[]): any[] {
+    const idToNode: { [id: number]: any } = {};
+    const roots: any[] = [];
+    // First, create a map of id to node
+    flatCategories.forEach(cat => {
+      idToNode[cat.id] = { ...cat, children: [] };
+    });
+    // Then, assign children to their parents
+    flatCategories.forEach(cat => {
+      if (cat.parent_category_id && idToNode[cat.parent_category_id]) {
+        idToNode[cat.parent_category_id].children.push(idToNode[cat.id]);
+      } else if (cat.parent_category_id == null) {
+        roots.push(idToNode[cat.id]);
+      }
+    });
+    return roots;
+  }
+
+  isParentCategory(cat: any): boolean {
+    if ('type' in cat) {
+      return cat.type === 'category';
+    }
+    return cat.parent_category_id === null || cat.parent_category_id === undefined;
+  }
+
+  // Add these helper methods to the DiscountEventsComponent class
+  getParentCategoryCount(): number {
+    return this.selectedCategories.filter(cat => this.isParentCategory(cat)).length;
+  }
+  getChildCategoryCount(): number {
+    return this.selectedCategories.filter(cat => !this.isParentCategory(cat)).length;
+  }
+
 }
