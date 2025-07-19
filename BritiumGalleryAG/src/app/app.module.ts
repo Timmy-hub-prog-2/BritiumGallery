@@ -100,6 +100,8 @@ import { BlogListComponent } from './blog-list/blog-list.component';
 import { CustomerMessageComponent } from './customer-message/customer-message.component';
 import { CustomerChatService } from './services/customer-chat.service';
 import { AdminMessageComponent } from './admin-message/admin-message.component';
+import { CategoryFilterPipe } from './category-filter.pipe';
+import { ProductFilterPipe } from './product-filter.pipe';
 
 @NgModule({
   declarations: [
@@ -179,8 +181,8 @@ import { AdminMessageComponent } from './admin-message/admin-message.component';
     AppRoutingModule,
     RouterModule,
     FormsModule,
-    HttpClientModule,
     BrowserAnimationsModule,
+    HttpClientModule,
     ReactiveFormsModule,
     MatTableModule,
     MatSortModule,
@@ -200,9 +202,9 @@ import { AdminMessageComponent } from './admin-message/admin-message.component';
     NgApexchartsModule,
     NgxEditorModule,
     MapToAttributeLinePipe,
-    BrandRegisterComponent
-
-    
+    BrandRegisterComponent,
+    CategoryFilterPipe,
+    ProductFilterPipe
   ],
   providers: [
     NotificationService,
