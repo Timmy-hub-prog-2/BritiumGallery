@@ -532,7 +532,7 @@
         <!-- Additional Info -->
         <div class="event-card-info" style="margin-top: 12px; font-size: 0.9rem; color: #6b7280;">
           <div style="margin-bottom: 4px;">ID: {{ event.id }}</div>
-          <div style="margin-bottom: 4px;">Admin: {{ event.adminId }}</div>
+          <div style="margin-bottom: 4px;">Admin: {{ getAdminName(event.adminId) }}</div>
           <div style="margin-bottom: 4px;">Created: {{ event.createdAt | date:'MMM dd, yyyy' }}</div>
           <div *ngIf="event.updatedAt">Updated: {{ event.updatedAt | date:'MMM dd, yyyy' }}</div>
         </div>
@@ -585,7 +585,7 @@
           <th>Start Date</th>
           <th>End Date</th>
           <th>Rules</th>
-          <th>Admin ID</th>
+          <th>Admin</th>
           <th>Created At</th>
           <th>Updated At</th>
           <th>Actions</th>
@@ -605,7 +605,7 @@
           <td>
             <span class="rules-badge">{{event.rules?.length || 0}} rules</span>
           </td>
-          <td>{{ event.adminId }}</td>
+          <td>{{ getAdminName(event.adminId) }}</td>
           <td>{{ event.createdAt | date:'M/d/yyyy' }}</td>
           <td>{{ event.updatedAt ? (event.updatedAt | date:'M/d/yyyy') : '-' }}</td>
           <td class="action-buttons">

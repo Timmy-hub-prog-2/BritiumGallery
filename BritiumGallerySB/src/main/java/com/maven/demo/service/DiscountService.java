@@ -16,6 +16,7 @@ import com.maven.demo.repository.DiscountRuleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.scheduling.annotation.Scheduled;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -402,7 +403,14 @@ public class DiscountService {
         dto.setName(event.getName());
         dto.setStartDate(event.getStartDate());
         dto.setEndDate(event.getEndDate());
-        dto.setActive(event.isActive());
+        
+        // Calculate actual active status based on database field and current date
+        LocalDate today = LocalDate.now();
+        boolean isActuallyActive = event.isActive() && 
+                                  event.getStartDate().isBefore(today.plusDays(1)) && 
+                                  event.getEndDate().isAfter(today.minusDays(1));
+        dto.setActive(isActuallyActive);
+        
         dto.setAdminId(event.getAdminId());
         dto.setCreatedAt(event.getCreatedAt());
         dto.setUpdatedAt(event.getUpdatedAt());
@@ -466,6 +474,27 @@ public class DiscountService {
         dto.setBrandId(rule.getBrandId());
         // Add attribute options if needed
         return dto;
+    }
+    
+    // Scheduled method to automatically deactivate expired events
+    @Scheduled(cron = "0 0 1 * * *") // Run daily at 1 AM
+    @Transactional
+    public void deactivateExpiredEvents() {
+        LocalDate today = LocalDate.now();
+        List<DiscountEvent> expiredEvents = eventRepo.findByActiveTrueAndEndDateBefore(today);
+        
+        for (DiscountEvent event : expiredEvents) {
+            event.setActive(false);
+            eventRepo.save(event);
+            
+            // Record the automatic deactivation in history
+            DiscountEventDTO eventDto = convertToDTO(event);
+            recordHistory(event.getId(), event.getAdminId(), "AUTO_DEACTIVATED", eventDto, null);
+        }
+        
+        if (!expiredEvents.isEmpty()) {
+            System.out.println("Automatically deactivated " + expiredEvents.size() + " expired discount events");
+        }
     }
 }
 

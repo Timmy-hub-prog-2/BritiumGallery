@@ -1879,7 +1879,7 @@ export class DiscountEventsComponent implements OnInit {
               rule.selectedPath = [this.selectedProduct, variant];
               rule.targetLevel = 'variant';
               rule.categoryId = null;
-              rule.productId = this.selectedProduct.id;
+              rule.productId = null; // Don't set productId for variant-level discounts
               rule.productVariantId = variant.id;
               rule.brandId = null;
               rule.discountPercent = discountPercent;
@@ -1892,7 +1892,7 @@ export class DiscountEventsComponent implements OnInit {
                 discountPercent: discountPercent,
                 targetLevel: 'variant',
                 categoryId: null,
-                productId: this.selectedProduct.id,
+                productId: null, // Don't set productId for variant-level discounts
                 productVariantId: variant.id,
                 brandId: null
               });
@@ -1951,7 +1951,7 @@ export class DiscountEventsComponent implements OnInit {
             discountPercent: discountPercent,
             targetLevel: 'variant',
             categoryId: null,
-            productId: product ? product.id : null,
+            productId: null, // Don't set productId for variant-level discounts
             productVariantId: variant.id,
             brandId: null
           });
@@ -2217,7 +2217,7 @@ export class DiscountEventsComponent implements OnInit {
               rule.selectedPath = [this.selectedProduct, variant];
               rule.targetLevel = 'variant';
               rule.categoryId = null;
-              rule.productId = this.selectedProduct.id;
+              rule.productId = null; // Don't set productId for variant-level discounts
               rule.productVariantId = variant.id;
               rule.brandId = null;
               rule.discountPercent = discountPercent;
@@ -2229,7 +2229,7 @@ export class DiscountEventsComponent implements OnInit {
                 discountPercent: discountPercent,
                 targetLevel: 'variant',
                 categoryId: null,
-                productId: this.selectedProduct.id,
+                productId: null, // Don't set productId for variant-level discounts
                 productVariantId: variant.id,
                 brandId: null
               });
@@ -2282,7 +2282,7 @@ export class DiscountEventsComponent implements OnInit {
             discountPercent: discountPercent,
             targetLevel: 'variant',
             categoryId: null,
-            productId: product ? product.id : null,
+            productId: null, // Don't set productId for variant-level discounts
             productVariantId: variant.id,
             brandId: null
           });

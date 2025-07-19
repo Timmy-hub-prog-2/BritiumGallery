@@ -16,4 +16,7 @@ public interface DiscountEventRepository extends JpaRepository<DiscountEvent, Lo
     List<DiscountEvent> findByAdminIdAndActiveTrue(Long adminId);
 
     List<DiscountEvent> findByActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqual(java.time.LocalDate start, java.time.LocalDate end);
+    
+    // Find active events that have expired (end date is before today)
+    List<DiscountEvent> findByActiveTrueAndEndDateBefore(LocalDate today);
 }
