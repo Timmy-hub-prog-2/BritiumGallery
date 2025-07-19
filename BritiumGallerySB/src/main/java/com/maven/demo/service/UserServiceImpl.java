@@ -12,10 +12,22 @@ import org.springframework.web.multipart.MultipartFile;
 import com.maven.demo.dto.AddressDTO;
 import com.maven.demo.dto.UserDTO;
 import com.maven.demo.dto.UserResponseDTO;
+import com.maven.demo.dto.AddressDTO;
+import com.maven.demo.dto.CustomerGrowthDTO;
 import com.maven.demo.entity.AddressEntity;
 import com.maven.demo.entity.UserEntity;
 import com.maven.demo.repository.ShopAddressRepository;
 import com.maven.demo.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService1 {
@@ -60,6 +72,8 @@ public class UserServiceImpl implements UserService1 {
         dto.setGender(user.getGender());
         dto.setPhoneNumber(user.getPhoneNumber());
         dto.setRoleId(user.getRole() != null ? user.getRole().getId() : 3L);
+        dto.setRoleName(user.getRole() != null ? user.getRole().getType() : "Unknown");
+
         dto.setImageUrls(user.getImageUrls());
 
         // Set customerType if present
@@ -144,4 +158,7 @@ public class UserServiceImpl implements UserService1 {
 
         return Optional.empty();
     }
+
+
+
 }

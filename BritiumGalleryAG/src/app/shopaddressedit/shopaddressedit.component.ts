@@ -37,6 +37,8 @@ export class ShopaddresseditComponent implements OnInit {
   searchQuery: string = '';
   locationPlaceholder: string = 'Search location';
 
+  mapInitialized = false;
+
   private locationIcon = L.icon({
     iconUrl: 'assets/img/location.png',
     iconSize: [40, 40],
@@ -80,18 +82,29 @@ export class ShopaddresseditComponent implements OnInit {
 
     // Handle click on the map to update marker position and address fields
     this.map.on('click', (event) => this.onMapClick(event));
+    
+  // Now map is ready
+  this.mapInitialized = true;
+
+  // If latitude and longitude already exist (e.g. after populateForm), center map
+  if (this.address.latitude && this.address.longitude) {
+    this.setMapToSavedLocation();
+  }
   }
 
-  // Handle map clicks to set the marker and update the address fields
-  onMapClick(event: any): void {
-    const { lat, lng } = event.latlng;
+ onMapClick(event: any): void {
+  const { lat, lng } = event.latlng;
 
-    // Set marker to new position with custom icon
-    this.marker?.setLatLng([lat, lng]);
+  // Update marker
+  this.marker?.setLatLng([lat, lng]);
 
-    // Get the address from the new coordinates
-    this.getAddressFromLatLng(lat, lng);
-  }
+  // Update lat/lng in the address object
+  this.address.latitude = lat;
+  this.address.longitude = lng;
+
+  // Get address details from coordinates
+  this.getAddressFromLatLng(lat, lng);
+}
 
 
   // Get address from latitude and longitude using reverse geocoding (Nominatim API)
@@ -140,30 +153,31 @@ export class ShopaddresseditComponent implements OnInit {
     });
   }
 
-  // Get current location
-  getCurrentLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
+ getCurrentLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
-          //  this.center = { lat, lng };
+        // Update lat/lng in the address object
+        this.address.latitude = lat;
+        this.address.longitude = lng;
 
-          if (this.map) this.map.setView([lat, lng], 15);
-          if (this.marker) this.marker.setLatLng([lat, lng]);
+        if (this.map) this.map.setView([lat, lng], 15);
+        if (this.marker) this.marker.setLatLng([lat, lng]);
 
-          this.reverseGeocode(lat, lng);
-        },
-        error => {
-          console.error('Geolocation error:', error);
-          alert('Unable to get your current location.');
-        }
-      );
-    } else {
-      alert('Geolocation is not supported by your browser.');
-    }
+        this.reverseGeocode(lat, lng);
+      },
+      error => {
+        console.error('Geolocation error:', error);
+        alert('Unable to get your current location.');
+      }
+    );
+  } else {
+    alert('Geolocation is not supported by your browser.');
   }
+}
 
   reverseGeocode(lat: number, lng: number) {
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`;
@@ -195,13 +209,20 @@ export class ShopaddresseditComponent implements OnInit {
   }
 
   // Populate the form with address data
-  populateForm(address: ShopAddressDTO): void {
-    this.address = { ...address };
-    if (address.latitude && address.longitude) {
-      this.map?.setView([address.latitude, address.longitude], 13);
-      this.marker?.setLatLng([address.latitude, address.longitude]);
-    }
+ populateForm(address: ShopAddressDTO): void {
+  this.address = { ...address };
+
+  if (this.mapInitialized && address.latitude && address.longitude) {
+    this.setMapToSavedLocation();
   }
+}
+setMapToSavedLocation(): void {
+  if (this.map && this.marker && this.address.latitude && this.address.longitude) {
+    const latLng: L.LatLngExpression = [this.address.latitude, this.address.longitude];
+    this.map.setView(latLng, 15);
+    this.marker.setLatLng(latLng);
+  }
+}
 
   // Submit the form to update address
   submitForm(form: NgForm): void {

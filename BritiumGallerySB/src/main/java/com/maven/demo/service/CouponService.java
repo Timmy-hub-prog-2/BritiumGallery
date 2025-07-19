@@ -121,7 +121,15 @@ public class CouponService {
 
     @Transactional
     public void deleteByCode(String code) {
-        couponRepository.deleteByCode(code);
+        // First, delete all related CouponCustomerTypeEntity entries
+        CouponEntity coupon = couponRepository.findByCode(code)
+                .orElseThrow(() -> new RuntimeException("Coupon not found"));
+
+        // Delete related coupon customer type records
+        couponCustomerTypeRepository.deleteByCouponId(coupon.getId());
+
+        // Then delete the coupon
+        couponRepository.delete(coupon);
     }
 
     public CouponEntity updateCoupon(String code, CouponEntity couponDetails) {
@@ -190,6 +198,73 @@ public class CouponService {
         }
 
         return Math.min(discount, cartTotal); // Avoid discount > total
+    }
+    public List<CouponWithRulesDTO> getAllCouponsWithRules() {
+        List<CouponEntity> coupons = couponRepository.findAll();
+        List<CouponWithRulesDTO> result = new ArrayList<>();
+
+        for (CouponEntity coupon : coupons) {
+            // 👇 Add status update logic here
+            if (coupon.getEndDate() != null && coupon.getEndDate().isBefore(LocalDate.now())) {
+                if (!"Inactive".equalsIgnoreCase(coupon.getStatus())) {
+                    coupon.setStatus("Inactive");
+                    couponRepository.save(coupon);
+                }
+            }
+
+            CouponWithRulesDTO dto = new CouponWithRulesDTO();
+            dto.setCode(coupon.getCode());
+            dto.setType(coupon.getType());
+            dto.setDiscount(coupon.getDiscount());
+            dto.setStatus(coupon.getStatus());
+            dto.setStartDate(coupon.getStartDate());
+            dto.setEndDate(coupon.getEndDate());
+
+            List<CouponCustomerTypeEntity> rules = couponCustomerTypeRepository.findByCoupon(coupon);
+            List<CustomerRuleDTO> ruleDTOs = new ArrayList<>();
+            for (CouponCustomerTypeEntity rule : rules) {
+                CustomerRuleDTO ruleDTO = new CustomerRuleDTO();
+                ruleDTO.setCustomerTypeId(rule.getCustomerType().getId());
+                ruleDTO.setTimes(rule.getTimes());
+                ruleDTOs.add(ruleDTO);
+            }
+            dto.setRules(ruleDTOs);
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    @Transactional
+    public CouponEntity updateCouponWithRules(String code, CouponWithRulesDTO dto) {
+        CouponEntity coupon = couponRepository.findByCode(code)
+                .orElseThrow(() -> new RuntimeException("Coupon not found"));
+
+        // Update basic fields
+        coupon.setType(dto.getType());
+        coupon.setDiscount(dto.getDiscount());
+        coupon.setStartDate(dto.getStartDate());
+        coupon.setEndDate(dto.getEndDate());
+        coupon.setStatus(dto.getStatus());
+
+        CouponEntity updatedCoupon = couponRepository.save(coupon);
+
+        couponCustomerTypeRepository.deleteByCouponId(updatedCoupon.getId());
+        // Add new rules
+        List<CouponCustomerTypeEntity> newRules = new ArrayList<>();
+        for (CustomerRuleDTO ruleDto : dto.getRules()) {
+            CustomerTypeEntity customerType = customerTypeRepository.findById(ruleDto.getCustomerTypeId())
+                    .orElseThrow(() -> new RuntimeException("Customer type not found"));
+
+            CouponCustomerTypeEntity newRule = new CouponCustomerTypeEntity();
+            newRule.setCoupon(updatedCoupon);
+            newRule.setCustomerType(customerType);
+            newRule.setTimes(ruleDto.getTimes());
+            newRules.add(newRule);
+        }
+
+        couponCustomerTypeRepository.saveAll(newRules);
+        return updatedCoupon;
     }
 
 }

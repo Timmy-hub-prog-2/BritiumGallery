@@ -6,21 +6,26 @@ import com.maven.demo.dto.UserDTO;
 import com.maven.demo.dto.UserResponseDTO;
 import com.maven.demo.dto.CustomerGrowthDTO;
 import com.maven.demo.entity.CustomerTypeEntity;
+import com.maven.demo.entity.PasswordResetToken;
 import com.maven.demo.entity.RoleEntity;
 import com.maven.demo.entity.UserEntity;
 import com.maven.demo.repository.CustomerTypeRepository;
+import com.maven.demo.repository.PasswordResetTokenRepository;
 import com.maven.demo.repository.RoleRepository;
 import com.maven.demo.repository.UserRepository;
+import com.maven.demo.util.PasswordGenerator;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -42,6 +47,14 @@ public class UserService {
 
     @Autowired
     private CustomerTypeRepository customerTypeRepository;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+
+
+    @Autowired
+    private EmailService emailService;
 
     public String registerUser(UserDTO dto) {
         String phone = dto.getPhoneNumber().trim();
@@ -227,5 +240,102 @@ public class UserService {
         return result;
     }
 
+
+
+    public String createAdmin(UserDTO userDto) {
+        if (userRepository.existsByEmail(userDto.getEmail())) {
+            return "Email already exists";
+        }
+
+        if (userRepository.existsByPhoneNumber(userDto.getPhoneNumber())) {
+            return "Phone number already exists";
+        }
+
+        String generatedPassword = PasswordGenerator.generateRandomPassword(10);
+
+        UserEntity user = new UserEntity();
+        user.setName(userDto.getName());
+        user.setEmail(userDto.getEmail());
+        user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setImageUrls(userDto.getImageUrls());
+        user.setPassword(passwordEncoder.encode(generatedPassword));
+
+        RoleEntity role = roleRepository.findById(userDto.getRoleId())
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+        user.setRole(role);
+
+        userRepository.save(user);
+
+        // ✅ HTML Email Content
+        String subject = "Your Britium Admin Account Details";
+
+        String htmlContent = "<div style='font-family:Arial,sans-serif;padding:10px;'>"
+                + "<h3>Hello " + user.getName() + ",</h3>"
+                + "<p> Your admin account has been successfully created.</p>"
+                + "<p><strong>Role:</strong> " + role.getType() + "</p>"
+                + "<p><strong>Email:</strong> " + user.getEmail() + "</p>"
+                + "<p><strong>Temporary Password:</strong> <span style='color:blue;'>" + generatedPassword + "</span></p>"
+                + "<p>📌 Please log in and change your password for security reasons.</p>"
+                + "<br/><p>Thanks,<br/>Britium Gallery Team</p>"
+                + "</div>";
+
+        try {
+            emailService.sendHtmlEmail(user.getEmail(), subject, htmlContent);
+        } catch (MessagingException e) {
+            return "Admin created but failed to send email.";
+        }
+
+        return "Admin created successfully. Login details sent to email.";
+    }
+
+    public void processForgotPassword(String email) {
+        // Find the user by email
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        // Generate a 6-digit code (or any length)
+        String verificationCode = generateVerificationCode();
+
+        // You can also save the code in a temporary table or directly in the database if you want to track expiry.
+        // Save the verification code into the PasswordResetToken entity.
+        passwordResetTokenRepository.save(new PasswordResetToken(verificationCode, user));
+
+        // Send the verification code to the user's email
+        String subject = "Your Verification Code";
+        String message = "Your verification code is: " + verificationCode;
+        try {
+            emailService.sendHtmlEmail(user.getEmail(), subject, message);
+        } catch (MessagingException e) {
+            e.printStackTrace(); // Handle error sending email
+        }
+    }
+
+    private String generateVerificationCode() {
+        // Generates a 6-digit numeric code
+        Random random = new Random();
+        StringBuilder code = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            code.append(random.nextInt(10)); // Append a random digit
+        }
+        return code.toString();
+    }
+
+    public void validateVerificationCode(String code, String newPassword) {
+        System.out.println("Received code: " + code);
+        System.out.println("New password: " + newPassword);
+
+        PasswordResetToken token = passwordResetTokenRepository.findByCode(code)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired code"));
+
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Code expired");
+        }
+
+        UserEntity user = token.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        passwordResetTokenRepository.delete(token);
+    }
 
 }

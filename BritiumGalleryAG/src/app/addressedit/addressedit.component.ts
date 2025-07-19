@@ -195,14 +195,18 @@ export class AddresseditComponent implements OnInit {
     });
   }
 
-  // Populate the form with address data
-  populateForm(address: AddressDTO): void {
-    this.address = { ...address };
-    if (address.latitude && address.longitude) {
-      this.map?.setView([address.latitude, address.longitude], 13);
-      this.marker?.setLatLng([address.latitude, address.longitude]);
+ populateForm(address: AddressDTO): void {
+  this.address = { ...address };
+
+  // Delay setting map location slightly to ensure map is fully initialized
+  setTimeout(() => {
+    if (this.map && this.marker && address.latitude && address.longitude) {
+      const latLng: L.LatLngExpression = [address.latitude, address.longitude];
+      this.map.setView(latLng, 15);
+      this.marker.setLatLng(latLng);
     }
-  }
+  }, 300); // Wait 300ms or tweak as needed
+}
 
   // Submit the form to update address
   submitForm(form: NgForm): void {

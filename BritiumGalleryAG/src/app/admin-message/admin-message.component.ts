@@ -6,8 +6,9 @@ import { Address, People } from '../People';
 
 @Component({
   selector: 'app-admin-message',
-  templateUrl: './admin-message.component.html',
   standalone:false,
+  templateUrl: './admin-message.component.html',
+  
   styleUrls: ['./admin-message.component.css']
 })
 export class AdminMessageComponent implements OnInit, OnDestroy, AfterViewInit {

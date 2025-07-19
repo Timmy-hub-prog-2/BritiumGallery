@@ -1,0 +1,30 @@
+
+<form (ngSubmit)="createAdmin()" #adminForm="ngForm">
+  <h2 class="form-title">Admin Management</h2>
+  <!-- <h2 class="form-title">Create and manage administrators for your system.</h2> -->
+
+
+  <div>
+    <label for="name">Name:</label>
+    <input type="text" id="name" [(ngModel)]="userDto.name" name="name" required />
+  </div>
+
+  <div>
+    <label for="email">Email:</label>
+    <input type="email" id="email" [(ngModel)]="userDto.email" name="email" required />
+  </div>
+
+  <div>
+    <label for="phone">Phone Number:</label>
+    <input type="tel" id="phone" [(ngModel)]="userDto.phoneNumber" name="phone" required pattern="^[0-9]{7,15}$" />
+  </div>
+
+  <div>
+    <label for="role">Role:</label>
+    <select [(ngModel)]="userDto.roleId" name="role" required>
+      <option *ngFor="let role of roles" [value]="role.id">{{ role.type }}</option>
+    </select>
+  </div>
+
+  <button type="submit" [disabled]="adminForm.invalid">Create Admin</button>
+</form>

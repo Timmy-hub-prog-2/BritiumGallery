@@ -34,7 +34,7 @@
   <nav class="sidebar-nav" [class.scrollable]="expanded">
     
     <!-- Dashboard -->
-    <div class="nav-section">
+    <!-- <div class="nav-section">
       <a routerLink="/admin-dashboard" 
          routerLinkActive="active" 
          class="nav-item"
@@ -51,7 +51,7 @@
         <span class="nav-label" *ngIf="expanded">Dashboard</span>
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
-    </div>
+    </div> -->
 
     <!-- Products & Categories -->
     <div class="nav-section">
@@ -399,6 +399,20 @@
     <i class="fas fa-shipping-fast"></i>
   </div>
   <span class="nav-label" *ngIf="expanded">Shipping Policy</span>
+  <div class="nav-indicator" *ngIf="expanded"></div>
+</a>
+
+
+<!-- Create Role Link -->
+<a routerLink="/createrole" 
+   routerLinkActive="active" 
+   class="nav-item" 
+   [title]="!expanded ? 'Create Role' : ''" 
+   aria-label="Create Role">
+  <div class="nav-icon">
+    <i class="fas fa-user-shield"></i> <!-- FontAwesome icon for role/admin -->
+  </div>
+  <span class="nav-label" *ngIf="expanded">Create Role</span>
   <div class="nav-indicator" *ngIf="expanded"></div>
 </a>
 

@@ -23,4 +23,4 @@ public class PeopleDTO {
         public Double latitude;
         public Double longitude;
     }
-} 
+}

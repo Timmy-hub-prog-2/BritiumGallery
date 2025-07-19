@@ -15,6 +15,7 @@ public class UserResponseDTO {
     private AddressDTO address; // Combined address field
     private Integer status;
     private Long roleId;
+    private String roleName;
     private String customerType;
     private Integer totalSpend;
 }

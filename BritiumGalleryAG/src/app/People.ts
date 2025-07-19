@@ -6,7 +6,7 @@ export interface Address {
   city: string;
   state: string;
   country:string;
-   latitude?: number;     
+   latitude?: number;
   longitude?: number;
 }
 
@@ -19,4 +19,5 @@ export interface People {
   address: Address;
   profilePic?: string;
   customerType?: string;
+  roleName?: string;
 }
