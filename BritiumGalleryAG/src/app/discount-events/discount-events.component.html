@@ -330,7 +330,7 @@
                   <!-- Product Builder (flat dropdown) -->
                   <div *ngIf="builderType === 'product'" class="product-builder">
                     <div class="builder-hint">
-                      💡 <strong>Search and select products</strong> from the dropdown below
+                      💡 <strong>Browse categories and select products</strong> - Categories are shown for reference only
                     </div>
                     <div class="category-dropdown-container">
                       <div *ngIf="selectedProducts.length > 0 || selectedVariants.length > 0" class="selected-categories-display">
@@ -361,32 +361,127 @@
                             selected
                           </ng-container>
                           <ng-container *ngIf="selectedProducts.length === 0 && selectedVariants.length === 0">
-                            Select products...
+                            Browse categories and select products...
                           </ng-container>
                         </span>
                         <i class="fa fa-chevron-down"></i>
                       </div>
                       <div class="category-dropdown-content" *ngIf="showProductDropdown">
                         <input type="text" [(ngModel)]="productSearchTerm" name="productSearchTerm" placeholder="Search products..." class="product-search-input" />
-                        <div class="category-list-container">
+                        <div class="category-list-container" style="max-height: 300px; overflow-y: auto;">
                           <div class="category-hierarchy-container">
-                            <ng-container *ngIf="(products | productFilter:productSearchTerm).length > 0; else noProductsFound">
-                              <ng-container *ngFor="let product of products | productFilter:productSearchTerm">
-                                <div class="category-item-row" style="display: flex; align-items: center;">
-                                  <input type="checkbox" [checked]="isSelected(product, 'product')" (change)="toggleSelection(product, 'product')" class="category-checkbox" />
-                                  <span class="category-name" style="flex:1;">{{ product.name }}</span>
-                                  <button *ngIf="product.variants && product.variants.length > 0"
-                                          type="button"
-                                          class="expand-btn"
-                                          (click)="openProductVariantModal(product)">
-                                    <i class="fa fa-chevron-right"></i>
-                                  </button>
+                            <ng-container *ngIf="filteredCategoriesForDropdown.length > 0; else noCategoriesFound">
+                              <ng-container *ngFor="let category of filteredCategoriesForDropdown; trackBy: trackByCategoryId">
+                                <!-- Parent Category (Informational Only) -->
+                                <div class="category-info-row">
+                                  <div class="category-item-row category-info-only" [ngClass]="{'has-children': category.children && category.children.length > 0}">
+                                    <div class="category-item-left">
+                                      <i class="fa fa-folder category-info-icon"></i>
+                                      <span class="category-name category-info-text">{{ category.name }}</span>
+                                      <span class="category-info-badge">Category</span>
+                                    </div>
+                                    <div class="category-item-right" *ngIf="category.children && category.children.length > 0">
+                                      <button type="button" class="expand-btn" (click)="toggleCategoryExpansion(category.id)">
+                                        <i class="fa fa-chevron-right" [class.rotated]="expandedCategoryIds.has(category.id)"></i>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  
+                                  <!-- Products in Parent Category -->
+                                  <div class="products-in-category" *ngIf="getProductsInCategory(category.id).length > 0">
+                                    <ng-container *ngFor="let product of getProductsInCategory(category.id)">
+                                      <div class="product-item-row selectable-product" *ngIf="isProductVisible(product)">
+                                        <div class="product-item-left">
+                                          <input type="checkbox" [checked]="isSelected(product, 'product')" (change)="toggleSelection(product, 'product')" class="product-checkbox" />
+                                          <span class="product-name">{{ product.name }}</span>
+                                        </div>
+                                        <div class="product-item-right" *ngIf="product.variants && product.variants.length > 0">
+                                          <button type="button" class="expand-btn" (click)="openProductVariantModal(product)">
+                                            <i class="fa fa-chevron-right"></i>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </ng-container>
+                                  </div>
+                                  
+                                  <!-- Child Categories -->
+                                  <div class="subcategory-list" *ngIf="category.children && category.children.length > 0 && (expandedCategoryIds.has(category.id) || productSearchTerm)">
+                                    <ng-container *ngFor="let child of category.children">
+                                      <div>
+                                        <!-- Subcategory (Informational Only) -->
+                                        <div class="category-item-row category-info-only subcategory-info" [ngClass]="{'has-children': child.children && child.children.length > 0}">
+                                          <div class="category-item-left">
+                                            <span class="child-indent"></span>
+                                            <i class="fa fa-folder-open category-info-icon"></i>
+                                            <span class="category-name category-info-text">{{ child.name }}</span>
+                                            <span class="category-info-badge subcategory-badge">Subcategory</span>
+                                          </div>
+                                          <div class="category-item-right" *ngIf="child.children && child.children.length > 0">
+                                            <button type="button" class="expand-btn" (click)="toggleCategoryExpansion(child.id)">
+                                              <i class="fa fa-chevron-right" [class.rotated]="expandedCategoryIds.has(child.id)"></i>
+                                            </button>
+                                          </div>
+                                        </div>
+                                        
+                                        <!-- Products in Subcategory -->
+                                        <div class="products-in-subcategory" *ngIf="getProductsInCategory(child.id).length > 0">
+                                          <ng-container *ngFor="let product of getProductsInCategory(child.id)">
+                                            <div class="product-item-row selectable-product" *ngIf="isProductVisible(product)">
+                                              <div class="product-item-left">
+                                                <span class="child-indent"></span>
+                                                <input type="checkbox" [checked]="isSelected(product, 'product')" (change)="toggleSelection(product, 'product')" class="product-checkbox" />
+                                                <span class="product-name">{{ product.name }}</span>
+                                              </div>
+                                              <div class="product-item-right" *ngIf="product.variants && product.variants.length > 0">
+                                                <button type="button" class="expand-btn" (click)="openProductVariantModal(product)">
+                                                  <i class="fa fa-chevron-right"></i>
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </ng-container>
+                                        </div>
+                                        
+                                        <!-- Grandchild Categories (if any) -->
+                                        <div class="sub-subcategory-list" *ngIf="child.children && child.children.length > 0 && (expandedCategoryIds.has(child.id) || productSearchTerm)">
+                                          <ng-container *ngFor="let grandchild of child.children">
+                                            <!-- Grandchild Category (Informational Only) -->
+                                            <div class="category-item-row category-info-only sub-subcategory-info">
+                                              <div class="category-item-left">
+                                                <span class="child-indent"></span><span class="child-indent"></span>
+                                                <i class="fa fa-folder-open category-info-icon"></i>
+                                                <span class="category-name category-info-text">{{ grandchild.name }}</span>
+                                                <span class="category-info-badge sub-subcategory-badge">Sub-subcategory</span>
+                                              </div>
+                                            </div>
+                                            
+                                            <!-- Products in Grandchild Category -->
+                                            <div class="products-in-grandchild" *ngIf="getProductsInCategory(grandchild.id).length > 0">
+                                              <ng-container *ngFor="let product of getProductsInCategory(grandchild.id)">
+                                                <div class="product-item-row selectable-product" *ngIf="isProductVisible(product)">
+                                                  <div class="product-item-left">
+                                                    <span class="child-indent"></span><span class="child-indent"></span>
+                                                    <input type="checkbox" [checked]="isSelected(product, 'product')" (change)="toggleSelection(product, 'product')" class="product-checkbox" />
+                                                    <span class="product-name">{{ product.name }}</span>
+                                                  </div>
+                                                  <div class="product-item-right" *ngIf="product.variants && product.variants.length > 0">
+                                                    <button type="button" class="expand-btn" (click)="openProductVariantModal(product)">
+                                                      <i class="fa fa-chevron-right"></i>
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              </ng-container>
+                                            </div>
+                                          </ng-container>
+                                        </div>
+                                      </div>
+                                    </ng-container>
+                                  </div>
                                 </div>
                               </ng-container>
                             </ng-container>
-                            <ng-template #noProductsFound>
+                            <ng-template #noCategoriesFound>
                               <div class="no-products-found" style="padding: 24px; text-align: center; color: #888; font-size: 1.08em;">
-                                No products found.
+                                No categories or products found.
                               </div>
                             </ng-template>
                           </div>
@@ -831,10 +926,10 @@
                       </div>
                     </div>
                   </div>
-                  <!-- Product Builder (flat dropdown) -->
+                  <!-- Product Builder (combined category-product dropdown) -->
                   <div *ngIf="builderType === 'product' || getRuleType(rule) === 'productVariant'" class="product-builder">
                     <div class="builder-hint">
-                      💡 <strong>Search and select products</strong> from the dropdown below
+                      💡 <strong>Browse categories and select products</strong> - Categories are shown for reference only
                     </div>
                     <div class="category-dropdown-container">
                       <div *ngIf="editSelectedProducts.length > 0 || editSelectedVariants.length > 0" class="selected-categories-display">
@@ -865,32 +960,127 @@
                             selected
                           </ng-container>
                           <ng-container *ngIf="editSelectedProducts.length === 0 && editSelectedVariants.length === 0">
-                            Select products...
+                            Browse categories and select products...
                           </ng-container>
                         </span>
                         <i class="fa fa-chevron-down"></i>
                       </div>
                       <div class="category-dropdown-content" *ngIf="showProductDropdown">
                         <input type="text" [(ngModel)]="productSearchTerm" name="productSearchTerm" placeholder="Search products..." class="product-search-input" />
-                        <div class="category-list-container">
+                        <div class="category-list-container" style="max-height: 300px; overflow-y: auto;">
                           <div class="category-hierarchy-container">
-                            <ng-container *ngIf="(products | productFilter:productSearchTerm).length > 0; else noProductsFoundEdit">
-                              <ng-container *ngFor="let product of products | productFilter:productSearchTerm">
-                                <div class="category-item-row" style="display: flex; align-items: center;">
-                                  <input type="checkbox" [checked]="isEditSelected(product, 'product')" (change)="toggleEditSelection(product, 'product')" class="category-checkbox" />
-                                  <span class="category-name" style="flex:1;">{{ product.name }}</span>
-                                  <button *ngIf="product.variants && product.variants.length > 0"
-                                          type="button"
-                                          class="expand-btn"
-                                          (click)="openProductVariantModal(product)">
-                                    <i class="fa fa-chevron-right"></i>
-                                  </button>
+                            <ng-container *ngIf="filteredCategoriesForDropdown.length > 0; else noCategoriesFoundEdit">
+                              <ng-container *ngFor="let category of filteredCategoriesForDropdown; trackBy: trackByCategoryId">
+                                <!-- Parent Category (Informational Only) -->
+                                <div class="category-info-row">
+                                  <div class="category-item-row category-info-only" [ngClass]="{'has-children': category.children && category.children.length > 0}">
+                                    <div class="category-item-left">
+                                      <i class="fa fa-folder category-info-icon"></i>
+                                      <span class="category-name category-info-text">{{ category.name }}</span>
+                                      <span class="category-info-badge">Category</span>
+                                    </div>
+                                    <div class="category-item-right" *ngIf="category.children && category.children.length > 0">
+                                      <button type="button" class="expand-btn" (click)="toggleCategoryExpansion(category.id)">
+                                        <i class="fa fa-chevron-right" [class.rotated]="expandedCategoryIds.has(category.id)"></i>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  
+                                  <!-- Products in Parent Category -->
+                                  <div class="products-in-category" *ngIf="getProductsInCategory(category.id).length > 0">
+                                    <ng-container *ngFor="let product of getProductsInCategory(category.id)">
+                                      <div class="product-item-row selectable-product" *ngIf="isProductVisible(product)">
+                                        <div class="product-item-left">
+                                          <input type="checkbox" [checked]="isEditSelected(product, 'product')" (change)="toggleEditSelection(product, 'product')" class="product-checkbox" />
+                                          <span class="product-name">{{ product.name }}</span>
+                                        </div>
+                                        <div class="product-item-right" *ngIf="product.variants && product.variants.length > 0">
+                                          <button type="button" class="expand-btn" (click)="openProductVariantModal(product)">
+                                            <i class="fa fa-chevron-right"></i>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </ng-container>
+                                  </div>
+                                  
+                                  <!-- Child Categories -->
+                                  <div class="subcategory-list" *ngIf="category.children && category.children.length > 0 && (expandedCategoryIds.has(category.id) || productSearchTerm)">
+                                    <ng-container *ngFor="let child of category.children">
+                                      <div>
+                                        <!-- Subcategory (Informational Only) -->
+                                        <div class="category-item-row category-info-only subcategory-info" [ngClass]="{'has-children': child.children && child.children.length > 0}">
+                                          <div class="category-item-left">
+                                            <span class="child-indent"></span>
+                                            <i class="fa fa-folder-open category-info-icon"></i>
+                                            <span class="category-name category-info-text">{{ child.name }}</span>
+                                            <span class="category-info-badge subcategory-badge">Subcategory</span>
+                                          </div>
+                                          <div class="category-item-right" *ngIf="child.children && child.children.length > 0">
+                                            <button type="button" class="expand-btn" (click)="toggleCategoryExpansion(child.id)">
+                                              <i class="fa fa-chevron-right" [class.rotated]="expandedCategoryIds.has(child.id)"></i>
+                                            </button>
+                                          </div>
+                                        </div>
+                                        
+                                        <!-- Products in Subcategory -->
+                                        <div class="products-in-subcategory" *ngIf="getProductsInCategory(child.id).length > 0">
+                                          <ng-container *ngFor="let product of getProductsInCategory(child.id)">
+                                            <div class="product-item-row selectable-product" *ngIf="isProductVisible(product)">
+                                              <div class="product-item-left">
+                                                <span class="child-indent"></span>
+                                                <input type="checkbox" [checked]="isEditSelected(product, 'product')" (change)="toggleEditSelection(product, 'product')" class="product-checkbox" />
+                                                <span class="product-name">{{ product.name }}</span>
+                                              </div>
+                                              <div class="product-item-right" *ngIf="product.variants && product.variants.length > 0">
+                                                <button type="button" class="expand-btn" (click)="openProductVariantModal(product)">
+                                                  <i class="fa fa-chevron-right"></i>
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </ng-container>
+                                        </div>
+                                        
+                                        <!-- Grandchild Categories (if any) -->
+                                        <div class="sub-subcategory-list" *ngIf="child.children && child.children.length > 0 && (expandedCategoryIds.has(child.id) || productSearchTerm)">
+                                          <ng-container *ngFor="let grandchild of child.children">
+                                            <!-- Grandchild Category (Informational Only) -->
+                                            <div class="category-item-row category-info-only sub-subcategory-info">
+                                              <div class="category-item-left">
+                                                <span class="child-indent"></span><span class="child-indent"></span>
+                                                <i class="fa fa-folder-open category-info-icon"></i>
+                                                <span class="category-name category-info-text">{{ grandchild.name }}</span>
+                                                <span class="category-info-badge sub-subcategory-badge">Sub-subcategory</span>
+                                              </div>
+                                            </div>
+                                            
+                                            <!-- Products in Grandchild Category -->
+                                            <div class="products-in-grandchild" *ngIf="getProductsInCategory(grandchild.id).length > 0">
+                                              <ng-container *ngFor="let product of getProductsInCategory(grandchild.id)">
+                                                <div class="product-item-row selectable-product" *ngIf="isProductVisible(product)">
+                                                  <div class="product-item-left">
+                                                    <span class="child-indent"></span><span class="child-indent"></span>
+                                                    <input type="checkbox" [checked]="isEditSelected(product, 'product')" (change)="toggleEditSelection(product, 'product')" class="product-checkbox" />
+                                                    <span class="product-name">{{ product.name }}</span>
+                                                  </div>
+                                                  <div class="product-item-right" *ngIf="product.variants && product.variants.length > 0">
+                                                    <button type="button" class="expand-btn" (click)="openProductVariantModal(product)">
+                                                      <i class="fa fa-chevron-right"></i>
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              </ng-container>
+                                            </div>
+                                          </ng-container>
+                                        </div>
+                                      </div>
+                                    </ng-container>
+                                  </div>
                                 </div>
                               </ng-container>
                             </ng-container>
-                            <ng-template #noProductsFoundEdit>
+                            <ng-template #noCategoriesFoundEdit>
                               <div class="no-products-found" style="padding: 24px; text-align: center; color: #888; font-size: 1.08em;">
-                                No products found.
+                                No categories or products found.
                               </div>
                             </ng-template>
                           </div>

@@ -2490,8 +2490,21 @@ export class DiscountEventsComponent implements OnInit {
   getParentCategoryCount(): number {
     return this.selectedCategories.filter(cat => this.isParentCategory(cat)).length;
   }
+
   getChildCategoryCount(): number {
     return this.selectedCategories.filter(cat => !this.isParentCategory(cat)).length;
+  }
+
+  // New methods for combined category-product dropdown
+  getProductsInCategory(categoryId: number): any[] {
+    return this.products.filter(product => product.categoryId === categoryId);
+  }
+
+  isProductVisible(product: any): boolean {
+    if (!this.productSearchTerm) {
+      return true;
+    }
+    return product.name.toLowerCase().includes(this.productSearchTerm.toLowerCase());
   }
 
 }
