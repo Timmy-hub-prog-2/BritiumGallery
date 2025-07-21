@@ -50,6 +50,8 @@ export class NavigationComponent implements OnInit, OnDestroy {
   scheduledNotifications: any[] = [];
   private scheduledNotificationsRaw: any[] = [];
   private scheduledInterval: any;
+  isInfoMenuVisible = false;
+  private hideInfoMenuTimeout: any;
   
   private hideMenuTimeout: any;
   private hoverTimeout: any;
@@ -188,6 +190,9 @@ export class NavigationComponent implements OnInit, OnDestroy {
     if (this.hideMenuTimeout) {
       clearTimeout(this.hideMenuTimeout);
     }
+    if (this.hideInfoMenuTimeout) {
+      clearTimeout(this.hideInfoMenuTimeout);
+    }
     if (this.userSubscription) {
       this.userSubscription.unsubscribe(); // Unsubscribe to prevent memory leaks
     }
@@ -280,6 +285,21 @@ export class NavigationComponent implements OnInit, OnDestroy {
   hideMegaMenu(): void {
     
     this.isMegaMenuVisible = false;
+  }
+
+  showInfoMenu(): void {
+    clearTimeout(this.hideInfoMenuTimeout);
+    this.isInfoMenuVisible = true;
+  }
+
+  hideInfoMenuWithDelay(): void {
+    this.hideInfoMenuTimeout = setTimeout(() => {
+      this.isInfoMenuVisible = false;
+    }, 100);
+  }
+
+  hideInfoMenu(): void {
+    this.isInfoMenuVisible = false;
   }
 
   setActiveCategory(category: CategoryWithSubs): void {

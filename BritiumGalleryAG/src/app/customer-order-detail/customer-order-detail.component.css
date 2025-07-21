@@ -169,11 +169,15 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  
 }
 
 .order-detail-wrapper {
   min-height: 100vh;
   background: #ffffff;
+  margin-top: 3em;
+  margin-left: 1em;
+  margin-right: 1em;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   color: #000000;
 }

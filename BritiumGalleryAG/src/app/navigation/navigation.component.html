@@ -44,15 +44,53 @@
   </div>
 
 
-  <div class="nav-center">
+  <!-- <div class="nav-center">
     <a routerLink="/customer-homepage">Home</a>
     <a href="#">Collections</a>
     <a href="#">Shop</a>
     <a href="#">About</a>
     <a routerLink="/contact">Contact</a>
-  </div>  
+  </div>   -->
 
   <div class="nav-actions">
+    <!-- Info/Menu Icon with Dropdown -->
+    <div class="info-dropdown-wrapper" (mouseenter)="showInfoMenu()" (mouseleave)="hideInfoMenuWithDelay()">
+      <button class="action-button info-button" aria-label="Info">
+       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <line x1="4" y1="7" x2="20" y2="7"/>
+  <line x1="4" y1="12" x2="20" y2="12"/>
+  <line x1="4" y1="17" x2="20" y2="17"/>
+</svg>
+      </button>
+      <div class="info-mega-menu" [class.visible]="isInfoMenuVisible" (mouseenter)="showInfoMenu()" (mouseleave)="hideInfoMenu()">
+        <div class="info-menu-columns">
+          <div class="info-menu-col">
+            <div class="info-menu-header">Get started</div>
+            <a routerLink="/customer-homepage"class="info-link">Home</a>
+            <a routerLink="/about" class="info-link">What is Britium Gallery?</a>
+          </div>
+          <div class="info-menu-col">
+            <div class="info-menu-header">Resources</div>
+            <a routerLink="/bloglist" class="info-link">Blogs</a>
+            <a routerLink="/faq" class="info-link">FAQ</a>
+            <a routerLink="/contact" class="info-link">Contact</a>
+            <a routerLink="/help-center" class="info-link">Help Center</a>
+          </div>
+          <div class="info-menu-col">
+            <div class="info-menu-header">Policies</div>
+            <a routerLink="/privacypolicy" class="info-link">Privacy Policy</a>
+            <a routerLink="/shipping-returns-policy" class="info-link">Shipping Information</a>
+          </div>
+          <div class="info-menu-col">
+            <div class="info-menu-header">Company</div>
+            <a routerLink="/shopmapview" class="info-link">Find a Store</a>
+            <a routerLink="/about" class="info-link">About</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <button class="action-button favorite-button" (click)="goToWishlist()">
   <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" role="img" width="24px" height="24px" fill="none">
     <path stroke="currentColor" stroke-width="1.5" d="M16.794 3.75c1.324 0 2.568.516 3.504 1.451a4.96 4.96 0 010 7.008L12 20.508l-8.299-8.299a4.96 4.96 0 010-7.007A4.923 4.923 0 017.205 3.75c1.324 0 2.568.516 3.504 1.451l.76.76.531.531.53-.531.76-.76a4.926 4.926 0 013.504-1.451"></path>
