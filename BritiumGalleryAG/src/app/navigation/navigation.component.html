@@ -24,16 +24,26 @@
             </div>
           </div>
 
-          <!-- Right: Subcategories with Photos -->
+          <!-- Right: Subcategories with Photos or Products if no subcategories -->
           <div class="subcategories-list">
             <div class="subcategories-header">{{ activeCategory?.name }}</div>
             <div class="subcategory-grid">
-              <div *ngFor="let subcat of activeCategory?.subcategories"
-                   class="subcategory-item"
-                   (click)="goToCategoryProduct(subcat.id)">
-                <img [src]="subcat.image_url || 'assets/img/default-subcat.jpg'" alt="{{ subcat.name }}" class="subcategory-photo"/>
-                <span class="subcategory-name">{{ subcat.name }}</span>
-              </div>
+              <ng-container *ngIf="(activeCategory?.subcategories?.length || 0) > 0; else showProductsIfNoSubcats">
+                <div *ngFor="let subcat of activeCategory?.subcategories"
+                     class="subcategory-item"
+                     (click)="goToCategoryProduct(subcat.id)">
+                  <img [src]="subcat.image_url || 'assets/img/default-subcat.jpg'" alt="{{ subcat.name }}" class="subcategory-photo"/>
+                  <span class="subcategory-name">{{ subcat.name }}</span>
+                </div>
+              </ng-container>
+              <ng-template #showProductsIfNoSubcats>
+                <div *ngFor="let product of activeCategory?.products"
+                     class="subcategory-item"
+                     (click)="goToProductDetail(product.id)">
+                  <img [src]="product.imageUrl || 'assets/img/default-subcat.jpg'" alt="{{ product.name }}" class="subcategory-photo"/>
+                  <span class="subcategory-name">{{ product.name }}</span>
+                </div>
+              </ng-template>
             </div>
           </div>
 
