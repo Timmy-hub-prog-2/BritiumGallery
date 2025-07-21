@@ -20,8 +20,8 @@ export class ShopMapViewComponent implements OnInit {
   showAllShops: boolean = false;
 
   private locationIcon = L.icon({
-    iconUrl: 'assets/img/location.png',
-    iconSize: [40, 40],
+    iconUrl: 'assets/img/shoplocation.png',
+    iconSize: [70, 70],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40]
   });
@@ -141,8 +141,8 @@ export class ShopMapViewComponent implements OnInit {
         const isNearest = this.nearestShop?.id === addr.id;
         const icon = isNearest
           ? L.icon({
-            iconUrl: 'assets/img/location.png',
-            iconSize: [45, 45],
+            iconUrl: 'assets/img/shoplocation.png',
+            iconSize: [70, 70],
             iconAnchor: [22, 45],
             popupAnchor: [0, -40]
           })
@@ -190,8 +190,8 @@ export class ShopMapViewComponent implements OnInit {
             this.map.setView([lat, lon], 14);
             L.marker([lat, lon], {
               icon: L.icon({
-                iconUrl: 'assets/img/location.png',
-                iconSize: [40, 40],
+                iconUrl: 'assets/img/shoplocation.png',
+                iconSize: [70, 70],
                 iconAnchor: [15, 30]
               })
             }).addTo(this.map).bindPopup(`<b>${this.searchQuery}</b>`).openPopup();
