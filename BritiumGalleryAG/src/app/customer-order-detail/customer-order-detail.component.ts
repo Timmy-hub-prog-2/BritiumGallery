@@ -255,11 +255,14 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
   }
 
   downloadPDF() {
-    const element = document.querySelector('.voucher-crumple') as HTMLElement;
+    if (!this.order || this.order.status !== 'SHIPPED') {
+      return;
+    }
+    const element = document.getElementById('pdf-receipt') as HTMLElement;
     if (!element) return;
     import('html2canvas').then(({ default: html2canvas }) => {
       html2canvas(element, { backgroundColor: null }).then((canvas) => {
-        // Get the size of the voucher in pixels
+        // Get the size of the receipt in pixels
         const imgWidth = canvas.width;
         const imgHeight = canvas.height;
 
@@ -269,7 +272,7 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
 
         const contentDataURL = canvas.toDataURL('image/png');
         import('jspdf').then(({ default: jsPDF }) => {
-          // Set PDF size to match voucher
+          // Set PDF size to match receipt
           let pdf = new jsPDF({
             orientation: pdfWidth > pdfHeight ? 'l' : 'p',
             unit: 'mm',
