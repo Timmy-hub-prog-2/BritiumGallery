@@ -102,6 +102,12 @@ import { CustomerChatService } from './services/customer-chat.service';
 import { AdminMessageComponent } from './admin-message/admin-message.component';
 import { CategoryFilterPipe } from './category-filter.pipe';
 import { ProductFilterPipe } from './product-filter.pipe';
+import { CreateRoleComponent } from './create-role/create-role.component';
+import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
+import { ShippingListComponent } from './shipping-list/shipping-list.component';
+import { AboutListComponent } from './about-list/about-list.component';
+import { ShopMapViewComponent } from './shop-map-view/shop-map-view.component';
 
 @NgModule({
   declarations: [
@@ -174,7 +180,23 @@ import { ProductFilterPipe } from './product-filter.pipe';
     BlogDetailComponent,
     BlogListComponent,
     CustomerMessageComponent,
-    AdminMessageComponent
+    AdminMessageComponent,
+    CustomerHomepageComponent,
+    DiscountedItemsComponent,
+    CreateRoleComponent,
+    ForgotPasswordComponent,
+    ResetPasswordComponent,
+    ShippingListComponent,
+    AboutListComponent,
+    ShippingReturnsPolicyComponent,
+    AboutComponent,
+    BlogCreateComponent,
+    CustomerHomepageComponent,
+    DiscountedItemsComponent,
+    BlogDetailComponent,
+    CustomerMessageComponent,
+    AdminMessageComponent,
+    ShopMapViewComponent
   ],
   imports: [
     BrowserModule,

@@ -1,116 +1,295 @@
-<div class="payment-container">
-  <!-- Header Section -->
-  <div class="header-section">
-    <h1 class="page-title">Payment Management</h1>
-    <button class="create-button" (click)="openModal()">
-      <span class="button-icon">+</span>
-      Create Payment
-    </button>
-  </div>
-
-  <!-- Payment Cards Grid -->
-  <div class="payment-grid" *ngIf="payments.length > 0">
-    <div class="payment-card" *ngFor="let payment of payments">
-      <div class="card-header">
-        <h3 class="payment-name">{{ payment.name }}</h3>
-        <div class="payment-id">ID: {{ payment.id }}</div>
-      </div>
-      
-      <div class="card-body">
-        <div class="admin-info">
-          <span class="admin-label">Admin ID:</span>
-          <span class="admin-value">{{ payment.admin_id }}</span>
+<div class="payment-list-wrapper">
+  <div class="payment-list-container">
+    <!-- Header Section -->
+    <div class="page-header">
+      <div class="header-content">
+        <div class="header-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 4H4C2.89 4 2 4.89 2 6V18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4ZM20 18H4V12H20V18ZM20 8H4V6H20V8Z" fill="currentColor"/>
+          </svg>
         </div>
-        
-        <div class="qr-section" *ngIf="payment.qrPhotoUrls.length > 0">
-          <div class="qr-label">QR Codes:</div>
-          <div class="qr-images">
-            <div class="qr-image-container" *ngFor="let url of payment.qrPhotoUrls">
-              <img [src]="url" alt="QR Code" class="qr-image" />
-            </div>
-          </div>
+        <div class="header-text">
+          <h1 class="page-title">Payment Management</h1>
+          <p class="page-subtitle">Manage your payment methods and QR codes</p>
         </div>
-      </div>
-      
-      <div class="card-actions">
-        <button class="action-btn edit-btn" (click)="openModal(payment)">
-          <span class="btn-icon">✎</span>
-          Edit
-        </button>
-        <button class="action-btn delete-btn" (click)="delete(payment.id)">
-          <span class="btn-icon">🗑</span>
-          Delete
+        <button class="create-button" (click)="openModal()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor"/>
+          </svg>
+          <span>Create Payment</span>
         </button>
       </div>
     </div>
-  </div>
 
-  <!-- Empty State -->
-  <div class="empty-state" *ngIf="payments.length === 0">
-    <div class="empty-icon">📋</div>
-    <h3>No payments registered yet</h3>
-    <p>Create your first payment to get started</p>
-    <button class="create-button" (click)="openModal()">
-      <span class="button-icon">+</span>
-      Create Payment
-    </button>
+    <!-- Payment List Section -->
+    <div class="payment-content">
+      <div class="payment-list" *ngIf="payments.length > 0">
+        <div class="list-header">
+          <div class="header-item">Payment Method</div>
+          <div class="header-item">Details</div>
+          <div class="header-item">QR Code</div>
+          <div class="header-item">Actions</div>
+        </div>
+        
+        <div class="list-item" *ngFor="let payment of payments">
+          <div class="item-main">
+            <div class="item-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 4H4C2.89 4 2 4.89 2 6V18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4ZM20 18H4V12H20V18ZM20 8H4V6H20V8Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="item-info">
+              <h3 class="item-title">{{ payment.name }}</h3>
+              <div class="item-meta">
+                <span class="meta-item">ID: {{ payment.id }}</span>
+                <span class="meta-item">Admin: {{ payment.admin_id }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="item-details">
+            <div class="detail-row">
+              <span class="detail-label">Payment ID:</span>
+              <span class="detail-value">{{ payment.id }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Admin ID:</span>
+              <span class="detail-value">{{ payment.admin_id }}</span>
+            </div>
+          </div>
+          
+          <div class="item-qr">
+            <div class="qr-section" *ngIf="payment.qrPhotoUrls.length > 0">
+              <div class="qr-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 11H5V13H3V11ZM7 11H9V13H7V11ZM11 11H13V13H11V11ZM15 11H17V13H15V11ZM19 11H21V13H19V11ZM3 15H5V17H3V15ZM7 15H9V17H7V15ZM11 15H13V17H11V15ZM15 15H17V17H15V15ZM19 15H21V17H19V15ZM3 7H5V9H3V7ZM7 7H9V9H7V7ZM11 7H13V9H11V7ZM15 7H17V9H15V7ZM19 7H21V9H19V7Z" fill="currentColor"/>
+                </svg>
+                <span>QR Code</span>
+              </div>
+              <div class="qr-display">
+                <div class="qr-image-container">
+                  <img 
+                    [src]="payment.qrPhotoUrls[0]" 
+                    alt="QR Code" 
+                    class="qr-image"
+                    (error)="onImageError($event)"
+                    (load)="onImageLoad($event)"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="no-qr" *ngIf="payment.qrPhotoUrls.length === 0">
+              <div class="no-qr-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" fill="currentColor"/>
+                </svg>
+              </div>
+              <span>No QR code</span>
+            </div>
+          </div>
+          
+          <div class="item-actions">
+            <button class="action-btn edit-btn" (click)="openModal(payment)" title="Edit Payment">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" fill="currentColor"/>
+              </svg>
+              <span>Edit</span>
+            </button>
+            <button class="action-btn delete-btn" (click)="delete(payment.id)" title="Delete Payment">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V7H6V19ZM8 9H16V19H8V9ZM15.5 4L14.5 3H9.5L8.5 4H5V6H19V4H15.5Z" fill="currentColor"/>
+              </svg>
+              <span>Delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="payments.length === 0">
+        <div class="empty-icon">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 4H4C2.89 4 2 4.89 2 6V18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4ZM20 18H4V12H20V18ZM20 8H4V6H20V8Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="empty-content">
+          <h3>No Payment Methods Found</h3>
+          <p>Create your first payment method to get started with QR code management</p>
+          <button class="create-button" (click)="openModal()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor"/>
+            </svg>
+            <span>Create First Payment</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Modal -->
   <div class="modal-overlay" [class.show]="modalVisible" (click)="closeModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2 class="modal-title">{{ editingPayment ? "Edit" : "Create" }} Payment Register</h2>
+        <div class="modal-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 4H4C2.89 4 2 4.89 2 6V18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4ZM20 18H4V12H20V18ZM20 8H4V6H20V8Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="modal-title-section">
+          <h2 class="modal-title">{{ editingPayment ? "Edit Payment Method" : "Create Payment Method" }}</h2>
+          <p class="modal-subtitle">{{ editingPayment ? "Update your payment information" : "Add a new payment method to your system" }}</p>
+        </div>
         <button class="close-btn" (click)="closeModal()">
-          <span>&times;</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+          </svg>
         </button>
       </div>
 
       <form [formGroup]="paymentForm" (ngSubmit)="submit()" class="modal-form">
-        <div class="form-group">
-          <label for="name" class="form-label">Payment Name</label>
-          <input id="name" formControlName="name" class="form-input" placeholder="Enter payment name" />
-          <div
-            *ngIf="paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched"
-            class="error-message"
-          >
-            <span class="error-icon">⚠</span>
-            Name is required.
+        <div class="form-field">
+          <div class="field-header">
+            <div class="field-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <label for="name" class="field-label">Payment Method Name</label>
+          </div>
+          <input 
+            id="name" 
+            type="text"
+            formControlName="name" 
+            class="form-control" 
+            placeholder="Enter payment method name"
+          />
+          <div *ngIf="paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched" class="field-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
+            </svg>
+            <span>Payment method name is required</span>
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="qrPhotos" class="form-label">Upload QR Code Images</label>
-          <div class="file-input-container">
+        <div class="form-field">
+          <div class="field-header">
+            <div class="field-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 11H5V13H3V11ZM7 11H9V13H7V11ZM11 11H13V13H11V11ZM15 11H17V13H15V11ZM19 11H21V13H19V11ZM3 15H5V17H3V15ZM7 15H9V17H7V15ZM11 15H13V17H11V15ZM15 15H17V17H15V15ZM19 15H21V17H19V15ZM3 7H5V9H3V7ZM7 7H9V9H7V7ZM11 7H13V9H11V7ZM15 7H17V9H15V7ZM19 7H21V9H19V7Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <label class="field-label">QR Code Image</label>
+          </div>
+          
+          <div class="upload-container">
             <input
-              id="qrPhotos"
               type="file"
               (change)="onFileChange($event)"
-              multiple
               accept="image/*"
               class="file-input"
+              id="qrPhoto"
             />
-            <div class="file-input-label">
-              <span class="file-icon">📁</span>
-              Choose files or drag and drop
+            <label for="qrPhoto" class="upload-area">
+              <div class="upload-content">
+                <div class="upload-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="upload-text">
+                  <h3>Upload QR Code Image</h3>
+                  <p>Click to browse or drag and drop your QR code image here</p>
+                  <span class="upload-hint">Supports single image (PNG, JPG, JPEG)</span>
+                </div>
+              </div>
+            </label>
+          </div>
+          
+          <!-- File Preview Section -->
+          <div class="file-preview" *ngIf="selectedFile">
+            <div class="preview-header">
+              <h4>Selected Image</h4>
+            </div>
+            <div class="preview-container">
+              <div class="preview-item">
+                <div class="preview-image">
+                  <img 
+                    [src]="getFilePreview(selectedFile)" 
+                    [alt]="selectedFile.name"
+                    class="preview-img"
+                    (error)="onPreviewError($event)"
+                  />
+                </div>
+                <div class="preview-info">
+                  <span class="preview-name">{{ selectedFile.name }}</span>
+                  <span class="preview-size">{{ formatFileSize(selectedFile.size) }}</span>
+                </div>
+                <button type="button" class="remove-file" (click)="removeFile()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
-          <div *ngIf="fileError" class="error-message">
-            <span class="error-icon">⚠</span>
-            {{ fileError }}
+
+          <!-- Existing Image Preview Section (Edit Mode) -->
+          <div class="file-preview" *ngIf="editingPayment && editingPayment.qrPhotoUrls.length > 0 && !selectedFile">
+            <div class="preview-header">
+              <h4>Current QR Code</h4>
+            </div>
+            <div class="preview-container">
+              <div class="preview-item">
+                <div class="preview-image">
+                  <img 
+                    [src]="editingPayment.qrPhotoUrls[0]" 
+                    alt="Current QR Code"
+                    class="preview-img"
+                    (error)="onPreviewError($event)"
+                  />
+                </div>
+                <div class="preview-info">
+                  <span class="preview-name">Current QR Code</span>
+                  <span class="preview-size">Existing image</span>
+                </div>
+                <div class="preview-actions">
+                  <button type="button" class="replace-file" (click)="triggerFileInput()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" fill="currentColor"/>
+                    </svg>
+                    <span>Replace</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="fileError" class="field-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
+            </svg>
+            <span>{{ fileError }}</span>
           </div>
         </div>
 
         <div class="form-actions">
+          <button type="button" (click)="closeModal()" class="btn btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+            </svg>
+            <span>Cancel</span>
+          </button>
+          
           <button
             type="submit"
-            [disabled]="paymentForm.invalid || (!editingPayment && selectedFiles.length === 0)"
-            class="submit-btn"
+            [disabled]="paymentForm.invalid || (!editingPayment && !selectedFile)"
+            class="btn btn-primary"
           >
-            {{ editingPayment ? "Update Payment" : "Create Payment" }}
-          </button>
-          <button type="button" (click)="closeModal()" class="cancel-btn">
-            Cancel
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="currentColor"/>
+            </svg>
+            <span>{{ editingPayment ? "Update Payment" : "Create Payment" }}</span>
           </button>
         </div>
       </form>

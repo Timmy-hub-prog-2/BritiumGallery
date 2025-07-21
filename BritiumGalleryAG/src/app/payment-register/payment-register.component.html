@@ -1,106 +1,140 @@
-<div class="payment-register-container">
-  <div class="form-header">
-    <h2 class="form-title">
-      <span class="title-icon">{{ isEdit ? "✏️" : "➕" }}</span>
-      {{ isEdit ? "Edit" : "Create" }} Payment Register
-    </h2>
-  </div>
-
-  <form
-    [formGroup]="paymentForm"
-    (ngSubmit)="submit()"
-    enctype="multipart/form-data"
-    novalidate
-    class="payment-form"
-  >
-    <!-- Name Field -->
-    <div class="form-group">
-      <label for="name" class="form-label">
-        <span class="label-icon">📝</span>
-        Payment Name
-      </label>
-      <input 
-        id="name" 
-        formControlName="name" 
-        class="form-input" 
-        placeholder="Enter payment name"
-      />
-      <div
-        *ngIf="paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched"
-        class="error-message"
-      >
-        <span class="error-icon">⚠️</span>
-        Name is required
-      </div>
-    </div>
-
-    <!-- Admin ID Field -->
-    <div class="form-group">
-      <label for="admin_id" class="form-label">
-        <span class="label-icon">👤</span>
-        Admin ID
-      </label>
-      <input
-        id="admin_id"
-        type="number"
-        formControlName="admin_id"
-        class="form-input readonly"
-        readonly
-        placeholder="Auto-generated"
-      />
-      <div
-        *ngIf="
-          paymentForm.get('admin_id')?.invalid &&
-          paymentForm.get('admin_id')?.touched
-        "
-        class="error-message"
-      >
-        <span class="error-icon">⚠️</span>
-        Admin ID must be a positive number
-      </div>
-    </div>
-
-    <!-- QR Code Upload -->
-    <div class="form-group">
-      <label for="qrPhotos" class="form-label">
-        <span class="label-icon">📷</span>
-        Upload QR Code Images
-      </label>
-      <div class="file-upload-wrapper">
-        <input
-          id="qrPhotos"
-          type="file"
-          (change)="onFileChange($event)"
-          multiple
-          accept="image/*"
-          class="file-input"
-        />
-        <div class="file-upload-area">
-          <span class="upload-icon">📁</span>
-          <span class="upload-text">Click to upload or drag and drop</span>
-          <span class="upload-subtext">Multiple images accepted</span>
+<div class="payment-register-wrapper">
+  <div class="payment-register-card">
+    <!-- Header Section -->
+    <div class="card-header">
+      <div class="header-content">
+        <div class="header-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 4H4C2.89 4 2 4.89 2 6V18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4ZM20 18H4V12H20V18ZM20 8H4V6H20V8Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="header-text">
+          <h1 class="page-title">{{ isEdit ? "Edit Payment Method" : "Create Payment Method" }}</h1>
+          <p class="page-subtitle">{{ isEdit ? "Update your payment information" : "Add a new payment method to your system" }}</p>
         </div>
       </div>
-      <div *ngIf="fileError" class="error-message">
-        <span class="error-icon">⚠️</span>
-        {{ fileError }}
-      </div>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="form-actions">
-      <button
-        type="submit"
-        [disabled]="paymentForm.invalid || (!isEdit && selectedFiles.length === 0)"
-        class="btn submit-btn"
-      >
-        <span class="btn-icon">{{ isEdit ? "💾" : "✅" }}</span>
-        {{ isEdit ? "Update Payment" : "Create Payment" }}
-      </button>
-      <button type="button" (click)="cancel()" class="btn cancel-btn">
-        <span class="btn-icon">❌</span>
-        Cancel
-      </button>
+    <!-- Form Section -->
+    <div class="card-body">
+      <form [formGroup]="paymentForm" (ngSubmit)="submit()" class="payment-form">
+        
+        <!-- Payment Name Field -->
+        <div class="form-field">
+          <div class="field-header">
+            <div class="field-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <label for="name" class="field-label">Payment Method Name</label>
+          </div>
+          <input 
+            id="name" 
+            type="text"
+            formControlName="name" 
+            class="form-control" 
+            placeholder="Enter payment method name"
+          />
+          <div *ngIf="paymentForm.get('name')?.invalid && paymentForm.get('name')?.touched" class="field-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
+            </svg>
+            <span>Payment method name is required</span>
+          </div>
+        </div>
+
+        <!-- Admin ID Field -->
+        <div class="form-field">
+          <div class="field-header">
+            <div class="field-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <label for="admin_id" class="field-label">Administrator ID</label>
+          </div>
+          <input
+            id="admin_id"
+            type="number"
+            formControlName="admin_id"
+            class="form-control readonly"
+            readonly
+            placeholder="Auto-generated from your session"
+          />
+          <div *ngIf="paymentForm.get('admin_id')?.invalid && paymentForm.get('admin_id')?.touched" class="field-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
+            </svg>
+            <span>Administrator ID must be valid</span>
+          </div>
+        </div>
+
+        <!-- QR Code Upload Section -->
+        <div class="form-field">
+          <div class="field-header">
+            <div class="field-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 11H5V13H3V11ZM7 11H9V13H7V11ZM11 11H13V13H11V11ZM15 11H17V13H15V11ZM19 11H21V13H19V11ZM3 15H5V17H3V15ZM7 15H9V17H7V15ZM11 15H13V17H11V15ZM15 15H17V17H15V15ZM19 15H21V17H19V15ZM3 7H5V9H3V7ZM7 7H9V9H7V7ZM11 7H13V9H11V7ZM15 7H17V9H15V7ZM19 7H21V9H19V7Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <label class="field-label">QR Code Images</label>
+          </div>
+          
+          <div class="upload-container">
+            <input
+              type="file"
+              (change)="onFileChange($event)"
+              multiple
+              accept="image/*"
+              class="file-input"
+              id="qrPhotos"
+            />
+            <label for="qrPhotos" class="upload-area">
+              <div class="upload-content">
+                <div class="upload-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="upload-text">
+                  <h3>Upload QR Code Images</h3>
+                  <p>Click to browse or drag and drop your QR code images here</p>
+                  <span class="upload-hint">Supports multiple images (PNG, JPG, JPEG)</span>
+                </div>
+              </div>
+            </label>
+          </div>
+          
+          <div *ngIf="fileError" class="field-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
+            </svg>
+            <span>{{ fileError }}</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+          <button type="button" (click)="cancel()" class="btn btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+            </svg>
+            <span>Cancel</span>
+          </button>
+          
+          <button
+            type="submit"
+            [disabled]="paymentForm.invalid || (!isEdit && selectedFiles.length === 0)"
+            class="btn btn-primary"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="currentColor"/>
+            </svg>
+            <span>{{ isEdit ? "Update Payment" : "Create Payment" }}</span>
+          </button>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
 </div>

@@ -10,7 +10,7 @@ interface Payment {
 }
 
 @Component({
-  selector: 'app-payment-list',
+  selector: 'app-payment-list',      
   standalone: false,
   templateUrl: './payment-list.component.html',
   styleUrls: ['./payment-list.component.css'],
@@ -21,7 +21,7 @@ export class PaymentListComponent implements OnInit {
   modalVisible = false;
   editingPayment: Payment | null = null;
   paymentForm!: FormGroup;
-  selectedFiles: File[] = [];
+  selectedFile: File | null = null;
   fileError: string | null = null;
 
   loggedInAdminId: number | null = null;
@@ -45,7 +45,7 @@ export class PaymentListComponent implements OnInit {
 
   openModal(payment?: Payment) {
     this.fileError = null;
-    this.selectedFiles = [];
+    this.selectedFile = null;
 
     if (payment) {
       this.editingPayment = payment;
@@ -62,7 +62,7 @@ export class PaymentListComponent implements OnInit {
     this.modalVisible = false;
     this.paymentForm.reset();
     this.editingPayment = null;
-    this.selectedFiles = [];
+    this.selectedFile = null;
     this.fileError = null;
   }
 
@@ -70,11 +70,91 @@ export class PaymentListComponent implements OnInit {
     this.fileError = null;
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFiles = Array.from(input.files);
+      this.selectedFile = input.files[0];
     } else {
-      this.selectedFiles = [];
-      this.fileError = 'Please select at least one QR image.';
+      this.selectedFile = null;
+      this.fileError = 'Please select a QR image.';
     }
+  }
+
+  // File preview functionality
+  getFilePreview(file: File): string {
+    return URL.createObjectURL(file);
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  removeFile() {
+    this.selectedFile = null;
+  }
+
+  triggerFileInput() {
+    const fileInput = document.getElementById('qrPhoto') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  onPreviewError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const container = img.parentElement;
+    if (container) {
+      container.innerHTML = `
+        <div style="
+          width: 100%; 
+          height: 100%; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          background: #f8f9fa; 
+          color: #6c757d; 
+          font-size: 12px;
+          border-radius: 6px;
+        ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" fill="currentColor"/>
+          </svg>
+        </div>
+      `;
+    }
+  }
+
+  // Image error handling methods
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const wrapper = img.parentElement;
+    if (wrapper) {
+      wrapper.innerHTML = `
+        <div style="
+          width: 100%; 
+          height: 100%; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          background: #f8f9fa; 
+          color: #6c757d; 
+          font-size: 12px;
+          border-radius: 4px;
+        ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" fill="currentColor"/>
+          </svg>
+        </div>
+      `;
+    }
+  }
+
+  onImageLoad(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'block';
   }
 
   submit() {
@@ -83,8 +163,8 @@ export class PaymentListComponent implements OnInit {
       return;
     }
 
-    if (!this.editingPayment && this.selectedFiles.length === 0) {
-      this.fileError = 'Please select at least one QR image.';
+    if (!this.editingPayment && !this.selectedFile) {
+      this.fileError = 'Please select a QR image.';
       return;
     }
 
@@ -98,13 +178,11 @@ export class PaymentListComponent implements OnInit {
 
     if (this.editingPayment) {
       // Edit mode
-      if (this.selectedFiles.length > 0) {
+      if (this.selectedFile) {
         const formData = new FormData();
         formData.append('name', name);
         formData.append('admin_id', admin_id.toString());
-        this.selectedFiles.forEach((file) =>
-          formData.append('qrPhotos', file, file.name)
-        );
+        formData.append('qrPhotos', this.selectedFile, this.selectedFile.name);
 
         this.http
           .put(
@@ -144,9 +222,7 @@ export class PaymentListComponent implements OnInit {
       const formData = new FormData();
       formData.append('name', name);
       formData.append('admin_id', admin_id.toString());
-      this.selectedFiles.forEach((file) =>
-        formData.append('qrPhotos', file, file.name)
-      );
+      formData.append('qrPhotos', this.selectedFile!, this.selectedFile!.name);
 
       this.http
         .post('http://localhost:8080/payment-register/upload', formData)

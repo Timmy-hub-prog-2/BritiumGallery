@@ -1,0 +1,63 @@
+<div class="map-view-wrapper">
+  <!-- Left Panel: Address List -->
+  <div class="address-list-panel">
+    <h2>Find a Shop</h2>
+
+    <!-- Search bar -->
+    <div class="search-bar">
+      <input
+        type="text"
+        placeholder="Search Location"
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="searchLocation()" />
+      <button (click)="searchLocation()">
+        <i class="fas fa-search"></i>
+      </button>
+    </div>
+
+    <!-- Shop count -->
+    <div class="shop-count">
+      {{ showAllShops ? addresses.length : (nearbyShops | slice:0:3).length }}
+      Shops {{ showAllShops ? '(All stores)' : 'Near You' }}
+    </div>
+
+    <!-- Nearest 3 or All Shops Toggle -->
+    <ng-container *ngIf="!showAllShops; else allShops">
+      <div
+        *ngFor="let address of nearbyShops | slice:0:3"
+        class="address-card"
+        [class.highlight]="nearestShop?.id === address.id"
+        (click)="focusOnShop(address)">
+        <h4>{{ address.township || 'Unknown Township' }} Branch</h4>
+        <p>
+          {{ address.houseNumber }}, {{ address.wardName }}, {{ address.street }},
+          {{ address.township }}, {{ address.city }}, {{ address.state }},
+          {{ address.country }} - {{ address.postalCode || 'N/A' }}
+        </p>
+      </div>
+      <a class="view-all-link" (click)="showAllShops = true">View All Stores</a>
+    </ng-container>
+
+    <!-- All Shops Template -->
+    <ng-template #allShops>
+      <div
+        *ngFor="let address of addresses"
+        class="address-card"
+        [class.highlight]="nearestShop?.id === address.id"
+        (click)="focusOnShop(address)">
+        <h4>{{ address.township || 'Unknown Township' }} Branch</h4>
+        <p>
+          {{ address.houseNumber }}, {{ address.wardName }}, {{ address.street }},
+          {{ address.township }}, {{ address.city }}, {{ address.state }},
+          {{ address.country }} - {{ address.postalCode || 'N/A' }}
+        </p>
+      </div>
+      <a class="view-all-link" (click)="showAllShops = false">Show Less</a>
+    </ng-template>
+  </div>
+
+  <!-- Right Panel: Map -->
+  <div class="map-panel">
+    <div id="map-container"></div>
+  </div>
+</div>
