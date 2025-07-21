@@ -768,7 +768,18 @@
                 <ng-container matColumnDef="image">
                   <th mat-header-cell *matHeaderCellDef>Image</th>
                   <td mat-cell *matCellDef="let product">
-                    <img *ngIf="product.imageUrl" [src]="product.imageUrl" alt="{{product.productName}}" class="product-thumbnail" style="width:40px;height:40px;object-fit:cover;border-radius:6px;" />
+                    <img
+                      *ngIf="product.imageUrl"
+                      [src]="product.imageUrl"
+                      alt="{{ product.productName }}"
+                      class="product-thumbnail"
+                      style="
+                        width: 40px;
+                        height: 40px;
+                        object-fit: cover;
+                        border-radius: 6px;
+                      "
+                    />
                   </td>
                 </ng-container>
                 <ng-container matColumnDef="sku">
@@ -780,7 +791,9 @@
                 <ng-container matColumnDef="variantAttributes">
                   <th mat-header-cell *matHeaderCellDef>Attributes</th>
                   <td mat-cell *matCellDef="let product">
-                    <span class="variant-attributes">{{ product.variantAttributes }}</span>
+                    <span class="variant-attributes">{{
+                      product.variantAttributes
+                    }}</span>
                   </td>
                 </ng-container>
                 <ng-container matColumnDef="totalQuantitySold">
@@ -1011,6 +1024,12 @@
                   </button>
                 </div>
               </div>
+              <button class="modal-close" (click)="closeModal('lostProducts')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </div>
           </div>
           <div class="table-container">
@@ -1702,7 +1721,18 @@
             <ng-container matColumnDef="image">
               <th mat-header-cell *matHeaderCellDef>Image</th>
               <td mat-cell *matCellDef="let product">
-                <img *ngIf="product.imageUrl" [src]="product.imageUrl" alt="{{product.productName}}" class="product-thumbnail" style="width:40px;height:40px;object-fit:cover;border-radius:6px;" />
+                <img
+                  *ngIf="product.imageUrl"
+                  [src]="product.imageUrl"
+                  alt="{{ product.productName }}"
+                  class="product-thumbnail"
+                  style="
+                    width: 40px;
+                    height: 40px;
+                    object-fit: cover;
+                    border-radius: 6px;
+                  "
+                />
               </td>
             </ng-container>
 
@@ -1716,7 +1746,9 @@
             <ng-container matColumnDef="variantAttributes">
               <th mat-header-cell *matHeaderCellDef>Attributes</th>
               <td mat-cell *matCellDef="let product">
-                <span class="variant-attributes">{{ product.variantAttributes }}</span>
+                <span class="variant-attributes">{{
+                  product.variantAttributes
+                }}</span>
               </td>
             </ng-container>
 
@@ -1811,6 +1843,117 @@
             </svg>
             Refresh
           </button>
+          <div style="position: relative; display: inline-block">
+            <button
+              class="panel-btn"
+              (click)="
+                showExportDropdownDailyOrders = !showExportDropdownDailyOrders
+              "
+              title="Export Daily Orders"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </button>
+            <div
+              *ngIf="showExportDropdownDailyOrders"
+              class="custom-export-dropdown"
+              (mouseleave)="showExportDropdownDailyOrders = false"
+              style="
+                position: absolute;
+                right: 0;
+                top: 40px;
+                background: #fff;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                border-radius: 12px;
+                min-width: 180px;
+                z-index: 10;
+                padding: 8px 0;
+              "
+            >
+              <button
+                (click)="
+                  exportDailyOrdersTable('pdf');
+                  showExportDropdownDailyOrders = false
+                "
+                style="
+                  display: flex;
+                  align-items: center;
+                  width: 100%;
+                  background: none;
+                  border: none;
+                  padding: 10px 20px;
+                  font-size: 16px;
+                  cursor: pointer;
+                  gap: 12px;
+                  color: #222;
+                "
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="2"
+                    ry="2"
+                    stroke-width="2"
+                  />
+                  <path d="M8 7h8v4H8z" stroke-width="2" />
+                  <path d="M8 15h8" stroke-width="2" />
+                </svg>
+                Export as PDF
+              </button>
+              <button
+                (click)="
+                  exportDailyOrdersTable('excel');
+                  showExportDropdownDailyOrders = false
+                "
+                style="
+                  display: flex;
+                  align-items: center;
+                  width: 100%;
+                  background: none;
+                  border: none;
+                  padding: 10px 20px;
+                  font-size: 16px;
+                  cursor: pointer;
+                  gap: 12px;
+                  color: #222;
+                "
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="2"
+                    ry="2"
+                    stroke-width="2"
+                  />
+                  <path d="M7 7h10v10H7z" stroke-width="2" />
+                  <path d="M9 9l6 6" stroke-width="2" />
+                  <path d="M15 9l-6 6" stroke-width="2" />
+                </svg>
+                Export as Excel
+              </button>
+            </div>
+          </div>
           <button class="modal-close" (click)="closeModal('dailyOrders')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -2345,6 +2488,125 @@
                     <span class="indicator-text"
                       >{{ product.profitMargin | number : "1.1-1" }}%</span
                     >
+                  </div>
+                </div>
+                <div
+                  style="
+                    position: relative;
+                    display: inline-block;
+                    margin-left: auto;
+                  "
+                >
+                  <button
+                    class="panel-btn"
+                    (click)="
+                      productExportDropdownOpen = getProductExportKey(product)
+                    "
+                    title="Export Product"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                      <polyline points="7,10 12,15 17,10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  </button>
+                  <div
+                    *ngIf="
+                      productExportDropdownOpen === getProductExportKey(product)
+                    "
+                    class="custom-export-dropdown"
+                    (mouseleave)="productExportDropdownOpen = null"
+                    style="
+                      position: absolute;
+                      right: 0;
+                      top: 40px;
+                      background: #fff;
+                      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                      border-radius: 12px;
+                      min-width: 180px;
+                      z-index: 10;
+                      padding: 8px 0;
+                    "
+                  >
+                    <button
+                      (click)="
+                        exportSingleProduct(product, 'pdf');
+                        productExportDropdownOpen = null
+                      "
+                      style="
+                        display: flex;
+                        align-items: center;
+                        width: 100%;
+                        background: none;
+                        border: none;
+                        padding: 10px 20px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        gap: 12px;
+                        color: #222;
+                      "
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <rect
+                          x="3"
+                          y="3"
+                          width="18"
+                          height="18"
+                          rx="2"
+                          ry="2"
+                          stroke-width="2"
+                        />
+                        <path d="M8 7h8v4H8z" stroke-width="2" />
+                        <path d="M8 15h8" stroke-width="2" />
+                      </svg>
+                      Export as PDF
+                    </button>
+                    <button
+                      (click)="
+                        exportSingleProduct(product, 'excel');
+                        productExportDropdownOpen = null
+                      "
+                      style="
+                        display: flex;
+                        align-items: center;
+                        width: 100%;
+                        background: none;
+                        border: none;
+                        padding: 10px 20px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        gap: 12px;
+                        color: #222;
+                      "
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <rect
+                          x="3"
+                          y="3"
+                          width="18"
+                          height="18"
+                          rx="2"
+                          ry="2"
+                          stroke-width="2"
+                        />
+                        <path d="M7 7h10v10H7z" stroke-width="2" />
+                        <path d="M9 9l6 6" stroke-width="2" />
+                        <path d="M15 9l-6 6" stroke-width="2" />
+                      </svg>
+                      Export as Excel
+                    </button>
                   </div>
                 </div>
               </div>

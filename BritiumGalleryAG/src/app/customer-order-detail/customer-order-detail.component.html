@@ -38,25 +38,25 @@
         <div class="order-title-section">
           <div class="order-number">
             <span class="order-label">Order</span>
-            <h1 class="order-id">#{{ order.trackingCode }}</h1>
+            <h1 class="order-id">#{{ order?.trackingCode }}</h1>
           </div>
           <div class="order-meta">
             <div class="order-date">
               <span class="date-label">Placed on </span>
               <span class="date-value">{{
-                order.orderDate | date : "mediumDate"
+                order?.orderDate | date : "mediumDate"
               }}</span>
             </div>
           </div>
         </div>
 
         <div class="status-section">
-          <div class="status-badge" [ngClass]="order.status?.toLowerCase()">
+          <div class="status-badge" [ngClass]="order?.status?.toLowerCase()">
             <span class="status-dot"></span>
-            <span class="status-text">{{ order.status }}</span>
+            <span class="status-text">{{ order?.status }}</span>
           </div>
           <div
-            *ngIf="order && order.status === 'PENDING' && !loading && !error"
+            *ngIf="order && order?.status === 'PENDING' && !loading && !error"
             class="pending-countdown-bar-compat"
           >
             <div class="countdown-info">
@@ -70,7 +70,7 @@
             <button
               class="pay-now-btn"
               *ngIf="showPayButton"
-              (click)="payNow(order.id)"
+              (click)="payNow(order?.id)"
             >
               Pay Now
             </button>
@@ -89,41 +89,43 @@
         margin-bottom: 16px;
       "
     >
-      <button
-        (click)="downloadPDF()"
-        style="
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 22px;
-          background: #fff;
-          color: #111;
-          border: 2px solid #111;
-          border-radius: 8px;
-          font-size: 15px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: background 0.2s, color 0.2s, border 0.2s;
-        "
-        onmouseover="this.style.background='#111';this.style.color='#fff';this.style.borderColor='#111'"
-        onmouseout="this.style.background='#fff';this.style.color='#111';this.style.borderColor='#111'"
-      >
-        Export
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          style="vertical-align: middle"
+      <div class="export-btn-wrapper">
+        <button
+          (click)="downloadPDF()"
+          [disabled]="order?.status !== 'SHIPPED'"
+          [ngClass]="{ 'export-enabled': order?.status === 'SHIPPED' }"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            background: #fff;
+            color: #111;
+            border: 2px solid #111;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border 0.2s;
+          "
         >
-          <line x1="5" y1="12" x2="19" y2="12" />
-          <polyline points="12 5 19 12 12 19" />
-        </svg>
-      </button>
+          Export
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            style="vertical-align: middle"
+          >
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </button>
+      </div>
     </div>
     <!-- Removed voucher review modal and voucher-crumple related code -->
 
@@ -148,15 +150,15 @@
               <div class="info-group">
                 <div class="info-item">
                   <span class="info-label">Full Name</span>
-                  <span class="info-value">{{ order.user?.name }}</span>
+                  <span class="info-value">{{ order?.user?.name }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Email Address</span>
-                  <span class="info-value">{{ order.user?.email }}</span>
+                  <span class="info-value">{{ order?.user?.email }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Phone Number</span>
-                  <span class="info-value">{{ order.user?.phoneNumber }}</span>
+                  <span class="info-value">{{ order?.user?.phoneNumber }}</span>
                 </div>
               </div>
             </div>
@@ -179,39 +181,39 @@
                 <div class="info-item">
                   <span class="info-label">Delivery Method</span>
                   <span class="info-value"
-                    >{{ order.deliveryMethod }} -
-                    {{ order.deliveryProvider }}</span
+                    >{{ order?.deliveryMethod }} -
+                    {{ order?.deliveryProvider }}</span
                   >
                 </div>
                 <div class="info-item">
                   <span class="info-label">Delivery Address</span>
                   <div class="address-value">
                     <div class="address-line">
-                      {{ order.deliveryAddress?.houseNumber }},
-                      {{ order.deliveryAddress?.street }},{{
-                        order.deliveryAddress?.wardName
-                      }}, {{ order.deliveryAddress?.township }},{{
-                        order.deliveryAddress?.city
-                      }}, {{ order.deliveryAddress?.state }},{{
-                        order.deliveryAddress?.country
+                      {{ order?.deliveryAddress?.houseNumber }},
+                      {{ order?.deliveryAddress?.street }},{{
+                        order?.deliveryAddress?.wardName
+                      }}, {{ order?.deliveryAddress?.township }},{{
+                        order?.deliveryAddress?.city
+                      }}, {{ order?.deliveryAddress?.state }},{{
+                        order?.deliveryAddress?.country
                       }}
                     </div>
                   </div>
                 </div>
-                <div class="info-item" *ngIf="order.estimatedDeliveryTime">
+                <div class="info-item" *ngIf="order?.estimatedDeliveryTime">
                   <span class="info-label">Estimated Delivery</span>
                   <span class="info-value">{{
-                    order.estimatedDeliveryTime | date : "mediumDate"
+                    order?.estimatedDeliveryTime | date : "mediumDate"
                   }}</span>
                 </div>
                 <div
                   class="info-item"
                   *ngIf="
-                    !order.estimatedDeliveryTime && order.selectedDelayTime
+                    !order?.estimatedDeliveryTime && order?.selectedDelayTime
                   "
                 >
                   <span class="info-label">Estimated Delivery</span>
-                  <span class="info-value">{{ order.selectedDelayTime }}</span>
+                  <span class="info-value">{{ order?.selectedDelayTime }}</span>
                 </div>
               </div>
             </div>
@@ -293,7 +295,7 @@
               </div>
               <h3 class="card-title">Order Items</h3>
               <span class="items-count"
-                >{{ order.orderDetails?.length }} items</span
+                >{{ order?.orderDetails?.length }} items</span
               >
             </div>
 
@@ -301,7 +303,7 @@
               <div class="items-preview">
                 <div
                   class="item-card"
-                  *ngFor="let item of order.orderDetails.slice(0, 1)"
+                  *ngFor="let item of order?.orderDetails.slice(0, 1)"
                   [ngClass]="{ 'refunded-item': item.isRefunded }"
                 >
                   <div class="item-image-container">
@@ -393,7 +395,7 @@
                 <!-- Show More Items Card -->
                 <div
                   class="more-items-card"
-                  *ngIf="order.orderDetails?.length > 1"
+                  *ngIf="order?.orderDetails?.length > 1"
                 >
                   <div class="more-items-content">
                     <div class="more-icon">
@@ -408,7 +410,7 @@
                       </svg>
                     </div>
                     <div class="more-count">
-                      +{{ order.orderDetails.length - 1 }}
+                      +{{ order?.orderDetails.length - 1 }}
                     </div>
                     <div class="more-text">more items</div>
                     <button
@@ -440,29 +442,31 @@
                 <div class="summary-row">
                   <span class="summary-label">Subtotal</span>
                   <span class="summary-value"
-                    >MMK {{ order.subtotal | number : "1.0-0" }}</span
+                    >MMK {{ order?.subtotal | number : "1.0-0" }}</span
                   >
                 </div>
 
                 <div class="summary-row">
                   <span class="summary-label">Delivery Fee</span>
                   <span class="summary-value"
-                    >MMK {{ order.deliveryFee | number : "1.0-0" }}</span
+                    >MMK {{ order?.deliveryFee | number : "1.0-0" }}</span
                   >
                 </div>
 
                 <div
                   class="summary-row discount"
-                  *ngIf="order.discountAmount > 0"
+                  *ngIf="order?.discountAmount > 0"
                 >
                   <span class="summary-label">Discount</span>
                   <span class="summary-value">
-                    <ng-container *ngIf="order.discountType === 'Percentage'">
-                      -{{ order.discountValue }}% (MMK
-                      {{ order.discountAmount | number : "1.0-0" }})
+                    <ng-container *ngIf="order?.discountType === 'Percentage'">
+                      -{{ order?.discountValue }}% (MMK
+                      {{ order?.discountAmount | number : "1.0-0" }})
                     </ng-container>
-                    <ng-container *ngIf="order.discountType === 'Fixed Amount'">
-                      -MMK {{ order.discountAmount | number : "1.0-0" }}
+                    <ng-container
+                      *ngIf="order?.discountType === 'Fixed Amount'"
+                    >
+                      -MMK {{ order?.discountAmount | number : "1.0-0" }}
                     </ng-container>
                   </span>
                 </div>
@@ -472,7 +476,7 @@
                 <div class="summary-row total">
                   <span class="summary-label">Total Amount</span>
                   <span class="summary-value"
-                    >MMK {{ order.total | number : "1.0-0" }}</span
+                    >MMK {{ order?.total | number : "1.0-0" }}</span
                   >
                 </div>
               </div>
@@ -493,7 +497,7 @@
       <div class="modal-header">
         <h3 class="modal-title">All Order Items</h3>
         <span class="modal-subtitle"
-          >{{ order.orderDetails?.length }} items in this order</span
+          >{{ order?.orderDetails?.length }} items in this order</span
         >
         <button class="modal-close" (click)="showAllItemsModal = false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -506,7 +510,7 @@
         <div class="modal-items-list">
           <div
             class="modal-item-card"
-            *ngFor="let item of order.orderDetails; let i = index"
+            *ngFor="let item of order?.orderDetails; let i = index"
             [ngClass]="{ 'refunded-item': item.isRefunded }"
           >
             <div class="item-image-container">
@@ -608,7 +612,7 @@
         <div class="modal-summary">
           <div class="modal-summary-row">
             <span class="summary-label">Total Items</span>
-            <span class="summary-value">{{ order.orderDetails?.length }}</span>
+            <span class="summary-value">{{ order?.orderDetails?.length }}</span>
           </div>
           <div class="modal-summary-row">
             <span class="summary-label">Total Quantity</span>
@@ -617,7 +621,7 @@
           <div class="modal-summary-row total">
             <span class="summary-label">Items Subtotal</span>
             <span class="summary-value"
-              >MMK {{ order.subtotal | number : "1.0-0" }}</span
+              >MMK {{ order?.subtotal | number : "1.0-0" }}</span
             >
           </div>
         </div>
@@ -632,75 +636,306 @@
       position: absolute;
       left: -9999px;
       top: 0;
-      background: #fff;
-      color: #000;
-      font-family: Arial, sans-serif;
       width: 794px;
       height: 1123px;
+      background: #fff;
+      color: #111;
+      font-family: Arial, Helvetica, sans-serif;
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
     "
   >
+    <!-- Minimalist Invoice Header -->
     <div
-      style="width: 100%; height: 100%; padding: 40px; box-sizing: border-box"
+      style="padding: 64px 56px 0 56px; margin-bottom: 40px; position: relative"
     >
-      <div style="font-size: 22px; font-weight: bold; margin-bottom: 8px">
-        Order Receipt
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 8px;
+          justify-content: flex-start;
+        "
+      >
+        <img
+          src="assets/img/britiumGalleryBlack.png"
+          alt="Britium Gallery Logo"
+          style="height: 48px; width: auto; display: block"
+        />
+        <div
+          style="
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: #111;
+            line-height: 1;
+          "
+        >
+          BRITIUM GALLERY
+        </div>
       </div>
-      <div style="font-size: 15px; margin-bottom: 4px">
-        Order #: <b>{{ order.trackingCode }}</b>
+      <div
+        style="
+          position: absolute;
+          right: 56px;
+          top: 64px;
+          text-align: right;
+          min-width: 260px;
+          font-size: 15px;
+        "
+      >
+        <div>
+          <span style="font-weight: bold; color: #111">ORDER NO.</span> #{{
+            order?.trackingCode
+          }}
+        </div>
+        <div>
+          <span style="font-weight: bold; color: #111">ORDER DATE</span>
+          {{ order?.orderDate | date : "dd MMMM yyyy" }}
+        </div>
+        <div>
+          <span style="font-weight: bold; color: #111">PAYMENT</span>
+          {{ transaction?.paymentMethod || "N/A" }}
+        </div>
+        <div>
+          <span style="font-weight: bold; color: #111">SHIPPING</span>
+          {{ order?.deliveryMethod
+          }}<ng-container *ngIf="order?.deliveryProvider">
+            ({{ order?.deliveryProvider }})</ng-container
+          >
+        </div>
       </div>
-      <div style="font-size: 15px; margin-bottom: 4px">
-        Date: {{ order.orderDate | date : "dd.MM.yyyy" }}
+    </div>
+    <!-- Address Row -->
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 32px 56px 0 56px;
+        gap: 48px;
+        margin-top: 40px;
+      "
+    >
+      <div style="flex: 1">
+        <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px">
+          BILL TO
+        </div>
+        <div style="font-size: 15px; font-weight: bold">
+          {{ order?.user?.name }}
+        </div>
+        <div style="font-size: 15px">{{ order?.user?.email }}</div>
+        <div style="font-size: 15px">{{ order?.user?.phoneNumber }}</div>
+        <div style="font-size: 15px">{{ order?.user?.address }}</div>
       </div>
-      <div style="font-size: 15px; margin-bottom: 16px">
-        Customer: {{ order.user?.name }}
+      <div style="flex: 1">
+        <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px">
+          SHIP TO
+        </div>
+        <div style="font-size: 15px">
+          {{ order?.deliveryAddress?.houseNumber }}
+          {{ order?.deliveryAddress?.street }}
+        </div>
+        <div style="font-size: 15px">
+          {{ order?.deliveryAddress?.wardName }},
+          {{ order?.deliveryAddress?.township }}
+        </div>
+        <div style="font-size: 15px">
+          {{ order?.deliveryAddress?.city }},
+          {{ order?.deliveryAddress?.state }},
+          {{ order?.deliveryAddress?.country }}
+        </div>
+        <div style="font-size: 15px">
+          {{ order?.deliveryAddress?.phoneNumber }}
+        </div>
       </div>
+    </div>
+    <!-- Item Table -->
+    <div style="padding: 32px 56px 0 56px">
       <table
         style="
           width: 100%;
-          font-size: 14px;
+          font-size: 15px;
+          color: #111;
+          background: #fff;
           border-collapse: collapse;
-          margin-bottom: 18px;
+          border: none;
+          box-shadow: none;
+          margin-bottom: 24px;
         "
       >
         <thead>
-          <tr>
-            <th style="text-align: left; border-bottom: 1px solid #000">QTY</th>
-            <th style="text-align: left; border-bottom: 1px solid #000">
-              ITEM
-            </th>
-            <th style="text-align: right; border-bottom: 1px solid #000">
-              UNIT
-            </th>
-            <th style="text-align: right; border-bottom: 1px solid #000">
-              TOTAL
-            </th>
+          <tr
+            style="
+              background: transparent;
+              color: #111;
+              font-weight: bold;
+              border-bottom: 2px solid #000;
+            "
+          >
+            <th style="padding: 8px 0; text-align: left">ITEM</th>
+            <th style="padding: 8px 0; text-align: center">QTY</th>
+            <th style="padding: 8px 0; text-align: right">PRICE</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of order.orderDetails">
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.variant?.productName }}</td>
-            <td style="text-align: right">
-              MMK {{ item.price | number : "1.0-0" }}
+          <tr
+            *ngFor="let item of order?.orderDetails"
+            style="margin-bottom: 12px"
+          >
+            <td>
+              <div style="font-weight: bold">
+                {{ item.variant?.productName }}
+              </div>
+              <div
+                *ngIf="item.variant?.attributes"
+                style="font-size: 12px; color: #111; margin-top: 2px"
+              >
+                <span
+                  *ngFor="
+                    let attr of item.variant.attributes | keyvalue;
+                    let last = last
+                  "
+                >
+                  {{ attr.key }}: {{ attr.value }}<span *ngIf="!last">, </span>
+                </span>
+              </div>
             </td>
+            <td style="text-align: center">{{ item.quantity }}</td>
             <td style="text-align: right">
-              MMK {{ getItemSubtotal(item) | number : "1.0-0" }}
+              <ng-container
+                *ngIf="
+                  getDiscountedPrice(item) < item.price;
+                  else noDiscountPrice
+                "
+              >
+                <div>
+                  <span
+                    style="
+                      text-decoration: line-through;
+                      color: #888;
+                      font-size: 14px;
+                    "
+                  >
+                    MMK {{ item.price | number : "1.0-0" }}
+                  </span>
+                  <span
+                    *ngIf="item.discountPercent"
+                    style="color: #888; font-size: 13px; margin-left: 4px"
+                  >
+                    ({{ item.discountPercent }}%)
+                  </span>
+                </div>
+                <div
+                  style="
+                    font-weight: bold;
+                    color: #111;
+                    font-size: 15px;
+                    margin-top: 2px;
+                  "
+                >
+                  MMK {{ getDiscountedPrice(item) | number : "1.0-0" }}
+                </div>
+              </ng-container>
+              <ng-template #noDiscountPrice>
+                MMK {{ item.price | number : "1.0-0" }}
+              </ng-template>
             </td>
           </tr>
         </tbody>
       </table>
-      <div style="font-size: 15px; margin-top: 24px">
-        <div>Subtotal: MMK {{ order.subtotal | number : "1.0-0" }}</div>
-        <div>Delivery Fee: MMK {{ order.deliveryFee | number : "1.0-0" }}</div>
-        <div *ngIf="order.discountAmount > 0">
-          Discount: -MMK {{ order.discountAmount | number : "1.0-0" }}
+    </div>
+    <!-- Totals Section (no notes) -->
+    <div
+      style="
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: flex-start;
+        padding: 0 56px 0 56px;
+        gap: 48px;
+      "
+    >
+      <div style="flex: 1"></div>
+      <div style="flex: 1; max-width: 320px">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            margin-bottom: 6px;
+          "
+        >
+          <span>Subtotal</span
+          ><span>MMK {{ order?.subtotal | number : "1.0-0" }}</span>
         </div>
-        <div style="font-weight: bold; margin-top: 8px">
-          Total: MMK {{ order.total | number : "1.0-0" }}
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            margin-bottom: 6px;
+          "
+        >
+          <span>Deli Fees</span
+          ><span>MMK {{ order?.deliveryFee | number : "1.0-0" }}</span>
         </div>
+        <div
+          *ngIf="order?.couponCode"
+          style="
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            margin-bottom: 6px;
+          "
+        >
+          <span>Coupon</span>
+          <span>
+            {{ order?.couponCode }}
+            <ng-container *ngIf="order?.discountAmount > 0"
+              >-MMK {{ order?.discountAmount | number : "1.0-0" }}</ng-container
+            >
+          </span>
+        </div>
+        <div style="height: 2px; background: #000; margin: 12px 0"></div>
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+          "
+        >
+          <span
+            style="font-size: 22px; font-weight: bold; letter-spacing: 0.5px"
+            >Total</span
+          >
+          <span style="font-size: 28px; font-weight: bold; letter-spacing: 1px"
+            >MMK {{ order?.total | number : "1.0-0" }}</span
+          >
+        </div>
+      </div>
+    </div>
+    <!-- Footer: Only thank you and website, centered at the very bottom -->
+    <div
+      style="
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 48px;
+        text-align: center;
+        color: #111;
+      "
+    >
+      <div style="font-size: 22px; font-weight: bold; margin-bottom: 8px">
+        THANK YOU FOR YOUR ORDER!
+      </div>
+      <div style="font-size: 13px; font-weight: 500">
+        www.britiumgallery.com
       </div>
     </div>
   </div>
