@@ -325,20 +325,28 @@
   min-width: 60px;
 }
 
-/* Photo Container */
+/* Enhanced Table Photo Display */
 .photo-container-clean {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .photo-preview-clean {
-  width: 50px;
-  height: 50px;
+  position: relative;
+  width: 60px;
+  height: 60px;
   border-radius: 8px;
   overflow: hidden;
+  border: 2px solid #28a745;
   cursor: pointer;
-  position: relative;
-  border: 1px solid #dee2e6;
+  transition: all 0.2s ease;
+}
+
+.photo-preview-clean:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .photo-preview-clean img {
@@ -347,18 +355,7 @@
   object-fit: cover;
 }
 
-::ng-deep .mat-mdc-dialog-surface {
-  width: auto !important;
-  max-width: unset !important;
-  min-width: unset !important;
-  box-shadow: none !important;
-  border-radius: 12px !important;
-  background: transparent !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-.photo-overlay-clean {
+.photo-preview-clean .photo-overlay-clean {
   position: absolute;
   top: 0;
   left: 0;
@@ -376,37 +373,125 @@
   opacity: 1;
 }
 
-.photo-overlay-clean mat-icon {
-  color: #ffffff;
-  font-size: 1.25rem;
+.photo-preview-clean .photo-overlay-clean mat-icon {
+  color: white;
+  font-size: 1.25rem !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
 }
 
-.photo-counter-clean {
+/* Image Type Badge for Table */
+.image-type-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #1a1a1a;
-  color: #ffffff;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  top: -4px;
+  right: -4px;
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.125rem 0.25rem;
+  border-radius: 8px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: white;
+  z-index: 2;
+}
+
+.image-type-badge mat-icon {
+  font-size: 0.75rem !important;
+  width: 0.75rem !important;
+  height: 0.75rem !important;
+}
+
+/* Enhanced Photo Counter */
+.photo-counter-clean {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.no-photo-clean {
-  width: 50px;
-  height: 50px;
+  width: 32px;
+  height: 32px;
   background: #f8f9fa;
   border: 1px solid #dee2e6;
-  border-radius: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.photo-counter-clean:hover {
+  background: #e9ecef;
+  transform: scale(1.1);
+}
+
+.counter-content {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.125rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.counter-content mat-icon {
+  font-size: 0.875rem !important;
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+}
+
+.counter-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #343a40;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 10;
+  margin-bottom: 0.5rem;
+}
+
+.counter-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #343a40;
+}
+
+.photo-counter-clean:hover .counter-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Enhanced No Photo Display */
+.no-photo-clean {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border: 1px dashed #dee2e6;
+  border-radius: 8px;
   color: #6c757d;
+}
+
+.no-photo-clean mat-icon {
+  font-size: 1.5rem !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+.no-photo-text {
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 /* Price Display */
@@ -1915,4 +2000,358 @@ button.mat-icon-button mat-icon,
   width: 18px;
   height: 18px;
   stroke-width: 2;
+}
+
+/* Photo Section Enhancements */
+.existing-images-section,
+.new-images-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-subtitle-clean {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #28a745;
+  font-weight: 600;
+  color: #495057;
+}
+
+.new-images-section .section-subtitle-clean {
+  border-left-color: #007bff;
+}
+
+.existing-icon {
+  color: #28a745 !important;
+}
+
+.new-icon {
+  color: #007bff !important;
+}
+
+.image-count {
+  background: #e9ecef;
+  color: #6c757d;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.existing-grid,
+.new-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.existing-photo,
+.new-photo {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.existing-photo {
+  border-color: #28a745;
+}
+
+.new-photo {
+  border-color: #007bff;
+}
+
+.existing-photo:hover,
+.new-photo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.photo-wrapper-clean {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  overflow: hidden;
+}
+
+.photo-wrapper-clean img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-overlay-clean {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.existing-photo:hover .photo-overlay-clean,
+.new-photo:hover .photo-overlay-clean {
+  opacity: 1;
+}
+
+.photo-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+.existing-badge {
+  background: #28a745;
+}
+
+.new-badge {
+  background: #007bff;
+}
+
+.photo-badge mat-icon {
+  font-size: 1rem !important;
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+.remove-photo-clean {
+  background: #dc3545 !important;
+  color: #ffffff !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+}
+
+.remove-photo-clean mat-icon {
+  font-size: 1rem !important;
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+/* Image Summary */
+.image-summary-clean {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  margin-top: 1rem;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.summary-item mat-icon {
+  font-size: 1.125rem !important;
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+}
+
+.summary-item.total {
+  color: #495057;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.summary-item.total mat-icon {
+  color: #1a1a1a !important;
+}
+
+/* Enhanced Upload Area */
+.upload-area-clean {
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fafbfc;
+  margin-top: 1rem;
+}
+
+.upload-area-clean:hover {
+  border-color: #1a1a1a;
+  background: #f8f9fa;
+}
+
+.upload-content-clean {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.upload-icon-clean {
+  font-size: 2.5rem !important;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.upload-content-clean h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.upload-content-clean p {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+/* Product Image Section Enhancements */
+.existing-product-image-section,
+.new-product-image-section {
+  margin-bottom: 1.5rem;
+}
+
+.existing-product-image,
+.new-product-image {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  align-self: center;
+}
+
+.existing-product-image {
+  border-color: #28a745;
+}
+
+.new-product-image {
+  border-color: #007bff;
+}
+
+.existing-product-image:hover,
+.new-product-image:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.existing-product-image img,
+.new-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Image Comparison Section */
+.image-comparison-section {
+  margin-bottom: 1.5rem;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.comparison-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.comparison-label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.comparison-item .current-image-clean {
+  width: 180px;
+  height: 180px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.comparison-item .existing-product-image {
+  border-color: #28a745;
+}
+
+.comparison-item .new-product-image {
+  border-color: #007bff;
+}
+
+.comparison-item .current-image-clean:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.comparison-item .current-image-clean img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Enhanced Image Overlay for Product Images */
+.existing-product-image .image-overlay-clean,
+.new-product-image .image-overlay-clean {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.existing-product-image:hover .image-overlay-clean,
+.new-product-image:hover .image-overlay-clean {
+  opacity: 1;
+}
+
+/* Enhanced Remove Button for Product Images */
+.remove-image-clean {
+  background: #dc3545 !important;
+  color: #ffffff !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+}
+
+.remove-image-clean mat-icon {
+  font-size: 1.125rem !important;
+  width: 1.125rem !important;
+  height: 1.125rem !important;
 }

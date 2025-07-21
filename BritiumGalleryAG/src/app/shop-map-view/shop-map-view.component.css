@@ -1,0 +1,125 @@
+.map-view-wrapper {
+  display: flex;
+  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+}
+
+/* Left Panel */
+.address-list-panel {
+  width: 35%;
+  padding: 1.5rem;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+  background-color: #ffffff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.03);
+}
+
+.address-list-panel h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+/* Right Panel */
+.map-panel {
+  width: 65%;
+  position: relative;
+}
+
+#map-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* Search Bar */
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.search-bar button {
+  background: #1976d2;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.search-bar button:hover {
+  background: #145ea8;
+}
+
+/* Shop Count */
+.shop-count {
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: #666;
+}
+
+/* Address Cards */
+.address-card {
+  padding: 15px 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-left: 4px solid transparent;
+}
+
+.address-card:hover {
+  background-color: #f5f5f5;
+}
+
+.address-card.highlight {
+  background-color: #e8f5e9;
+  border-left: 4px solid #4caf50;
+}
+
+.address-card h4 {
+  font-size: 1.1rem;
+  margin: 0 0 5px;
+  color: #333;
+}
+
+.address-card p {
+  font-size: 0.95rem;
+  margin: 0;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* View All / Show Less Link */
+.view-all-link {
+  display: inline-block;
+  margin-top: 15px;
+  font-weight: 500;
+  color: #1976d2;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.view-all-link:hover {
+  color: #145ea8;
+}
+
+/* Scrollbar styling for the address panel (optional) */
+.address-list-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.address-list-panel::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3px;
+}

@@ -61,6 +61,13 @@ import { BlogDetailComponent } from './blog-detail/blog-detail.component';
 import { BlogListComponent } from './blog-list/blog-list.component';
 import { CustomerMessageComponent } from './customer-message/customer-message.component';
 import { AdminMessageComponent } from './admin-message/admin-message.component';
+import { ShippingListComponent } from './shipping-list/shipping-list.component';
+import { AboutListComponent } from './about-list/about-list.component';
+
+import { CreateRoleComponent } from './create-role/create-role.component';
+import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
+import { ShopMapViewComponent } from './shop-map-view/shop-map-view.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -120,13 +127,24 @@ const routes: Routes = [
   {path:'shippingpolicy',component:ShippingReturnsPolicyComponent},
   {path:'about',component:AboutComponent},
    {path:'blog',component:BlogCreateComponent},
-   {path:'customer-homepage',component:CustomerHomepageComponent},
-   {path:'discounted-items/:eventId',component:DiscountedItemsComponent},
-   {path:'blog-detail/:id',component:BlogDetailComponent},
-   {path:'blog-list',component:BlogListComponent},
-   {path:'customer-message',component:CustomerMessageComponent},
-   {path:'admin-message',component:AdminMessageComponent}
-
+ { path: 'shippinglist', component: ShippingListComponent },
+  { path: 'aboutlist', component: AboutListComponent },
+  { path: 'bloglist', component: BlogListComponent },
+  { path: 'blogdetail/:id', component: BlogDetailComponent },
+  { path: 'createrole', component: CreateRoleComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'customer-homepage', component: CustomerHomepageComponent },
+  { path: 'discounted-items', component: DiscountedItemsComponent },
+  { path: 'create-role', component: CreateRoleComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'shippinglist', component: ShippingListComponent },
+  { path: 'aboutlist', component: AboutListComponent },       
+  { path: 'customer-message', component: CustomerMessageComponent },
+  { path: 'admin-message', component: AdminMessageComponent },
+  { path: 'shopmapview', component: ShopMapViewComponent }
+        
 
 
 
