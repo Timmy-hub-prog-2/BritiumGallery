@@ -1,62 +1,100 @@
 
 
 <div class="container mt-4">
-  <h3>Edit Category</h3>
-  <form (ngSubmit)="save()" #categoryForm="ngForm">
-    <div class="mb-3">
-      <label for="name">Category Name:</label>
-      <input
-        type="text"
-        class="form-control"
-        [(ngModel)]="category.name"
-        name="name"
-        required
-      />
-    </div>
-
-    <div class="mb-3">
-      <label>Attributes:</label>
-      <div
-        *ngFor="let attr of category.attributes; let i = index"
-        class="row mb-2"
-      >
-        <div class="col">
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Attribute Name"
-            [(ngModel)]="attr.name"
-            name="name{{ i }}"
-            required
-          />
-        </div>
-        <div class="col">
-          <select
-            class="form-control"
-            [(ngModel)]="attr.dataType"
-            name="type{{ i }}"
-            required
-          >
-            <option value="STRING">String</option>
-            <option value="NUMBER">Number</option>
-            <option value="BOOLEAN">Boolean</option>
-          </select>
-        </div>
-        <div class="col-auto">
-          <button
-            class="btn btn-danger"
-            type="button"
-            (click)="removeAttribute(i)"
-          >
-            X
-          </button>
-        </div>
-      </div>
-      <button class="btn btn-secondary" type="button" (click)="addAttribute()">
-        + Add Attribute
+  <div class="card">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+      <h3 class="mb-0">Edit Category</h3>
+      <button type="button" class="btn btn-outline-light" (click)="navigateBack()">
+        <i class="fas fa-arrow-left"></i> Back
       </button>
     </div>
+    <div class="card-body">
+      <form (ngSubmit)="save()" #categoryForm="ngForm" class="needs-validation">
+        <div class="row">
+          <!-- Category Image -->
+          <div class="col-md-4 mb-3">
+            <div class="image-upload-container">
+              <img [src]="category.image_url || placeholderImage" 
+                   class="img-preview mb-2" 
+                   alt="Category Image">
+              <div class="custom-file">
+                <input type="file" 
+                       class="custom-file-input" 
+                       id="categoryImage" 
+                       (change)="onFileSelected($event)"
+                       accept="image/*">
+                <label class="btn btn-outline-dark w-100" for="categoryImage">
+                  <i class="fas fa-upload"></i> Change Image
+                </label>
+              </div>
+            </div>
+          </div>
 
-    <button type="submit" class="btn btn-success">Update Category</button>
-  </form>
+          <!-- Category Details -->
+          <div class="col-md-8">
+            <div class="mb-3">
+              <label for="name" class="form-label">Category Name</label>
+              <input type="text"
+                     class="form-control"
+                     id="name"
+                     [(ngModel)]="category.name"
+                     name="name"
+                     required
+                     #nameInput="ngModel">
+              <div class="invalid-feedback" *ngIf="nameInput.invalid && (nameInput.dirty || nameInput.touched)">
+                Category name is required
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attributes Section -->
+        <div class="mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Attributes</h4>
+            <button class="btn btn-dark" type="button" (click)="addAttribute()">
+              <i class="fas fa-plus"></i> Add Attribute
+            </button>
+          </div>
+
+          <div class="attribute-list">
+            <div *ngFor="let attr of category.attributes; let i = index" 
+                 class="attribute-item d-flex align-items-center mb-2">
+              <div class="flex-grow-1">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Attribute Name"
+                       [(ngModel)]="attr.name"
+                       [name]="'attribute' + i"
+                       required>
+              </div>
+              <button class="btn btn-outline-danger ms-2" 
+                      type="button"
+                      (click)="removeAttribute(i)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-4 d-flex justify-content-end">
+          <button type="submit" 
+                  class="btn btn-dark"
+                  [disabled]="!categoryForm.form.valid || isLoading">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+            <i *ngIf="!isLoading" class="fas fa-save me-2"></i>
+            {{ isLoading ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner-border text-dark" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
 </div>

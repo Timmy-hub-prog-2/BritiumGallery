@@ -10,8 +10,17 @@
           </a>
           <span class="breadcrumb-separator">/</span>
           <a [routerLink]="['/categoryList']" class="breadcrumb-link">Categories</a>
-          <span class="breadcrumb-separator">/</span>
-          <span class="breadcrumb-current">{{ currentCategory?.name || 'Subcategories' }}</span>
+          <ng-container *ngFor="let cat of categoryPath; let last = last">
+            <span class="breadcrumb-separator">/</span>
+            <ng-container *ngIf="!last">
+              <a [routerLink]="['/sub-category', cat.id]" class="breadcrumb-link">
+                {{cat.name}}
+              </a>
+            </ng-container>
+            <ng-container *ngIf="last">
+              <span class="breadcrumb-current">{{cat.name}}</span>
+            </ng-container>
+          </ng-container>
         </nav>
         <h1 class="page-title">{{ currentCategory?.name || 'Subcategories' }}</h1>
         <p class="page-subtitle">Browse and manage subcategories and products</p>
@@ -29,90 +38,199 @@
         </a>
       </div>
     </div>
+
+    <!-- Search Section -->
+    <div class="search-section">
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            class="search-input" 
+            placeholder="Search by name, ID, or description..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+          >
+          <button *ngIf="searchTerm" class="clear-search" (click)="clearSearch()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Main Content -->
   <div class="content-wrapper">
-    <!-- Subcategories Section - Only show if no products exist -->
-    <section *ngIf="!productList?.length" class="section">
+    <!-- Search Results Section -->
+    <section *ngIf="searchTerm" class="section">
       <div class="section-header">
         <div class="section-title-wrapper">
-          <h2 class="section-title">Subcategories</h2>
-          <span class="section-count">{{categoryList.length}}</span>
+          <h2 class="section-title">Search Results</h2>
+          <span class="section-count">
+            {{(filteredCategories?.length || 0) + (filteredProducts?.length || 0)}}
+          </span>
         </div>
-        <p class="section-subtitle">Browse through our collection of subcategories</p>
+        <p class="section-subtitle">Found in categories and products</p>
       </div>
 
-      <div class="subcategories-grid">
-        <div *ngFor="let category of categoryList" class="subcategory-card" (click)="navigateToSubCategory(category.id)">
-          <div class="subcategory-image">
-            <img [src]="category.image_url || 'assets/img/electronic.jpg'" [alt]="category.name">
-          </div>
-          <div class="card-content">
-            <h3 class="card-title">{{category.name}}</h3>
-            <span class="card-count">
-              <i class="fas fa-box"></i>
-              {{category.productCount || 0}} Products
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="categoryList.length === 0" class="empty-state">
-        <i class="fas fa-folder-open empty-icon"></i>
-        <h3>No Subcategories Found</h3>
-        <p>Start by adding a new subcategory to organize your products.</p>
-        <button class="btn-action btn-primary" (click)="createSubCategory()">
-          <i class="fas fa-plus"></i>
-          Add Subcategory
-        </button>
-      </div>
-    </section>
-
-    <!-- Products Section - Only show if no categories exist -->
-    <section *ngIf="!categoryList?.length" class="section products-section">
-      <div class="section-header">
-        <div class="section-title-wrapper">
-          <h2 class="section-title">Products</h2>
-          <span class="section-count">{{ productList?.length || 0 }}</span>
-        </div>
-        <p class="section-subtitle">Explore our product collection</p>
-      </div>
-
-      <div class="products-grid">
-        <div *ngFor="let product of productList" class="product-card">
-          <div class="product-image">
-            <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" [alt]="product.name">
-            <div class="product-overlay">
-              <div class="product-actions">
-                <button class="btn-icon" (click)="navigateToProductEdit(product.id)" title="Edit Product">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon btn-danger" (click)="deleteProduct(product.id)" title="Delete Product">
-                  <i class="fas fa-trash"></i>
-                </button>
+      <!-- Categories Results -->
+      <div *ngIf="filteredCategories?.length" class="search-results-section">
+        <h3 class="results-title">Categories ({{filteredCategories.length}})</h3>
+        <div class="subcategories-grid">
+          <div *ngFor="let category of filteredCategories" class="subcategory-card">
+            <div class="subcategory-image" (click)="navigateToSubCategory(category.id)">
+              <img [src]="category.image_url || 'assets/img/electronic.jpg'" [alt]="category.name">
+              <div class="category-overlay">
+                <div class="category-actions">
+                  <button class="btn-icon" (click)="editCategory(category); $event.stopPropagation()" title="Edit Category">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteCategory(category); $event.stopPropagation()" title="Delete Category">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="product-info">
-            <h3 class="product-title">{{ product.name }}</h3>
-            <span class="price-range">{{ getPriceRange(product) }}</span>
+            <div class="card-content" (click)="navigateToSubCategory(category.id)">
+              <h3 class="card-title">{{category.name}}</h3>
+              <span class="card-id">ID: {{category.id}}</span>
+              <span class="card-count">
+                <i class="fas fa-box"></i>
+                {{category.productCount || 0}} Products
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Empty State -->
-      <div *ngIf="!productList?.length" class="empty-state">
-        <div class="empty-icon">
-          <i class="bi bi-box-seam"></i>
+      <!-- Products Results -->
+      <div *ngIf="filteredProducts?.length" class="search-results-section">
+        <h3 class="results-title">Products ({{filteredProducts.length}})</h3>
+        <div class="products-grid">
+          <div *ngFor="let product of filteredProducts" class="product-card">
+            <div class="product-image">
+              <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" [alt]="product.name">
+              <div class="product-overlay">
+                <div class="product-actions">
+                  <button class="btn-icon" (click)="navigateToProductEdit(product.id)" title="Edit Product">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteProduct(product.id)" title="Delete Product">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">{{ product.name }}</h3>
+              <span class="product-id">ID: {{product.id}}</span>
+              <span class="price-range">{{ getPriceRange(product) }}</span>
+            </div>
+          </div>
         </div>
-        <h3>No Products Found</h3>
-        <p>Start by adding your first product</p>
-        <a [routerLink]="['/productRegister', urlParam]" class="btn-action btn-primary">
-          <i class="bi bi-box-seam"></i>
-          Add Product
-        </a>
+      </div>
+
+      <!-- No Results -->
+      <div *ngIf="!filteredCategories?.length && !filteredProducts?.length" class="empty-state">
+        <i class="fas fa-search empty-icon"></i>
+        <h3>No Results Found</h3>
+        <p>Try adjusting your search terms</p>
       </div>
     </section>
+
+    <!-- Regular Content when not searching -->
+    <ng-container *ngIf="!searchTerm">
+      <!-- Subcategories Section -->
+      <section *ngIf="!productList?.length" class="section">
+        <div class="section-header">
+          <div class="section-title-wrapper">
+            <h2 class="section-title">Subcategories</h2>
+            <span class="section-count">{{categoryList.length}}</span>
+          </div>
+          <p class="section-subtitle">Browse through our collection of subcategories</p>
+        </div>
+
+        <div class="subcategories-grid">
+          <div *ngFor="let category of categoryList" class="subcategory-card">
+            <div class="subcategory-image" (click)="navigateToSubCategory(category.id)">
+              <img [src]="category.image_url || 'assets/img/electronic.jpg'" [alt]="category.name">
+              <div class="category-overlay">
+                <div class="category-actions">
+                  <button class="btn-icon" (click)="editCategory(category); $event.stopPropagation()" title="Edit Category">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteCategory(category); $event.stopPropagation()" title="Delete Category">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="card-content" (click)="navigateToSubCategory(category.id)">
+              <h3 class="card-title">{{category.name}}</h3>
+              <span class="card-count">
+                <i class="fas fa-box"></i>
+                {{category.productCount || 0}} Products
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="categoryList.length === 0" class="empty-state">
+          <i class="fas fa-folder-open empty-icon"></i>
+          <h3>No Subcategories Found</h3>
+          <p>Start by adding a new subcategory to organize your products.</p>
+          <button class="btn-action btn-primary" (click)="createSubCategory()">
+            <i class="fas fa-plus"></i>
+            Add Subcategory
+          </button>
+        </div>
+      </section>
+
+      <!-- Products Section -->
+      <section *ngIf="!categoryList?.length" class="section products-section">
+        <div class="section-header">
+          <div class="section-title-wrapper">
+            <h2 class="section-title">Products</h2>
+            <span class="section-count">{{ productList?.length || 0 }}</span>
+          </div>
+          <p class="section-subtitle">Explore our product collection</p>
+        </div>
+
+        <div class="products-grid">
+          <div *ngFor="let product of productList" class="product-card">
+            <div class="product-image">
+              <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" [alt]="product.name">
+              <div class="product-overlay">
+                <div class="product-actions">
+                  <button class="btn-icon" (click)="navigateToProductEdit(product.id)" title="Edit Product">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="deleteProduct(product.id)" title="Delete Product">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="product-info">
+              <h3 class="product-title">{{ product.name }}</h3>
+              <span class="price-range">{{ getPriceRange(product) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!productList?.length" class="empty-state">
+          <div class="empty-icon">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <h3>No Products Found</h3>
+          <p>Start by adding your first product</p>
+          <a [routerLink]="['/productRegister', urlParam]" class="btn-action btn-primary">
+            <i class="bi bi-box-seam"></i>
+            Add Product
+          </a>
+        </div>
+      </section>
+    </ng-container>
   </div>
 </div>

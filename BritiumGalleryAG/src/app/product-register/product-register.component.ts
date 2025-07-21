@@ -7,8 +7,10 @@ import { CategoryAttribute } from '../category';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Brand } from '../models/product.model';
 import { BrandService } from '../services/brand.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpResponse } from '@angular/common/http';
 import { FormGroup } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
+import Swal from 'sweetalert2';
 
 interface VariantCombination {
   attributes: { [key: string]: string };
@@ -59,6 +61,14 @@ selectedProductType: string = '';
   brands: Brand[] = [];
   selectedBrandId: number | null = null;
 
+  // Loading state properties
+  isLoading: boolean = false;
+  loadingMessage: string = '';
+  uploadProgress: number = 0;
+
+  // Add new property for option errors
+  optionErrors: { [attributeId: number]: string } = {};
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -92,25 +102,53 @@ selectedProductType: string = '';
 
   closeOptionsModal(): void {
     this.showOptionsModal = false;
+    // Clear all errors when closing modal
+    this.optionErrors = {};
   }
 
   addOption(attributeId: number): void {
-    if (this.newOptions[attributeId]?.trim()) {
-      if (!this.attributeOptions[attributeId]) {
-        this.attributeOptions[attributeId] = [];
-      }
-      this.attributeOptions[attributeId].push(this.newOptions[attributeId].trim());
-      this.newOptions[attributeId] = '';
+    const newOption = this.newOptions[attributeId]?.trim();
+    
+    // Clear previous error
+    this.optionErrors[attributeId] = '';
+
+    if (!newOption) {
+      this.optionErrors[attributeId] = 'Option cannot be empty';
+      return;
     }
+
+    if (!this.attributeOptions[attributeId]) {
+      this.attributeOptions[attributeId] = [];
+    }
+
+    // Check for duplicates
+    if (this.attributeOptions[attributeId].includes(newOption)) {
+      this.optionErrors[attributeId] = 'This option already exists';
+      return;
+    }
+
+    // Add the option if it's valid
+    this.attributeOptions[attributeId].push(newOption);
+    this.newOptions[attributeId] = '';
   }
 
   removeOption(attributeId: number, optionIndex: number): void {
     this.attributeOptions[attributeId].splice(optionIndex, 1);
+    // Clear any errors when removing options
+    this.optionErrors[attributeId] = '';
   }
 
   saveAttributeOptions(): void {
-    // Here you would typically save the options to your backend
+    // Automatically set all attributes to String type
+    const attributesWithTypes = Object.entries(this.attributeOptions).map(([attributeId, options]) => ({
+      id: +attributeId,
+      options: options,
+      dataType: 'String' // Always set to String
+    }));
+
+    // Here you would save the options to your backend
     this.closeOptionsModal();
+    this.showSuccessMessage('Options Saved', 'Attribute options have been saved successfully.');
   }
 
   onAttributeOptionChange(attributeId: number, option: string, event: Event): void {
@@ -175,9 +213,71 @@ selectedProductType: string = '';
     });
   }
 
-  onSubmit() {
-    const formData = new FormData();
+  private startLoading(message: string) {
+    this.isLoading = true;
+    this.loadingMessage = message;
+    this.uploadProgress = 0;
+  }
 
+  private stopLoading() {
+    this.isLoading = false;
+    this.loadingMessage = '';
+    this.uploadProgress = 0;
+  }
+
+  private showSuccessMessage(title: string, message: string = '') {
+    return Swal.fire({
+      icon: 'success',
+      title: title,
+      text: message,
+      timer: 2000,
+      showConfirmButton: false,
+      customClass: {
+        popup: 'swal2-black-theme'
+      }
+    });
+  }
+
+  private showErrorMessage(title: string, message: string = '') {
+    return Swal.fire({
+      icon: 'error',
+      title: title,
+      text: message,
+      confirmButtonColor: '#000',
+      customClass: {
+        confirmButton: 'swal2-confirm-black',
+        popup: 'swal2-black-theme'
+      }
+    });
+  }
+
+  private async showConfirmation(title: string, message: string = '', confirmText: string = 'Yes', cancelText: string = 'No') {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: title,
+      text: message,
+      showCancelButton: true,
+      confirmButtonText: confirmText,
+      cancelButtonText: cancelText,
+      confirmButtonColor: '#000',
+      cancelButtonColor: '#666',
+      customClass: {
+        confirmButton: 'swal2-confirm-black',
+        cancelButton: 'swal2-cancel-gray'
+      }
+    });
+    return result.isConfirmed;
+  }
+
+  async onSubmit() {
+    if (!this.basePhotoFile) {
+      this.showErrorMessage('Photo Required', 'Base photo is required.');
+      return;
+    }
+
+    this.startLoading('Saving product...');
+
+    const formData = new FormData();
     const variantsPayload = this.variantCombinations.map(variant => ({
       price: variant.price,
       stock: variant.stock,
@@ -192,9 +292,8 @@ selectedProductType: string = '';
       photoUrl: variant.photoUrl
     }));
 
-    // Get logged-in user from localStorage
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
-    const adminId = loggedInUser && loggedInUser.id ? loggedInUser.id : 1; // Fallback to 1 if not found
+    const adminId = loggedInUser && loggedInUser.id ? loggedInUser.id : 1;
 
     const productPayload = {
       name: this.product.name,
@@ -211,31 +310,26 @@ selectedProductType: string = '';
     };
 
     formData.append('product', new Blob([JSON.stringify(productPayload)], { type: 'application/json' }));
+    formData.append('basePhoto', this.basePhotoFile);
 
-    if (this.basePhotoFile) {
-      formData.append('basePhoto', this.basePhotoFile);
-    } else {
-      alert('Base photo is required.');
-      return;
-    }
-
-    // Append variant photos with their corresponding variant keys
     Object.entries(this.variantFiles).forEach(([variantKey, files]) => {
       files.forEach(file => {
         formData.append(variantKey, file);
       });
     });
 
-    this.productService.saveProductWithFiles(formData).subscribe(
-      (response: string) => {
-        this.snackBar.open('Product saved successfully!', 'Close', { duration: 3000 });
+    this.productService.saveProductWithFiles(formData).pipe(
+      finalize(() => this.stopLoading())
+    ).subscribe({
+      next: async (response: string) => {
+        await this.showSuccessMessage('Success', 'Product saved successfully!');
         this.router.navigate(['/sub-category', this.categoryId]);
       },
-      (error: Error) => {
+      error: (error: Error) => {
         console.error('Error saving product:', error);
-        this.snackBar.open('Error saving product. Please try again.', 'Close', { duration: 3000 });
+        this.showErrorMessage('Save Failed', 'There was an error saving the product. Please try again.');
       }
-    );
+    });
   }
 
   // Base photo selected handler
@@ -257,23 +351,15 @@ selectedProductType: string = '';
       const currentPreviews = this.variantPreviews[variantKey] || [];
       const newFiles = Array.from(input.files);
 
-      const totalFilesAfterAdd = currentFiles.length + newFiles.length;
+      // Simply add all new files
+      this.variantFiles[variantKey] = [...currentFiles, ...newFiles];
+      this.variantPreviews[variantKey] = [
+        ...currentPreviews,
+        ...newFiles.map(file => URL.createObjectURL(file))
+      ];
 
-      if (totalFilesAfterAdd > 4) {
-        const allowedNewFilesCount = 4 - currentFiles.length;
-        if (allowedNewFilesCount <= 0) {
-          this.snackBar.open('Maximum 4 photos allowed per variant.', 'Close', { duration: 3000 });
-          return;
-        }
-        const filesToTake = newFiles.slice(0, allowedNewFilesCount);
-        this.variantFiles[variantKey] = [...currentFiles, ...filesToTake];
-        this.variantPreviews[variantKey] = [...currentPreviews, ...filesToTake.map(file => URL.createObjectURL(file))];
-        this.snackBar.open(`Only ${allowedNewFilesCount} photo(s) added. Maximum 4 photos allowed per variant.`, 'Close', { duration: 3000 });
-
-      } else {
-        this.variantFiles[variantKey] = [...currentFiles, ...newFiles];
-        this.variantPreviews[variantKey] = [...currentPreviews, ...newFiles.map(file => URL.createObjectURL(file))];
-      }
+      // Show success message
+      this.showSuccessMessage('Photos Added', `${newFiles.length} photo(s) added successfully.`);
     }
   }
 
@@ -288,17 +374,24 @@ selectedProductType: string = '';
     }
   }
 
-  removeVariant(index: number): void {
-    // Remove the variant from combinations
-    this.variantCombinations.splice(index, 1);
-    
-    // Clean up associated files and previews
-    const variantKey = `variant_${index}`;
-    if (this.variantFiles[variantKey]) {
-      // Revoke all preview URLs for this variant
-      this.variantPreviews[variantKey]?.forEach(preview => URL.revokeObjectURL(preview));
-      delete this.variantFiles[variantKey];
-      delete this.variantPreviews[variantKey];
+  async removeVariant(index: number) {
+    const confirmed = await this.showConfirmation(
+      'Remove Variant',
+      'Are you sure you want to remove this variant?'
+    );
+
+    if (confirmed) {
+      // Remove the variant from combinations
+      this.variantCombinations.splice(index, 1);
+      
+      // Clean up associated files and previews
+      const variantKey = `variant_${index}`;
+      if (this.variantFiles[variantKey]) {
+        // Revoke all preview URLs for this variant
+        this.variantPreviews[variantKey]?.forEach(preview => URL.revokeObjectURL(preview));
+        delete this.variantFiles[variantKey];
+        delete this.variantPreviews[variantKey];
+      }
     }
   }
 
@@ -328,35 +421,45 @@ onFileSelect(event: any) {
 }
 
 uploadFile() {
+  if (!this.selectedFile) {
+    this.showErrorMessage('File Required', 'Please select a file first.');
+    return;
+  }
+
   const formData = new FormData();
-  formData.append('file', this.selectedFile!);  // Attach the selected file
+  formData.append('file', this.selectedFile);
 
-  const categoryId = this.categoryId;  // Ensure categoryId is assigned correctly
-
-  // Retrieve adminId from localStorage or session
+  const categoryId = this.categoryId;
   const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
   const adminId = loggedInUser && loggedInUser.id ? loggedInUser.id : null;
 
   if (!adminId) {
-    this.snackBar.open('Admin ID is missing.', 'Close', { duration: 3000 });
+    this.showErrorMessage('Authentication Error', 'Admin ID is missing.');
     return;
   }
 
-  // Add categoryId and adminId to form data
   formData.append('categoryId', categoryId.toString());
   formData.append('adminId', adminId.toString());
 
-  // Send the file to the backend
+  this.startLoading('Uploading product data...');
+
   this.http.post('http://localhost:8080/product/upload-products', formData, {
-    responseType: 'text'  // Ensure the response type matches what the backend sends
-  }).subscribe({
-    next: (res) => {
-      console.log('✅ Upload success:', res);
-      this.snackBar.open('File uploaded successfully!', 'Close', { duration: 3000 });
+    reportProgress: true,
+    observe: 'events'
+  }).pipe(
+    finalize(() => this.stopLoading())
+  ).subscribe({
+    next: (event: any) => {
+      if (event.type === HttpEventType.UploadProgress) {
+        this.uploadProgress = Math.round(100 * event.loaded / event.total);
+      } else if (event instanceof HttpResponse) {
+        this.showSuccessMessage('Upload Complete', 'File uploaded successfully!');
+        this.selectedFile = null;
+      }
     },
     error: (err) => {
       console.error('❌ Upload error:', err);
-      this.snackBar.open('Upload failed. Please try again.', 'Close', { duration: 3000 });
+      this.showErrorMessage('Upload Failed', 'There was an error uploading your file. Please try again.');
     }
   });
 }

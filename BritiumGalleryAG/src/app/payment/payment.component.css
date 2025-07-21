@@ -6,7 +6,7 @@
 }
 
 .payment-wrapper {
-  margin-top: 2em;
+  margin-top: 4em;
   min-height: 100vh;
   background: #ffffff;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -965,7 +965,7 @@
 .summary-badge {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #000000;
   border-radius: 12px;
   display: flex;
   align-items: center;

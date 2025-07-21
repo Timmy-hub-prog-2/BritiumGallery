@@ -131,105 +131,57 @@
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
-              <span class="stat-number">MMK {{ order.total | number:'1.0-0' }}</span>
               <span class="stat-label">Total Amount</span>
+              <span class="stat-number">MMK {{ order.total | number:'1.0-0' }}</span>
             </div>
             <div class="stat-divider" *ngIf="order.discountAmount > 0"></div>
             <div class="stat-item discount" *ngIf="order.discountAmount > 0">
-              <span class="stat-number">MMK {{ order.discountAmount | number:'1.0-0' }}</span>
               <span class="stat-label">Saved</span>
+              <span class="stat-number">MMK {{ order.discountAmount | number:'1.0-0' }}</span>
             </div>
+            <div class="stat-divider" *ngIf="order.refundedAmount > 0"></div>
             <div class="stat-item refunded" *ngIf="order.refundedAmount > 0">
-              <span class="stat-number">MMK {{ order.refundedAmount || order.discountAmount || 0 | number:'1.0-0' }}</span>
               <span class="stat-label">Refunded</span>
+              <span class="stat-number">MMK {{ order.refundedAmount | number:'1.0-0' }}</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-label">Payment</span>
+              <span class="stat-number">{{ order.paymentMethod || 'N/A' }}</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-label">Delivery</span>
+              <span class="stat-number">{{ order.deliveryMethod || 'N/A' }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Products Section -->
-        <div class="products-section" *ngIf="order.orderDetails && order.orderDetails.length > 0">
-          <div class="products-header">
-            <h4 class="products-title">Order Items</h4>
-            <span class="products-count">{{ order.orderDetails.length }} products</span>
-          </div>
-          
-          <div class="products-grid">
-            <div class="product-card" *ngFor="let item of order.orderDetails.slice(0, 4)" [ngClass]="{'refunded-item': item.isRefunded}">
-              <div class="product-image-container">
-                <img 
-                  *ngIf="item.variant && item.variant.imageUrls && item.variant.imageUrls.length > 0"
-                  [src]="item.variant.imageUrls[0]" 
-                  [alt]="item.variant.productName"
-                  class="product-image"
-                  [ngClass]="{'dimmed': item.isRefunded}"
-                />
-                <div *ngIf="!item.variant || !item.variant.imageUrls || item.variant.imageUrls.length === 0" class="product-placeholder">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <polyline points="21,15 16,10 5,21"/>
-                  </svg>
-                </div>
-                <div class="quantity-badge">{{ item.quantity }}</div>
-                <span *ngIf="item.isRefunded" class="refunded-badge">Refunded</span>
-              </div>
-              
-              <div class="product-details">
-                <h5 class="product-name">{{ item.variant?.productName || 'Product' }}</h5>
-                <p class="product-sku" *ngIf="item.variant?.sku">SKU: {{ item.variant.sku }}</p>
-                
-                <div class="product-attributes" *ngIf="item.variant?.attributes">
-                  <span class="attribute-tag" *ngFor="let attr of item.variant.attributes | keyvalue">
-                    {{ attr.key }}: {{ attr.value }}
-                  </span>
-                </div>
-                
-                <div class="product-pricing">
-                  <div class="price-info">
-                    <span class="unit-price">MMK {{ item.price | number:'1.0-0' }} each</span>
-                    <span class="total-price">MMK {{ (item.quantity * item.price) | number:'1.0-0' }} total</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="more-products-card" *ngIf="order.orderDetails.length > 4">
-              <div class="more-products-content">
-                <div class="more-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="1"/>
-                    <circle cx="19" cy="12" r="1"/>
-                    <circle cx="5" cy="12" r="1"/>
-                  </svg>
-                </div>
-                <div class="more-count">+{{ order.orderDetails.length - 4 }}</div>
-                <div class="more-text">more products</div>
-                <button class="view-all-btn" (click)="viewOrderDetails(order.id)">
-                  View All
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+
 
         <!-- Order Actions -->
         <div class="order-actions">
           <div class="actions-left">
-            <div class="delivery-info" *ngIf="order.estimatedDeliveryTime">
+            <div class="delivery-info" *ngIf="order.deliveryMethod">
               <svg class="delivery-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <rect x="1" y="3" width="15" height="13"/>
                 <polygon points="16,6 20,6 23,11 23,16 16,16"/>
                 <circle cx="5.5" cy="18.5" r="2.5"/>
                 <circle cx="18.5" cy="18.5" r="2.5"/>
               </svg>
+              <span>{{ order.deliveryMethod }} - {{ order.deliveryProvider }}</span>
+            </div>
+            <div class="delivery-info" *ngIf="(order.status === 'ACCEPTED' || order.status === 'SHIPPED') && order.estimatedDeliveryTime">
+              <svg class="delivery-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12,6 12,12 16,14"/>
+              </svg>
               <span>Estimated delivery: {{ order.estimatedDeliveryTime | date:'mediumDate' }}</span>
             </div>
-            <div class="delivery-info" *ngIf="!order.estimatedDeliveryTime && order.selectedDelayTime">
+            <div class="delivery-info" *ngIf="(order.status === 'ACCEPTED' || order.status === 'SHIPPED') && !order.estimatedDeliveryTime && order.selectedDelayTime">
               <svg class="delivery-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <rect x="1" y="3" width="15" height="13"/>
-                <polygon points="16,6 20,6 23,11 23,16 16,16"/>
-                <circle cx="5.5" cy="18.5" r="2.5"/>
-                <circle cx="18.5" cy="18.5" r="2.5"/>
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12,6 12,12 16,14"/>
               </svg>
               <span>Estimated delivery: {{ order.selectedDelayTime }}</span>
             </div>
@@ -237,7 +189,7 @@
           
           <div class="actions-right">
             <button 
-              class="action-btn secondary"
+              class="action-btn primary"
               (click)="viewOrderDetails(order.id)">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -247,7 +199,7 @@
             </button>
             
             <button 
-              class="action-btn primary" 
+              class="action-btn secondary" 
               *ngIf="order.status === 'PENDING'"
               (click)="payNow(order.id)">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">

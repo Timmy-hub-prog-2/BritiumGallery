@@ -74,7 +74,7 @@
   <div class="admin-actions-bar">
     <div class="admin-actions" *ngIf="isPaid()">
       <button class="accept-btn" (click)="acceptOrder()">Accept</button>
-      <button class="reject-btn" (click)="showRejectModal = true">Reject</button>
+      <button class="reject-btn" (click)="openRejectModal()">Reject</button>
     </div>
   </div>
   </div>
@@ -497,24 +497,65 @@
 
   <!-- Reject Modal -->
   <div class="modal-overlay" *ngIf="showRejectModal" (click)="showRejectModal = false">
-    <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-container reject-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Reject Order</h3>
         <button class="modal-close" (click)="showRejectModal = false">×</button>
       </div>
       <div class="modal-body">
-        <label>Reason for rejection:</label>
-        <textarea [(ngModel)]="rejectReason" rows="3" placeholder="Enter reason for rejection..." autofocus></textarea>
+        <div class="reject-reason-section">
+          <label class="reason-label">Select a reason for rejection:</label>
+          <select [(ngModel)]="selectedRejectReason" (change)="onRejectReasonChange()" class="reason-select">
+            <option value="">-- Select a reason --</option>
+            <option *ngFor="let reason of predefinedRejectReasons" [value]="reason">{{ reason }}</option>
+          </select>
+        </div>
+        
+        <div class="custom-reason-section" *ngIf="showCustomReason">
+          <label class="reason-label">Please specify the reason:</label>
+          <textarea 
+            [(ngModel)]="rejectReason" 
+            rows="3" 
+            placeholder="Enter your custom reason for rejection..." 
+            class="custom-reason-textarea"
+            maxlength="500">
+          </textarea>
+          <div class="char-counter">{{ rejectReason?.length || 0 }}/500</div>
+        </div>
+        
         <div class="modal-actions">
-          <button (click)="rejectOrder()" class="submit-reject-btn">Submit</button>
+          <button (click)="rejectOrder()" class="submit-reject-btn" [disabled]="!selectedRejectReason || (showCustomReason && !rejectReason.trim())">
+            Reject Order
+          </button>
           <button (click)="showRejectModal = false" class="cancel-reject-btn">Cancel</button>
         </div>
       </div>
     </div>
   </div>
-  <!-- Show rejection reason if rejected -->
-  <div class="rejection-reason" *ngIf="order.status && order.status.toUpperCase() === 'REJECTED' && order.notes">
-    <strong>Rejection Reason:</strong> {{ order.notes }}
+
+  <!-- Rejection Reason Display -->
+  <div class="rejection-reason-display" *ngIf="order.status && order.status.toUpperCase() === 'CANCELLED' && order.notes">
+    <div class="rejection-reason-card">
+      <div class="rejection-header">
+        <div class="rejection-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+        </div>
+        <div class="rejection-title">
+          <h4>Order Rejected</h4>
+          <p>This order was rejected by the admin</p>
+        </div>
+      </div>
+      <div class="rejection-content">
+        <div class="rejection-reason-item">
+          <span class="reason-label">Rejection Reason:</span>
+          <span class="reason-text">{{ order.notes }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 

@@ -1,344 +1,51 @@
-<div class="product-register-container">
-  <div class="header-section">
-    <h1 class="main-title">Add New Product</h1>
-    <p class="subtitle">Fill in the product details and variants below</p>
-    <button
-      type="button"
-      class="btn-manage-options"
-      (click)="openOptionsModal()"
-    >
-      <i class="bi bi-gear"></i> Manage Attribute Options
-    </button>
-  </div>
-
-  <!-- <button (click)="downloadTemplate(categoryId)">
-  <i class="bi bi-download"></i> Download Excel Template
-</button>
-
-
-<div class="file-upload-section">
-  <input type="file" (change)="onFileSelect($event)" accept=".xlsx,.xls" />
-  <button (click)="uploadFile()" [disabled]="!selectedFile">Upload Excel</button>
-</div> -->
-
-  <form (ngSubmit)="onSubmit()" class="product-form" #productForm="ngForm">
-    <!-- Product Info Section -->
-    <div class="form-section product-info">
-      <div class="section-header">
-        <i class="bi bi-box-seam"></i>
-        <h2>Product Information</h2>
-      </div>
-
-      <div class="form-grid">
-        <div class="form-group full-width">
-          <label class="form-label">Brand</label>
-          <div class="input-wrapper">
-            <i class="bi bi-award"></i>
-            <select
-              [(ngModel)]="selectedBrandId"
-              name="brand"
-              class="form-input"
-              required
-            >
-              <option [ngValue]="null" disabled selected>Select a brand</option>
-              <option *ngFor="let brand of brands" [ngValue]="brand.id">
-                {{ brand.name }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label class="form-label">Product Name</label>
-          <div class="input-wrapper">
-            <i class="bi bi-tag"></i>
-            <input
-              [(ngModel)]="product.name"
-              name="name"
-              placeholder="Enter product name"
-              class="form-input"
-              required
-            />
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label class="form-label">Description</label>
-          <div class="input-wrapper">
-            <i class="bi bi-text-paragraph"></i>
-            <textarea
-              [(ngModel)]="product.description"
-              name="description"
-              placeholder="Enter detailed product description"
-              class="form-input textarea"
-              rows="4"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label class="form-label">Product Rating (0-5)</label>
-          <div class="input-wrapper">
-            <i class="bi bi-star-fill"></i>
-            <input
-              type="number"
-              [(ngModel)]="product.rating"
-              name="rating"
-              class="form-input"
-              min="0"
-              max="5"
-              step="0.1"
-              required
-            />
-          </div>
-        </div>
-
-        <!-- Base photo file input -->
-        <div class="form-group">
-          <label for="basePhoto">Product Base Photo</label>
-          <div class="photo-upload-container">
-            <input
-              type="file"
-              id="basePhoto"
-              (change)="onBasePhotoSelected($event)"
-              class="form-input"
-              accept="image/*"
-              required
-            />
-            <div class="photo-preview" *ngIf="basePhotoPreview">
-              <img [src]="basePhotoPreview" alt="Base photo preview" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Variants Section -->
-    <div class="form-section variants-section">
-      <div class="section-header variants-header">
-        <div>
-          <h2>Product Variants</h2>
-          <p class="section-subtitle">
-            Select attributes and options to generate variants
-          </p>
-        </div>
-      </div>
-
-      <!-- Base Price and Stock -->
-      <div class="base-variant-settings">
-        <div class="form-group">
-          <label class="form-label">Base Price</label>
-          <div class="input-wrapper">
-            <i class="bi bi-currency-dollar"></i>
-            <input
-              type="number"
-              [(ngModel)]="basePrice"
-              name="basePrice"
-              class="form-input"
-              placeholder="0.00"
-              step="0.01"
-              (ngModelChange)="updateAllVariants('price', $event)"
-              required
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Base Stock</label>
-          <div class="input-wrapper">
-            <i class="bi bi-box-seam"></i>
-            <input
-              type="number"
-              [(ngModel)]="baseStock"
-              name="baseStock"
-              class="form-input"
-              placeholder="0"
-              (ngModelChange)="updateAllVariants('stock', $event)"
-              required
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Base Purchase Price</label>
-          <div class="input-wrapper">
-            <i class="bi bi-cash-coin"></i>
-            <input
-              type="number"
-              [(ngModel)]="basePurchasePrice"
-              name="basePurchasePrice"
-              class="form-input"
-              placeholder="0.00"
-              step="0.01"
-              (ngModelChange)="updateAllVariants('purchasePrice', $event)"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Attribute Selection -->
-      <div class="attributes-selection">
-        <div *ngFor="let attr of attributes" class="attribute-group">
-          <h3>{{ attr.name }}</h3>
-          <div class="checkbox-group">
-            <label *ngFor="let option of attributeOptions[attr.id!]">
-              <input
-                type="checkbox"
-                [value]="option"
-                [checked]="selectedAttributeOptions[attr.id!]?.includes(option)"
-                (change)="onAttributeOptionChange(attr.id!, option, $event)"
-              />
-              <span class="option-text">{{ option }}</span>
-              <span class="custom-checkbox"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Variants Table -->
-      <div
-        class="variants-table-container"
-        *ngIf="variantCombinations.length > 0"
-      >
-        <h3>Generated Variants</h3>
-        <table class="variants-table">
-          <thead>
-            <tr>
-              <th *ngFor="let attr of attributes">{{ attr.name }}</th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th>Purchase Price</th>
-              <th>Photos</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let variant of variantCombinations; let i = index">
-              <td *ngFor="let attr of attributes">
-                {{ variant.attributes[attr.id!] || "-" }}
-              </td>
-              <td>
-                <input
-                  type="number"
-                  [(ngModel)]="variant.price"
-                  [name]="'price_' + i"
-                  class="form-input"
-                  step="0.01"
-                />
-              </td>
-              <td>
-                <input
-                  type="number"
-                  [(ngModel)]="variant.stock"
-                  [name]="'stock_' + i"
-                  class="form-input"
-                />
-              </td>
-              <td>
-                <input
-                  type="number"
-                  [(ngModel)]="variant.purchasePrice"
-                  [name]="'purchasePrice_' + i"
-                  class="form-input"
-                  step="0.01"
-                />
-              </td>
-              <td>
-                <div class="variant-photos">
-                  <input
-                    type="file"
-                    (change)="onVariantPhotosSelected($event, i)"
-                    accept="image/*"
-                    multiple
-                    class="form-input"
-                  />
-                  <div
-                    class="photo-preview-grid"
-                    *ngIf="variantPreviews['variant_' + i]?.length"
-                  >
-                    <div
-                      class="photo-preview-item"
-                      *ngFor="
-                        let preview of variantPreviews['variant_' + i];
-                        let photoIndex = index
-                      "
-                    >
-                      <img [src]="preview" alt="Variant photo preview" />
-                      <button
-                        type="button"
-                        class="remove-photo-btn"
-                        (click)="removeVariantPhoto(i, photoIndex)"
-                      >
-                        <i class="bi bi-x-circle"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td>
-                <button
-                  type="button"
-                  class="btn-remove-variant"
-                  (click)="removeVariant(i)"
-                >
-                  <i class="bi bi-trash"></i>
-                  Remove
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Submit Section -->
-    <div class="submit-section">
-      <button type="submit" class="btn-submit" [disabled]="productForm.invalid">
-        <i class="bi bi-check-circle-fill"></i>
-        Save Product
-      </button>
-    </div>
-  </form>
-</div>
-
 <!-- Attribute Options Modal -->
 <div class="modal" *ngIf="showOptionsModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Manage Attribute Options</h3>
+      <h3>
+        <i class="fa fa-tags"></i>
+        Manage Product Options
+      </h3>
       <button class="close-button" (click)="closeOptionsModal()">
-        <i class="bi bi-x"></i>
+        <i class="fa fa-times"></i>
       </button>
     </div>
 
     <div class="modal-body">
       <div *ngFor="let attr of attributes" class="attribute-options-section">
-        <h4 class="attribute-label">{{ attr.name }}</h4>
+        <h4 class="attribute-label">
+          <i class="fa fa-tag"></i>
+          {{ attr.name }}
+        </h4>
 
-        <!-- Existing Options -->
         <div class="options-list">
-          <div
-            *ngFor="let option of attributeOptions[attr.id!]; let i = index"
-            class="option-item"
-          >
+          <div *ngFor="let option of attributeOptions[attr.id!]; let i = index" class="option-item">
             <span>{{ option }}</span>
-            <button class="remove-option" (click)="removeOption(attr.id!, i)">
-              <i class="bi bi-trash"></i>
+            <button class="remove-option" (click)="removeOption(attr.id!, i)" title="Remove Option">
+              <i class="fa fa-times"></i>
             </button>
+          </div>
+          
+          <div *ngIf="!attributeOptions[attr.id!]?.length" class="empty-options">
+            No options added yet
           </div>
         </div>
 
-        <!-- Add New Option -->
         <div class="add-option">
-          <input
-            type="text"
-            [(ngModel)]="newOptions[attr.id!]"
-            [placeholder]="'Add new ' + attr.name.toLowerCase() + ' option'"
-            (keyup.enter)="addOption(attr.id!)"
-            class="form-input"
-          />
+          <div class="input-group">
+            <input 
+              type="text" 
+              [(ngModel)]="newOptions[attr.id!]" 
+              [placeholder]="'Add new ' + attr.name.toLowerCase() + ' option'" 
+              (keyup.enter)="addOption(attr.id!)" 
+              class="form-input" 
+            />
+            <div class="error-message" *ngIf="optionErrors[attr.id!]">
+              {{ optionErrors[attr.id!] }}
+            </div>
+          </div>
           <button class="btn-add" (click)="addOption(attr.id!)">
-            <i class="bi bi-plus"></i>
+            <i class="fa fa-plus"></i>
             Add
           </button>
         </div>
@@ -347,9 +54,227 @@
 
     <div class="modal-footer">
       <button class="btn-register-options" (click)="saveAttributeOptions()">
-        <i class="bi bi-check-circle"></i>
-        Save Options
+        <i class="fa fa-check"></i>
+        Save Changes
       </button>
     </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" *ngIf="isLoading">
+  <div class="loading-content">
+    <div class="loading-icon">
+      <svg class="circular-progress" viewBox="0 0 50 50">
+        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="3"></circle>
+      </svg>
+    </div>
+    <div class="loading-status">
+      <h3>{{ loadingMessage }}</h3>
+      <div class="progress-bar" *ngIf="uploadProgress > 0">
+        <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+      </div>
+      <p class="progress-text" *ngIf="uploadProgress > 0">{{ uploadProgress }}% Complete</p>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="product-container">
+  <div class="product-card">
+    <div class="form-header">
+      <div class="header-icon">
+        <i class="fa fa-box"></i>
+      </div>
+      <h2 class="form-title">Add New Product</h2>
+      <p class="form-subtitle">Fill in the product details and variants below</p>
+    </div>
+
+    <div class="action-buttons">
+      <button type="button" class="btn-secondary" (click)="openOptionsModal()">
+        <i class="fa fa-cog"></i>
+        Manage Options
+      </button>
+
+      <button type="button" class="btn-secondary" (click)="downloadTemplate(categoryId)">
+        <i class="fa fa-download"></i>
+        Download Template
+      </button>
+    </div>
+
+    <div class="file-upload-section">
+      <input type="file" (change)="onFileSelect($event)" accept=".xlsx,.xls" class="file-input" />
+      <button (click)="uploadFile()" [disabled]="!selectedFile" class="btn-secondary">
+        <i class="fa fa-upload"></i>
+        Upload Excel
+      </button>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="product-form" #productForm="ngForm">
+      <!-- Product Info Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">
+            <i class="fa fa-info-circle"></i>
+          </div>
+          <h3>Product Information</h3>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa fa-tag"></i>
+              Brand
+            </label>
+            <select [(ngModel)]="selectedBrandId" name="brand" class="form-input" required>
+              <option [ngValue]="null" disabled selected>Select a brand</option>
+              <option *ngFor="let brand of brands" [ngValue]="brand.id">{{ brand.name }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa fa-signature"></i>
+              Product Name
+            </label>
+            <input [(ngModel)]="product.name" name="name" placeholder="Enter product name" class="form-input" required />
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">
+              <i class="fa fa-align-left"></i>
+              Description
+            </label>
+            <textarea [(ngModel)]="product.description" name="description" placeholder="Enter detailed product description" class="form-input textarea" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa fa-star"></i>
+              Rating (0-5)
+            </label>
+            <input type="number" [(ngModel)]="product.rating" name="rating" class="form-input" min="0" max="5" step="0.1" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa fa-image"></i>
+              Base Photo
+            </label>
+            <input type="file" id="basePhoto" (change)="onBasePhotoSelected($event)" class="form-input" accept="image/*" required />
+            <div class="photo-preview" *ngIf="basePhotoPreview">
+              <img [src]="basePhotoPreview" alt="Base photo preview" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Variants Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">
+            <i class="fa fa-cubes"></i>
+          </div>
+          <div>
+            <h3>Product Variants</h3>
+            <p class="section-subtitle">Select options to generate variants</p>
+          </div>
+        </div>
+
+        <!-- Base Settings -->
+        <div class="base-settings">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa fa-tag"></i>
+              Base Price
+            </label>
+            <input type="number" [(ngModel)]="basePrice" name="basePrice" class="form-input" placeholder="0.00" step="0.01" (ngModelChange)="updateAllVariants('price', $event)" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa fa-boxes"></i>
+              Base Stock
+            </label>
+            <input type="number" [(ngModel)]="baseStock" name="baseStock" class="form-input" placeholder="0" (ngModelChange)="updateAllVariants('stock', $event)" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fa fa-money-bill"></i>
+              Purchase Price
+            </label>
+            <input type="number" [(ngModel)]="basePurchasePrice" name="basePurchasePrice" class="form-input" placeholder="0.00" step="0.01" (ngModelChange)="updateAllVariants('purchasePrice', $event)" />
+          </div>
+        </div>
+
+        <!-- Attribute Selection -->
+        <div class="attributes-selection">
+          <div *ngFor="let attr of attributes" class="attribute-group">
+            <h4>{{ attr.name }}</h4>
+            <div class="checkbox-group">
+              <label *ngFor="let option of attributeOptions[attr.id!]">
+                <input type="checkbox" [value]="option" [checked]="selectedAttributeOptions[attr.id!]?.includes(option)" (change)="onAttributeOptionChange(attr.id!, option, $event)" />
+                <span class="option-text">{{ option }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Variants Table -->
+        <div class="variants-table-container" *ngIf="variantCombinations.length > 0">
+          <h4>Generated Variants</h4>
+          <div class="table-wrapper">
+            <table class="variants-table">
+              <thead>
+                <tr>
+                  <th *ngFor="let attr of attributes">{{ attr.name }}</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Purchase Price</th>
+                  <th>Photos</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let variant of variantCombinations; let i = index">
+                  <td *ngFor="let attr of attributes">{{ variant.attributes[attr.id!] || "-" }}</td>
+                  <td><input type="number" [(ngModel)]="variant.price" [name]="'price_' + i" class="form-input" step="0.01" /></td>
+                  <td><input type="number" [(ngModel)]="variant.stock" [name]="'stock_' + i" class="form-input" /></td>
+                  <td><input type="number" [(ngModel)]="variant.purchasePrice" [name]="'purchasePrice_' + i" class="form-input" step="0.01" /></td>
+                  <td>
+                    <div class="variant-photos">
+                      <input type="file" (change)="onVariantPhotosSelected($event, i)" accept="image/*" multiple class="form-input" />
+                      <div class="photo-preview-grid" *ngIf="variantPreviews['variant_' + i]?.length">
+                        <div class="photo-preview-item" *ngFor="let preview of variantPreviews['variant_' + i]; let photoIndex = index">
+                          <img [src]="preview" alt="Variant photo preview" />
+                          <button type="button" class="remove-photo-btn" (click)="removeVariantPhoto(i, photoIndex)">
+                            <i class="fa fa-times"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <button type="button" class="btn-remove-variant" (click)="removeVariant(i)">
+                      <i class="fa fa-trash"></i>
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Section -->
+      <div class="submit-section">
+        <button type="submit" class="btn-primary" [disabled]="productForm.invalid">
+          <i class="fa fa-save"></i>
+          Save Product
+        </button>
+      </div>
+    </form>
   </div>
 </div>

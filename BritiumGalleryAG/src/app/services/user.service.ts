@@ -79,8 +79,23 @@ export class UserService {
   }
 
   logout(): void {
-    localStorage.removeItem('loggedInUser');
-    this.userSubject.next(null);
+    const user = this.userSubject.value;
+    if (user && user.id) {
+      this.http.post(`${this.userBase}/logout`, { userId: user.id }).subscribe({
+        complete: () => {
+          localStorage.removeItem('loggedInUser');
+          this.userSubject.next(null);
+        },
+        error: () => {
+          // Even if the backend fails, clear local state
+          localStorage.removeItem('loggedInUser');
+          this.userSubject.next(null);
+        }
+      });
+    } else {
+      localStorage.removeItem('loggedInUser');
+      this.userSubject.next(null);
+    }
   }
 
   updateUserProfile(user: User, imageFile?: File): Observable<User> {
@@ -125,5 +140,13 @@ export class UserService {
 
   getPeopleById(id: number): Observable<People> {
     return this.http.get<People>(`${this.userBase}/people/${id}`);
+  }
+
+  startHeartbeat() {
+    const user = this.userSubject.value;
+    if (!user) return;
+    setInterval(() => {
+      this.http.post('http://localhost:8080/gallery/users/heartbeat', { userId: user.id }).subscribe();
+    }, 30000);
   }
 }

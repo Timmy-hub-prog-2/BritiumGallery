@@ -18,6 +18,8 @@ import com.maven.demo.entity.AddressEntity;
 import com.maven.demo.entity.UserEntity;
 import com.maven.demo.repository.ShopAddressRepository;
 import com.maven.demo.repository.UserRepository;
+import com.maven.demo.entity.UserOnlineStatusEntity;
+import com.maven.demo.repository.UserOnlineStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class UserServiceImpl implements UserService1 {
@@ -38,6 +41,8 @@ public class UserServiceImpl implements UserService1 {
     private final ShopAddressRepository shopAddressRepository;
     private final UserRepository userRepository;
     private CloudinaryUploadService cloudinaryUploadService;
+    @Autowired
+    private UserOnlineStatusRepository userOnlineStatusRepository;
 
     @Autowired
     public UserServiceImpl(ShopAddressRepository shopAddressRepository, UserRepository userRepository) {
@@ -98,6 +103,28 @@ public class UserServiceImpl implements UserService1 {
             AddressDTO addressDTO = mapToAddressDTO(address);
             dto.setAddress(addressDTO);
         });
+
+        // --- Online status ---
+        UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user);
+        if (status != null) {
+            dto.setIsOnline(status.isOnline());
+            if (status.isOnline()) {
+                if (status.getUpdatedAt() != null) {
+                    dto.setLastSeenAt(status.getUpdatedAt().format(DateTimeFormatter.ISO_DATE_TIME));
+                }
+            } else {
+                if (status.getLastOnlineAt() != null) {
+                    dto.setLastSeenAt(status.getLastOnlineAt().format(DateTimeFormatter.ISO_DATE_TIME));
+                } else if (status.getUpdatedAt() != null) {
+                    dto.setLastSeenAt(status.getUpdatedAt().format(DateTimeFormatter.ISO_DATE_TIME));
+                } else {
+                    dto.setLastSeenAt(null);
+                }
+            }
+        } else {
+            dto.setIsOnline(false);
+            dto.setLastSeenAt(null);
+        }
 
         return dto;
     }

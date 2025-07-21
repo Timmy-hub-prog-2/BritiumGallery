@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { UserService } from './services/user.service';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +12,7 @@ export class AppComponent implements OnInit {
   title = 'BritiumGalleryAG';
   roleId: number | null = null;
 
-  constructor(public router: Router) {}
+  constructor(public router: Router, private userService: UserService) {}
 
   get isHomePage(): boolean {
     return this.router.url === '/customer-homepage';
@@ -27,5 +28,6 @@ export class AppComponent implements OnInit {
         console.error('Failed to parse loggedInUser', error);
       }
     }
+    this.userService.startHeartbeat();
   }
 }

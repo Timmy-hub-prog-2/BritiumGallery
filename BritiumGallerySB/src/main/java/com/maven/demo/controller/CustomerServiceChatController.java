@@ -59,6 +59,35 @@ public class CustomerServiceChatController {
         return ResponseEntity.ok(session.getId());
     }
 
+    @PostMapping("/sessions/{sessionId}/close")
+    public ResponseEntity<?> closeSession(@PathVariable Long sessionId, @RequestParam Long userId) {
+        Optional<CustomerServiceSessionEntity> sessionOpt = sessionRepository.findById(sessionId);
+        if (sessionOpt.isEmpty()) return ResponseEntity.notFound().build();
+        CustomerServiceSessionEntity session = sessionOpt.get();
+        session.setStatus(com.maven.demo.entity.SessionStatus.CLOSED);
+        session.setClosedAt(LocalDateTime.now());
+        session.setClosedBy(userId);
+        sessionRepository.save(session);
+        messagingTemplate.convertAndSend("/topic/chat.session." + sessionId, new SessionClosedEvent(sessionId, userId));
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/sessions/{sessionId}/reopen")
+    public ResponseEntity<?> reopenSession(@PathVariable Long sessionId) {
+        Optional<CustomerServiceSessionEntity> sessionOpt = sessionRepository.findById(sessionId);
+        if (sessionOpt.isEmpty()) return ResponseEntity.notFound().build();
+        CustomerServiceSessionEntity session = sessionOpt.get();
+        if (session.getClosedAt() != null && session.getClosedAt().isAfter(LocalDateTime.now().minusHours(48))) {
+            session.setStatus(com.maven.demo.entity.SessionStatus.OPEN);
+            session.setClosedAt(null);
+            session.setClosedBy(null);
+            sessionRepository.save(session);
+            messagingTemplate.convertAndSend("/topic/chat.session." + sessionId, new SessionReopenedEvent(sessionId));
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.status(403).body("Reopen window expired");
+    }
+
     // WebSocket endpoint for sending/receiving messages
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessage chatMessage) {
@@ -70,6 +99,11 @@ public class CustomerServiceChatController {
             return;
         }
         CustomerServiceSessionEntity session = sessionOpt.get();
+        if (session.getStatus() == com.maven.demo.entity.SessionStatus.CLOSED) {
+            // Optionally send error event
+            messagingTemplate.convertAndSend("/topic/chat.session." + session.getId(), new SessionClosedEvent(session.getId(), null));
+            return;
+        }
         // Find sender
         Optional<UserEntity> senderOpt = userRepository.findById(chatMessage.getSenderId());
         if (senderOpt.isEmpty()) {
@@ -294,7 +328,7 @@ public class CustomerServiceChatController {
     @GetMapping("/unassigned-sessions")
     public ResponseEntity<?> getUnassignedSessions() {
         var sessions = sessionRepository.findAll().stream()
-            .filter(s -> s.getAssignedAgent() == null && s.getStatus() != null && s.getStatus().name().equals("OPEN"))
+            .filter(s -> s.getAssignedAgent() == null && s.getStatus() != null /*&& s.getStatus().name().equals("OPEN")*/)
             .map(s -> {
                 String lastMessage = null;
                 String lastMessageTime = null;
@@ -333,7 +367,7 @@ public class CustomerServiceChatController {
     public ResponseEntity<?> getAssignedSessions(@PathVariable Long agentId) {
         var sessions = sessionRepository.findAll().stream()
             .filter(s -> s.getAssignedAgent() != null && Objects.equals(s.getAssignedAgent().getId(), agentId)
-                && s.getStatus() != null && s.getStatus().name().equals("OPEN"))
+                && s.getStatus() != null /*&& s.getStatus().name().equals("OPEN")*/)
             .map(s -> {
                 // Get last message
                 String lastMessage = null;
@@ -448,5 +482,18 @@ public class CustomerServiceChatController {
     public void typingEvent(@Payload TypingEvent event) {
         // Broadcast typing event to session topic
         messagingTemplate.convertAndSend("/topic/chat.session." + event.getSessionId(), event);
+    }
+
+    public static class SessionClosedEvent {
+        public Long sessionId;
+        public Long closedBy;
+        public SessionClosedEvent(Long sessionId, Long closedBy) {
+            this.sessionId = sessionId;
+            this.closedBy = closedBy;
+        }
+    }
+    public static class SessionReopenedEvent {
+        public Long sessionId;
+        public SessionReopenedEvent(Long sessionId) { this.sessionId = sessionId; }
     }
 } 

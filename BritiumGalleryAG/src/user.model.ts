@@ -27,5 +27,7 @@ export interface User {
   address?: string;
   customerType?: string;
   totalSpend?: number;
+  isOnline?: boolean;
+  lastSeenAt?: string;
 }
 

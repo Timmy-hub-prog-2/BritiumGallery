@@ -15,6 +15,7 @@ export class ChangePasswordComponent {
   confirmPassword = '';
   errorMessage = '';
   successMessage = '';
+  loading = false;
   userId!: number;
 
   constructor(
@@ -32,17 +33,37 @@ export class ChangePasswordComponent {
     }
   }
 
+  clearMessages() {
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  hasUppercase(): boolean {
+    return !!(this.newPassword && /[A-Z]/.test(this.newPassword));
+  }
+
+  hasLowercase(): boolean {
+    return !!(this.newPassword && /[a-z]/.test(this.newPassword));
+  }
+
+  hasNumber(): boolean {
+    return !!(this.newPassword && /[0-9]/.test(this.newPassword));
+  }
+
   changePassword() {
     this.errorMessage = '';
     this.successMessage = '';
+    this.loading = true;
 
     if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
       this.errorMessage = 'Please fill all fields.';
+      this.loading = false;
       return;
     }
 
     if (this.newPassword !== this.confirmPassword) {
       this.errorMessage = "New password and confirm password don't match.";
+      this.loading = false;
       return;
     }
 
@@ -67,11 +88,13 @@ export class ChangePasswordComponent {
           this.currentPassword = '';
           this.newPassword = '';
           this.confirmPassword = '';
+          this.loading = false;
         },
         error: (err: any) => {
           console.log('Change password error full:', err);
           this.errorMessage =
             err.error || 'Failed to change password. Try again.';
+          this.loading = false;
         },
       });
   }

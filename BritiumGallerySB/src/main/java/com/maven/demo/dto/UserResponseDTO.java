@@ -18,4 +18,11 @@ public class UserResponseDTO {
     private String roleName;
     private String customerType;
     private Integer totalSpend;
+    private Boolean isOnline;
+    private String lastSeenAt;
+
+    public Boolean getIsOnline() { return isOnline; }
+    public void setIsOnline(Boolean isOnline) { this.isOnline = isOnline; }
+    public String getLastSeenAt() { return lastSeenAt; }
+    public void setLastSeenAt(String lastSeenAt) { this.lastSeenAt = lastSeenAt; }
 }

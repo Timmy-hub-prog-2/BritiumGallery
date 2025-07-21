@@ -8,7 +8,7 @@
         <!-- Contact Information -->
         <div class="form-card">
           <div class="card-header">
-            <div class="step-number">1</div>
+            <div class="step-number"><i class="fa fa-user"></i></div>
             <div class="step-info">
               <h2 class="step-title">Contact Information</h2>
               <p class="step-subtitle">Your personal details</p>
@@ -37,7 +37,7 @@
         <!-- Shipping Address -->
         <div class="form-card">
           <div class="card-header">
-            <div class="step-number step-2">2</div>
+            <div class="step-number"><i class="fa fa-location-dot"></i></div>
             <div class="step-info">
               <h2 class="step-title">Delivery Address</h2>
               <p class="step-subtitle">Where should we deliver your order?</p>
@@ -50,7 +50,7 @@
               <div class="address-display">
                 <input id="mainAddress" type="text" [value]="mainAddress" readonly class="form-input address-input" />
                 <button type="button" class="edit-btn" (click)="editAddress()">
-                  <span class="edit-icon">✏️</span>
+                  <i class="fa fa-pen"></i>
                   Edit
                 </button>
               </div>
@@ -58,7 +58,7 @@
 
             <div class="form-group">
               <button type="button" class="address-toggle-btn" (click)="openAddressModal()">
-                <span class="address-icon">📍</span>
+                <i class="fa fa-map-marker-alt"></i>
                 Show All Addresses
               </button>
             </div>
@@ -68,7 +68,7 @@
         <!-- Shipping Method -->
         <div class="form-card">
           <div class="card-header">
-            <div class="step-number step-3">3</div>
+            <div class="step-number"><i class="fa fa-truck"></i></div>
             <div class="step-info">
               <h2 class="step-title">Shipping Method</h2>
               <p class="step-subtitle">Choose your preferred delivery speed</p>
@@ -76,7 +76,6 @@
           </div>
 
           <div class="form-content">
-            <div>suggestedMethod: {{ suggestedMethod }}</div>
             <div class="form-group">
               <label for="shippingMethod" class="form-label">Choose Shipping Method</label>
               <select id="shippingMethod" formControlName="shippingMethod" class="form-select">
@@ -102,7 +101,7 @@
             <!-- Auto-selected Shipping Notice -->
             <div class="form-group" *ngIf="methodAutoChanged">
               <div class="shipping-notice">
-                <span class="notice-icon">📢</span>
+                <i class="fa fa-info-circle notice-icon"></i>
                 <span class="notice-text">
                   Delivery method changed to <strong>{{ checkoutForm.get('shippingMethod')?.value }}</strong>
                   based on your address distance.
@@ -140,7 +139,7 @@
         </div>
 
         <button type="submit" class="place-order-btn" [disabled]="!isFormValid()">
-          <span class="btn-icon">🛒</span>
+          <i class="fa fa-shopping-cart btn-icon"></i>
           <span>Place Order & Continue to Payment</span>
         </button>
       </form>
@@ -151,7 +150,7 @@
       <!-- Promo Code -->
     <div class="summary-card promo-card">
       <div class="card-header-small">
-        <div class="promo-icon">🏷️</div>
+        <div class="promo-icon"><i class="fa fa-tag"></i></div>
         <div>
           <h3 class="card-title">Promo Code</h3>
           <p class="card-subtitle">Apply discount code</p>
@@ -177,7 +176,7 @@
     <!-- Order Summary -->
     <div class="summary-card order-summary-card">
       <div class="card-header-small">
-        <div class="summary-icon">🛍️</div>
+        <div class="summary-icon"><i class="fa fa-cart-shopping"></i></div>
         <div>
           <h3 class="card-title">Cart Summary</h3>
           <p class="card-subtitle">Review your items</p>
@@ -231,7 +230,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h3 class="modal-title">My Addresses</h3>
-        <button class="close-btn" (click)="closeAddressModal()">×</button>
+        <button class="close-btn" (click)="closeAddressModal()"><i class="fa fa-times"></i></button>
       </div>
       <div class="modal-body">
         <div *ngFor="let address of addresses" class="address-card">
@@ -245,11 +244,11 @@
                   class="set-main-btn"
                   (click)="setAsMain(address.id!)"
                   title="Set as Main Address">
-            ⭐ Set as Main
+            <i class="fa fa-star"></i> Set as Main
           </button>
 
           <span *ngIf="address.id === mainAddressId" class="main-label" title="Main Address">
-            🏠 Main Address
+            <i class="fa fa-home"></i> Main Address
           </span>
         </div>
       </div>
@@ -261,7 +260,7 @@
     <div class="modal-content order-items-modal">
       <div class="modal-header">
         <h3 class="modal-title">Cart Items</h3>
-        <button class="close-btn" (click)="showOrderItemsModal = false">×</button>
+        <button class="close-btn" (click)="showOrderItemsModal = false"><i class="fa fa-times"></i></button>
       </div>
       <div class="modal-body">
         <ul class="order-items-list">
@@ -277,11 +276,11 @@
               </div>
               <div>Quantity: {{item.quantity}}</div>
               <div class="price-display">
-                <ng-container *ngIf="getItemDiscountedPrice(item); else noDiscount">
+                <ng-container *ngIf="getItemDiscountPercent(item) && getItemDiscountedPrice(item) < item.price; else noDiscount">
                   <span style="text-decoration: line-through; color: #888; font-size: 0.9em; margin-right: 6px;">
                     {{item.price | number:'1.0-0'}} MMK
                   </span>
-                  <span *ngIf="getItemDiscountPercent(item)" style="background: #ffeaea; color: #d32f2f; font-size: 0.85em; font-weight: 600; border-radius: 6px; padding: 1px 6px; margin-right: 6px;">
+                  <span style="background: #f5f5f5; color: #222; font-size: 0.85em; font-weight: 600; border-radius: 6px; padding: 1px 6px; margin-right: 6px;">
                     -{{getItemDiscountPercent(item) | number:'1.0-0'}}%
                   </span>
                   <span style="color: #111; font-weight: 700; font-size: 1.05em;">
@@ -289,7 +288,7 @@
                   </span>
                 </ng-container>
                 <ng-template #noDiscount>
-                  {{item.price | number:'1.0-0'}} MMK
+                  {{getItemDiscountedPrice(item) | number:'1.0-0'}} MMK
                 </ng-template>
               </div>
               <div class="item-total">

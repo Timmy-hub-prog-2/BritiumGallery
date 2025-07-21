@@ -31,6 +31,9 @@ import com.maven.demo.dto.UserDTO;
 import com.maven.demo.dto.UserResponseDTO;
 import com.maven.demo.entity.AddressEntity;
 import com.maven.demo.entity.UserEntity;
+import com.maven.demo.entity.UserOnlineStatusEntity;
+import com.maven.demo.repository.UserOnlineStatusRepository;
+import com.maven.demo.repository.UserRepository;
 import com.maven.demo.service.AddressService;
 import com.maven.demo.service.CloudinaryUploadService;
 import com.maven.demo.service.UserService;
@@ -48,6 +51,7 @@ import com.maven.demo.service.UserService1;
 
     import java.io.IOException;
     import java.util.*;
+    import java.time.LocalDateTime;
 
     @CrossOrigin(origins = "http://localhost:4200")
     @RestController
@@ -65,6 +69,11 @@ import com.maven.demo.service.UserService1;
 
         @Autowired
         private UserService1 userService1;
+
+        @Autowired
+        private UserRepository userRepository;
+        @Autowired
+        private UserOnlineStatusRepository userOnlineStatusRepository;
 
         @PostMapping("/register")
         public ResponseEntity<Map<String, String>> registerUser(
@@ -174,6 +183,27 @@ import com.maven.demo.service.UserService1;
                 addr.longitude = mainAddr.getLongitude();
                 dto.address = addr;
             }
+            // Set online status
+            UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user);
+            if (status != null) {
+                dto.setIsOnline(status.isOnline());
+                if (status.isOnline()) {
+                    if (status.getUpdatedAt() != null) {
+                        dto.setLastSeenAt(status.getUpdatedAt().format(java.time.format.DateTimeFormatter.ISO_DATE_TIME));
+                    }
+                } else {
+                    if (status.getLastOnlineAt() != null) {
+                        dto.setLastSeenAt(status.getLastOnlineAt().format(java.time.format.DateTimeFormatter.ISO_DATE_TIME));
+                    } else if (status.getUpdatedAt() != null) {
+                        dto.setLastSeenAt(status.getUpdatedAt().format(java.time.format.DateTimeFormatter.ISO_DATE_TIME));
+                    } else {
+                        dto.setLastSeenAt(null);
+                    }
+                }
+            } else {
+                dto.setIsOnline(false);
+                dto.setLastSeenAt(null);
+            }
             return ResponseEntity.ok(dto);
         }
 
@@ -256,6 +286,41 @@ import com.maven.demo.service.UserService1;
 
             userService.validateVerificationCode(request.getCode(), request.getNewPassword());
             return ResponseEntity.ok("Password has been reset");
+        }
+
+        @PostMapping("/heartbeat")
+        public ResponseEntity<?> heartbeat(@RequestBody Map<String, Long> body) {
+            Long userId = body.get("userId");
+            if (userId == null) return ResponseEntity.badRequest().body("Missing userId");
+            UserEntity user = userRepository.findById(userId).orElse(null);
+            if (user == null) return ResponseEntity.badRequest().body("User not found");
+            UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user);
+            if (status == null) {
+                status = new UserOnlineStatusEntity();
+                status.setUser(user);
+            }
+            status.setOnline(true);
+            status.setUpdatedAt(LocalDateTime.now());
+            userOnlineStatusRepository.save(status);
+            return ResponseEntity.ok().build();
+        }
+
+        @PostMapping("/logout")
+        public ResponseEntity<?> logout(@RequestBody Map<String, Long> body) {
+            Long userId = body.get("userId");
+            if (userId == null) return ResponseEntity.badRequest().body("Missing userId");
+            UserEntity user = userRepository.findById(userId).orElse(null);
+            if (user == null) return ResponseEntity.badRequest().body("User not found");
+            UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user);
+            if (status == null) {
+                status = new UserOnlineStatusEntity();
+                status.setUser(user);
+            }
+            status.setOnline(false);
+            status.setLastOnlineAt(java.time.LocalDateTime.now());
+            status.setUpdatedAt(java.time.LocalDateTime.now());
+            userOnlineStatusRepository.save(status);
+            return ResponseEntity.ok().build();
         }
 
 

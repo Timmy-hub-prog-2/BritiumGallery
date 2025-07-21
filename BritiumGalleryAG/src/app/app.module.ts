@@ -196,7 +196,8 @@ import { ShopMapViewComponent } from './shop-map-view/shop-map-view.component';
     BlogDetailComponent,
     CustomerMessageComponent,
     AdminMessageComponent,
-    ShopMapViewComponent
+    ShopMapViewComponent,
+    
   ],
   imports: [
     BrowserModule,

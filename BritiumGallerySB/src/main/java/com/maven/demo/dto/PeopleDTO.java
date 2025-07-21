@@ -8,9 +8,14 @@ public class PeopleDTO {
     public String phoneNumber;
     public String profilePic;
     public String customerType;
-    public String dob;
-    public String insurance;
+    private Boolean isOnline;
+    private String lastSeenAt;
     public Address address;
+
+    public Boolean getIsOnline() { return isOnline; }
+    public void setIsOnline(Boolean isOnline) { this.isOnline = isOnline; }
+    public String getLastSeenAt() { return lastSeenAt; }
+    public void setLastSeenAt(String lastSeenAt) { this.lastSeenAt = lastSeenAt; }
 
     public static class Address {
         public String houseNumber;

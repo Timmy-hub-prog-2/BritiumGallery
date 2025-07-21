@@ -18,10 +18,25 @@ export class AdminOrderDetailComponent implements OnInit {
   showAllItemsModal = false;
   showRejectModal = false;
   rejectReason = '';
+  selectedRejectReason = '';
+  showCustomReason = false;
   nextStatus = 'SHIPPED';
   showStatusModal = false;
   statusComment = '';
   showStatusForm = false;
+
+  // Predefined rejection reasons
+  readonly predefinedRejectReasons = [
+    'Out of stock',
+    'Invalid delivery address',
+    'Payment verification failed',
+    'Item no longer available',
+    'Delivery area not supported',
+    'Order exceeds delivery limits',
+    'Suspicious order activity',
+    'Customer requested cancellation',
+    'Other'
+  ];
 
   constructor(private route: ActivatedRoute, private orderService: OrderService) {}
 
@@ -85,14 +100,36 @@ export class AdminOrderDetailComponent implements OnInit {
     this.updateOrderStatus('ACCEPTED');
   }
 
+  openRejectModal() {
+    this.showRejectModal = true;
+    this.selectedRejectReason = '';
+    this.rejectReason = '';
+    this.showCustomReason = false;
+  }
+
+  onRejectReasonChange() {
+    if (this.selectedRejectReason === 'Other') {
+      this.showCustomReason = true;
+      this.rejectReason = '';
+    } else {
+      this.showCustomReason = false;
+      this.rejectReason = this.selectedRejectReason;
+    }
+  }
+
   rejectOrder() {
-    if (!this.rejectReason.trim()) {
-      alert('Please enter a reason for rejection.');
+    const finalReason = this.showCustomReason ? this.rejectReason : this.selectedRejectReason;
+    
+    if (!finalReason.trim()) {
+      alert('Please select or enter a reason for rejection.');
       return;
     }
-    this.updateOrderStatus('CANCELLED', this.rejectReason);
+    
+    this.updateOrderStatus('CANCELLED', finalReason);
     this.showRejectModal = false;
     this.rejectReason = '';
+    this.selectedRejectReason = '';
+    this.showCustomReason = false;
   }
 
   updateOrderStatus(newStatus: string, reason?: string) {
@@ -140,6 +177,5 @@ export class AdminOrderDetailComponent implements OnInit {
   getItemSubtotal(item: any): number {
     return item.quantity * this.getDiscountedPrice(item);
   }
-
 
 }

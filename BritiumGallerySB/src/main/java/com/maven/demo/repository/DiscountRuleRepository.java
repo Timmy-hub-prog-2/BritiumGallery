@@ -31,4 +31,13 @@ public interface DiscountRuleRepository extends JpaRepository<DiscountRule, Long
     // Find active discount rules for a specific brand (both rule and event must be active)
     @Query("SELECT r FROM DiscountRule r WHERE r.brandId = :brandId AND r.active = true AND r.event.active = true")
     List<DiscountRule> findActiveBrandDiscounts(@Param("brandId") Long brandId);
+
+    // Find all discount rules for a specific category (active or not)
+    List<DiscountRule> findByCategoryId(Long categoryId);
+
+    // Find all discount rules for a specific product (active or not)
+    List<DiscountRule> findByProductId(Long productId);
+
+    // Find all discount rules for a specific product variant (active or not)
+    List<DiscountRule> findByProductVariantId(Long productVariantId);
 }

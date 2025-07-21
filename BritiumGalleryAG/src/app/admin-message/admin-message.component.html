@@ -17,10 +17,11 @@
         Assigned Conversations
       </div>
       <ul class="session-list-items">
-        <li *ngFor="let session of assignedSessions" 
-            (click)="selectSession(session)" 
-            [class.selected]="selectedSession && selectedSession.id === session.id" 
+        <li *ngFor="let session of assignedSessions; trackBy: trackBySessionId"
+            (click)="selectSession(session)"
+            [class.selected]="selectedSession && selectedSession.id === session.id"
             [class.unread-session]="session.unreadCount > 0"
+            [class.closed]="session.status === 'CLOSED'"
             class="session-item">
           <div class="session-avatar">
             <ng-container *ngIf="session.profilePic || (selectedSession && selectedSession.id === session.id && selectedUser?.profilePic); else sessionInitial">
@@ -28,11 +29,18 @@
             </ng-container>
             <ng-template #sessionInitial>{{ session.customerName || 'Unknown' | slice:0:1 }}</ng-template>
             <div *ngIf="session.unreadCount > 0" class="online-indicator"></div>
+           
           </div>
           <div class="session-info">
             <div class="session-name" [class.unread-name]="session.unreadCount > 0">{{ session.customerName || 'Unknown' }}</div>
             <div class="session-preview">{{ session.lastMessage || 'No messages yet' }}</div>
             <div class="session-time session-list-time">{{ session.lastMessageTime ? (session.lastMessageTime | date:'h:mm a, dd/MM/yyyy') : '' }}</div>
+            <div class="session-status" *ngIf="getSessionUser(session)">
+              <div class="status-indicator-list" [class.online]="getSessionUser(session)?.isOnline" [class.offline]="!getSessionUser(session)?.isOnline"></div>
+              <span class="status-text" [class.online-text]="getSessionUser(session)?.isOnline" [class.offline-text]="!getSessionUser(session)?.isOnline">
+                {{ getOnlineStatus(getSessionUser(session)) }}
+              </span>
+            </div>
           </div>
           <div class="session-meta">
             <span *ngIf="session.unreadCount > 0" class="unread-badge">{{ session.unreadCount }}</span>
@@ -49,10 +57,11 @@
         Unassigned Conversations
       </div>
       <ul class="session-list-items">
-        <li *ngFor="let session of sessions" 
-            (click)="selectSession(session)" 
-            [class.selected]="selectedSession && selectedSession.id === session.id" 
+        <li *ngFor="let session of sessions; trackBy: trackBySessionId"
+            (click)="selectSession(session)"
+            [class.selected]="selectedSession && selectedSession.id === session.id"
             [class.unread-session]="session.unreadCount > 0"
+            [class.closed]="session.status === 'CLOSED'"
             class="session-item">
           <div class="session-avatar">
             <ng-container *ngIf="session.profilePic || (selectedSession && selectedSession.id === session.id && selectedUser?.profilePic); else sessionInitial">
@@ -60,6 +69,7 @@
             </ng-container>
             <ng-template #sessionInitial>{{ session.customerName || 'Unknown' | slice:0:1 }}</ng-template>
             <div *ngIf="session.unreadCount > 0" class="online-indicator"></div>
+            <span *ngIf="session.status === 'CLOSED'" class="closed-badge">Closed</span>
           </div>
           <div class="session-info">
             <div class="session-name" [class.unread-name]="session.unreadCount > 0">{{ session.customerName || 'Unknown' }}</div>
@@ -80,16 +90,16 @@
       <div class="chat-header">
         
         <div class="chat-header-left">
-          <span class="chat-header-avatar">
+          <span class="chat-header-avatar" style="position: relative;">
             <ng-container *ngIf="selectedUser?.profilePic; else chatHeaderInitial">
               <img [src]="selectedUser?.profilePic" alt="avatar" />
+              <div class="status-indicator header" [class.online]="selectedUser?.isOnline" [class.offline]="!selectedUser?.isOnline"></div>
             </ng-container>
             <ng-template #chatHeaderInitial>{{ selectedSession?.customerName || 'Unknown' | slice:0:1 }}</ng-template>
-            <div class="status-indicator online"></div>
           </span>
           <div class="chat-header-info">
             <span class="chat-header-name">{{ selectedSession?.customerName || 'Unknown' }}</span>
-            <span class="chat-header-status">Active now</span>
+            <span class="chat-header-status" [class.offline-text]="!selectedUser?.isOnline">{{ getOnlineStatus(selectedUser) }}</span>
           </div>
         </div>
         
@@ -215,7 +225,15 @@
         </div>
       </div>
 
-      <div class="message-input-container">
+      <div *ngIf="selectedSession && selectedSession.status === 'OPEN' && selectedSession.assignedAgentId === currentAdminId" class="session-action-bar">
+        <button (click)="closeSession()" class="close-session-btn">Close Conversation</button>
+      </div>
+      <div *ngIf="selectedSession && selectedSession.status === 'CLOSED'" class="session-closed-msg">
+        This chat is closed. You can start a new conversation anytime.
+        <button *ngIf="canReopenSession" (click)="reopenSession()" class="reopen-session-btn">Reopen Conversation</button>
+      </div>
+
+      <div class="message-input-container" *ngIf="!selectedSession || selectedSession.status !== 'CLOSED'">
         <div class="message-input-wrapper">
           <button class="attachment-btn" title="Attach file">
             <svg viewBox="0 0 24 24">
@@ -263,41 +281,15 @@
             <img [src]="selectedUser.profilePic" alt="avatar" />
           </ng-container>
           <ng-template #initialAvatar>{{ selectedUser.name ? selectedUser.name[0] : '?' }}</ng-template>
-          <div class="status-badge online"></div>
+          <div class="status-badge" [class.online]="selectedUser?.isOnline" [class.offline]="!selectedUser?.isOnline"></div>
         </span>
         <div class="user-basic-info">
           <div class="user-name">{{ selectedUser.name }}</div>
           <div class="user-type" *ngIf="selectedUser.customerType">{{ selectedUser.customerType }}</div>
-          <div class="user-status">Active now</div>
+          <div class="user-status" [class.offline-text]="!selectedUser?.isOnline">{{ getOnlineStatus(selectedUser) }}</div>
         </div>
       </div>
-
-      <div class="button-bar">
-        <button class="call-btn action-button">
-          <svg viewBox="0 0 24 24">
-            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-          </svg>
-          Call
-        </button>
-        <button class="msg-btn action-button">
-          <svg viewBox="0 0 24 24">
-            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-          </svg>
-          Message
-        </button>
-        <button class="menu-btn action-button">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-          </svg>
-        </button>
-      </div>
-
-      <button class="external-btn">
-        <svg viewBox="0 0 24 24">
-          <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
-        </svg>
-        Open in PioneerRX
-      </button>
+      
     </div>
 
     <hr class="divider" />

@@ -30,7 +30,7 @@ export class LoginComponent {
 
       // Redirect based on role
       if (user.roleId === 3) {
-        this.router.navigate(['/customer-dashboard']).then(() => {
+        this.router.navigate(['/customer-homepage']).then(() => {
           window.location.reload();
         });
       } else if (user.roleId === 2) {

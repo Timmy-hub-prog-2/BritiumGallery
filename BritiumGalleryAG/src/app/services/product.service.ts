@@ -1,9 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ProductRequest } from '../product-request.model';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
 import { ProductResponse, VariantResponse } from '../ProductResponse';
 import { Product } from '../Product';
+import { map, mergeMap, catchError } from 'rxjs/operators';
+import { CategoryService } from '../category.service';
 
 export interface ProductRecommendation {
   productId: number;
@@ -18,7 +20,10 @@ export class ProductService {
 
   baseUrl = "http://localhost:8080/product";
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private categoryService: CategoryService
+  ) {}
 
   saveProductWithFiles(formData: FormData): Observable<any> {
     return this.http.post(`${this.baseUrl}/saveWithFiles`, formData, {
@@ -28,6 +33,37 @@ export class ProductService {
 
   getProductsByCategory(categoryId: number): Observable<ProductResponse[]> {
     return this.http.get<ProductResponse[]>(`${this.baseUrl}/by-category/${categoryId}`);
+  }
+
+  getAllProductsUnderCategory(categoryId: number): Observable<ProductResponse[]> {
+    // First get all subcategories recursively
+    return this.categoryService.getAllSubCategories(categoryId).pipe(
+      mergeMap(categories => {
+        // Get products for each category including the parent
+        const categoryIds = [categoryId, ...categories.map(c => c.id)];
+        const productObservables = categoryIds.map(id =>
+          this.getProductsByCategory(id).pipe(
+            catchError(() => of([])) // Handle errors for individual requests
+          )
+        );
+
+        // Combine all results
+        return forkJoin(productObservables).pipe(
+          map(results => {
+            // Flatten the array and remove duplicates
+            const allProducts: ProductResponse[] = [];
+            results.forEach(products => {
+              products.forEach(product => {
+                if (!allProducts.find(p => p.id === product.id)) {
+                  allProducts.push(product);
+                }
+              });
+            });
+            return allProducts;
+          })
+        );
+      })
+    );
   }
 
   getProductsByParentCategory(parentCategoryId: number): Observable<Product[]> {

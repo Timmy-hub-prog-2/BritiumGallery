@@ -1,30 +1,86 @@
 
-<form (ngSubmit)="createAdmin()" #adminForm="ngForm">
-  <h2 class="form-title">Admin Management</h2>
-  <!-- <h2 class="form-title">Create and manage administrators for your system.</h2> -->
+<div class="admin-container">
+  <div class="admin-card">
+    <div class="form-header">
+      <div class="header-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 20V18C6 16.9 6.9 16 8 16H16C17.1 16 18 16.9 18 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M19 7H21C22.1 7 23 7.9 23 9V11C23 12.1 22.1 13 21 13H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 7H3C1.9 7 1 7.9 1 9V11C1 12.1 1.9 13 3 13H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 class="form-title">Admin Management</h2>
+      <p class="form-subtitle">Create and manage administrators for your system.</p>
+    </div>
 
+    <form (ngSubmit)="createAdmin()" #adminForm="ngForm" autocomplete="off">
+      <div class="form-group">
+        <label for="name">
+          <div class="input-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          Name
+        </label>
+        <input type="text" id="name" [(ngModel)]="userDto.name" name="name" required placeholder="Enter full name" />
+      </div>
 
-  <div>
-    <label for="name">Name:</label>
-    <input type="text" id="name" [(ngModel)]="userDto.name" name="name" required />
+      <div class="form-group">
+        <label for="email">
+          <div class="input-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M22 6L12 13L2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          Email
+        </label>
+        <input type="email" id="email" [(ngModel)]="userDto.email" name="email" required placeholder="Enter email address" />
+      </div>
+
+      <div class="form-group">
+        <label for="phone">
+          <div class="input-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 2H7C5.9 2 5 2.9 5 4V20C5 21.1 5.9 22 7 22H17C18.1 22 19 21.1 19 20V4C19 2.9 18.1 2 17 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 18H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          Phone Number
+        </label>
+        <input type="tel" id="phone" [(ngModel)]="userDto.phoneNumber" name="phone" required pattern="^[0-9]{7,15}$" placeholder="e.g. 1234567890" />
+      </div>
+
+      <div class="form-group">
+        <label for="role">
+          <div class="input-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 7H18C19.1 7 20 7.9 20 9V19C20 20.1 19.1 21 18 21H6C4.9 21 4 20.1 4 19V9C4 7.9 4.9 7 6 7H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 12L15 9L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M15 9H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          Role
+        </label>
+        <select [(ngModel)]="userDto.roleId" name="role" required>
+          <option value="" disabled selected>Select role</option>
+          <option *ngFor="let role of roles" [value]="role.id">{{ role.type }}</option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" [disabled]="adminForm.invalid">
+          <div class="btn-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          Create Admin
+        </button>
+      </div>
+    </form>
   </div>
-
-  <div>
-    <label for="email">Email:</label>
-    <input type="email" id="email" [(ngModel)]="userDto.email" name="email" required />
-  </div>
-
-  <div>
-    <label for="phone">Phone Number:</label>
-    <input type="tel" id="phone" [(ngModel)]="userDto.phoneNumber" name="phone" required pattern="^[0-9]{7,15}$" />
-  </div>
-
-  <div>
-    <label for="role">Role:</label>
-    <select [(ngModel)]="userDto.roleId" name="role" required>
-      <option *ngFor="let role of roles" [value]="role.id">{{ role.type }}</option>
-    </select>
-  </div>
-
-  <button type="submit" [disabled]="adminForm.invalid">Create Admin</button>
-</form>
+</div>

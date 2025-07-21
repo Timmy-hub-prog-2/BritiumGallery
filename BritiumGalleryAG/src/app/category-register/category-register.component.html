@@ -1,13 +1,16 @@
 <div class="category-container">
   <div class="category-card">
     <div class="card-header">
-      <h2>Create New Category</h2>
+      <h2><i class="fas fa-folder-plus"></i> Create New Category</h2>
       <p class="subtitle">Define a new category for your artwork collection</p>
     </div>
 
     <form (ngSubmit)="save()" #categoryForm="ngForm" class="category-form">
       <div class="form-group">
-        <label for="name">Category Name</label>
+        <label for="name">
+          <i class="fas fa-tag"></i>
+          Category Name
+        </label>
         <input
           type="text"
           id="name"
@@ -20,21 +23,24 @@
       </div>
 
       <div class="form-group">
-  <label for="image">Category Image</label>
-  <input
-    type="file"
-    id="image"
-    (change)="onFileSelected($event)"
-    class="form-input"
-    accept="image/*"
-  />
-</div>
-
-
+        <label for="image">
+          <i class="fas fa-image"></i>
+          Category Image
+        </label>
+        <div class="file-input-wrapper">
+          <input
+            type="file"
+            id="image"
+            (change)="onFileSelected($event)"
+            class="form-input"
+            accept="image/*"
+          />
+        </div>
+      </div>
 
       <div class="attributes-section">
         <div class="section-header">
-          <h3>Attributes</h3>
+          <h3><i class="fas fa-list"></i> Attributes</h3>
           <button type="button" class="add-button" (click)="addAttribute()">
             <i class="fas fa-plus"></i> Add Attribute
           </button>
@@ -48,35 +54,34 @@
             <div class="attribute-inputs">
               <input
                 type="text"
-                placeholder="Attribute Name"
+                placeholder="Enter attribute name"
                 [(ngModel)]="attr.name"
                 name="name{{ i }}"
                 required
                 class="form-input"
               />
-              <select
-                [(ngModel)]="attr.dataType"
-                name="type{{ i }}"
-                required
-                class="form-select"
-              >
-                <option value="STRING">Text</option>
-                <option value="NUMBER">Number</option>
-                <option value="BOOLEAN">Yes/No</option>
-              </select>
             </div>
             <button
               type="button"
               class="remove-button"
               (click)="removeAttribute(i)"
+              title="Remove attribute"
             >
               <i class="fas fa-times"></i>
             </button>
+          </div>
+
+          <div *ngIf="!category.attributes?.length" class="empty-attributes">
+            <i class="fas fa-info-circle"></i>
+            No attributes added yet. Click "Add Attribute" to start adding attributes.
           </div>
         </div>
       </div>
 
       <div class="form-actions">
+        <button type="button" class="cancel-button" (click)="navigateAfterSave()">
+          <i class="fas fa-times"></i> Cancel
+        </button>
         <button type="submit" class="submit-button" [disabled]="!categoryForm.form.valid">
           <i class="fas fa-save"></i> Create Category
         </button>

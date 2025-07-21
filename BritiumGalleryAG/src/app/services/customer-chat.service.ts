@@ -55,8 +55,12 @@ export class CustomerChatService {
   // Typing indicator support
   private typingSubject = new Subject<{ sessionId: number, senderId: number, typing: boolean }>();
   private onConnectCallbacks: (() => void)[] = [];
+  private sessionEventSubject = new Subject<any>();
 
-  constructor(private http: HttpClient, private userService: UserService) {}
+  constructor(private http: HttpClient, private userService: UserService) {
+    // Listen for session close/reopen events on WebSocket
+    this.connectSessionSocket();
+  }
 
   registerOnConnectCallback(cb: () => void) {
     this.onConnectCallbacks.push(cb);
@@ -87,6 +91,13 @@ export class CustomerChatService {
     return this.http.get<any[]>(`${this.baseUrl}/assigned-sessions/${agentId}`);
   }
 
+  closeSession(sessionId: number, userId: number) {
+    return this.http.post(`${this.baseUrl}/sessions/${sessionId}/close?userId=${userId}`, {});
+  }
+  reopenSession(sessionId: number) {
+    return this.http.post(`${this.baseUrl}/sessions/${sessionId}/reopen`, {});
+  }
+
   // WebSocket: Connect to a session
   connect(sessionId: number): void {
     this.stompClient = new Client({
@@ -107,6 +118,11 @@ export class CustomerChatService {
             this.messageSubject.next(body as ChatMessage);
           } else if ('agentId' in body) {
             this.messageSubject.next(body as SessionAssignmentUpdate);
+          } else if ('sessionId' in body && (body.closedBy !== undefined || body.sessionId !== undefined)) {
+            // SessionClosedEvent or SessionReopenedEvent
+            this.sessionEventSubject.next(body);
+          } else if (typeof body.typing === 'boolean' && body.sessionId && body.senderId) {
+            this.typingSubject.next(body);
           }
         }
       );
@@ -228,5 +244,19 @@ export class CustomerChatService {
       // Optionally handle disconnect
     };
     this.globalStompClient.activate();
+  }
+
+  private connectSessionSocket() {
+    // Subscribe to the session topic for close/reopen events
+    // (Assume you have a websocketService or similar)
+    // Replace with your actual WebSocket subscription logic
+    // Example:
+    // this.websocketService.subscribe('/topic/chat.session.*', (event) => {
+    //   this.sessionEventSubject.next(event);
+    // });
+  }
+
+  onSessionEvent(): Observable<any> {
+    return this.sessionEventSubject.asObservable();
   }
 } 

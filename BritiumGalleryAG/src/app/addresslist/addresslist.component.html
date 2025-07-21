@@ -1,55 +1,66 @@
 <!-- src/app/components/address-list/addresslist.component.html -->
 <div class="address-list-container">
-  <h2>My Addresses</h2>
-
-  <div *ngIf="addresses.length === 0" class="no-addresses">
-    <p>No addresses found.</p>
+  <div class="page-header">
+    <h2><i class="fa fa-location-dot"></i> My Addresses</h2>
     <button class="add-btn" (click)="addNewAddress()" title="Add New Address">
-      ＋ Add New Address
+      <i class="fa fa-plus"></i> Add New Address
     </button>
   </div>
 
-  <div *ngFor="let address of addresses" class="address-card">
-    <h4>
-  {{ address.houseNumber }},
-  {{ address.street }},
-  {{ address.wardName }},
-  {{ address.township }},
-  {{ address.city }},
-  {{ address.state }},
-  {{ address.country }},
-  {{ address.postalCode || 'N/A' }}
-</h4>
-
-
-    <div class="address-details">
-      <p>
-        <strong>House Number:</strong> {{ address.houseNumber }}<br>
-        <strong>Street:</strong> {{ address.street }}<br>
-        <strong>Ward:</strong> {{ address.wardName }}<br>
-        <strong>Township:</strong> {{ address.township }}<br>
-        <strong>City:</strong> {{ address.city }}<br>
-        <strong>State:</strong> {{ address.state }}<br>
-        <strong>Country:</strong> {{ address.country }}<br>
-        <strong>Postal Code:</strong> {{ address.postalCode || 'N/A' }}
-      </p>
+  <div *ngIf="addresses.length === 0" class="no-addresses">
+    <div class="empty-state">
+      <i class="fa fa-map-marker-alt"></i>
+      <p>No addresses found</p>
+      <span>Add your first delivery address to get started</span>
     </div>
+  </div>
 
-    <div class="address-map" id="map-{{ address.id }}"></div>
+  <div class="address-grid">
+    <div *ngFor="let address of addresses" class="address-card" [class.main-address]="address.mainAddress">
+      <div class="card-header">
+        <div class="address-badge" *ngIf="address.mainAddress">
+          <i class="fa fa-home"></i> Main Address
+        </div>
+      </div>
 
-    <div class="card-actions">
-      <button class="edit-btn" (click)="editAddress(address)" title="Edit Address">
-        <i class="bi bi-pencil"></i> Edit
-      </button>
-      <button class="edit-btn" *ngIf="!address.mainAddress" (click)="markAsMain(address.id)" title="Set as main Address">
-        <i class="bi bi-star"></i> Set as Main
-      </button>
-      <button class="add-btn" (click)="addNewAddress()" title="Add New Address">
-        ＋
-      </button>
-      <button class="delete-btn" (click)="deleteAddress(address.id)" title="Delete Address">
-    <i class="bi bi-trash"></i> Delete
-  </button>
+      <div class="address-content">
+        <div class="address-map" id="map-{{ address.id }}"></div>
+        
+        <div class="address-details">
+          <div class="detail-row">
+            <i class="fa fa-house"></i>
+            <span>{{ address.houseNumber }}, {{ address.street }}</span>
+          </div>
+          <div class="detail-row">
+            <i class="fa fa-map"></i>
+            <span>{{ address.wardName }}, {{ address.township }}</span>
+          </div>
+          <div class="detail-row">
+            <i class="fa fa-city"></i>
+            <span>{{ address.city }}, {{ address.state }}</span>
+          </div>
+          <div class="detail-row">
+            <i class="fa fa-flag"></i>
+            <span>{{ address.country }}</span>
+          </div>
+          <div class="detail-row" *ngIf="address.postalCode">
+            <i class="fa fa-mail-bulk"></i>
+            <span>{{ address.postalCode }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button class="action-btn edit-btn" (click)="editAddress(address)" title="Edit Address">
+          <i class="fa fa-pen"></i> Edit
+        </button>
+        <button class="action-btn main-btn" *ngIf="!address.mainAddress" (click)="markAsMain(address.id)" title="Set as Main Address">
+          <i class="fa fa-star"></i> Set as Main
+        </button>
+        <button class="action-btn delete-btn" (click)="deleteAddress(address.id)" title="Delete Address">
+          <i class="fa fa-trash"></i> Delete
+        </button>
+      </div>
     </div>
   </div>
 </div>

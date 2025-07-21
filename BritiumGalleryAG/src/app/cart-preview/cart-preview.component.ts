@@ -6,6 +6,7 @@ import { UserService } from '../services/user.service';
 import { CouponService } from '../services/coupon.service';
 import { OrderService } from '../services/order.service';
 import { ProductService } from '../services/product.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-cart-preview',
@@ -74,7 +75,13 @@ export class CartPreviewComponent implements OnInit {
     } else if (!this.currentUser) {
       this.router.navigate(['/login']);
     } else {
-      alert('No more product left in stock.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Stock Limit Reached',
+        text: 'No more product left in stock.',
+        confirmButtonColor: '#000000',
+        confirmButtonText: 'OK'
+      });
     }
   }
 
@@ -99,7 +106,9 @@ export class CartPreviewComponent implements OnInit {
 
   getSubtotal(): number {
     return this.items.reduce((total, item) => {
-      const price = (item as any).discountedPrice ?? item.price;
+      const price = (item as any).discountedPrice && (item as any).discountedPrice < item.price 
+        ? (item as any).discountedPrice 
+        : item.price;
       return total + item.quantity * price;
     }, 0);
   }

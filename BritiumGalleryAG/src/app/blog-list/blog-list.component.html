@@ -1,30 +1,107 @@
-<div class="user-blog-list">
-  <h3 class="section-title">Blog Posts</h3>
+<div class="blog-container">
+  <div class="blog-header">
+    <div class="header-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10 9H9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1 class="blog-title">Latest Blog Posts</h1>
+    <p class="blog-subtitle">Discover insights, updates, and stories from our team</p>
+  </div>
 
-  <div *ngIf="blogs && blogs.length > 0; else noBlogs" class="blog-list">
-    <a *ngFor="let b of blogs" [routerLink]="['/blogdetail', b.id]" class="blog-item-link">
-      <div class="blog-item">
-        <div class="blog-media-wrapper">
-          <ng-container *ngIf="b.imageUrl">
-            <img [src]="b.imageUrl" alt="Image" class="blog-image" />
+  <div *ngIf="blogs && blogs.length > 0; else noBlogs" class="blog-grid">
+    <article *ngFor="let blog of blogs" class="blog-card" [routerLink]="['/blogdetail', blog.id]">
+      <div class="blog-media">
+        <ng-container *ngIf="blog.imageUrl">
+          <img [src]="blog.imageUrl" [alt]="blog.title" class="blog-image" />
+        </ng-container>
+        <ng-container *ngIf="blog.videoUrl && !blog.imageUrl">
+          <video [src]="blog.videoUrl" class="blog-video" preload="metadata">
+            <source [src]="blog.videoUrl" type="video/mp4">
+          </video>
+          <div class="video-overlay">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+            </svg>
+          </div>
           </ng-container>
-          <ng-container *ngIf="b.videoUrl">
-            <video [src]="b.videoUrl" controls class="blog-video"></video>
+        <ng-container *ngIf="!blog.imageUrl && !blog.videoUrl">
+          <div class="placeholder-image">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14.828 14.828A4 4 0 0 1 12 16A4 4 0 0 1 12 8A4 4 0 0 1 14.828 9.172" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9.172 9.172A4 4 0 0 1 12 8A4 4 0 0 1 12 16A4 4 0 0 1 9.172 14.828" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 2V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 20V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4.93 4.93L6.34 6.34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M17.66 17.66L19.07 19.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 12H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20 12H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6.34 17.66L4.93 19.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19.07 4.93L17.66 6.34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           </ng-container>
-          <span *ngIf="b.isMain" class="main-badge">★ Main</span>
-        </div>
-
-        <div class="blog-details">
-          <h4>{{ b.title }}</h4>
-          <p><strong>Author:</strong> {{ b.author }}</p>
-          <p><strong>Published on:</strong> {{ b.publishDate | date }}</p>
-          <p>{{ b.summary }}</p>
+        
+        <div *ngIf="blog.isMain" class="featured-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L15.09 8.26L22 9L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9L8.91 8.26L12 2Z" fill="currentColor"/>
+          </svg>
+          Featured
         </div>
       </div>
-    </a>
+
+      <div class="blog-content">
+        <div class="blog-meta">
+          <div class="author-info">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>{{ blog.author }}</span>
+          </div>
+          <div class="publish-date">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>{{ blog.publishDate | date:'MMM dd, yyyy' }}</span>
+          </div>
+        </div>
+
+        <h2 class="blog-title-card">{{ blog.title }}</h2>
+        <p class="blog-summary">{{ blog.summary }}</p>
+
+        <div class="blog-footer">
+          <span class="read-more">
+            Read More
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+    </article>
   </div>
 
   <ng-template #noBlogs>
-    <p>No blogs available at the moment.</p>
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10 9H9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h3>No Blog Posts Available</h3>
+      <p>Check back soon for new content and updates.</p>
+    </div>
   </ng-template>
 </div>

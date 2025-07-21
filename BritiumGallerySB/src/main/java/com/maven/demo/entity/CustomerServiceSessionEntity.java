@@ -40,7 +40,13 @@ public class CustomerServiceSessionEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SessionStatus status = SessionStatus.OPEN; // OPEN, CLOSED
+    private SessionStatus status;
+
+    @Column(name = "closed_at")
+    private LocalDateTime closedAt;
+
+    @Column(name = "closed_by")
+    private Long closedBy;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -51,4 +57,11 @@ public class CustomerServiceSessionEntity {
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<CustomerServiceMessageEntity> messages;
+
+    public SessionStatus getStatus() { return status; }
+    public void setStatus(SessionStatus status) { this.status = status; }
+    public LocalDateTime getClosedAt() { return closedAt; }
+    public void setClosedAt(LocalDateTime closedAt) { this.closedAt = closedAt; }
+    public Long getClosedBy() { return closedBy; }
+    public void setClosedBy(Long closedBy) { this.closedBy = closedBy; }
 }

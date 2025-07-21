@@ -79,12 +79,11 @@ public class RefundService {
             }
         }
 
-        // Calculate refund amount: refund = subtotal + deliveryFee - discountAmount
+        // Calculate refund amount: refund = subtotal - discountAmount (delivery fee not refunded)
         int refundAmount = 0;
         int subtotal = order.getSubtotal() != null ? order.getSubtotal() : 0;
-        int deliveryFee = order.getDeliveryFee() != null ? order.getDeliveryFee() : 0;
         int discount = order.getDiscountAmount() != null ? order.getDiscountAmount() : 0;
-        refundAmount = subtotal + deliveryFee - discount;
+        refundAmount = subtotal - discount;
 
         // Create refund request for full order
         RefundRequestEntity refund = new RefundRequestEntity();

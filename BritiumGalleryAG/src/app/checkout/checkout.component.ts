@@ -12,6 +12,7 @@ import { CouponService } from '../services/coupon.service';
 import { OrderService } from '../services/order.service';
 import { ProductService } from '../services/product.service';
 import { distinctUntilChanged } from 'rxjs/operators';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-checkout',
@@ -185,13 +186,22 @@ export class CheckoutComponent implements OnInit {
     if (!this.currentUser) return;
     this.addressService.setMainAddress(this.currentUser.id, addressId).subscribe({
       next: () => {
-        alert('✅ Main address updated');
+        Swal.fire({
+          icon: 'success',
+          title: 'Main address updated',
+          showConfirmButton: false,
+          timer: 1500
+        });
         this.loadMainAddress(this.currentUser!.id);
         this.checkoutForm.patchValue({ shippingMethod: 'Standard' });
         this.calculateDeliveryFee();
         this.closeAddressModal();
       },
-      error: err => alert('❌ Failed to update main address')
+      error: err => Swal.fire({
+        icon: 'error',
+        title: 'Failed to update main address',
+        text: 'Please try again.'
+      })
     });
   }
 
@@ -537,7 +547,11 @@ export class CheckoutComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to place order:', err);
-        alert('Failed to place order. Please try again.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to place order',
+          text: 'Please try again.'
+        });
       }
     });
   }

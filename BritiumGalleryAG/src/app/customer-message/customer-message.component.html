@@ -12,6 +12,11 @@
     </div>
   </div>
   <div *ngIf="selectedSession" class="message-panel">
+    
+    <div *ngIf="selectedSession && selectedSession.status === 'CLOSED'" class="session-closed-msg">
+      This chat is closed. You can start a new conversation anytime.
+      <button *ngIf="canReopenSession" (click)="reopenSession()" class="reopen-session-btn">Reopen Conversation</button>
+    </div>
     <div *ngIf="selectedSession" class="chat-container">
       <!-- Chat Header -->
       <div class="chat-header">
@@ -25,7 +30,10 @@
           </div>
         </div>
         <div class="chat-header-right">
-          <span class="chat-header-agent">
+          <div *ngIf="selectedSession && selectedSession.status === 'OPEN' && selectedSession.assignedAgentId" class="session-action-bar">
+      <button (click)="closeSession()" class="close-session-btn">Mark as Resolved</button>
+    </div>
+          <!-- <span class="chat-header-agent">
             <span class="assigned-indicator">
               <div class="status-dot online"></div>
               Online
@@ -42,7 +50,7 @@
                 <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
               </svg>
             </button>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -135,7 +143,7 @@
         </div>
       </div>
       <!-- Message Input: always visible at the bottom -->
-      <div  class="message-input-container">
+      <div  class="message-input-container" *ngIf="!selectedSession || selectedSession.status !== 'CLOSED'">
         <div *ngIf="messages.length === 0" class="quick-replies" >
           <div  class="quick-replies-inner">
             <button class="quick-reply-btn" (click)="sendQuickReply('Hello! I need help with my order')">

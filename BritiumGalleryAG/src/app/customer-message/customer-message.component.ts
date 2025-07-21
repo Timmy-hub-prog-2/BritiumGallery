@@ -106,6 +106,17 @@ export class CustomerMessageComponent implements OnInit, AfterViewInit {
       }
       this.scrollToBottom();
     });
+    // Listen for close/reopen events in ngOnInit
+    this.chatService.onSessionEvent().subscribe(event => {
+      if (event.sessionId === this.selectedSession?.id) {
+        if (event.closedBy !== undefined) {
+          this.selectedSession.status = 'CLOSED';
+        } else {
+          this.selectedSession.status = 'OPEN';
+        }
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -185,6 +196,7 @@ export class CustomerMessageComponent implements OnInit, AfterViewInit {
 
   sendMessage(): void {
     if (!this.newMessage.trim() || !this.customerId) return;
+    if (this.selectedSession && this.selectedSession.status === 'CLOSED') return;
     if (!this.sessionId) {
       // Start session on first message
       this.chatService.startSession(this.customerId).subscribe(sessionId => {
@@ -324,6 +336,27 @@ export class CustomerMessageComponent implements OnInit, AfterViewInit {
     const audio = new Audio('assets/mp3/messagenoti.mp3');
     audio.volume = 0.5;
     audio.play();
+  }
+
+  public closeSession() {
+    if (!this.selectedSession) return;
+    this.chatService.closeSession(this.selectedSession.id, this.customerId!).subscribe(() => {
+      this.selectedSession.status = 'CLOSED';
+      this.cdr.detectChanges();
+    });
+  }
+  public reopenSession() {
+    if (!this.selectedSession) return;
+    this.chatService.reopenSession(this.selectedSession.id).subscribe(() => {
+      this.selectedSession.status = 'OPEN';
+      this.cdr.detectChanges();
+    });
+  }
+
+  get canReopenSession(): boolean {
+    if (!this.selectedSession || !this.selectedSession.closedAt) return false;
+    const closedAt = new Date(this.selectedSession.closedAt).getTime();
+    return Date.now() - closedAt < 1000 * 60 * 60 * 48;
   }
 
   ngOnDestroy(): void {
