@@ -51,8 +51,6 @@ public class UserService {
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
 
-
-
     @Autowired
     private EmailService emailService;
 
@@ -122,8 +120,14 @@ public class UserService {
             throw new RuntimeException("Invalid password");
         }
 
-        if (user.getStatus() == 0) {
-            throw new RuntimeException("Email not verified");
+        // Only require status == 1 for customers (roleId 3)
+        Integer status = user.getStatus();
+        Long roleIdLong = (user.getRole() != null) ? user.getRole().getId() : null;
+        int roleId = (roleIdLong != null) ? roleIdLong.intValue() : -1;
+        if (roleId == 3) {
+            if (status == null || status == 0) {
+                throw new RuntimeException("Email not verified");
+            }
         }
 
         return new LoginResponseDTO(user);

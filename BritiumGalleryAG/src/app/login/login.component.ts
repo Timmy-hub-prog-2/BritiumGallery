@@ -33,7 +33,7 @@ export class LoginComponent {
         this.router.navigate(['/customer-homepage']).then(() => {
           window.location.reload();
         });
-      } else if (user.roleId === 2) {
+      } else if (user.roleId === 2 || user.roleId === 1 || user.roleId === 4 || user.roleId === 5 || user.roleId === 6) { // Allow admin, superadmin, and manager
         this.router.navigate(['/admin-dashboard']).then(() => {
           window.location.reload();
         });

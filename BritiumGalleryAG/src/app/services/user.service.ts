@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { User } from '../../user.model';
 import { People } from '../People';
+import { Router } from '@angular/router';
 
 export interface CustomerGrowthDTO {
   period: string;
@@ -21,8 +22,9 @@ export class UserService {
 
   private userSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
+  
 
-  constructor(private http: HttpClient) { 
+  constructor(private http: HttpClient, private router: Router, private ngZone: NgZone) { 
     const user = localStorage.getItem('loggedInUser');
     this.userSubject = new BehaviorSubject<User | null>(user ? JSON.parse(user) : null);
     this.currentUser = this.userSubject.asObservable();
@@ -85,16 +87,19 @@ export class UserService {
         complete: () => {
           localStorage.removeItem('loggedInUser');
           this.userSubject.next(null);
+          this.ngZone.run(() => this.router.navigate(['/login']));
         },
         error: () => {
-          // Even if the backend fails, clear local state
+          // Even if the backend fails, clear local state and navigate to login
           localStorage.removeItem('loggedInUser');
           this.userSubject.next(null);
+          this.ngZone.run(() => this.router.navigate(['/login']));
         }
       });
     } else {
       localStorage.removeItem('loggedInUser');
       this.userSubject.next(null);
+      this.ngZone.run(() => this.router.navigate(['/login']));
     }
   }
 

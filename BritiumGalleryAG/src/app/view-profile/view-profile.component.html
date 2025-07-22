@@ -41,7 +41,10 @@
         </div>
         
         <div class="hero-info">
-          <h1 class="hero-name">{{ user?.name || 'Your Name' }}</h1>
+          <h1 class="hero-name">
+            {{ user?.name || 'Your Name' }}
+            <span class="role-badge" *ngIf="getRoleName()">({{ getRoleName() }})</span>
+          </h1>
           <p class="hero-email">{{ user?.email }}</p>
           
           <!-- Customer Tier Badge -->

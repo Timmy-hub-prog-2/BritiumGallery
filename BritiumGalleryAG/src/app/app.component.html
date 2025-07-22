@@ -1,18 +1,14 @@
 <div class="page-container">
   
-
   <!-- Dynamic header based on role -->
-  <ng-container *ngIf="roleId === 3 || !roleId">
+  <ng-container *ngIf="roleId === 3 || roleId === null">
     <app-customer></app-customer>
   </ng-container>
 
-  <ng-container *ngIf="roleId === 2">
+  <ng-container *ngIf="roleId !== 3 && roleId !== null">
     <app-admin></app-admin>
   </ng-container>
 
-  <ng-container *ngIf="roleId === 4">
-    <app-manager></app-manager>
-  </ng-container>
   <main class="content-wrap">
     <router-outlet></router-outlet>
   </main>

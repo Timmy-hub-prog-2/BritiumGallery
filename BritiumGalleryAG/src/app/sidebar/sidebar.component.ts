@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-sidebar',
@@ -6,10 +6,23 @@ import { Component, ElementRef, HostListener } from '@angular/core';
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css'
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   expanded = false;
+  roleId: number | null = null;
 
   constructor(private elementRef: ElementRef) {}
+
+  ngOnInit(): void {
+    const user = localStorage.getItem('loggedInUser');
+    if (user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        this.roleId = parsedUser.roleId;
+      } catch (error) {
+        this.roleId = null;
+      }
+    }
+  }
 
   toggleSidebar() {
     this.expanded = !this.expanded;

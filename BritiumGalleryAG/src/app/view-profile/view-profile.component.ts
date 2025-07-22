@@ -212,5 +212,24 @@ getCustomerTypeBadgeClass(): string {
     return 'normal';
   }
 
+  getRoleName(): string {
+    switch (this.user.roleId) {
+      case 1:
+        return 'Superadmin';
+      case 2:
+        return 'Admin';
+      case 3:
+        return '';
+      case 4:
+        return 'Manager';
+      case 5:
+        return 'Customer Support';
+      case 6:
+        return 'Growth Lead';
+      default:
+        return 'User';
+    }
+  }
+
 
 }

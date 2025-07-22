@@ -26,8 +26,8 @@ public class ShopAddressService {
         if (userOpt.isEmpty()) throw new RuntimeException("User not found");
 
         UserEntity user = userOpt.get();
-        if (user.getRole() == null || user.getRole().getId() != 2) {
-            throw new RuntimeException("Only admins can save shop addresses");
+        if (user.getRole() == null || (user.getRole().getId() != 2 && user.getRole().getId() != 1)) {
+            throw new RuntimeException("Only admins or superadmins can save shop addresses");
         }
 
         ShopAddressEntity entity = new ShopAddressEntity();

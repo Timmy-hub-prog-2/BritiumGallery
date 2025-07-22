@@ -39,6 +39,10 @@ public class ExcelService {
 
         // 🔍 Header
         Row headerRow = sheet.getRow(0);
+        if (headerRow == null) {
+            workbook.close();
+            throw new RuntimeException("Excel file is missing a header row.");
+        }
         Map<String, Integer> colIndex = new HashMap<>();
         Set<String> seenAttributeNames = new HashSet<>();
 
@@ -47,14 +51,36 @@ public class ExcelService {
             colIndex.put(colName, i);
             if (!List.of("name", "description", "price", "stock", "brand", "rating", "purchaseprice").contains(colName)) {
                 if (!seenAttributeNames.add(colName)) {
+                    workbook.close();
                     throw new RuntimeException("❌ Duplicate attribute column: " + colName);
                 }
+            }
+        }
+
+        // Ensure all required columns exist
+        List<String> requiredColumns = List.of("name", "description", "brand", "rating", "price", "stock", "purchaseprice");
+        for (String required : requiredColumns) {
+            if (!colIndex.containsKey(required)) {
+                workbook.close();
+                throw new RuntimeException("Excel file is missing required column: '" + required + "'");
             }
         }
 
         for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
             Row row = sheet.getRow(i);
             if (row == null) continue;
+
+            // Defensive: check all required columns have valid indices
+            boolean skipRow = false;
+            for (String required : requiredColumns) {
+                Integer idx = colIndex.get(required);
+                if (idx == null || idx < 0 || idx >= row.getPhysicalNumberOfCells()) {
+                    System.err.println("[ExcelService] Row " + i + " skipped: missing or invalid column '" + required + "'.");
+                    skipRow = true;
+                    break;
+                }
+            }
+            if (skipRow) continue;
 
             String productName = getCellString(row.getCell(colIndex.get("name")));
             if (productName.isEmpty()) continue;

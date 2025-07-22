@@ -11,7 +11,11 @@
         </svg>
       </div>
       <div class="logo-text">
-        <h2 class="brand-name">Admin Panel</h2>
+        <h2 class="brand-name" *ngIf="roleId === 1">Super Admin Panel</h2>
+        <h2 class="brand-name" *ngIf="roleId === 2">Admin Panel</h2>
+        <h2 class="brand-name" *ngIf="roleId === 4">Manager Panel</h2>
+        <h2 class="brand-name" *ngIf="roleId === 5">CustomerSupport Panel</h2>
+        <h2 class="brand-name" *ngIf="roleId === 6">Growth Lead Panel</h2>
         <p class="brand-subtitle">Management System</p>
       </div>
     </div>
@@ -33,13 +37,9 @@
   <!-- Navigation Menu -->
   <nav class="sidebar-nav" [class.scrollable]="expanded">
     
-    <!-- Dashboard -->
-    <div class="nav-section">
-      <a routerLink="/admin-dashboard" 
-         routerLinkActive="active" 
-         class="nav-item"
-         [title]="!expanded ? 'Dashboard' : ''"
-         aria-label="Dashboard">
+    <!-- Dashboard (Super Admin & Admin only) -->
+    <div class="nav-section" *ngIf="roleId === 1 || roleId === 2">
+      <a routerLink="/admin-dashboard" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Dashboard' : ''" aria-label="Dashboard">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <rect x="3" y="4" width="7" height="7"/>
@@ -53,8 +53,8 @@
       </a>
     </div>
 
-    <!-- Products & Categories -->
-    <div class="nav-section">
+    <!-- Products & Categories (all except Customer Support) -->
+    <div class="nav-section" *ngIf="roleId == 1 || roleId == 2">
       <h3 class="section-title" *ngIf="expanded">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -62,11 +62,7 @@
         Products
       </h3>
       
-      <a routerLink="/categoryList" 
-         routerLinkActive="active" 
-         class="nav-item"
-         [title]="!expanded ? 'Category & Product' : ''"
-         aria-label="Category & Product">
+      <a routerLink="/categoryList" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Category & Product' : ''" aria-label="Category & Product">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M3 3h7v7H3z"/>
@@ -79,11 +75,7 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/brand-register" 
-         routerLinkActive="active" 
-         class="nav-item"
-         [title]="!expanded ? 'Brands' : ''"
-         aria-label="Brands">
+      <a routerLink="/brand-register" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Brands' : ''" aria-label="Brands">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -94,8 +86,8 @@
       </a>
     </div>
 
-    <!-- User Management -->
-    <div class="nav-section">
+    <!-- User Management (Customers for Customer Support, others for other roles) -->
+    <div class="nav-section" *ngIf="roleId == 1 || roleId == 2 || roleId == 4 ">
       <h3 class="section-title" *ngIf="expanded">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -107,10 +99,7 @@
       </h3>
       
       <div class="nav-group" *ngIf="expanded">
-        <a routerLink="/viewcustomer" 
-           routerLinkActive="active" 
-           class="nav-item sub-item"
-           aria-label="View Customer">
+        <a routerLink="/viewcustomer" routerLinkActive="active" class="nav-item sub-item" aria-label="View Customer" *ngIf="roleId === 1 || roleId === 2 || roleId === 4 || roleId === 5">
           <div class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -121,10 +110,7 @@
           <div class="nav-indicator"></div>
         </a>
 
-        <a routerLink="/viewadmin" 
-           routerLinkActive="active" 
-           class="nav-item sub-item"
-           aria-label="View Admin">
+        <a routerLink="/viewadmin" routerLinkActive="active" class="nav-item sub-item" aria-label="View Admin" *ngIf="roleId === 1 || roleId === 2">
           <div class="nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
@@ -142,7 +128,8 @@
            routerLinkActive="active" 
            class="nav-item"
            title="View Customer"
-           aria-label="View Customer">
+           aria-label="View Customer"
+           *ngIf="roleId === 1 || roleId === 2 || roleId === 4 || roleId === 5">
           <div class="nav-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -155,7 +142,8 @@
            routerLinkActive="active" 
            class="nav-item"
            title="View Admin"
-           aria-label="View Admin">
+           aria-label="View Admin"
+           *ngIf="roleId === 1 || roleId === 2">
           <div class="nav-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
@@ -167,7 +155,7 @@
     </div>
 
     <!-- Sales & Marketing -->
-    <div class="nav-section">
+    <div class="nav-section" *ngIf="roleId == 1 || roleId == 2 || roleId == 6">
       <h3 class="section-title" *ngIf="expanded">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <line x1="12" y1="1" x2="12" y2="23"/>
@@ -176,11 +164,13 @@
         Sales
       </h3>
       
+      <!-- Promotions (not for Customer Support) -->
       <a routerLink="/coupon" 
          routerLinkActive="active" 
          class="nav-item"
          [title]="!expanded ? 'Promotion & Discount' : ''"
-         aria-label="Promotion & Discount">
+         aria-label="Promotion & Discount"
+         *ngIf="roleId == 1 || roleId == 2 || roleId == 6">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -190,11 +180,13 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
+      <!-- Events (not for Customer Support) -->
       <a routerLink="/events" 
          routerLinkActive="active" 
          class="nav-item"
          [title]="!expanded ? 'Events' : ''"
-         aria-label="Events">
+         aria-label="Events"
+         *ngIf="roleId == 1 || roleId == 2 || roleId == 6">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -208,8 +200,8 @@
       </a>
     </div>
 
-    <!-- Operations -->
-    <div class="nav-section">
+    <!-- Operations (Orders, Refunds for Customer Support, all for others) -->
+    <div class="nav-section" *ngIf="roleId == 1 || roleId == 2 || roleId == 4 || roleId == 5">
       <h3 class="section-title" *ngIf="expanded">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M12 2L2 7l10 5 10-5-10-5z"/>
@@ -219,11 +211,7 @@
         Operations
       </h3>
       
-      <a routerLink="/admin-order-list" 
-         routerLinkActive="active" 
-         class="nav-item"
-         [title]="!expanded ? 'Orders' : ''"
-         aria-label="Orders">
+      <a routerLink="/admin-order-list" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Orders' : ''" aria-label="Orders" *ngIf="roleId === 1 || roleId === 2 || roleId === 4 || roleId === 5">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <circle cx="9" cy="21" r="1"/>
@@ -235,11 +223,7 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/admin-order-refund-list" 
-         routerLinkActive="active" 
-         class="nav-item"
-         [title]="!expanded ? 'Refunds' : ''"
-         aria-label="Refunds">
+      <a routerLink="/admin-order-refund-list" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Refunds' : ''" aria-label="Refunds" *ngIf="roleId === 1 || roleId === 2 || roleId === 4 || roleId === 5">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M3 6h18l-2 13H5L3 6z"/>
@@ -250,11 +234,7 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/delivery" 
-         routerLinkActive="active" 
-         class="nav-item"
-         [title]="!expanded ? 'Delivery' : ''"
-         aria-label="Delivery">
+      <a routerLink="/delivery" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Delivery' : ''" aria-label="Delivery" *ngIf="roleId === 1 || roleId === 2 || roleId === 4">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <rect x="1" y="3" width="15" height="13"/>
@@ -267,11 +247,7 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/payment-list" 
-         routerLinkActive="active" 
-         class="nav-item"
-         [title]="!expanded ? 'Payments' : ''"
-         aria-label="Payments">
+      <a routerLink="/payment-list" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Payments' : ''" aria-label="Payments" *ngIf="roleId === 1 || roleId === 2 || roleId === 4">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
@@ -293,11 +269,8 @@
         System
       </h3>
       
-      <a routerLink="/create-notification" 
-         routerLinkActive="active" 
-         class="nav-item"
-         [title]="!expanded ? 'Notifications' : ''"
-         aria-label="Notifications">
+      <!-- Notifications: Only for Super Admin, Admin, Sales, Customer Support -->
+      <a routerLink="/create-notification" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Notifications' : ''" aria-label="Notifications" *ngIf="roleId === 1 || roleId === 2 || roleId === 5 || roleId === 6">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -308,11 +281,19 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <a routerLink="/shopaddressform" 
-         routerLinkActive="active" 
-         class="nav-item"
-         [title]="!expanded ? 'Shop Settings' : ''"
-         aria-label="Shop Settings">
+      <!-- Customer support: Only for Customer Support -->
+      <a routerLink="/admin-message" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Customer support' : ''" aria-label="Admin Messages" *ngIf="roleId === 5 || roleId === 1 || roleId === 2">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Customer support</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+
+      <!-- Shop Settings: Only for Super Admin, Admin, Sales -->
+      <a routerLink="/shopaddressform" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Shop Settings' : ''" aria-label="Shop Settings" *ngIf="roleId === 1 || roleId === 2 ">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M3 21h18"/>
@@ -324,97 +305,62 @@
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 
-      <!-- About Us Link -->
-<a routerLink="/about" 
-   routerLinkActive="active" 
-   class="nav-item" 
-   [title]="!expanded ? 'About Us' : ''" 
-   aria-label="About Us">
-  <div class="nav-icon">
-    <i class="fas fa-info-circle"></i>
-  </div>
-  <span class="nav-label" *ngIf="expanded">About Us</span>
-  <div class="nav-indicator" *ngIf="expanded"></div>
-</a>
+      <!-- FAQ: Only for Customer Support -->
+      <a routerLink="/FAQ" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'FAQs' : ''" aria-label="Frequently Asked Questions" *ngIf="roleId === 5 || roleId === 1 || roleId === 2">
+        <div class="nav-icon">
+          <i class="fas fa-question-circle"></i>
+        </div>
+        <span class="nav-label" *ngIf="expanded">FAQs</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
 
-<!-- FAQ Link -->
-<a routerLink="/FAQ" 
-   routerLinkActive="active" 
-   class="nav-item" 
-   [title]="!expanded ? 'FAQs' : ''" 
-   aria-label="Frequently Asked Questions">
-  <div class="nav-icon">
-    <i class="fas fa-question-circle"></i>
-  </div>
-  <span class="nav-label" *ngIf="expanded">FAQs</span>
-  <div class="nav-indicator" *ngIf="expanded"></div>
-</a>
+      <!-- Blog/News (Manager and others except Customer Support) -->
+      <a routerLink="/blog" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Blog/News' : ''" aria-label="Blog Page" *ngIf="roleId !== 5">
+        <div class="nav-icon">
+          <i class="fas fa-blog"></i>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Blog/News</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
 
-<!-- Blog Link -->
-<a routerLink="/blog" 
-   routerLinkActive="active" 
-   class="nav-item" 
-   [title]="!expanded ? 'Blog/News' : ''" 
-   aria-label="Blog Page">
-  <div class="nav-icon">
-    <i class="fas fa-blog"></i>
-  </div>
-  <span class="nav-label" *ngIf="expanded">Blog/News</span>
-  <div class="nav-indicator" *ngIf="expanded"></div>
-</a>
+      <!-- Terms and Conditions (Manager and others except Customer Support) -->
+      <a routerLink="/terms" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Terms & Conditions' : ''" aria-label="Terms and Conditions" *ngIf="roleId == 1 || roleId == 2 || roleId == 4">
+        <div class="nav-icon">
+          <i class="fas fa-file-contract"></i>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Terms & Conditions</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
 
-<!-- Terms and Conditions Link -->
-<a routerLink="/terms" 
-   routerLinkActive="active" 
-   class="nav-item" 
-   [title]="!expanded ? 'Terms & Conditions' : ''" 
-   aria-label="Terms and Conditions">
-  <div class="nav-icon">
-    <i class="fas fa-file-contract"></i>
-  </div>
-  <span class="nav-label" *ngIf="expanded">Terms & Conditions</span>
-  <div class="nav-indicator" *ngIf="expanded"></div>
-</a>
+      <!-- Privacy Policy (Manager and others except Customer Support) -->
+      <a routerLink="/privacypolicy" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Privacy Policy' : ''" aria-label="Privacy Policy" *ngIf="roleId == 1 || roleId == 2 || roleId == 4">
+        <div class="nav-icon">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Privacy Policy</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
 
-<!-- Privacy Policy Link -->
-<a routerLink="/privacypolicy" 
-   routerLinkActive="active" 
-   class="nav-item" 
-   [title]="!expanded ? 'Privacy Policy' : ''" 
-   aria-label="Privacy Policy">
-  <div class="nav-icon">
-    <i class="fas fa-user-shield"></i>
-  </div>
-  <span class="nav-label" *ngIf="expanded">Privacy Policy</span>
-  <div class="nav-indicator" *ngIf="expanded"></div>
-</a>
-
-<!-- Shipping Policy Link -->
-<a routerLink="/shippingpolicy" 
-   routerLinkActive="active" 
-   class="nav-item" 
-   [title]="!expanded ? 'Shipping Policy' : ''" 
-   aria-label="Shipping Policy">
-  <div class="nav-icon">
-    <i class="fas fa-shipping-fast"></i>
-  </div>
-  <span class="nav-label" *ngIf="expanded">Shipping Policy</span>
-  <div class="nav-indicator" *ngIf="expanded"></div>
-</a>
+      <!-- Shipping Policy (Manager and others except Customer Support) -->
+      <a routerLink="/shippingpolicy" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Shipping Policy' : ''" aria-label="Shipping Policy" *ngIf="roleId == 1 || roleId == 2 || roleId == 4">
+        <div class="nav-icon">
+          <i class="fas fa-shipping-fast"></i>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Shipping Policy</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
 
 
-<!-- Create Role Link -->
-<a routerLink="/create-role" 
-   routerLinkActive="active" 
-   class="nav-item" 
-   [title]="!expanded ? 'Create Role' : ''" 
-   aria-label="Create Role">
-  <div class="nav-icon">
-    <i class="fas fa-user-shield"></i> <!-- FontAwesome icon for role/admin -->
-  </div>
-  <span class="nav-label" *ngIf="expanded">Create Administrators</span>
-  <div class="nav-indicator" *ngIf="expanded"></div>
-</a>
+      <!-- Create Role Link (Superadmin only) -->
+      <a *ngIf="roleId === 1" routerLink="/create-role" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Create Role' : ''" aria-label="Create Role">
+        <div class="nav-icon">
+          <i class="fas fa-user-shield"></i> <!-- FontAwesome icon for role/admin -->
+        </div>
+        <span class="nav-label" *ngIf="expanded">Create Administrators</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+
+
 
     </div>
   </nav>
