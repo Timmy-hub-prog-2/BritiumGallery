@@ -17,14 +17,13 @@ export class AboutService {
     return this.http.get<About>(`${this.BASE_URL}/${id}`);
   }
 
-  create(data: About): Observable<About> {
-    return this.http.post<About>(this.BASE_URL, data);
+  create(formData: FormData): Observable<About> {
+    return this.http.post<About>(this.BASE_URL, formData);
   }
 
-  update(id: number, data: About): Observable<About> {
-    return this.http.put<About>(`${this.BASE_URL}/${id}`, data);
+   update(id: number, formData: FormData): Observable<About> {
+    return this.http.put<About>(`${this.BASE_URL}/${id}`, formData);
   }
-
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.BASE_URL}/${id}`);
   }

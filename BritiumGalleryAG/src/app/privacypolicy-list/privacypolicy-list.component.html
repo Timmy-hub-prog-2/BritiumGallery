@@ -1,0 +1,24 @@
+<div class="policy-user-view">
+  <h2 class="policy-title">
+    <span class="policy-icon" aria-label="Privacy Policy">
+      <!-- Lock SVG icon for privacy -->
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="10" width="16" height="10" rx="2" stroke="black" stroke-width="2" fill="white"/>
+        <path d="M8 10V7a4 4 0 1 1 8 0v3" stroke="black" stroke-width="2" fill="none"/>
+        <circle cx="12" cy="15" r="1.5" fill="black"/>
+      </svg>
+    </span>
+    Privacy Policy
+  </h2>
+  <p class="policy-subtitle">Our commitment to protecting your privacy</p>
+
+  <div *ngIf="policies.length > 0; else noPolicies">
+    <div class="policy-item" *ngFor="let policy of policies">
+      <div [innerHTML]="policy.content" class="policy-content"></div>
+    </div>
+  </div>
+
+  <ng-template #noPolicies>
+    <p>No privacy policies available.</p>
+  </ng-template>
+</div>

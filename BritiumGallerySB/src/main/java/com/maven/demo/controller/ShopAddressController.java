@@ -44,4 +44,10 @@ public class ShopAddressController {
     public void setMain(@PathVariable Long userId, @PathVariable Long addressId) {
         service.setMainAddress(userId, addressId);
     }
+    @GetMapping("/main")
+    public ShopAddressDTO getMainAddress() {
+        return service.findMainAddress()
+                .orElseThrow(() -> new RuntimeException("Main address not found"));
+    }
+
 }

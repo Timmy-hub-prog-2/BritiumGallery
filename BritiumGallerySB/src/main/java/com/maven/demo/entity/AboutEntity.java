@@ -22,4 +22,6 @@ public class AboutEntity {
 
     @Column(columnDefinition = "TEXT")
     private String valueText;
+
+    private String imageUrl;
 }
