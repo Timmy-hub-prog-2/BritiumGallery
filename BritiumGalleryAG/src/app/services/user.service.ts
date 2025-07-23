@@ -82,25 +82,20 @@ export class UserService {
 
   logout(): void {
     const user = this.userSubject.value;
+    // Fire and forget backend logout
     if (user && user.id) {
       this.http.post(`${this.userBase}/logout`, { userId: user.id }).subscribe({
-        complete: () => {
-          localStorage.removeItem('loggedInUser');
-          this.userSubject.next(null);
-          this.ngZone.run(() => this.router.navigate(['/login']));
-        },
-        error: () => {
-          // Even if the backend fails, clear local state and navigate to login
-          localStorage.removeItem('loggedInUser');
-          this.userSubject.next(null);
-          this.ngZone.run(() => this.router.navigate(['/login']));
-        }
+        // Optionally handle response, but not required
       });
-    } else {
-      localStorage.removeItem('loggedInUser');
-      this.userSubject.next(null);
-      this.ngZone.run(() => this.router.navigate(['/login']));
     }
+    // Immediately clear local state and navigate
+    localStorage.removeItem('loggedInUser');
+    this.userSubject.next(null);
+    this.ngZone.run(() => {
+      this.router.navigate(['/login']).then(() => {
+        window.location.reload();
+      });
+    });
   }
 
   updateUserProfile(user: User, imageFile?: File): Observable<User> {

@@ -310,15 +310,15 @@
         
       </div>
       <hr />
-      <a href="#" class="dropdown-item">My Alibaba</a>
-      <a href="/customer-order-list" class="dropdown-item">Orders</a>
-      <a href="/customer-order-refund-list" class="dropdown-item">Refunds</a>
-      <a href="/customer-message" class="dropdown-item">Messages</a>
+      <a routerLink="/customer-homepage" class="dropdown-item">My Alibaba</a>
+      <a routerLink="/customer-order-list" class="dropdown-item">Orders</a>
+      <a routerLink="/customer-order-refund-list" class="dropdown-item">Refunds</a>
+      <a routerLink="/customer-message" class="dropdown-item">Messages</a>
       <a href="#" class="dropdown-item">RFQs</a>
       <a href="#" class="dropdown-item">Favorites</a>
-      <a href="/view-profile" class="dropdown-item">Account</a>
+      <a routerLink="/view-profile" class="dropdown-item">Account</a>
       <hr />
-      <a href="#" class="dropdown-item" (click)="logout()">Sign out</a>
+      <a href="#" class="dropdown-item" (click)="$event.preventDefault(); logout()">Sign out</a>
     </div>
   </div>
 

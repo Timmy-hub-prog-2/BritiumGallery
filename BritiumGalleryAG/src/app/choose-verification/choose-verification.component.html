@@ -1,15 +1,55 @@
-<div class="max-w-xl mx-auto mt-20 mb-24 text-center px-6 py-10 bg-white rounded-2xl shadow-md">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">Choose Verification Method</h2>
-    <p class="text-gray-600 mb-8">To complete your registration, please choose how you'd like to receive your verification code.</p>
-  
-    <div class="flex flex-col sm:flex-row justify-center gap-6">
-      <button (click)="chooseEmail()" class="bg-blue-500 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-600 transition">
-        📧 Verify via Email
+<div class="verification-container">
+  <div class="verification-card">
+    <div class="verification-header">
+      <div class="verification-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <h2 class="verification-title">Choose Verification Method</h2>
+      <p class="verification-subtitle">Select how you'd like to receive your verification code to complete your registration</p>
+    </div>
+
+    <div class="verification-options">
+     <button (click)="chooseEmail()" [class]="getEmailOptionClass()">
+        <div class="option-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 6L12 13L2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="option-content">
+          <h3 class="option-title">Email Verification</h3>
+          <p class="option-description">Receive code via email at {{ email }}</p>
+        </div>
+        <div class="option-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
       </button>
-  
-      <button (click)="chooseSms()" class="bg-green-500 text-white px-6 py-3 rounded-lg shadow hover:bg-green-600 transition">
-        📱 Verify via SMS
+
+      <button (click)="chooseSms()" [class]="getSmsOptionClass()">
+        <div class="option-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 2H7C5.9 2 5 2.9 5 4V20C5 21.1 5.9 22 7 22H17C18.1 22 19 21.1 19 20V4C19 2.9 18.1 2 17 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 18H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="option-content">
+          <h3 class="option-title">SMS Verification</h3>
+          <p class="option-description">Receive code via SMS at {{ phone }}</p>
+        </div>
+        <div class="option-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
       </button>
     </div>
+
+    <div class="verification-footer">
+      <p class="security-note">🔒 Your information is secure and encrypted</p>
+    </div>
   </div>
-  
+</div>

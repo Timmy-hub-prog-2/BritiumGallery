@@ -184,7 +184,7 @@
         <hr />
         <a href="#" class="dropdown-item" [routerLink]="['/view-profile']">Account</a>
         <hr />
-        <a href="#" class="dropdown-item" (click)="logout()">Sign out</a>
+        <a href="#" class="dropdown-item" (click)="$event.preventDefault(); logout()">Sign out</a>
       </div>
     </div>
     <button *ngIf="!user" class="action-button profile-button" [routerLink]="['/login']">

@@ -70,7 +70,6 @@ import { ResetPasswordComponent } from './reset-password/reset-password.componen
 import { ShopMapViewComponent } from './shop-map-view/shop-map-view.component';
 
 const routes: Routes = [
-  { path: '', component: HomeComponent },
   { path: 'categoryRegister/:parentId', component: CategoryRegisterComponent },
   { path: 'categoryEdit/:id', component: CategoryEditComponent },
   { path: 'categoryList', component: CategoryListComponent },

@@ -148,7 +148,7 @@ export class AdminNavComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.userService.logout();
-    this.router.navigate(['/login']);
+    
     this.isProfileMenuVisible = false;
   }
 

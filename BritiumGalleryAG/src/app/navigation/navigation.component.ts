@@ -199,10 +199,9 @@ export class NavigationComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.userService.logout(); // Use UserService logout method
-    this.router.navigate(['/login']);
-    this.isProfileMenuVisible = false; // Hide the menu after logging out
-  }
+  this.userService.logout(); // This will handle navigation
+  this.isProfileMenuVisible = false; // Hide the menu after logging out
+}
 
   toggleProfileMenu(event: Event): void {
     event.stopPropagation(); // Prevent the document click listener from immediately closing it
