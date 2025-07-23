@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.maven.demo.dto.*;
-import com.maven.demo.dto.LostProductAnalyticsDTO;
-import com.maven.demo.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +16,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.maven.demo.dto.BestSellerProductDTO;
+import com.maven.demo.dto.CategoryAnalyticsDTO;
+import com.maven.demo.dto.CheckoutRequestDTO;
+import com.maven.demo.dto.DailyOrderDetailDTO;
+import com.maven.demo.dto.DashboardStatsDTO;
+import com.maven.demo.dto.LostProductAnalyticsDTO;
+import com.maven.demo.dto.OrderRefundDTO;
+import com.maven.demo.dto.OrderResponseDTO;
+import com.maven.demo.dto.PaymentRequestDTO;
+import com.maven.demo.dto.PaymentResponseDTO;
+import com.maven.demo.dto.ProductSalesHistoryDTO;
+import com.maven.demo.dto.ProductSearchResultDTO;
+import com.maven.demo.dto.SalesTrendDTO;
 import com.maven.demo.entity.OrderDetailEntity;
 import com.maven.demo.entity.OrderEntity;
 import com.maven.demo.entity.OrderStatus;
@@ -33,6 +43,7 @@ import com.maven.demo.repository.RefundRequestRepository;
 import com.maven.demo.repository.SaleFifoMappingRepository;
 import com.maven.demo.repository.TransactionRepository;
 import com.maven.demo.service.OrderService;
+import com.maven.demo.service.ProductService;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -551,5 +562,21 @@ public class OrderController {
     public ResponseEntity<List<String>> getReductionReasons() {
         List<String> reasons = productService.getPredefinedReductionReasons();
         return ResponseEntity.ok(reasons);
+    }
+
+    @GetMapping("/admin/profit-loss")
+    public DashboardStatsDTO getProfitLoss(
+        @RequestParam String from,
+        @RequestParam String to,
+        @RequestParam(required = false) Long categoryId) {
+        return orderService.getProfitLoss(from, to, categoryId);
+    }
+
+    @GetMapping("/admin/discount-analytics")
+    public Map<String, Object> getDiscountAnalytics(
+        @RequestParam String from,
+        @RequestParam String to,
+        @RequestParam(required = false) Long categoryId) {
+        return orderService.getDiscountAnalytics(from, to, categoryId);
     }
 }

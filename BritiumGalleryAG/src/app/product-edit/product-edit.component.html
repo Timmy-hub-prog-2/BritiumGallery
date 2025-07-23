@@ -136,29 +136,17 @@
                 <div class="photo-overlay-clean">
                   <mat-icon>zoom_in</mat-icon>
                 </div>
-                <!-- Image Type Badge -->
-                <div class="image-type-badge existing-badge">
-                  <mat-icon>check_circle</mat-icon>
-                  <span>Existing</span>
-                </div>
               </div>
               <div
                 class="photo-counter-clean"
                 *ngIf="variant.imageUrls.length > 1"
               >
-                <div class="counter-content">
-                  <mat-icon>photo_library</mat-icon>
-                  <span>+{{ variant.imageUrls.length - 1 }}</span>
-                </div>
-                <div class="counter-tooltip">
-                  {{ variant.imageUrls.length }} existing images
-                </div>
+                +{{ variant.imageUrls.length - 1 }}
               </div>
             </div>
             <ng-template #noPhotoClean>
               <div class="no-photo-clean">
                 <mat-icon>image_not_supported</mat-icon>
-                <span class="no-photo-text">No images</span>
               </div>
             </ng-template>
           </td>
@@ -852,102 +840,20 @@
             </div>
 
             <div class="image-section-clean">
-              <!-- Existing Product Image -->
-              <div class="existing-product-image-section" *ngIf="product?.basePhotoUrl && !basePhotoPreview">
-                <div class="section-subtitle-clean">
-                  <mat-icon class="existing-icon">photo</mat-icon>
-                  <span>Current Product Image</span>
-                </div>
-                <div class="current-image-clean existing-product-image">
-                  <img [src]="product!.basePhotoUrl" alt="Current product image" />
-                  <div class="image-overlay-clean">
-                    <div class="photo-badge existing-badge">
-                      <mat-icon>check_circle</mat-icon>
-                      <span>Current</span>
-                    </div>
-                    <button
-                      mat-mini-fab
-                      (click)="removeProductImage()"
-                      type="button"
-                      class="remove-image-clean"
-                      matTooltip="Remove current image"
-                    >
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </div>
+              <div class="current-image-clean" *ngIf="basePhotoPreview">
+                <img [src]="basePhotoPreview" alt="Product preview" />
+                <div class="image-overlay-clean">
+                  <button
+                    mat-mini-fab
+                    (click)="removeProductImage()"
+                    type="button"
+                    class="remove-image-clean"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 </div>
               </div>
 
-              <!-- New Product Image Preview -->
-              <div class="new-product-image-section" *ngIf="basePhotoPreview">
-                <div class="section-subtitle-clean">
-                  <mat-icon class="new-icon">add_photo_alternate</mat-icon>
-                  <span>New Product Image</span>
-                </div>
-                <div class="current-image-clean new-product-image">
-                  <img [src]="basePhotoPreview" alt="New product image" />
-                  <div class="image-overlay-clean">
-                    <div class="photo-badge new-badge">
-                      <mat-icon>new_releases</mat-icon>
-                      <span>New</span>
-                    </div>
-                    <button
-                      mat-mini-fab
-                      (click)="removeProductImage()"
-                      type="button"
-                      class="remove-image-clean"
-                      matTooltip="Remove new image"
-                    >
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Image Comparison (if both exist) -->
-              <div class="image-comparison-section" *ngIf="product?.basePhotoUrl && basePhotoPreview">
-                <div class="section-subtitle-clean">
-                  <mat-icon>compare</mat-icon>
-                  <span>Image Comparison</span>
-                </div>
-                <div class="comparison-grid">
-                  <div class="comparison-item">
-                    <div class="comparison-label">Current Image</div>
-                    <div class="current-image-clean existing-product-image">
-                      <img [src]="product!.basePhotoUrl" alt="Current product image" />
-                      <div class="image-overlay-clean">
-                        <div class="photo-badge existing-badge">
-                          <mat-icon>check_circle</mat-icon>
-                          <span>Current</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="comparison-item">
-                    <div class="comparison-label">New Image</div>
-                    <div class="current-image-clean new-product-image">
-                      <img [src]="basePhotoPreview" alt="New product image" />
-                      <div class="image-overlay-clean">
-                        <div class="photo-badge new-badge">
-                          <mat-icon>new_releases</mat-icon>
-                          <span>New</span>
-                        </div>
-                        <button
-                          mat-mini-fab
-                          (click)="removeProductImage()"
-                          type="button"
-                          class="remove-image-clean"
-                          matTooltip="Remove new image"
-                        >
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Upload Area -->
               <div
                 class="image-upload-clean"
                 (click)="triggerProductImageUpload()"
@@ -961,9 +867,11 @@
                   #productImageInput
                 />
                 <div class="upload-content-clean">
-                  <mat-icon class="upload-icon-clean">add_photo_alternate</mat-icon>
+                  <mat-icon class="upload-icon-clean"
+                    >add_photo_alternate</mat-icon
+                  >
                   <h4>
-                    {{ basePhotoPreview ? "Change New Image" : "Upload Product Image" }}
+                    {{ basePhotoPreview ? "Change Image" : "Upload Image" }}
                   </h4>
                   <p>Click to select a new product image</p>
                 </div>
@@ -1117,75 +1025,30 @@
             </div>
 
             <div class="photo-section-clean">
-              <!-- Existing Images Section -->
-              <div class="existing-images-section" *ngIf="getExistingImages().length > 0">
-                <div class="section-subtitle-clean">
-                  <mat-icon class="existing-icon">photo</mat-icon>
-                  <span>Existing Images</span>
-                  <span class="image-count">({{ getExistingImages().length }})</span>
-                </div>
-                <div class="photos-grid-clean existing-grid">
-                  <div
-                    class="photo-item-clean existing-photo"
-                    *ngFor="let url of getExistingImages(); let i = index"
-                  >
-                    <div class="photo-wrapper-clean">
-                      <img [src]="url" alt="Existing image" />
-                      <div class="photo-overlay-clean">
-                        <div class="photo-badge existing-badge">
-                          <mat-icon>check_circle</mat-icon>
-                          <span>Existing</span>
-                        </div>
-                        <button
-                          mat-mini-fab
-                          (click)="removeExistingPhoto(i)"
-                          type="button"
-                          class="remove-photo-clean"
-                          matTooltip="Remove existing image"
-                        >
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </div>
+              <div
+                class="photos-grid-clean"
+                *ngIf="displayImageUrls.length > 0"
+              >
+                <div
+                  class="photo-item-clean"
+                  *ngFor="let url of displayImageUrls; let i = index"
+                >
+                  <div class="photo-wrapper-clean">
+                    <img [src]="url" alt="Preview" />
+                    <div class="photo-actions-clean">
+                      <button
+                        mat-mini-fab
+                        (click)="removePhoto(i)"
+                        type="button"
+                        class="remove-photo-clean"
+                      >
+                        <mat-icon>delete</mat-icon>
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- New Images Section -->
-              <div class="new-images-section" *ngIf="getNewImages().length > 0">
-                <div class="section-subtitle-clean">
-                  <mat-icon class="new-icon">add_photo_alternate</mat-icon>
-                  <span>New Images</span>
-                  <span class="image-count">({{ getNewImages().length }})</span>
-                </div>
-                <div class="photos-grid-clean new-grid">
-                  <div
-                    class="photo-item-clean new-photo"
-                    *ngFor="let url of getNewImages(); let i = index"
-                  >
-                    <div class="photo-wrapper-clean">
-                      <img [src]="url" alt="New image" />
-                      <div class="photo-overlay-clean">
-                        <div class="photo-badge new-badge">
-                          <mat-icon>new_releases</mat-icon>
-                          <span>New</span>
-                        </div>
-                        <button
-                          mat-mini-fab
-                          (click)="removeNewPhoto(i)"
-                          type="button"
-                          class="remove-photo-clean"
-                          matTooltip="Remove new image"
-                        >
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Upload Area -->
               <div class="upload-area-clean" (click)="fileInput.click()">
                 <input
                   #fileInput
@@ -1196,25 +1059,11 @@
                   style="display: none"
                 />
                 <div class="upload-content-clean">
-                  <mat-icon class="upload-icon-clean">add_photo_alternate</mat-icon>
+                  <mat-icon class="upload-icon-clean"
+                    >add_photo_alternate</mat-icon
+                  >
                   <h4>Add More Photos</h4>
                   <p>Click to browse additional images</p>
-                </div>
-              </div>
-
-              <!-- Summary -->
-              <div class="image-summary-clean" *ngIf="displayImageUrls.length > 0">
-                <div class="summary-item">
-                  <mat-icon class="existing-icon">photo</mat-icon>
-                  <span>{{ getExistingImages().length }} existing</span>
-                </div>
-                <div class="summary-item">
-                  <mat-icon class="new-icon">add_photo_alternate</mat-icon>
-                  <span>{{ getNewImages().length }} new</span>
-                </div>
-                <div class="summary-item total">
-                  <mat-icon>photo_library</mat-icon>
-                  <span>{{ displayImageUrls.length }} total</span>
                 </div>
               </div>
             </div>
@@ -1965,86 +1814,3 @@
   </div>
 </div>
 
-<style>
-  .export-btn-row {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    margin-bottom: 18px;
-    margin-right: 12px;
-  }
-  .export-icon-btn.no-border {
-    background: #fff !important;
-    color: #111 !important;
-    border: none !important;
-    border-radius: 50% !important;
-    font-size: 22px;
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s, color 0.2s;
-    box-shadow: none;
-  }
-  .export-icon-btn.no-border:hover,
-  .export-icon-btn.no-border:focus {
-    background: #111 !important;
-    color: #fff !important;
-  }
-  .custom-export-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    z-index: 10;
-    min-width: 160px;
-    padding: 8px 0;
-    display: flex;
-    flex-direction: column;
-  }
-  .custom-export-dropdown button {
-    background: none;
-    border: none;
-    width: 100%;
-    text-align: left;
-    padding: 10px 18px;
-    font-size: 15px;
-    color: #111;
-    cursor: pointer;
-    transition: background 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .custom-export-dropdown button:hover {
-    background: #f5f5f5;
-  }
-  .panel-btn {
-    width: 56px;
-    height: 56px;
-    background: #fcfdfe;
-    border: 1.5px solid #e3e7ed;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: border 0.2s, background 0.2s;
-    cursor: pointer;
-    padding: 0;
-  }
-  .panel-btn:hover,
-  .panel-btn:focus {
-    border: 1.5px solid #bdbdbd;
-    background: #f5f6fa;
-  }
-  .panel-btn svg {
-    width: 32px;
-    height: 32px;
-    color: #444;
-  }
-</style>

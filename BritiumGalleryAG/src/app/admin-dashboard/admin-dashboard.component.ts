@@ -41,6 +41,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   stats: any = null;
   loading = false;
   error = '';
+  selectedCategoryId: number | null = null;
 
   // Chart and filter state
   salesTrend: any[] = [];
@@ -141,6 +142,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   normalCustomerCount: number = 0;
   loyaltyCustomerCount: number = 0;
   vipCustomerCount: number = 0;
+  totalDiscountAmount: number = 0;
 
   // --- New state for daily orders and best sellers ---
   selectedDate: string = '';
@@ -388,6 +390,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     this.dateTo = today.toISOString().slice(0, 10);
     this.dateFrom = prior.toISOString().slice(0, 10);
     this.selectedDate = this.dateTo;
+    this.selectedCategoryId = null; // Initialize selectedCategoryId
 
     // Set up custom sort functions for data sources
     this.setupDataSources();
@@ -613,7 +616,9 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   }
 
   applyFilters(): void {
+    this.fetchStats();
     this.fetchSalesTrend();
+    this.fetchLostProducts();
     this.closeModal('filters');
   }
 
@@ -676,7 +681,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   fetchStats(): void {
     this.loading = true;
     this.error = '';
-    this.orderService.getDashboardStats().subscribe({
+    this.orderService.getProfitLoss(this.dateFrom, this.dateTo, this.selectedCategoryId || undefined).subscribe({
       next: (data) => {
         this.stats = data;
         this.totalPurchaseAmount = data.totalPurchaseAmount;
@@ -688,6 +693,14 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       error: (err) => {
         this.error = 'Failed to load dashboard stats.';
         this.loading = false;
+      },
+    });
+    this.orderService.getDiscountAnalytics(this.dateFrom, this.dateTo, this.selectedCategoryId || undefined).subscribe({
+      next: (data) => {
+        this.totalDiscountAmount = data.totalDiscountAmount || 0;
+      },
+      error: () => {
+        this.totalDiscountAmount = 0;
       },
     });
   }

@@ -1,8 +1,10 @@
 package com.maven.demo.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.maven.demo.dto.BestSellerProductDTO;
+import com.maven.demo.dto.CategoryAnalyticsDTO;
 import com.maven.demo.dto.CheckoutRequestDTO;
 import com.maven.demo.dto.DailyOrderDetailDTO;
 import com.maven.demo.dto.DashboardStatsDTO;
@@ -13,7 +15,6 @@ import com.maven.demo.dto.ProductSalesHistoryDTO;
 import com.maven.demo.dto.ProductSearchResultDTO;
 import com.maven.demo.dto.SalesTrendDTO;
 import com.maven.demo.dto.TransactionDTO;
-import com.maven.demo.dto.CategoryAnalyticsDTO;
 import com.maven.demo.entity.OrderEntity;
 import com.maven.demo.entity.OrderStatus;
 
@@ -62,4 +63,8 @@ public interface OrderService {
     void updateEstimatedDeliveryTimeForOrder(Long orderId);
 
     List<CategoryAnalyticsDTO> getTopCategories(java.time.LocalDate from, java.time.LocalDate to);
+
+    DashboardStatsDTO getProfitLoss(String from, String to, Long categoryId);
+
+    Map<String, Object> getDiscountAnalytics(String from, String to, Long categoryId);
 } 

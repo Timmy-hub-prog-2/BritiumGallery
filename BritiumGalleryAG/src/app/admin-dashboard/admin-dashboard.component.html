@@ -206,6 +206,25 @@
             </div>
           </div>
 
+          <div class="kpi-card discount">
+            <div class="kpi-header">
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M7 17L17 7" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <circle cx="15.5" cy="15.5" r="1.5" />
+                </svg>
+              </div>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-value" style="color:#000000;">
+                {{ totalDiscountAmount | currency : "MMK " : "symbol" : "1.0-0" }}
+              </div>
+              <div class="kpi-label">Total Discounts Given</div>
+            </div>
+          </div>
+
           <div class="kpi-card danger">
             <div class="kpi-header">
               <div class="kpi-icon">

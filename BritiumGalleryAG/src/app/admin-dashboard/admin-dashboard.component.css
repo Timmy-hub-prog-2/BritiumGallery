@@ -287,6 +287,16 @@
 .kpi-card.info {
   border-left: 4px solid #17a2b8;
 }
+.kpi-card.discount {
+  border-left: 5px solid #007bff;
+  background: #ffffff;
+}
+.kpi-card.discount .kpi-icon svg {
+  stroke: #007bff;
+}
+.kpi-card.discount .kpi-value {
+  color: #007bff;
+}
 
 .kpi-header {
   display: flex;

@@ -296,4 +296,26 @@ export class OrderService {
     getReductionReasons(): Observable<string[]> {
       return this.http.get<string[]>(`${this.baseUrl}/admin/reduction-reasons`);
     }
+
+  /**
+   * Get profit & loss analytics for admin dashboard
+   */
+  getProfitLoss(from: string, to: string, categoryId?: number): Observable<any> {
+    let url = `${this.baseUrl}/admin/profit-loss?from=${from}&to=${to}`;
+    if (categoryId) {
+      url += `&categoryId=${categoryId}`;
+    }
+    return this.http.get(url);
+  }
+
+  /**
+   * Get discount analytics for admin dashboard
+   */
+  getDiscountAnalytics(from: string, to: string, categoryId?: number): Observable<any> {
+    let url = `${this.baseUrl}/admin/discount-analytics?from=${from}&to=${to}`;
+    if (categoryId) {
+      url += `&categoryId=${categoryId}`;
+    }
+    return this.http.get(url);
+  }
 }

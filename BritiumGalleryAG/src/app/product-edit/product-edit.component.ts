@@ -699,62 +699,6 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // New methods for handling existing and new images separately
-  getExistingImages(): string[] {
-    if (!this.editingVariant?.imageUrls) return [];
-    return this.displayImageUrls.filter(url => 
-      this.editingVariant!.imageUrls!.includes(url) && 
-      !this.removedExistingImageUrls.includes(url)
-    );
-  }
-
-  getNewImages(): string[] {
-    if (!this.editingVariant?.imageUrls) return this.displayImageUrls;
-    return this.displayImageUrls.filter(url => 
-      !this.editingVariant!.imageUrls!.includes(url)
-    );
-  }
-
-  removeExistingPhoto(index: number): void {
-    const existingImages = this.getExistingImages();
-    if (index >= 0 && index < existingImages.length) {
-      const removedUrl = existingImages[index];
-      this.removedExistingImageUrls.push(removedUrl);
-      
-      // Remove from display
-      const displayIndex = this.displayImageUrls.indexOf(removedUrl);
-      if (displayIndex > -1) {
-        this.displayImageUrls.splice(displayIndex, 1);
-      }
-      
-      this.cdRef.detectChanges();
-    }
-  }
-
-  removeNewPhoto(index: number): void {
-    const newImages = this.getNewImages();
-    if (index >= 0 && index < newImages.length) {
-      const removedUrl = newImages[index];
-      
-      // Remove from selected files
-      const fileIndex = this.selectedFiles.findIndex(
-        (file) => URL.createObjectURL(file) === removedUrl
-      );
-      if (fileIndex > -1) {
-        URL.revokeObjectURL(this.selectedFiles[fileIndex] as any);
-        this.selectedFiles.splice(fileIndex, 1);
-      }
-      
-      // Remove from display
-      const displayIndex = this.displayImageUrls.indexOf(removedUrl);
-      if (displayIndex > -1) {
-        this.displayImageUrls.splice(displayIndex, 1);
-      }
-      
-      this.cdRef.detectChanges();
-    }
-  }
-
   addAttribute(): void {
     const attributes = this.variantForm.get(
       'attributes'

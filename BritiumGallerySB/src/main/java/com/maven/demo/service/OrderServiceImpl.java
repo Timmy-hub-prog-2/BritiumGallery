@@ -1829,4 +1829,135 @@ public class OrderServiceImpl implements OrderService {
         
         System.out.println("Updated estimated delivery time for order " + orderId + " to: " + estimatedDeliveryTime);
     }
+
+    @Override
+    public DashboardStatsDTO getProfitLoss(String from, String to, Long categoryId) {
+        java.time.LocalDate fromDate = java.time.LocalDate.parse(from);
+        java.time.LocalDate toDate = java.time.LocalDate.parse(to);
+        int totalSales = 0;
+        int totalCost = 0;
+        int totalDeliveryFee = 0;
+        int transactionCount = 0;
+        int totalPurchaseAmount = 0;
+        int normalCustomerCount = 0;
+        int loyaltyCustomerCount = 0;
+        int vipCustomerCount = 0;
+        java.util.List<TransactionEntity> transactions = transactionRepository.findByStatus(TransactionStatus.SUCCESS);
+        for (TransactionEntity tx : transactions) {
+            java.time.LocalDate txDate = tx.getCreatedAt().toLocalDate();
+            if ((fromDate != null && txDate.isBefore(fromDate)) || (toDate != null && txDate.isAfter(toDate))) continue;
+            OrderEntity order = tx.getOrder();
+            if (categoryId != null) {
+                boolean hasCategory = false;
+                if (order.getOrderDetails() != null) {
+                    for (OrderDetailEntity detail : order.getOrderDetails()) {
+                        ProductVariantEntity variant = detail.getVariant();
+                        if (variant != null && variant.getProduct() != null && variant.getProduct().getCategory() != null &&
+                            categoryId.equals(variant.getProduct().getCategory().getId())) {
+                            hasCategory = true;
+                            break;
+                        }
+                    }
+                }
+                if (!hasCategory) continue;
+            }
+            totalSales += tx.getAmount() != null ? tx.getAmount() : 0;
+            totalDeliveryFee += order.getDeliveryFee() != null ? order.getDeliveryFee() : 0;
+            if (order.getOrderDetails() != null) {
+                for (OrderDetailEntity detail : order.getOrderDetails()) {
+                    if (categoryId != null) {
+                        ProductVariantEntity variant = detail.getVariant();
+                        if (variant == null || variant.getProduct() == null || variant.getProduct().getCategory() == null ||
+                            !categoryId.equals(variant.getProduct().getCategory().getId())) {
+                            continue;
+                        }
+                    }
+                    java.util.List<SaleFifoMappingEntity> mappings = saleFifoMappingRepository.findByOrderDetail(detail);
+                    for (SaleFifoMappingEntity mapping : mappings) {
+                        totalCost += (mapping.getQuantity() != null ? mapping.getQuantity() : 0) * (mapping.getUnitCost() != null ? mapping.getUnitCost() : 0);
+                    }
+                }
+            }
+        }
+        transactionCount = transactions.size();
+        int profit = totalSales - totalCost - totalDeliveryFee;
+        // Calculate total purchase amount (sum of all purchase history quantities * price, filter by category if needed)
+        java.util.List<PurchaseHistoryEntity> allPurchases = purchaseHistoryRepository.findAll();
+        for (PurchaseHistoryEntity ph : allPurchases) {
+            if (categoryId != null) {
+                ProductVariantEntity variant = ph.getVariant();
+                if (variant == null || variant.getProduct() == null || variant.getProduct().getCategory() == null ||
+                    !categoryId.equals(variant.getProduct().getCategory().getId())) {
+                    continue;
+                }
+            }
+            totalPurchaseAmount += (ph.getQuantity() != null ? ph.getQuantity() : 0) * (ph.getPurchasePrice() != null ? ph.getPurchasePrice() : 0);
+        }
+        // Count customers by type (not filtered by date/category)
+        java.util.List<UserEntity> allUsers = userRepository.findAll();
+        for (UserEntity user : allUsers) {
+            if (user.getCustomerType() != null) {
+                Long typeId = user.getCustomerType().getId();
+                if (typeId == 1L) normalCustomerCount++;
+                else if (typeId == 2L) loyaltyCustomerCount++;
+                else if (typeId == 3L) vipCustomerCount++;
+            }
+        }
+        return new DashboardStatsDTO(totalSales, totalCost, totalDeliveryFee, profit, transactionCount, totalPurchaseAmount, normalCustomerCount, loyaltyCustomerCount, vipCustomerCount);
+    }
+
+    @Override
+    public Map<String, Object> getDiscountAnalytics(String from, String to, Long categoryId) {
+        java.time.LocalDate fromDate = java.time.LocalDate.parse(from);
+        java.time.LocalDate toDate = java.time.LocalDate.parse(to);
+        int totalDiscountAmount = 0;
+        // Optionally, add breakdowns by category/product
+        List<TransactionEntity> transactions = transactionRepository.findByStatus(TransactionStatus.SUCCESS);
+        for (TransactionEntity tx : transactions) {
+            java.time.LocalDate txDate = tx.getCreatedAt().toLocalDate();
+            if ((fromDate != null && txDate.isBefore(fromDate)) || (toDate != null && txDate.isAfter(toDate))) continue;
+            OrderEntity order = tx.getOrder();
+            // Order-level discount
+            if (order.getDiscountAmount() != null) {
+                if (categoryId == null) {
+                    totalDiscountAmount += order.getDiscountAmount();
+                } else {
+                    // Only count order-level discount if any order detail matches category
+                    boolean hasCategory = false;
+                    if (order.getOrderDetails() != null) {
+                        for (OrderDetailEntity detail : order.getOrderDetails()) {
+                            ProductVariantEntity variant = detail.getVariant();
+                            if (variant != null && variant.getProduct() != null && variant.getProduct().getCategory() != null &&
+                                categoryId.equals(variant.getProduct().getCategory().getId())) {
+                                hasCategory = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (hasCategory) {
+                        totalDiscountAmount += order.getDiscountAmount();
+                    }
+                }
+            }
+            // Item-level discount
+            if (order.getOrderDetails() != null) {
+                for (OrderDetailEntity detail : order.getOrderDetails()) {
+                    if (categoryId != null) {
+                        ProductVariantEntity variant = detail.getVariant();
+                        if (variant == null || variant.getProduct() == null || variant.getProduct().getCategory() == null ||
+                            !categoryId.equals(variant.getProduct().getCategory().getId())) {
+                            continue;
+                        }
+                    }
+                    if (detail.getDiscountAmount() != null) {
+                        totalDiscountAmount += detail.getDiscountAmount();
+                    }
+                }
+            }
+        }
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("totalDiscountAmount", totalDiscountAmount);
+        // Optionally, add breakdowns here
+        return result;
+    }
 } 

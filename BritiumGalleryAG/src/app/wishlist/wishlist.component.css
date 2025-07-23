@@ -4,6 +4,9 @@
   flex-direction: column;
   gap: 24px;
   padding: 0 0 24px 0;
+  margin-left: 2em;
+  margin-right: 2em;
+  margin-bottom: 2em;
 
 }
 
@@ -20,6 +23,7 @@
   padding: 24px 0 24px 0;
   position: relative;
   min-height: 320px;
+  
 
 }
 
@@ -152,4 +156,7 @@ button:hover {
   font-weight: 600;
   margin-top: 2em;
   letter-spacing: -0.02em;
+  margin-top: 3em;
+  margin-left: 2em;
+  margin-right: 2em;
 }
