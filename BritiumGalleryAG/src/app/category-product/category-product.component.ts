@@ -7,6 +7,8 @@ import { category, CategoryAttribute } from '../category';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-category-product',
@@ -32,6 +34,11 @@ export class CategoryProductComponent implements OnInit {
   maxPrice: number | null = null;
   priceRangeMin: number = 0;
   priceRangeMax: number = 0;
+  searchTerm: string = '';
+  private searchSubject = new Subject<string>();
+  filteredProducts: ProductResponse[] = [];
+  sortOption: string = 'featured';
+  showSortMenu: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -45,9 +52,15 @@ export class CategoryProductComponent implements OnInit {
       const id = params.get('categoryId');
       if (id && this.categoryId !== +id) {
         this.categoryId = +id;
+        // Reset all filter state
         this.selectedAttributeFilters = {};
         this.expandedFilters = {};
+        this.selectedBrands = [];
+        this.minPrice = null;
+        this.maxPrice = null;
         this.areAllFiltersHidden = true;
+        this.searchTerm = '';
+        this.filteredProducts = [];
         this.loadCategoryDetails();
         this.loadProducts();
         this.loadAvailableAttributes();
@@ -55,6 +68,13 @@ export class CategoryProductComponent implements OnInit {
         this.loadBrands();
         this.updatePriceRange();
       }
+    });
+    // Debounced search
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.performSearch();
     });
   }
 
@@ -86,8 +106,9 @@ export class CategoryProductComponent implements OnInit {
 
   loadProducts(): void {
     if (this.categoryId) {
-      this.productService.getFilteredProducts(this.categoryId, this.selectedAttributeFilters).subscribe(products => {
+      this.productService.getFilteredProducts(this.categoryId, this.selectedAttributeFilters, this.searchTerm).subscribe(products => {
         this.products = products;
+        this.sortProducts();
       });
     }
   }
@@ -159,10 +180,11 @@ export class CategoryProductComponent implements OnInit {
     if (this.maxPrice !== null) {
       filters['maxPrice'] = [this.maxPrice.toString()];
     }
-    this.productService.getFilteredProducts(this.categoryId!, filters).subscribe(products => {
+    this.productService.getFilteredProducts(this.categoryId!, filters, this.searchTerm).subscribe(products => {
       this.products = products;
+      this.sortProducts();
     });
-    console.log('Applying filters:', filters);
+    console.log('Applying filters:', filters, 'Search:', this.searchTerm);
   }
 
   toggleBrandFilter(brand: string): void {
@@ -182,6 +204,28 @@ export class CategoryProductComponent implements OnInit {
   }
 
   navigateToCategory(id: number): void {
+    // Reset all filter state
+    this.selectedAttributeFilters = {};
+    this.expandedFilters = {};
+    this.selectedBrands = [];
+    this.minPrice = null;
+    this.maxPrice = null;
+    this.areAllFiltersHidden = true;
+    this.searchTerm = '';
+    this.filteredProducts = [];
+    this.router.navigate(['/category-products', id]);
+  }
+
+  goToCategoryProduct(id: number): void {
+    // Reset all filter state
+    this.selectedAttributeFilters = {};
+    this.expandedFilters = {};
+    this.selectedBrands = [];
+    this.minPrice = null;
+    this.maxPrice = null;
+    this.areAllFiltersHidden = true;
+    this.searchTerm = '';
+    this.filteredProducts = [];
     this.router.navigate(['/category-products', id]);
   }
 
@@ -232,5 +276,59 @@ export class CategoryProductComponent implements OnInit {
       this.maxPrice = this.minPrice;
     }
     this.applyFilters();
+  }
+
+  onSearchInput(): void {
+    this.searchSubject.next(this.searchTerm);
+  }
+
+  performSearch(): void {
+    const term = this.searchTerm.trim().toLowerCase();
+    if (!term) {
+      this.filteredProducts = [];
+      return;
+    }
+    // Filter products
+    this.filteredProducts = this.products.filter(product => {
+      const nameMatch = product.name?.toLowerCase().includes(term);
+      const brandMatch = product.brand?.toLowerCase().includes(term);
+      // Check all variants for SKU match
+      const skuMatch = product.variants?.some(variant => variant.sku?.toLowerCase().includes(term));
+      return nameMatch || brandMatch || skuMatch;
+    });
+    this.sortProducts();
+  }
+
+  onSortChange(option: string): void {
+    this.sortOption = option;
+    this.sortProducts();
+  }
+
+  sortProducts(): void {
+    const sortFn = (a: ProductResponse, b: ProductResponse) => {
+      switch (this.sortOption) {
+        case 'newest':
+          // Assuming higher id means newer
+          return (b.id || 0) - (a.id || 0);
+        case 'price-high-low': {
+          const aMax = Math.max(...(a.variants?.map(v => v.price) || [0]));
+          const bMax = Math.max(...(b.variants?.map(v => v.price) || [0]));
+          return bMax - aMax;
+        }
+        case 'price-low-high': {
+          const aMin = Math.min(...(a.variants?.map(v => v.price) || [Infinity]));
+          const bMin = Math.min(...(b.variants?.map(v => v.price) || [Infinity]));
+          return aMin - bMin;
+        }
+        case 'featured':
+        default:
+          return 0;
+      }
+    };
+    if (this.searchTerm) {
+      this.filteredProducts = [...this.filteredProducts].sort(sortFn);
+    } else {
+      this.products = [...this.products].sort(sortFn);
+    }
   }
 } 

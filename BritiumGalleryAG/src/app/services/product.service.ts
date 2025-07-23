@@ -99,7 +99,7 @@ export class ProductService {
     return this.http.delete<void>(`${this.baseUrl}/${productId}`);
   }
 
-  getFilteredProducts(categoryId: number, filters: { [key: string]: string[] }): Observable<ProductResponse[]> {
+  getFilteredProducts(categoryId: number, filters: { [key: string]: string[] }, searchTerm?: string): Observable<ProductResponse[]> {
     let params = new HttpParams();
     for (const key in filters) {
       if (filters.hasOwnProperty(key)) {
@@ -107,6 +107,9 @@ export class ProductService {
           params = params.append(key, value);
         });
       }
+    }
+    if (searchTerm && searchTerm.trim() !== '') {
+      params = params.set('search', searchTerm.trim());
     }
     return this.http.get<ProductResponse[]>(`${this.baseUrl}/filtered/${categoryId}`, { params });
   }

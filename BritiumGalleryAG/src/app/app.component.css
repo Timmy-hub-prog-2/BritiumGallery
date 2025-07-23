@@ -1,0 +1,11 @@
+/* For the main page container */
+.page-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* For the main content area */
+  .content-wrap {
+    flex: 1 0 auto;
+  }

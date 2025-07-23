@@ -79,33 +79,71 @@
     </div>
 
     <div class="main-content">
+      <!-- Search Bar -->
+      <div class="product-search-bar">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="onSearchInput()"
+          (keyup.enter)="onSearchInput()"
+          placeholder="Search by product name, brand, or SKU..."
+          class="search-input"
+        />
+      </div>
       <div class="main-content-header">
         <h2>{{ currentCategory?.name || 'All Products' }} ({{ products.length }})</h2>
         <div class="filter-sort-options">
           <button class="hide-filters-button" (click)="toggleAllFilters()">
             <i class="bi bi-funnel"></i> Show Filters
           </button>
-          <div class="sort-by-dropdown">
+          <div class="sort-by-dropdown" tabindex="0" (click)="showSortMenu = !showSortMenu" (blur)="showSortMenu = false">
             <span>Sort By <i class="bi bi-chevron-down"></i></span>
-            <!-- Add sorting options here later if needed -->
+            <div class="sort-menu" *ngIf="showSortMenu">
+              <div class="sort-option" [class.selected]="sortOption === 'featured'" (click)="onSortChange('featured'); showSortMenu = false">Featured</div>
+              <div class="sort-option" [class.selected]="sortOption === 'newest'" (click)="onSortChange('newest'); showSortMenu = false">Newest</div>
+              <div class="sort-option" [class.selected]="sortOption === 'price-high-low'" (click)="onSortChange('price-high-low'); showSortMenu = false">Price: High-Low</div>
+              <div class="sort-option" [class.selected]="sortOption === 'price-low-high'" (click)="onSortChange('price-low-high'); showSortMenu = false">Price: Low-High</div>
+            </div>
           </div>
         </div>
       </div>
       
-      <div class="product-grid">
-        <a *ngFor="let product of products" class="product-card" [routerLink]="['/product-detail', product.id]">
-          <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" alt="Product Image">
-          <div class="product-info">
-            <p class="product-category">{{ currentCategory?.name }}</p>
-            <h3 class="product-name">{{ product.name }}</h3>
-            <!-- Assuming description or a custom field can be used for subtitle/model -->
-            <p class="product-subtitle">{{ product.description }}</p> 
-            <p class="product-price">{{ getPriceRange(product)  }}</p>
+      <!-- Search Results Section -->
+      <div *ngIf="searchTerm">
+        <div *ngIf="filteredProducts.length > 0" class="search-results-section">
+          <h3 class="products-count-heading">Products ({{ filteredProducts.length }})</h3>
+          <div class="product-grid">
+            <a *ngFor="let product of filteredProducts" class="product-card" [routerLink]="['/product-detail', product.id]">
+              <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" alt="Product Image">
+              <div class="product-info">
+                <p class="product-category">{{ currentCategory?.name }}</p>
+                <h3 class="product-name">{{ product.name }}</h3>
+                <p class="product-subtitle">{{ product.description }}</p>
+                <p class="product-price">{{ getPriceRange(product) }}</p>
+              </div>
+            </a>
           </div>
-        </a>
+        </div>
+        <div *ngIf="filteredProducts.length === 0" class="no-products">
+          No results found for your search.
+        </div>
       </div>
-      <div *ngIf="products.length === 0" class="no-products">
-        No products found for this category or selected filters.
+      <!-- End Search Results Section -->
+      <div *ngIf="!searchTerm">
+        <div class="product-grid">
+          <a *ngFor="let product of products" class="product-card" [routerLink]="['/product-detail', product.id]">
+            <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" alt="Product Image">
+            <div class="product-info">
+              <p class="product-category">{{ currentCategory?.name }}</p>
+              <h3 class="product-name">{{ product.name }}</h3>
+              <p class="product-subtitle">{{ product.description }}</p>
+              <p class="product-price">{{ getPriceRange(product) }}</p>
+            </div>
+          </a>
+        </div>
+        <div *ngIf="products.length === 0" class="no-products">
+          No products found for this category or selected filters.
+        </div>
       </div>
     </div>
   </div>
