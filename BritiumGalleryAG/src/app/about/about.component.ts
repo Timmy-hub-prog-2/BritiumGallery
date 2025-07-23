@@ -7,19 +7,21 @@ export interface About {
   vision: string;
   story: string;
   valueText: string;
+  imageUrl?: string;
 }
 
 @Component({
   selector: 'app-about',
   standalone: false,
   templateUrl: './about.component.html',
-  styleUrl: './about.component.css'
+  styleUrls: ['./about.component.css']
 })
 export class AboutComponent implements OnInit {
 
   aboutList: About[] = [];
-  formAbout: About = { mission: '', vision: '', story: '', valueText: '' };
+  formAbout: About = { mission: '', vision: '', story: '', valueText: '', imageUrl: '' };
   editingAbout: About | null = null;
+  selectedImage: File | null = null;
 
   constructor(private aboutService: AboutService) {}
 
@@ -33,23 +35,46 @@ export class AboutComponent implements OnInit {
     });
   }
 
- saveAbout() {
-  if (!this.formAbout.mission.trim() || !this.formAbout.vision.trim() ||
-      !this.formAbout.story.trim() || !this.formAbout.valueText.trim()) {
-    alert('Please fill in all fields before saving.');
-    return;
+  onImageChange(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedImage = file;
+    }
   }
 
+  saveAbout() {
+    if (!this.formAbout.mission.trim() || !this.formAbout.vision.trim() ||
+        !this.formAbout.story.trim() || !this.formAbout.valueText.trim()) {
+      alert('Please fill in all fields before saving.');
+      return;
+    }
+
+    // Send the form data, including the image if available
+    this.submitAbout();
+  }
+
+submitAbout() {
+  const formData = new FormData();
+  
+  // Append each form field as individual form data entries
+  formData.append('mission', this.formAbout.mission);
+  formData.append('vision', this.formAbout.vision);
+  formData.append('story', this.formAbout.story);
+  formData.append('valueText', this.formAbout.valueText);
+  
+  if (this.selectedImage) {
+    formData.append('file', this.selectedImage, this.selectedImage.name);
+  }
+
+  // Handle create or update operation
   if (this.editingAbout) {
-    // PUT
-    this.aboutService.update(this.editingAbout.id!, this.formAbout).subscribe(() => {
+    this.aboutService.update(this.editingAbout.id!, formData).subscribe(() => {
       this.editingAbout = null;
       this.resetForm();
       this.loadAbouts();
     });
   } else {
-    // POST
-    this.aboutService.create(this.formAbout).subscribe(() => {
+    this.aboutService.create(formData).subscribe(() => {
       this.resetForm();
       this.loadAbouts();
     });
@@ -73,6 +98,7 @@ export class AboutComponent implements OnInit {
   }
 
   resetForm() {
-    this.formAbout = { mission: '', vision: '', story: '', valueText: '' };
+    this.formAbout = { mission: '', vision: '', story: '', valueText: '', imageUrl: '' };
+    this.selectedImage = null;
   }
 }

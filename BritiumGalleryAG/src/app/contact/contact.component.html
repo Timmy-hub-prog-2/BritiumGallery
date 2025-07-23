@@ -11,10 +11,13 @@
   <div class="contact-details fade-in" style="animation-delay: 0.3s">
     <div class="contact-card fade-in" style="animation-delay: 0.4s">
       <h4>Visit Our Flagship</h4>
-      <p>
-        Britium Gallery, Fifth Avenue, Penthouse 88<br />
-        New York, NY 10022
+      <p *ngIf="shopAddress; else loading">
+        {{ shopAddress }}
       </p>
+      <ng-template #loading>
+        <p>Loading address...</p>
+      </ng-template>
+
     </div>
     <div class="contact-card fade-in" style="animation-delay: 0.5s">
       <h4>Concierge Line</h4>
@@ -27,7 +30,7 @@
       <h4>Email Us</h4>
       <p>
         <a href="mailto:concierge&#64;britiumgallery.com">
-          concierge&#64;britiumgallery.com
+          britiumgallery&#64;gmail.com
         </a>
       </p>
     </div>
@@ -37,10 +40,7 @@
     <h3>Request Your Personal Consultation</h3>
     <input type="text" placeholder="Full Name" required />
     <input type="email" placeholder="Email Address" required />
-    <textarea
-      placeholder="How can Britium Gallery assist you?"
-      rows="5"
-    ></textarea>
+    <textarea placeholder="How can Britium Gallery assist you?" rows="5"></textarea>
     <button type="submit">Send Message</button>
   </form>
 </section>

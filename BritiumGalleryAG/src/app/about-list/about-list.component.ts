@@ -8,6 +8,7 @@ export interface About {
   vision: string;
   story: string;
   valueText: string;
+  imageUrl?: string;
 }
 
 @Component({
@@ -17,23 +18,14 @@ export interface About {
   styleUrls: ['./about-list.component.css']
 })
 export class AboutListComponent implements OnInit {
-  aboutList: About[] = [];
-  private apiUrl = 'http://localhost:8080/api/about'; // The API endpoint to fetch About Us data
+  about: About | null = null;
 
   constructor(private aboutService: AboutService) {}
 
-  ngOnInit(): void {
-    this.loadAboutList();
-  }
-
-  // Method to load About Us data from the AboutService
-  loadAboutList(): void {
-    this.aboutService.getAll().subscribe({
-      next: (data) => {
-        this.aboutList = data;
-      },
-      error: (err) => {
-        console.error('Error loading About Us data:', err);
+  ngOnInit() {
+    this.aboutService.getAll().subscribe((data) => {
+      if (data.length) {
+        this.about = data[0]; // Show the first About Us entry
       }
     });
   }

@@ -15,75 +15,80 @@
     </div>
   </div>
 
-  <!-- About Form -->
-  <div class="form-section card">
-    <h3 class="section-title">{{ editingAbout ? 'Edit About Us' : 'Add New About Us' }}</h3>
+ <!-- About Form -->
+<div class="form-section card">
+  <h3 class="section-title">{{ editingAbout ? 'Edit About Us' : 'Add New About Us' }}</h3>
 
-    <div class="form-group">
-      <label class="form-label">Mission</label>
-      <textarea [(ngModel)]="formAbout.mission" name="mission" rows="2" class="form-input"
-        placeholder="Enter your mission"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Vision</label>
-      <textarea [(ngModel)]="formAbout.vision" name="vision" rows="2" class="form-input"
-        placeholder="Enter your vision"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Story</label>
-      <textarea [(ngModel)]="formAbout.story" name="story" rows="4" class="form-input"
-        placeholder="Enter your story"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Values</label>
-      <textarea [(ngModel)]="formAbout.valueText" name="valueText" rows="4" class="form-input"
-        placeholder="Enter your values"></textarea>
-    </div>
-
-    <div class="footer-actions">
-      <button class="btn primary" (click)="saveAbout()">
-        {{ editingAbout ? 'Update About Us' : 'Create About Us' }}
-      </button>
-      <button class="btn secondary" *ngIf="editingAbout" (click)="cancelEdit()">Cancel</button>
-    </div>
+  <div class="form-group">
+    <label class="form-label">Mission</label>
+    <textarea [(ngModel)]="formAbout.mission" name="mission" rows="2" class="form-input"
+      placeholder="Enter your mission"></textarea>
   </div>
 
-  <!-- About List -->
-  <div class="blog-list card" *ngIf="aboutList.length">
-    <h3 class="section-title">All About Us Sections</h3>
-
-    <table class="table">
-      <thead>
-        <tr>
-           <th>ID</th>
-          <th>Mission</th>
-          <th>Vision</th>
-          <th>Story</th>
-          <th>Values</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let about of aboutList">
-           <td>{{ about.id }}</td> 
-          <td>{{ about.mission }}</td>
-          <td>{{ about.vision }}</td>
-          <td>{{ about.story }}</td>
-          <td>{{ about.valueText }}</td>
-          <td>
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-              <button class="btn icon" (click)="editAbout(about)">Edit</button>
-              <button class="btn icon danger" (click)="deleteAbout(about.id!)">Delete</button>
-            </div>
-
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="form-group">
+    <label class="form-label">Vision</label>
+    <textarea [(ngModel)]="formAbout.vision" name="vision" rows="2" class="form-input"
+      placeholder="Enter your vision"></textarea>
   </div>
 
+  <div class="form-group">
+    <label class="form-label">Story</label>
+    <textarea [(ngModel)]="formAbout.story" name="story" rows="4" class="form-input"
+      placeholder="Enter your story"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Values</label>
+    <textarea [(ngModel)]="formAbout.valueText" name="valueText" rows="4" class="form-input"
+      placeholder="Enter your values"></textarea>
+  </div>
+
+  <!-- Image Input -->
+  <div class="form-group">
+    <label class="form-label">Image</label>
+    <input type="file" (change)="onImageChange($event)" class="form-input" />
+  </div>
+
+  <div class="footer-actions">
+    <button class="btn primary" (click)="saveAbout()">
+      {{ editingAbout ? 'Update About Us' : 'Create About Us' }}
+    </button>
+    <button class="btn secondary" *ngIf="editingAbout" (click)="cancelEdit()">Cancel</button>
+  </div>
+</div>
+
+ <!-- About List -->
+<div class="blog-list card" *ngIf="aboutList.length">
+  <h3 class="section-title">All About Us Sections</h3>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Mission</th>
+        <th>Vision</th>
+        <th>Story</th>
+        <th>Values</th>
+        <th>Image</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let about of aboutList">
+        <td>{{ about.id }}</td>
+        <td>{{ about.mission }}</td>
+        <td>{{ about.vision }}</td>
+        <td>{{ about.story }}</td>
+        <td>{{ about.valueText }}</td>
+        <td><img *ngIf="about.imageUrl" [src]="about.imageUrl" alt="About Us Image" class="about-image" /></td>
+        <td>
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button class="btn icon" (click)="editAbout(about)">Edit</button>
+            <button class="btn icon danger" (click)="deleteAbout(about.id!)">Delete</button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>

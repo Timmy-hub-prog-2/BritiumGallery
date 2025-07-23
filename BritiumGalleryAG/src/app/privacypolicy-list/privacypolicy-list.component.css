@@ -39,28 +39,21 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
-.combined-policy-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #000;
-  margin-bottom: 6px;
-}
-
-.combined-policy-text {
+.policy-content {
   font-size: 16px;
+  line-height: 1.8;
   color: #111;
-  line-height: 1.6;
 }
 
-/* Mobile Responsive */
+/* Responsive for mobile */
 @media (max-width: 600px) {
   .policy-user-view {
-    padding: 16px 8px;
+    padding: 16px 4px;
   }
   .policy-title {
-    font-size: 24px;
+    font-size: 22px;
   }
   .policy-item {
-    padding: 16px 12px;
+    padding: 14px 8px;
   }
 }

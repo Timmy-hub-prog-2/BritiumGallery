@@ -1,8 +1,28 @@
-<div class="policy-list-container">
-  <h2>Shipping & Returns</h2>
+<div class="policy-user-view">
+  <h2 class="policy-title">
+    <span class="policy-icon" aria-label="Shipping & Returns">
+      <!-- Shipping Truck SVG Icon -->
+      <svg width="28" height="28" fill="none" stroke="black" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M3 7v10h2a3 3 0 0 0 6 0h6a3 3 0 0 0 6 0h1v-5l-3-4h-3V7H3z" fill="white"/>
+        <circle cx="7" cy="17" r="2" fill="black"/>
+        <circle cx="17" cy="17" r="2" fill="black"/>
+      </svg>
+    </span>
+    Shipping & Returns
+  </h2>
+  <p class="policy-subtitle">How we ship and how you can return</p>
 
-  <div class="policy-card" *ngFor="let policy of policies">
-    <h3 class="policy-title">{{ policy.title }}</h3>
-    <p class="policy-content">{{ policy.content }}</p>
+  <div *ngIf="policies.length > 0; else noShippingPolicies">
+    <!-- ✅ All in one container -->
+    <div class="policy-item">
+      <div *ngFor="let policy of policies">
+        <h3 class="combined-policy-title">{{ policy.title }}</h3>
+        <p class="combined-policy-text">{{ policy.content }}</p>
+      </div>
+    </div>
   </div>
+
+  <ng-template #noShippingPolicies>
+    <p>No shipping & return policies available.</p>
+  </ng-template>
 </div>

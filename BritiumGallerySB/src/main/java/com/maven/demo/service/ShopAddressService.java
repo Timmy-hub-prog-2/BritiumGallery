@@ -104,6 +104,12 @@ public class ShopAddressService {
 
         return dto;
     }
+
+    public Optional<ShopAddressDTO> findMainAddress() {
+        return shopAddressRepository.findByMainAddressTrue()
+                .map(this::toDTO);
+    }
+
     // Utility: Map DTO to Entity (for both create and update)
     private void mapDtoToEntity(ShopAddressDTO dto, ShopAddressEntity entity) {
         entity.setCity(dto.getCity());

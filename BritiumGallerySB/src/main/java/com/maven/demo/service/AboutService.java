@@ -4,13 +4,18 @@ import com.maven.demo.entity.AboutEntity;
 import com.maven.demo.repository.AboutRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
 public class AboutService {
     @Autowired
     private AboutRepository repo;
+
+    @Autowired
+    private CloudinaryUploadService cloudinaryService;
 
     public List<AboutEntity> getAll() {
         return repo.findAll();
@@ -21,8 +26,6 @@ public class AboutService {
     }
 
     public AboutEntity create(AboutEntity about) {
-        // Ensure no ID is set for new entries
-        about.setId(null);
         return repo.save(about);
     }
 

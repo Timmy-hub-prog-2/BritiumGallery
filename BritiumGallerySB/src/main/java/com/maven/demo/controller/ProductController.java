@@ -404,39 +404,45 @@ public class ProductController {
     }
     @GetMapping("/export-template")
     public void exportProductTemplate(@RequestParam Long categoryId, HttpServletResponse response) throws IOException {
-        List<String> columns = productService.getColumnsByCategoryId(categoryId);
+        List<String> dynamicAttrs = productService.getColumnsByCategoryId(categoryId); // only variant attributes
         List<BrandEntity> brands = brandRepository.findAllByOrderByIdAsc();
 
-        // Add default columns if not already included
-        if (!columns.contains("name")) columns.add(0, "name");
-        if (!columns.contains("description")) columns.add("description");
-        if (!columns.contains("brand")) columns.add("brand");
-        if (!columns.contains("rating")) columns.add("rating");
-        if (!columns.contains("price")) columns.add("price");
-        if (!columns.contains("stock")) columns.add("stock");
-        if (!columns.contains("purchaseprice")) columns.add("purchaseprice");
+        // Remove default fields if present in dynamic list
+        dynamicAttrs.removeIf(attr -> List.of("name", "description", "brand", "rating", "price", "stock", "purchaseprice")
+                .contains(attr.toLowerCase()));
+
+        // ✅ Final column order: name, description, brand, [attributes...], rating...
+        List<String> columns = new ArrayList<>();
+        columns.add("name");           // A
+        columns.add("description");    // B
+        columns.add("brand");          // C
+        columns.addAll(dynamicAttrs);  // D+...
+        columns.add("rating");
+        columns.add("price");
+        columns.add("stock");
+        columns.add("purchaseprice");
 
         Workbook workbook = new XSSFWorkbook();
-        Sheet templateSheet = workbook.createSheet("Product Template");
+        Sheet sheet = workbook.createSheet("Product Template");
 
-        // 🧾 Create header row
-        Row header = templateSheet.createRow(0);
+        // 🧾 Header row
+        Row header = sheet.createRow(0);
         for (int i = 0; i < columns.size(); i++) {
             header.createCell(i).setCellValue(columns.get(i));
         }
 
-        // 🧾 Create Data Validation Helper for Dropdown (for brand column)
-        DataValidationHelper dataValidationHelper = templateSheet.getDataValidationHelper();
-        DataValidationConstraint constraint = dataValidationHelper.createExplicitListConstraint(
+        // 🧾 Dropdown for brand in the correct column
+        int brandColIndex = columns.indexOf("brand"); // now C = index 2
+        DataValidationHelper helper = sheet.getDataValidationHelper();
+        DataValidationConstraint constraint = helper.createExplicitListConstraint(
                 brands.stream().map(BrandEntity::getName).toArray(String[]::new)
         );
+        CellRangeAddressList addressList = new CellRangeAddressList(1, 1000, brandColIndex, brandColIndex);
+        DataValidation validation = helper.createValidation(constraint, addressList);
+        validation.setSuppressDropDownArrow(true);
+        sheet.addValidationData(validation);
 
-        // Apply data validation to the "brand" column (index 4)
-        CellRangeAddressList addressList = new CellRangeAddressList(1, 1000, 4, 4); // Apply to rows 1 to 1000 in the "brand" column (index 4)
-        DataValidation validation = dataValidationHelper.createValidation(constraint, addressList);
-        templateSheet.addValidationData(validation);
-
-        // 📤 Setup download
+        // 📤 Download setup
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=category_" + categoryId + "_template.xlsx");
 

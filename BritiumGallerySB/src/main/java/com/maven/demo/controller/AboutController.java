@@ -2,10 +2,13 @@ package com.maven.demo.controller;
 
 import com.maven.demo.entity.AboutEntity;
 import com.maven.demo.service.AboutService;
+import com.maven.demo.service.CloudinaryUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -15,6 +18,10 @@ public class AboutController {
 
     @Autowired
     private AboutService service;
+
+    @Autowired
+    private CloudinaryUploadService cloudinaryService;
+
 
     @GetMapping
     public List<AboutEntity> getAll() {
@@ -27,24 +34,67 @@ public class AboutController {
         return about != null ? ResponseEntity.ok(about) : ResponseEntity.notFound().build();
     }
 
+
+    // CREATE
+
     // CREATE
     @PostMapping
-    public ResponseEntity<AboutEntity> create(@RequestBody AboutEntity about) {
-        AboutEntity saved = service.create(about);
-        return ResponseEntity.ok(saved);
+    public AboutEntity create(@RequestParam("file") MultipartFile file,
+                              @RequestParam("mission") String mission,
+                              @RequestParam("vision") String vision,
+                              @RequestParam("story") String story,
+                              @RequestParam("valueText") String valueText) {
+        AboutEntity about = new AboutEntity();
+        about.setMission(mission);
+        about.setVision(vision);
+        about.setStory(story);
+        about.setValueText(valueText);
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                String imageUrl = cloudinaryService.uploadToCloudinary(file, "about");
+                about.setImageUrl(imageUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to upload image", e);
+            }
+        }
+
+        return service.create(about);
     }
 
-    // EDIT
+
+    // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<AboutEntity> update(@PathVariable Long id, @RequestBody AboutEntity about) {
-        AboutEntity updated = service.update(id, about);
-        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+    public AboutEntity update(@PathVariable Long id,
+                              @RequestParam("file") MultipartFile file,
+                              @RequestParam("mission") String mission,
+                              @RequestParam("vision") String vision,
+                              @RequestParam("story") String story,
+                              @RequestParam("valueText") String valueText) {
+        AboutEntity existing = service.getById(id);
+        if (existing != null) {
+            existing.setMission(mission);
+            existing.setVision(vision);
+            existing.setStory(story);
+            existing.setValueText(valueText);
+
+            if (file != null && !file.isEmpty()) {
+                try {
+                    String imageUrl = cloudinaryService.uploadToCloudinary(file, "about");
+                    existing.setImageUrl(imageUrl);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to upload image", e);
+                }
+            }
+
+            return service.update(id, existing);
+        }
+        return null;
     }
 
     // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public void delete(@PathVariable Long id) {
         service.deleteById(id);
-        return ResponseEntity.ok().build();
     }
 }
