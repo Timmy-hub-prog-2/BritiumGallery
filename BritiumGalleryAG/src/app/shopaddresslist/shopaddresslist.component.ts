@@ -3,6 +3,7 @@ import { AuthService } from '../AuthService';
 import { Router } from '@angular/router';
 import * as L from 'leaflet';
 import { ShopAddressService } from '../shop-address.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-shopaddresslist',
@@ -21,7 +22,7 @@ export class ShopaddresslistComponent implements OnInit {
   });
 
   constructor(
-  private addressService:ShopAddressService,
+    private addressService: ShopAddressService,
     private authService: AuthService,
     private router: Router
   ) { }
@@ -33,8 +34,8 @@ export class ShopaddresslistComponent implements OnInit {
   fetchAddresses(): void {
     const userId = this.authService.getLoggedInUserId();
     if (userId) {
-       this.currentUserId = userId; // ✅ FIXED
-     this.addressService.getByUserId(userId).subscribe(
+      this.currentUserId = userId; // ✅ FIXED
+      this.addressService.getByUserId(userId).subscribe(
         (data: any[]) => {
           this.addresses = data;
 
@@ -51,37 +52,38 @@ export class ShopaddresslistComponent implements OnInit {
       console.error('User not logged in');
     }
   }
-initializeMaps(): void {
-  this.addresses.forEach((address) => {
-    const lat = address.latitude;
-    const lng = address.longitude;
-    const mapElementId = `map-${address.id}`;
+  initializeMaps(): void {
+    this.addresses.forEach((address) => {
+      const lat = address.latitude;
+      const lng = address.longitude;
+      const mapElementId = `map-${address.id}`;
 
-    const mapElement = document.getElementById(mapElementId);
+      const mapElement = document.getElementById(mapElementId);
 
-    // 💡 Skip if the element doesn't exist (maybe still rendering)
-    if (!mapElement) return;
+      // 💡 Skip if the element doesn't exist (maybe still rendering)
+      if (!mapElement) return;
 
-    // ❌ Avoid reinitializing Leaflet map on same DOM
-    if ((mapElement as any)._leaflet_id) return;
+      // ❌ Avoid reinitializing Leaflet map on same DOM
+      if ((mapElement as any)._leaflet_id) return;
 
-    if (lat && lng) {
-      const map = L.map(mapElementId).setView([lat, lng], 15); // Zoomed in
+      if (lat && lng) {
+        const map = L.map(mapElementId).setView([lat, lng], 15); // Zoomed in
 
-      L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 20,
-      }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
+          maxZoom: 19
+        }).addTo(map);
 
-      L.marker([lat, lng], {
-        icon: this.locationIcon,
-        draggable: false
-      }).addTo(map)
-        .bindPopup(`<b>${address.houseNumber}</b><br>${address.street}`)
-        ;
-    }
-  });
-}
+
+        L.marker([lat, lng], {
+          icon: this.locationIcon,
+          draggable: false
+        }).addTo(map)
+          .bindPopup(`<b>${address.houseNumber}</b><br>${address.street}`)
+          ;
+      }
+    });
+  }
 
   editAddress(address: any): void {
     this.router.navigate(['/shopaddressedit'], {
@@ -91,27 +93,62 @@ initializeMaps(): void {
   }
 
   deleteAddress(id: number): void {
-    if (confirm('Are you sure you want to delete this address?')) {
-     this.addressService.deleteAddress(id).subscribe(() => {
-        this.fetchAddresses(); // Refresh after delete
-      });
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This action will delete the address permanently.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e74c3c',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, delete it',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.addressService.deleteAddress(id).subscribe(() => {
+          this.fetchAddresses(); // Refresh after delete
+
+          // ✅ Show success message
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'The address has been deleted.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        });
+      }
+    });
   }
 
   addNewAddress() {
     this.router.navigate(['/shopaddressform']);
   }
-markAsMain(addressId: number): void {
-  if (!this.currentUserId) {
-    console.error('Cannot set main address: userId is undefined');
-    return;
-  }
+  markAsMain(addressId: number): void {
+    if (!this.currentUserId) {
+      console.error('Cannot set main address: userId is undefined');
+      return;
+    }
 
-  console.log("Setting as main address: ", addressId);
-  this.addressService.setMain(this.currentUserId, addressId).subscribe(() => {
-    this.fetchAddresses();
-  });
-}
+    this.addressService.setMain(this.currentUserId, addressId).subscribe(() => {
+      this.fetchAddresses();
+
+      // ✅ Show success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Main Address Updated!',
+        text: 'This address is now set as your main address.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }, error => {
+      console.error('Set main address failed:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed!',
+        text: 'Could not set the main address. Please try again.',
+      });
+    });
+  }
 
 
 }

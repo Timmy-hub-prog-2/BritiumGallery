@@ -5,6 +5,7 @@ import { ShopAddressService } from '../shop-address.service';
 import { HttpClient } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import * as L from 'leaflet'; // Import Leaflet
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-shopaddressedit',
@@ -73,38 +74,38 @@ export class ShopaddresseditComponent implements OnInit {
     // }).addTo(this.map);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(this.map);
-    
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(this.map);
+
 
     // Add a default marker with the custom location icon
     this.marker = L.marker([16.775, 96.1575], { icon: this.locationIcon }).addTo(this.map);
 
     // Handle click on the map to update marker position and address fields
     this.map.on('click', (event) => this.onMapClick(event));
-    
-  // Now map is ready
-  this.mapInitialized = true;
 
-  // If latitude and longitude already exist (e.g. after populateForm), center map
-  if (this.address.latitude && this.address.longitude) {
-    this.setMapToSavedLocation();
+    // Now map is ready
+    this.mapInitialized = true;
+
+    // If latitude and longitude already exist (e.g. after populateForm), center map
+    if (this.address.latitude && this.address.longitude) {
+      this.setMapToSavedLocation();
+    }
   }
+
+  onMapClick(event: any): void {
+    const { lat, lng } = event.latlng;
+
+    // Update marker
+    this.marker?.setLatLng([lat, lng]);
+
+    // Update lat/lng in the address object
+    this.address.latitude = lat;
+    this.address.longitude = lng;
+
+    // Get address details from coordinates
+    this.getAddressFromLatLng(lat, lng);
   }
-
- onMapClick(event: any): void {
-  const { lat, lng } = event.latlng;
-
-  // Update marker
-  this.marker?.setLatLng([lat, lng]);
-
-  // Update lat/lng in the address object
-  this.address.latitude = lat;
-  this.address.longitude = lng;
-
-  // Get address details from coordinates
-  this.getAddressFromLatLng(lat, lng);
-}
 
 
   // Get address from latitude and longitude using reverse geocoding (Nominatim API)
@@ -145,7 +146,12 @@ export class ShopaddresseditComponent implements OnInit {
         this.address.street = addr.road || addr.street || '';
         this.address.postalCode = addr.postcode || '';
       } else {
-        alert('No location found.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed!',
+          text: 'Unable to fetch location. Please try again later.',
+        });
+
       }
     }, error => {
       console.error('Geocoding failed:', error);
@@ -153,31 +159,31 @@ export class ShopaddresseditComponent implements OnInit {
     });
   }
 
- getCurrentLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
+  getCurrentLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
 
-        // Update lat/lng in the address object
-        this.address.latitude = lat;
-        this.address.longitude = lng;
+          // Update lat/lng in the address object
+          this.address.latitude = lat;
+          this.address.longitude = lng;
 
-        if (this.map) this.map.setView([lat, lng], 15);
-        if (this.marker) this.marker.setLatLng([lat, lng]);
+          if (this.map) this.map.setView([lat, lng], 15);
+          if (this.marker) this.marker.setLatLng([lat, lng]);
 
-        this.reverseGeocode(lat, lng);
-      },
-      error => {
-        console.error('Geolocation error:', error);
-        alert('Unable to get your current location.');
-      }
-    );
-  } else {
-    alert('Geolocation is not supported by your browser.');
+          this.reverseGeocode(lat, lng);
+        },
+        error => {
+          console.error('Geolocation error:', error);
+          alert('Unable to get your current location.');
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by your browser.');
+    }
   }
-}
 
   reverseGeocode(lat: number, lng: number) {
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`;
@@ -209,20 +215,20 @@ export class ShopaddresseditComponent implements OnInit {
   }
 
   // Populate the form with address data
- populateForm(address: ShopAddressDTO): void {
-  this.address = { ...address };
+  populateForm(address: ShopAddressDTO): void {
+    this.address = { ...address };
 
-  if (this.mapInitialized && address.latitude && address.longitude) {
-    this.setMapToSavedLocation();
+    if (this.mapInitialized && address.latitude && address.longitude) {
+      this.setMapToSavedLocation();
+    }
   }
-}
-setMapToSavedLocation(): void {
-  if (this.map && this.marker && this.address.latitude && this.address.longitude) {
-    const latLng: L.LatLngExpression = [this.address.latitude, this.address.longitude];
-    this.map.setView(latLng, 15);
-    this.marker.setLatLng(latLng);
+  setMapToSavedLocation(): void {
+    if (this.map && this.marker && this.address.latitude && this.address.longitude) {
+      const latLng: L.LatLngExpression = [this.address.latitude, this.address.longitude];
+      this.map.setView(latLng, 15);
+      this.marker.setLatLng(latLng);
+    }
   }
-}
 
   // Submit the form to update address
   submitForm(form: NgForm): void {
@@ -230,8 +236,16 @@ setMapToSavedLocation(): void {
     if (form.valid && this.editingId) {
       this.address.id = this.editingId;
       this.addressService.updateAddress(this.editingId, this.address).subscribe(() => {
-        alert('Address updated successfully!');
-        this.router.navigate(['/shopaddresslist']);
+        Swal.fire({
+          icon: 'success',
+          title: 'Updated!',
+          text: 'Address updated successfully!',
+          timer: 2000,
+          showConfirmButton: false
+        }).then(() => {
+          this.router.navigate(['/shopaddresslist']);
+        });
+
       });
     }
   }

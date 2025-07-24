@@ -152,28 +152,58 @@ form button:hover {
   font-weight: bold;
 }
 
-/* Icon Button (unstyled text/icon-style button) */
-.icon-button {
-  background: none;
-  border: none;
-  padding: 6px 10px; /* Adjust padding for a more compact button */
-  margin: 0;
+/* Action Buttons */
+.list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list-action-btn {
+  width: 34px;
+  height: 34px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
   cursor: pointer;
-  font-size: 20px; /* Increase the font size for better visibility */
-  color: #333;
-  line-height: 1;
-  transition: color 0.3s ease; /* Smooth color transition on hover */
+  transition: all 0.2s ease;
+  padding: 0;
 }
 
-.icon-button:hover {
-  color: #3498db; /* Change color to blue when hovered */
-  text-decoration: none; /* Remove underline effect */
+.list-action-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Disabled State for Icon Button */
-.icon-button[disabled] {
-  color: #ccc; /* Light gray color for disabled state */
-  cursor: not-allowed; /* Show disabled cursor */
+.list-action-btn.edit {
+  color: #1a1a1a;
+}
+
+.list-action-btn.edit:hover {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: white;
+}
+
+.list-action-btn.delete {
+  color: #1a1a1a;
+}
+
+.list-action-btn.delete:hover {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: white;
+}
+
+/* Remove old icon button styles */
+.icon-button {
+  display: none;
 }
 
 /* Responsive Sidebar Padding */

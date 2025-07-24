@@ -1,11 +1,10 @@
-<div class="admin-blog">
-
+<div class="policy-management-container">
   <!-- Page Header -->
   <div class="management-header">
     <div class="header-content">
       <div class="header-icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M3 6h18M6 6v14a2 2 0 002 2h8a2 2 0 002-2V6M9 10h6M9 14h6" />
+          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 14v-4m0-4h.01" />
         </svg>
       </div>
       <div class="header-text">
@@ -17,17 +16,17 @@
 
   <!-- Terms Form -->
   <div class="form-section card">
-    <h3 class="section-title">{{ editingId ? 'Edit Term' : 'Create Term' }}</h3>
+    <h3 class="section-title">{{ editingId ? 'Edit Term' : 'Add New Term' }}</h3>
 
     <form [formGroup]="termsForm" (ngSubmit)="saveTerm()">
       <div class="form-group">
         <label class="form-label">Title</label>
-        <input formControlName="title" class="form-input" placeholder="Enter title" />
+        <input class="form-input" formControlName="title" placeholder="Enter term title" />
       </div>
 
       <div class="form-group">
-        <label class="form-label">Content</label>
-        <textarea formControlName="content" rows="5" class="form-input" placeholder="Enter content"></textarea>
+        <label class="form-label">Content (HTML/Text)</label>
+        <textarea class="form-input" rows="6" formControlName="content" placeholder="Enter term content"></textarea>
       </div>
 
       <div class="form-group">
@@ -39,22 +38,22 @@
 
       <div class="footer-actions">
         <button type="submit" class="btn primary">
-          {{ editingId ? 'Update' : 'Create' }}
+          {{ editingId ? 'Update Term' : 'Create Term' }}
         </button>
-        <button type="button" class="btn secondary" (click)="cancelEdit()" *ngIf="editingId">Cancel</button>
+        <button type="button" class="btn secondary" *ngIf="editingId" (click)="cancelEdit()">Cancel</button>
       </div>
     </form>
   </div>
 
-  <!-- Terms Table List -->
+  <!-- Terms Table -->
   <div class="table-wrapper" *ngIf="allTerms.length > 0; else noTerms">
     <table class="styled-table">
       <thead>
         <tr>
           <th>ID</th>
           <th>Title</th>
-          <th>Content</th>
-          <th>Active</th>
+          <th>Content Preview</th>
+          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -63,18 +62,35 @@
           <td>{{ term.id }}</td>
           <td>{{ term.title }}</td>
           <td>
-            <div [ngClass]="{ 'snippet': !isExpanded(term.id!) }" [innerHTML]="term.content"></div>
+            <div [ngClass]="{ 'snippet': !isExpanded(term.id!) }">
+              <div *ngIf="!isExpanded(term.id!)" [innerHTML]="term.content | slice:0:100"></div>
+              <div *ngIf="isExpanded(term.id!)" [innerHTML]="term.content"></div>
+            </div>
             <a href="#" (click)="toggleExpand(term.id!, $event)">
               {{ isExpanded(term.id!) ? 'Show Less ▲' : 'Read More ▼' }}
             </a>
           </td>
           <td>{{ term.active ? '✅' : '❌' }}</td>
           <td>
-            <button class="icon-button" (click)="editTerm(term)">✏️</button>
-            <button class="icon-button" (click)="deleteTerm(term.id!)">🗑️</button>
+            <div class="list-actions">
+              <button class="list-action-btn edit" (click)="editTerm(term)" title="Edit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+              <button class="list-action-btn delete" (click)="deleteTerm(term.id!)" title="Delete">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" />
+                  <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+              </button>
+            </div>
           </td>
         </tr>
-
       </tbody>
     </table>
   </div>

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-
+import Swal from 'sweetalert2';
 
 // Define models for UserDto and Role
 export class Role {
@@ -15,7 +15,7 @@ export class UserDto {
   name?: string;
   email?: string;
   password?: string;
- phoneNumber?: string;
+  phoneNumber?: string;
   roleId?: number;
 }
 
@@ -30,7 +30,7 @@ export class CreateRoleComponent implements OnInit {
   roles: Role[] = [];
   userDto: UserDto = new UserDto();
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   ngOnInit(): void {
     this.getRoles();
@@ -38,7 +38,7 @@ export class CreateRoleComponent implements OnInit {
 
   // Get the list of roles from the backend
   getRoles(): void {
-   this.http.get<Role[]>('http://localhost:8080/api/roles').subscribe(
+    this.http.get<Role[]>('http://localhost:8080/api/roles').subscribe(
       (data) => {
         this.roles = data;
       },
@@ -48,25 +48,38 @@ export class CreateRoleComponent implements OnInit {
     );
   }
 
- createAdmin(): void {
-  this.http
-    .post<any>('http://localhost:8080/gallery/users/superadmin/createAdmin', this.userDto)
-    .subscribe(
-      (response) => {
-        if (response && response.message) {
-          alert('Admin created successfully. Login details were sent to email.');
-        } else {
-          alert('An error occurred while creating the admin. Please try again.');
+  createAdmin(): void {
+    this.http
+      .post<any>('http://localhost:8080/gallery/users/superadmin/createAdmin', this.userDto)
+      .subscribe(
+        (response) => {
+          if (response && response.message) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Admin Created!',
+              text: 'Login details were sent to the email address.',
+              timer: 2500,
+              showConfirmButton: false
+            }).then(() => {
+              this.router.navigate(['/admin-dashboard']);
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Failed!',
+              text: 'An error occurred while creating the admin. Please try again.'
+            });
+          }
+        },
+        (error) => {
+          console.error('Error creating admin:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Something went wrong while creating the admin.'
+          });
         }
-        this.router.navigate(['/admin-dashboard']);
-      },
-      (error) => {
-        console.error('Error creating admin:', error);
-        alert('An error occurred while creating the admin');
-      }
-    );
-}
-
-
+      );
+  }
 
 }

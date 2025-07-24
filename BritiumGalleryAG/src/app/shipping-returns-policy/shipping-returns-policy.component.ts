@@ -119,14 +119,33 @@ export class ShippingReturnsPolicyComponent implements OnInit {
     this.formPolicy = { ...policy }; // Clone to avoid direct mutation
   }
 
-  deletePolicy(id: number) {
-    if (confirm('Are you sure you want to delete this policy section?')) {
+ deletePolicy(id: number) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you want to delete this policy post?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#aaa',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
       this.http.delete(`${this.BASE_URL}/${id}`).subscribe(() => {
-        alert('Policy deleted.');
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'The policy has been deleted.',
+          confirmButtonColor: '#222',
+          timer: 2000,
+          showConfirmButton: false
+        });
         this.loadPolicies();
       });
     }
-  }
+  });
+}
+
 
   cancelEdit() {
     this.editingPolicy = null;

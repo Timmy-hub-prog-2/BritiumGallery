@@ -72,13 +72,19 @@ submitAbout() {
     formData.append('file', this.selectedImage, this.selectedImage.name);
   }
 
-  // Handle create or update operation
-  if (this.editingAbout) {
-    this.aboutService.update(this.editingAbout.id!, formData).subscribe(() => {
-      this.editingAbout = null;
-      this.resetForm();
-      this.loadAbouts();
+ if (this.editingAbout) {
+  this.aboutService.update(this.editingAbout.id!, formData).subscribe(() => {
+    Swal.fire({
+      icon: 'success',
+      title: 'Updated!',
+      text: 'About section updated successfully.',
+      timer: 2000,
+      showConfirmButton: false
     });
+    this.editingAbout = null;
+    this.resetForm();
+    this.loadAbouts();
+  });
   } else {
     this.aboutService.create(formData).subscribe(() => {
       this.resetForm();
@@ -92,11 +98,32 @@ submitAbout() {
     this.formAbout = { ...about };
   }
 
-  deleteAbout(id: number) {
-    if (confirm('Are you sure you want to delete this About section?')) {
-      this.aboutService.delete(id).subscribe(() => this.loadAbouts());
+ deleteAbout(id: number) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you want to delete this about us post?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e74c3c',
+    cancelButtonColor: '#aaa',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.aboutService.delete(id).subscribe(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'The About section has been deleted.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.loadAbouts();
+      });
     }
-  }
+  });
+}
+
 
   cancelEdit() {
     this.editingAbout = null;

@@ -1,5 +1,6 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BlogService } from '../blog.service';
+import Swal from 'sweetalert2';
 
 export interface BlogPost {
   id?: number;
@@ -32,8 +33,7 @@ export class BlogCreateComponent implements OnInit {
   isVideo: boolean = false;
   blogs: BlogPost[] = [];
   editingId?: number;
-
-  @ViewChild('fileInput') fileInput!: ElementRef;
+  expandedBlogs: Set<number> = new Set();
 
   constructor(private blogService: BlogService) {}
 
@@ -47,8 +47,33 @@ export class BlogCreateComponent implements OnInit {
   }
 
   submit() {
-    if (!this.blog.title.trim() || !this.blog.summary.trim() || !this.blog.content.trim() || !this.blog.author.trim() || !this.blog.publishDate) {
-      alert('Please fill in all fields before submitting the blog.');
+    const title = this.blog.title?.trim();
+    const content = this.blog.content?.trim();
+    const author = this.blog.author?.trim();
+
+    if (!title || !content || !author || !this.blog.publishDate) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'Please fill in all required fields before saving.',
+        confirmButtonColor: '#222'
+      });
+      return;
+    }
+
+    // Check for duplicate title
+    const isDuplicateTitle = this.blogs.some(b => 
+      b.title.trim().toLowerCase() === title.toLowerCase() &&
+      (!this.editingId || b.id !== this.editingId)
+    );
+
+    if (isDuplicateTitle) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'A blog with this title already exists. Please use a unique title.',
+        confirmButtonColor: '#222'
+      });
       return;
     }
 
@@ -62,20 +87,39 @@ export class BlogCreateComponent implements OnInit {
       } else if (fileType.startsWith('image/')) {
         formData.append('image', this.selectedFile);
       } else {
-        alert('Only image or video files are allowed.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid File',
+          text: 'Only image or video files are allowed.',
+          confirmButtonColor: '#222'
+        });
         return;
       }
     }
 
     if (this.editingId) {
       this.blogService.update(this.editingId, formData).subscribe(() => {
-        alert('Blog updated!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Blog updated successfully!',
+          confirmButtonColor: '#222',
+          timer: 2000,
+          showConfirmButton: false
+        });
         this.resetForm();
         this.loadBlogs();
       });
     } else {
       this.blogService.create(formData).subscribe(() => {
-        alert('Blog created!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Blog created successfully!',
+          confirmButtonColor: '#222',
+          timer: 2000,
+          showConfirmButton: false
+        });
         this.resetForm();
         this.loadBlogs();
       });
@@ -84,38 +128,76 @@ export class BlogCreateComponent implements OnInit {
 
   loadBlogs() {
     this.blogService.getAll().subscribe(data => {
-      
       this.blogs = data;
+      this.expandedBlogs.clear();
     });
   }
 
   editBlog(blog: BlogPost) {
     this.blog = { ...blog };
     this.editingId = blog.id;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   deleteBlog(id: number) {
-    if (confirm('Are you sure you want to delete this blog?')) {
-      this.blogService.delete(id).subscribe(() => {
-        this.loadBlogs();
-      });
-    }
+    if (!id) return;
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you want to delete this blog post?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, keep it',
+      confirmButtonColor: '#222'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.blogService.delete(id).subscribe(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'Blog has been deleted.',
+            confirmButtonColor: '#222',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          if (this.editingId === id) {
+            this.resetForm();
+          }
+          this.loadBlogs();
+        });
+      }
+    });
   }
 
-  setAsMain(blogId: number) {
-    if (confirm('Set this blog as the main blog?')) {
-      this.blogService.setMain(blogId).subscribe(() => {
-        alert('Main blog set successfully!');
-        this.loadBlogs();
-      });
-    }
+  setAsMain(id: number) {
+    if (!id) return;
+    Swal.fire({
+      title: 'Set as Main Blog',
+      text: 'Do you want to set this as the main blog post?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'No',
+      confirmButtonColor: '#222'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.blogService.setMain(id).subscribe(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Main blog set successfully!',
+            confirmButtonColor: '#222',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.loadBlogs();
+        });
+      }
+    });
   }
 
   cancelEdit() {
     this.resetForm();
-    if (this.fileInput) {
-      this.fileInput.nativeElement.value = '';
-    }
   }
 
   resetForm() {
@@ -128,5 +210,20 @@ export class BlogCreateComponent implements OnInit {
     };
     this.selectedFile = undefined as any;
     this.editingId = undefined;
+  }
+
+  toggleExpand(id: number, event: Event): void {
+    event.preventDefault();
+    if (!id) return;
+    if (this.expandedBlogs.has(id)) {
+      this.expandedBlogs.delete(id);
+    } else {
+      this.expandedBlogs.add(id);
+    }
+  }
+
+  isExpanded(id: number): boolean {
+    if (!id) return false;
+    return this.expandedBlogs.has(id);
   }
 }
