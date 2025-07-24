@@ -68,6 +68,9 @@ import { CreateRoleComponent } from './create-role/create-role.component';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { ShopMapViewComponent } from './shop-map-view/shop-map-view.component';
+import { BritiumComponent } from './britium/britium.component';
+import { PrivacypolicyListComponent } from './privacypolicy-list/privacypolicy-list.component';
+import { NewPasswordComponent } from './new-password/new-password.component';
 
 const routes: Routes = [
   { path: 'categoryRegister/:parentId', component: CategoryRegisterComponent },
@@ -142,8 +145,12 @@ const routes: Routes = [
   { path: 'aboutlist', component: AboutListComponent },       
   { path: 'customer-message', component: CustomerMessageComponent },
   { path: 'admin-message', component: AdminMessageComponent },
-  { path: 'shopmapview', component: ShopMapViewComponent }
-        
+  { path: 'shopmapview', component: ShopMapViewComponent },
+  { path: 'brititum', component: BritiumComponent },
+   { path: 'privacypolicyList', component: PrivacypolicyListComponent },
+   { path: 'shippinglist', component: ShippingListComponent },
+   { path: 'aboutlist', component: AboutListComponent },
+   { path: 'newpassword', component: NewPasswordComponent }
 
 
 

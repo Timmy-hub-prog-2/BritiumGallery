@@ -8,44 +8,42 @@ import { ActivatedRoute, Router } from '@angular/router';
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.css'
 })
-export class ResetPasswordComponent implements OnInit {
+export class ResetPasswordComponent {
   code = '';
-  email = ''; // optional
-  newPassword = '';
-  confirmPassword = '';
-  message = '';
   error = '';
 
-  constructor(private http: HttpClient, private router: Router, private route: ActivatedRoute) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
-ngOnInit(): void {
-  this.code = ''; // only reset the code field
-}
-
-
-  onSubmit() {
-    if (this.newPassword !== this.confirmPassword) {
-      this.error = 'Passwords do not match';
-      return;
-    }
-
-    const payload = {
-      code: this.code, // user input only
-      newPassword: this.newPassword
-    };
-
-    console.log('Payload:', payload);
-
-    this.http.post('http://localhost:8080/gallery/users/auth/validate-code', payload, { responseType: 'text' })
+  onVerify() {
+    this.http.post('http://localhost:8080/gallery/users/auth/validate-code', { code: this.code }, { responseType: 'text' })
       .subscribe(
-        res => {
-          this.message = 'Password reset successful';
-          this.router.navigate(['/login']);
+        () => {
+          localStorage.setItem('resetCode', this.code);
+          this.router.navigate(['/newpassword']);
+
         },
         err => {
-          this.error = err.error?.message || 'Unexpected error';
-          console.error(err);
+          this.error = err.error?.message || 'Invalid or expired code.';
         }
       );
   }
+  onResendCode() {
+  const email = localStorage.getItem('resetEmail'); // store email during forgot-password
+  if (!email) {
+    this.error = 'Email not available. Please go back and try again.';
+    return;
+  }
+
+  this.http.post('http://localhost:8080/gallery/users/auth/resend-code', { email }, { responseType: 'text' })
+  
+    .subscribe(
+      () => {
+        this.error = '';
+        alert('Verification code resent! Check your email.');
+      },
+      err => {
+        this.error = err.error?.message || 'Failed to resend code.';
+      }
+    );
+}
 }

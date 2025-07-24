@@ -116,7 +116,9 @@ public class OtpService {
 
         UserEntity user = userOpt.get();
 
-        if (user.getStatus() == 1) return "already-verified";
+        if (user.getStatus() != null && user.getStatus() == 1) {
+            return "already-verified";
+        }
 
         Optional<OtpEntity> latestOtpOpt = otpRepository.findTopByUserOrderByCreatedAtDesc(user);
         if (latestOtpOpt.isEmpty()) return "No OTP found";

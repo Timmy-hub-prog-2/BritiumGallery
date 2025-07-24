@@ -279,14 +279,44 @@ import com.maven.demo.service.UserService1;
             userService.processForgotPassword(email);
             return ResponseEntity.ok("Reset code sent");
         }
+
         @PostMapping("/auth/validate-code")
-        public ResponseEntity<?> validateCode(@RequestBody ResetPasswordRequest request) {
-            System.out.println("Code: " + request.getCode());  // ✅ should be 6 digits
+        public ResponseEntity<?> validateCodeOnly(@RequestBody Map<String, String> body) {
+            String code = body.get("code");
+            System.out.println("Verifying code: " + code);
+
+            boolean valid = userService.checkCode(code);
+            if (valid) {
+                return ResponseEntity.ok("Code is valid");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid code");
+            }
+        }
+
+        @PostMapping("/auth/resend-code")
+        public ResponseEntity<?> resendCode(@RequestBody Map<String, String> request) {
+            String email = request.get("email");
+            System.out.println("📩 Resend requested for email: " + email); // 🔍 Debug
+            try {
+                userService.resendVerificationCode(email);
+                return ResponseEntity.ok("Verification code resent.");
+            } catch (Exception ex) {
+                ex.printStackTrace(); // 🔍 see exact cause
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to resend code.");
+            }
+        }
+
+        @PostMapping("/auth/reset-password")
+        public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+            System.out.println("🔐 Received reset-password request:");
+            System.out.println("Code: " + request.getCode());
             System.out.println("New Password: " + request.getNewPassword());
 
-            userService.validateVerificationCode(request.getCode(), request.getNewPassword());
-            return ResponseEntity.ok("Password has been reset");
+            userService.resetPassword(request.getCode(), request.getNewPassword());
+            return ResponseEntity.ok("Password reset successful");
         }
+
+
 
         @PostMapping("/heartbeat")
         public ResponseEntity<?> heartbeat(@RequestBody Map<String, Long> body) {

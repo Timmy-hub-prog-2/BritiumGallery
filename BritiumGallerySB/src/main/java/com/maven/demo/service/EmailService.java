@@ -23,4 +23,18 @@ public class EmailService {
 
         mailSender.send(message);
     }
+    public void sendResetCode(String toEmail, String code) {
+        String subject = "Your password reset code";
+        String content = "<p>Hello,</p>" +
+                "<p>Your password reset code is: <strong>" + code + "</strong></p>" +
+                "<p>This code will expire in <b>10 minutes</b>.</p>" +
+                "<br><p>Thanks,<br>Britium Gallery Team</p>";
+
+        try {
+            sendHtmlEmail(toEmail, subject, content);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send email", e);
+        }
+    }
+
 }

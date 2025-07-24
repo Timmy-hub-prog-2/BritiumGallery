@@ -108,6 +108,9 @@ import { ResetPasswordComponent } from './reset-password/reset-password.componen
 import { ShippingListComponent } from './shipping-list/shipping-list.component';
 import { AboutListComponent } from './about-list/about-list.component';
 import { ShopMapViewComponent } from './shop-map-view/shop-map-view.component';
+import { PrivacypolicyListComponent } from './privacypolicy-list/privacypolicy-list.component';
+import { BritiumComponent } from './britium/britium.component';
+import { NewPasswordComponent } from './new-password/new-password.component';
 
 @NgModule({
   declarations: [
@@ -197,6 +200,9 @@ import { ShopMapViewComponent } from './shop-map-view/shop-map-view.component';
     CustomerMessageComponent,
     AdminMessageComponent,
     ShopMapViewComponent,
+    PrivacypolicyListComponent,
+    BritiumComponent,
+    NewPasswordComponent,
     
   ],
   imports: [
