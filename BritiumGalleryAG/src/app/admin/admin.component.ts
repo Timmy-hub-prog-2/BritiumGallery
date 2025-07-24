@@ -7,10 +7,8 @@ import { Router } from '@angular/router';
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent  {
   constructor(private router: Router) {}
 
-  ngOnInit(): void {
-    this.router.navigate(['/view-profile']);
-  }
+  
 }

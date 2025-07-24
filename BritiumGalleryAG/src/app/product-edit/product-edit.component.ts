@@ -355,22 +355,31 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
     this.displayImageUrls = [];
     this.removedExistingImageUrls = [];
 
-    const uniqueAttributes = this.getUniqueAttributeNames();
-    uniqueAttributes.forEach((attrName) => {
-      this.attributesFormArray.push(
-        this.fb.group({
-          key: [attrName, Validators.required],
-          value: ['', Validators.required],
-        })
-      );
-    });
+    // Fetch all category attributes for the product's category
+    if (this.product && this.product.categoryId) {
+      this.categoryService.getAttributesForCategory(this.product.categoryId).subscribe((attributes: any[]) => {
+        attributes.forEach((attr: any) => {
+          this.attributesFormArray.push(
+            this.fb.group({
+              key: [attr.name, Validators.required],
+              value: ['', Validators.required],
+            })
+          );
+        });
+        this.openAddVariantDialog();
+      });
+    } else {
+      this.openAddVariantDialog();
+    }
+  }
 
+  // Helper to open the add variant dialog
+  private openAddVariantDialog(): void {
     this.addVariantDialogRef = this.dialog.open(this.addVariantModal, {
       width: '100vw',
       maxWidth: '100vw',
       disableClose: true,
     });
-
     this.addVariantDialogRef.afterClosed().subscribe(() => {
       this.addVariantDialogRef = null;
       this.isAddingVariant = false;
@@ -540,9 +549,8 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         JSON.stringify(this.removedExistingImageUrls)
       );
     }
-    const loggedInUser = JSON.parse(
-      localStorage.getItem('loggedInUser') || '{}'
-    );
+    // Add adminId to FormData
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
     if (loggedInUser && loggedInUser.id) {
       formData.append('adminId', loggedInUser.id.toString());
     }

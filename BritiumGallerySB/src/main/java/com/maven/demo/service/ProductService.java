@@ -514,6 +514,11 @@ public class ProductService {
             purchase.setPurchasePrice(dto.getPurchasePrice());
             purchase.setQuantity(dto.getStock());
             purchase.setRemainingQuantity(dto.getStock());
+            if (adminId != null) {
+                UserEntity admin = userRepository.findById(adminId)
+                        .orElseThrow(() -> new RuntimeException("Admin not found"));
+                purchase.setAdmin(admin);
+            }
             purchaseHistoryRepository.save(purchase);
         }
         {

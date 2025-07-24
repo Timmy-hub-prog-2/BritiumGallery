@@ -11,6 +11,7 @@ import { User } from '../../user.model';
 import Swal from 'sweetalert2';
 import { NotificationService } from '../services/notification.service';
 import { ProductRecommendation } from '../services/product.service';
+import { CategoryService } from '../category.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -19,7 +20,7 @@ import { ProductRecommendation } from '../services/product.service';
   styleUrls: ['./product-detail.component.css']
 })
 export class ProductDetailComponent implements OnInit {
-   breadcrumb: string[] = [];
+   breadcrumb: Array<{ name: string, id?: number }> = [];
   productId: number = 0;
   selectedVariations: { [key: string]: string } = {};
   productImages: string[] = [];
@@ -40,7 +41,8 @@ export class ProductDetailComponent implements OnInit {
     private cartService: CartService,
     private router: Router,
     private userService: UserService,
-    private notificationService: NotificationService // <-- Injected
+    private notificationService: NotificationService, // <-- Injected
+    private categoryService: CategoryService
   ) {}
 
   ngOnInit(): void {
@@ -48,12 +50,8 @@ export class ProductDetailComponent implements OnInit {
       this.productId = +params['id'];
       console.log('Product ID:', this.productId);
       this.fetchProductDetail();
-      this.productService.getProductBreadcrumb(this.productId).subscribe(data=>{
-           this.breadcrumb = data;
-            this.loadWishlist(); 
-      });
-      // Fetch recommendations after product detail
-      this.fetchRecommendations();
+      this.loadWishlist();
+      this.fetchRecommendations(); // Ensure recommendations are always loaded
     });
     this.loadCurrentUser();
   }
@@ -125,13 +123,33 @@ export class ProductDetailComponent implements OnInit {
         this.selectedVariantImage = this.productImages[0];
         this.currentImageIndex = 0;
       }
-      this.cdr.detectChanges();
+
+      // Build breadcrumb with category path and product name
+      if (data && data.categoryId) {
+        this.categoryService.getCategoryPath(data.categoryId).subscribe({
+          next: (path: any[]) => {
+            console.log('Category path for breadcrumb:', path);
+            this.breadcrumb = path.map(cat => ({ name: cat.name, id: cat.id }));
+            this.breadcrumb.push({ name: data.name });
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Failed to fetch category path for breadcrumb', err);
+            this.breadcrumb = [{ name: data.name }];
+            this.cdr.detectChanges();
+          }
+        });
+      } else {
+        this.breadcrumb = [{ name: data.name }];
+        this.cdr.detectChanges();
+      }
     });
   }
 
   fetchRecommendations(): void {
     this.productService.getRecommendedProducts(this.productId, 8).subscribe(data => {
       this.recommendations = data;
+      console.log('Recommendations:', this.recommendations);
       this.cdr.detectChanges();
     });
   }

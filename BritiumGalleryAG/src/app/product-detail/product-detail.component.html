@@ -1,11 +1,21 @@
-  <div class="product-detail-page">
-    <!-- Breadcrumb -->
-    <div class="breadcrumb" *ngIf="breadcrumb.length > 0">
-    <ng-container *ngFor="let item of breadcrumb; let i = index">
-      <span [class.current]="i === breadcrumb.length - 1">{{ item }}</span>
-      <span class="separator" *ngIf="i !== breadcrumb.length - 1">></span>
+<nav class="breadcrumb-nav" *ngIf="breadcrumb.length > 0">
+  <!-- <a [routerLink]="['/']" class="breadcrumb-link">
+    
+    Home
+  </a>
+  <span class="breadcrumb-separator">/</span> -->
+  <a class="breadcrumb-link">Categories</a>
+  <ng-container *ngFor="let item of breadcrumb; let i = index; let last = last">
+    <span class="breadcrumb-separator">/</span>
+    <ng-container *ngIf="!last">
+      <a *ngIf="item.id; else plainText" [routerLink]="['/category-products', item.id]" class="breadcrumb-link">{{ item.name }}</a>
+      <ng-template #plainText><span class="breadcrumb-link">{{ item.name }}</span></ng-template>
     </ng-container>
-  </div>
+    <ng-container *ngIf="last">
+      <span class="breadcrumb-current">{{ item.name }}</span>
+    </ng-container>
+  </ng-container>
+</nav>
 
     <div *ngIf="breadcrumb.length > 0"></div>
 

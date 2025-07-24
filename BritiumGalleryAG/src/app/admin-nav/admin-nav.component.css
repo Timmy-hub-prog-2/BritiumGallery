@@ -1,8 +1,9 @@
 .nav {
-  background: #fff;
-  border-bottom: 1px solid #e0e0e0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
   padding: 0 20px;
   height: 60px;
   position: relative;
@@ -11,10 +12,16 @@
 }
 
 .nav-center {
- 
-  
   display: flex;
   gap: 40px;
+  flex: 1;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-left: auto;
 }
 
 .nav-center a {
@@ -79,8 +86,8 @@
 .nav2-actions {
   display: flex;
   gap: 1.5rem;
-  align-items: center;
-  padding-left: 1000px;
+  align-items: right;
+  
 }
 
 /* Profile Menu Styles */

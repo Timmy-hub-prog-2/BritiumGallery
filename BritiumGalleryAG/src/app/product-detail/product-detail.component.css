@@ -1,32 +1,51 @@
 .product-detail-page {
   max-width: 1200px;
-  margin-top: 3em;
-  margin-left: 1em;
-   margin-right: 1em;
+  margin-top: 10em;
+  margin-left: 3em;
+   margin-right: 3em;
   padding: 20px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: #ffffff;
   overflow: visible;
 }
 
-/* Breadcrumb */
-.breadcrumb {
-  background: white;
-  padding: 12px 16px;
-  border-radius: 4px;
-  margin-bottom: 16px;
-  font-size: 14px;
-  color: #666;
+/* Breadcrumb styles for product detail */
+.breadcrumb-nav {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  margin: 1.5rem 0 1rem 0;
+  margin-top: 5em;
+  padding-left: 2.5em;
+  flex-wrap: wrap;
+  background: none;
+  border: none;
+  margin-bottom: 2em;
 }
 
-.breadcrumb .separator {
-  margin: 0 8px;
-  color: #ccc;
-}
-
-.breadcrumb .current {
+.breadcrumb-link {
   color: #000000;
+  text-decoration: none;
   font-weight: 500;
+  margin: 0 4px;
+  transition: color 0.2s;
+}
+.breadcrumb-link:hover {
+  text-decoration: underline;
+  color: #a8a8a8;
+}
+
+.breadcrumb-separator {
+  color: #888;
+  margin: 0 4px;
+  font-size: 1.1em;
+  user-select: none;
+}
+
+.breadcrumb-current {
+  color: #222;
+  font-weight: 500;
+  margin-left: 4px;
 }
 
 /* Product Title */
@@ -552,7 +571,7 @@
   background: rgb(255, 255, 255);
   border-radius: 8px;
   padding: 20px;
-  
+  margin-left: 2em;
 }
 
 .recommendations-section h3 {

@@ -1,6 +1,9 @@
 <nav class="nav">
   <div class="nav-center nav2-actions">
-    <!-- Notification Bell: ensure only the bell button toggles the dropdown -->
+    <!-- Your left/center nav content (logo, menu, etc.) goes here -->
+    <!-- Example: <a routerLink="/dashboard">Dashboard</a> -->
+  </div>
+  <div class="nav-right">
     <div class="notification-container" *ngIf="user">
       <button class="notification-trigger"
               (click)="toggleNotifications()"
@@ -166,7 +169,6 @@
         </div>
       </div>
     </div>
-    <!-- Profile Menu -->
     <div class="profile-menu-container" *ngIf="user">
       <button class="action-button profile-button" [class.active]="isProfileMenuVisible" (click)="toggleProfileMenu($event)">
         <img *ngIf="user?.imageUrls?.length"
