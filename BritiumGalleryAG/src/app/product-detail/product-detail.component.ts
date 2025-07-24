@@ -65,6 +65,28 @@ export class ProductDetailComponent implements OnInit {
     }
   }
 
+  // New method to update state based on current selectedVariations
+  private updateSelectedVariantState(): void {
+    if (!this.latestProductDetail || !this.latestProductDetail.variants) return;
+    const matchingVariant = this.latestProductDetail.variants.find(variant => {
+      if (!variant.attributes) return false;
+      return Object.entries(this.selectedVariations).every(([type, value]) => variant.attributes[type] === value);
+    });
+    if (matchingVariant) {
+      this.selectedVariantPrice = matchingVariant.discountedPrice ?? matchingVariant.price;
+      if (matchingVariant.imageUrls && matchingVariant.imageUrls.length > 0) {
+        this.selectedVariantImage = matchingVariant.imageUrls[0];
+        this.currentImageIndex = 0;
+      } else if (this.latestProductDetail.basePhotoUrl) {
+        this.selectedVariantImage = this.latestProductDetail.basePhotoUrl;
+        this.currentImageIndex = 0;
+      } else if (this.latestProductDetail.imageUrl) {
+        this.selectedVariantImage = this.latestProductDetail.imageUrl;
+        this.currentImageIndex = 0;
+      }
+    }
+  }
+
   fetchProductDetail(): void {
     this.productService.getProductDetail(this.productId).subscribe(data => {
       this.latestProductDetail = data;
@@ -75,10 +97,10 @@ export class ProductDetailComponent implements OnInit {
         const firstVariant = data.variants[0];
         if (firstVariant.attributes) {
           this.selectedVariations = { ...firstVariant.attributes };
+          this.updateSelectedVariantState();
         }
         // Use discounted price if present
-        this.selectedVariantPrice = firstVariant.discountedPrice ?? firstVariant.price;
-        console.log('Initial price set to:', this.selectedVariantPrice);
+        // (handled in updateSelectedVariantState)
       }
 
       // Handle images
@@ -99,7 +121,7 @@ export class ProductDetailComponent implements OnInit {
         this.productImages.push(data.imageUrl);
       }
 
-      if (this.productImages.length > 0) {
+      if (this.productImages.length > 0 && !this.selectedVariantImage) {
         this.selectedVariantImage = this.productImages[0];
         this.currentImageIndex = 0;
       }
@@ -116,22 +138,24 @@ export class ProductDetailComponent implements OnInit {
 
   // Method to check if a variation option is available based on selected variations
   isOptionSelectable(productDetail: ProductResponse, currentVariationType: string, currentOption: string): boolean {
-    console.log(`[isOptionSelectable] Checking type: ${currentVariationType}, option: ${currentOption}, selected:`, { ...this.selectedVariations });
     if (!productDetail || !productDetail.variants) {
-      console.log('[isOptionSelectable] No product detail or variants.');
       return false;
     }
 
     const variationTypes = this.getVariationTypes(productDetail);
     const currentIndex = variationTypes.indexOf(currentVariationType);
 
+    // For the first variation type, always return true (always clickable)
+    if (currentIndex === 0) {
+      return true;
+    }
+
+    // For other types, use the existing logic
     // Check if this variation type has the same value across all variants
     const isSameAcrossAllCurrent = this.isVariationSameAcrossAll(productDetail, currentVariationType);
     const isFirstSameAcrossAll = variationTypes.length > 0 ? this.isVariationSameAcrossAll(productDetail, variationTypes[0]) : false;
 
     // Handle special cases for the first two variation types if the first is same across all
-    // If the current variation type is the first and same across all, or second and first is same across all,
-    // all options for the current type are selectable.
     if (isSameAcrossAllCurrent || (currentIndex === 1 && isFirstSameAcrossAll)) {
       return true;
     }
@@ -139,26 +163,17 @@ export class ProductDetailComponent implements OnInit {
     // For other cases, check if there's any variant that has this option
     // AND is compatible with the currently selected variations in *other* types
     return productDetail.variants.some(variant => {
-      // Check if this variant has the current option for the current variation type
       if (variant.attributes?.[currentVariationType] !== currentOption) {
         return false;
       }
-
-      // Check if this variant is compatible with the selected variations in *other* types
-      // This means for every other variation type, if a value is selected, the variant must match it.
       for (const type in this.selectedVariations) {
         const selectedValue = this.selectedVariations[type];
-
-        // Only check for compatibility if a value is selected for this type and it's *not* the current variation type
         if (selectedValue && type !== currentVariationType) {
-          // If the variant's attribute for this selected type doesn't match the selected value, this variant is not compatible
           if (variant.attributes?.[type] !== selectedValue) {
             return false;
           }
         }
       }
-
-      // If we reached here, the variant has the current option and is compatible with all selected variations in other types
       return true;
     });
   }
@@ -214,43 +229,29 @@ export class ProductDetailComponent implements OnInit {
     this.selectedVariations = { ...this.selectedVariations, [variationType]: option };
     console.log('Selected Variations:', this.selectedVariations);
 
-    if (!this.latestProductDetail || !this.latestProductDetail.variants) {
-      console.log('[selectVariation] No product data available');
-      return;
-    }
+    if (!this.latestProductDetail || !this.latestProductDetail.variants) return;
 
-    // Find the matching variant
-    const matchingVariant = this.latestProductDetail.variants.find(variant => {
+    // Try to find a matching variant for the current selection
+    let matchingVariant = this.latestProductDetail.variants.find(variant => {
       if (!variant.attributes) return false;
-
-      // Check if all selected variations match this variant
-      return Object.entries(this.selectedVariations).every(([type, value]) => {
-        const variantValue = variant.attributes?.[type];
-        const matches = variantValue === value;
-        console.log(`Checking ${type}: selected=${value}, variant=${variantValue}, matches=${matches}`);
-        return matches;
-      });
+      return Object.entries(this.selectedVariations).every(([type, value]) => variant.attributes[type] === value);
     });
 
-    console.log('[selectVariation] Matching variant:', matchingVariant);
-
-    if (matchingVariant) {
-      // Update price (use discounted price if present)
-      const oldPrice = this.selectedVariantPrice;
-      this.selectedVariantPrice = matchingVariant.discountedPrice ?? matchingVariant.price;
-      console.log(`[selectVariation] Price updated from ${oldPrice} to ${this.selectedVariantPrice}`);
-
-      // Update image
-      if (matchingVariant.imageUrls && matchingVariant.imageUrls.length > 0) {
-        this.selectedVariantImage = matchingVariant.imageUrls[0];
-      } else if (this.latestProductDetail.basePhotoUrl) {
-        this.selectedVariantImage = this.latestProductDetail.basePhotoUrl;
-      } else if (this.latestProductDetail.imageUrl) {
-        this.selectedVariantImage = this.latestProductDetail.imageUrl;
+    // If not found, auto-switch to the first available variant that matches the newly selected value for the changed type
+    if (!matchingVariant) {
+      matchingVariant = this.latestProductDetail.variants.find(variant => {
+        if (!variant.attributes) return false;
+        // Must match the newly selected value for the changed type
+        if (variant.attributes[variationType] !== option) return false;
+        // No need to match other types
+        return true;
+      });
+      if (matchingVariant && matchingVariant.attributes) {
+        this.selectedVariations = { ...matchingVariant.attributes };
       }
-    } else {
-      console.log('[selectVariation] No matching variant found');
     }
+
+    this.updateSelectedVariantState();
   }
 
   selectVariantImage(imageUrl: string): void {
@@ -299,7 +300,8 @@ export class ProductDetailComponent implements OnInit {
       return this.productImages;
     }
 
-    const matchingVariants = product.variants.filter((variant: VariantResponse) => {
+    // Find the matching variant for the current selection
+    const matchingVariant = product.variants.find((variant: VariantResponse) => {
       let matchesAllSelected = true;
       for (const type in this.selectedVariations) {
         if (this.selectedVariations.hasOwnProperty(type)) {
@@ -314,14 +316,12 @@ export class ProductDetailComponent implements OnInit {
       return matchesAllSelected;
     });
 
-    const variantImageUrls = new Set<string>();
-    matchingVariants.forEach(variant => {
-      if (variant.imageUrls) {
-        variant.imageUrls.forEach(url => variantImageUrls.add(url));
-      }
-    });
+    if (matchingVariant && matchingVariant.imageUrls && matchingVariant.imageUrls.length > 0) {
+      return matchingVariant.imageUrls;
+    }
 
-    return variantImageUrls.size > 0 ? Array.from(variantImageUrls) : this.productImages;
+    // Fallback: return all product images
+    return this.productImages;
   }
 
  addToWishlist(productId: number): void {
