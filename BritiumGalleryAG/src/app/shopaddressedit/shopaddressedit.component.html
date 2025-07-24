@@ -1,10 +1,10 @@
 <div class="address-edit-container">
-  <h2>Edit Address</h2>
+  <div class="page-header">
+    <h2><i class="fa fa-location-dot"></i> Edit Address</h2>
+  </div>
 
-  <div class="address-container">
-    <!-- Left Sidebar -->
-    <div class="left-panel">
-      <!-- ✅ Search Bar -->
+  <div class="edit-content">
+    <div class="map-section">
       <div class="search-bar">
         <input
           type="text"
@@ -15,92 +15,87 @@
           name="searchQuery"
         />
         <button (click)="searchLocation()" class="icon-button" title="Search">
-          <i class="bi bi-search"></i>
+          <i class="fa fa-search"></i>
         </button>
         <button (click)="getCurrentLocation()" class="icon-button" title="Use My Current Location">
-          <i class="bi bi-geo-alt-fill"></i>
+          <i class="fa fa-location-crosshairs"></i>
         </button>
       </div>
-
-      <!-- ✅ Map Section -->
       <div id="map" class="map-container"></div>
     </div>
 
-    <!-- ✅ Address Form -->
     <form #addressForm="ngForm" (ngSubmit)="submitForm(addressForm)" class="address-form">
-      <div class="form-group">
-        <label>Country:</label>
-        <input [(ngModel)]="address.country" name="country" class="form-control" required #countryRef="ngModel" />
-        <div *ngIf="formSubmitAttempted && countryRef.invalid" class="error-message">
-          Country is required.
+      <div class="form-grid">
+        <div class="form-group">
+          <label><i class="fa fa-flag"></i> Country</label>
+          <input [(ngModel)]="address.country" name="country" class="form-control" required #countryRef="ngModel" />
+          <div *ngIf="formSubmitAttempted && countryRef.invalid" class="error-message">
+            Country is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa fa-map"></i> State/Region</label>
+          <input [(ngModel)]="address.state" name="state" class="form-control" required #stateRef="ngModel" />
+          <div *ngIf="formSubmitAttempted && stateRef.invalid" class="error-message">
+            State/Region is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa fa-city"></i> City</label>
+          <input [(ngModel)]="address.city" name="city" class="form-control" required #cityRef="ngModel" />
+          <div *ngIf="formSubmitAttempted && cityRef.invalid" class="error-message">
+            City is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa fa-building"></i> Township</label>
+          <input [(ngModel)]="address.township" name="township" class="form-control" required #townshipRef="ngModel" />
+          <div *ngIf="formSubmitAttempted && townshipRef.invalid" class="error-message">
+            Township is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa fa-road"></i> Street</label>
+          <input [(ngModel)]="address.street" name="street" class="form-control" required #streetRef="ngModel" />
+          <div *ngIf="formSubmitAttempted && streetRef.invalid" class="error-message">
+            Street is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa fa-home"></i> House No</label>
+          <input [(ngModel)]="address.houseNumber" name="houseNumber" class="form-control" required #houseNumberRef="ngModel" />
+          <div *ngIf="formSubmitAttempted && houseNumberRef.invalid" class="error-message">
+            House number is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa fa-th-large"></i> Ward</label>
+          <input [(ngModel)]="address.wardName" name="wardName" class="form-control" required #wardRef="ngModel" />
+          <div *ngIf="formSubmitAttempted && wardRef.invalid" class="error-message">
+            Ward name is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa fa-mail-bulk"></i> Postal Code</label>
+          <input [(ngModel)]="address.postalCode" name="postalCode" class="form-control" />
         </div>
       </div>
 
-      <div class="form-group">
-        <label>State/Region:</label>
-        <input [(ngModel)]="address.state" name="state" class="form-control" required #stateRef="ngModel" />
-        <div *ngIf="formSubmitAttempted && stateRef.invalid" class="error-message">
-          State/Region is required.
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>City:</label>
-        <input [(ngModel)]="address.city" name="city" class="form-control" required #cityRef="ngModel" />
-        <div *ngIf="formSubmitAttempted && cityRef.invalid" class="error-message">
-          City is required.
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Township:</label>
-        <input [(ngModel)]="address.township" name="township" class="form-control" required #townshipRef="ngModel" />
-        <div *ngIf="formSubmitAttempted && townshipRef.invalid" class="error-message">
-          Township is required.
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Street:</label>
-        <input [(ngModel)]="address.street" name="street" class="form-control" required #streetRef="ngModel" />
-        <div *ngIf="formSubmitAttempted && streetRef.invalid" class="error-message">
-          Street is required.
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>House No:</label>
-        <input [(ngModel)]="address.houseNumber" name="houseNumber" class="form-control" required #houseNumberRef="ngModel" />
-        <div *ngIf="formSubmitAttempted && houseNumberRef.invalid" class="error-message">
-          House number is required.
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Ward:</label>
-        <input [(ngModel)]="address.wardName" name="wardName" class="form-control" required #wardRef="ngModel" />
-        <div *ngIf="formSubmitAttempted && wardRef.invalid" class="error-message">
-          Ward name is required.
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Postal Code:</label>
-        <input [(ngModel)]="address.postalCode" name="postalCode" class="form-control" />
-      </div>
-
-      <!-- Form Actions -->
       <div class="form-actions">
-        <button type="submit" class="btn btn-success">Update Address</button>
-        <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fa fa-save"></i> Update Address
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="cancelEdit()">
+          <i class="fa fa-times"></i> Cancel
+        </button>
       </div>
     </form>
-
-    <!-- Go to Address List -->
-    <!-- <div class="go-to-addresslist">
-      <button class="btn btn-outline-info" [routerLink]="['/addresslist']">
-        View My Saved Addresses
-      </button>
-    </div> -->
   </div>
 </div>
