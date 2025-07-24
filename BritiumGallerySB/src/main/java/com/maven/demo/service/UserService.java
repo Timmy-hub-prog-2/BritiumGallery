@@ -124,10 +124,16 @@ public class UserService {
         Integer status = user.getStatus();
         Long roleIdLong = (user.getRole() != null) ? user.getRole().getId() : null;
         int roleId = (roleIdLong != null) ? roleIdLong.intValue() : -1;
-        if (roleId == 3) {
-            if (status == null || status == 0) {
-                throw new RuntimeException("Email not verified");
+
+        if (status == null || status == 0) {
+            boolean useSms = false;
+            try {
+                otpService.generateAndSendOtp(user, useSms, true);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("Failed to send OTP: " + e.getMessage());
             }
+            throw new RuntimeException("Email not verified");
         }
 
         return new LoginResponseDTO(user);
@@ -275,7 +281,7 @@ public class UserService {
 
         String htmlContent = "<div style='font-family:Arial,sans-serif;padding:10px;'>"
                 + "<h3>Hello " + user.getName() + ",</h3>"
-                + "<p> Your admin account has been successfully created.</p>"
+                + "<p> Your "+role.getType()+" account has been successfully created.</p>"
                 + "<p><strong>Role:</strong> " + role.getType() + "</p>"
                 + "<p><strong>Email:</strong> " + user.getEmail() + "</p>"
                 + "<p><strong>Temporary Password:</strong> <span style='color:blue;'>" + generatedPassword + "</span></p>"
@@ -340,6 +346,56 @@ public class UserService {
         userRepository.save(user);
 
         passwordResetTokenRepository.delete(token);
+    }
+    public boolean checkCode(String code) {
+        Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByCode(code);
+
+        if (tokenOpt.isEmpty()) return false;
+
+        PasswordResetToken token = tokenOpt.get();
+
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+            return false;
+        }
+
+        return true;
+    }
+    public void resendVerificationCode(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // Create or update the token
+        List<PasswordResetToken> tokens = passwordResetTokenRepository.findByUser(user);
+        PasswordResetToken token = tokens.isEmpty() ? new PasswordResetToken() : tokens.get(0); // use first or create new
+
+        token.setUser(user);
+        token.setCode(generate6DigitCode()); // Implement this method to return a random 6-digit string
+        token.setExpiryDate(LocalDateTime.now().plusMinutes(10));
+
+        passwordResetTokenRepository.save(token);
+
+        // Send email with new code
+        emailService.sendResetCode(email, token.getCode()); // make sure this method exists
+    }
+    private String generate6DigitCode() {
+        Random random = new Random();
+        int code = 100000 + random.nextInt(900000); // 100000–999999
+        return String.valueOf(code);
+    }
+
+    public void resetPassword(String code, String newPassword) {
+        PasswordResetToken token = passwordResetTokenRepository.findByCode(code)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired code"));
+
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Code expired");
+        }
+
+        UserEntity user = token.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        passwordResetTokenRepository.delete(token); // Invalidate token after use
     }
 
 }
