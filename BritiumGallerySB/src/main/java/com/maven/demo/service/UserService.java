@@ -253,12 +253,21 @@ public class UserService {
 
 
     public String createAdmin(UserDTO userDto) {
+        String phone = userDto.getPhoneNumber().trim();
+        if (phone.startsWith("+959")) {
+            phone = phone.replaceFirst("\\+959", "09");
+        }
+
         if (userRepository.existsByEmail(userDto.getEmail())) {
             return "Email already exists";
         }
 
-        if (userRepository.existsByPhoneNumber(userDto.getPhoneNumber())) {
+        if (userRepository.existsByPhoneNumber(phone)) {
             return "Phone number already exists";
+        }
+
+        if (!phone.matches("^09[0-9]{7,9}$")) {
+            return "Invalid phone number format";
         }
 
         String generatedPassword = PasswordGenerator.generateRandomPassword(10);
@@ -266,7 +275,7 @@ public class UserService {
         UserEntity user = new UserEntity();
         user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());
-        user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setPhoneNumber(phone);
         user.setImageUrls(userDto.getImageUrls());
         user.setPassword(passwordEncoder.encode(generatedPassword));
 

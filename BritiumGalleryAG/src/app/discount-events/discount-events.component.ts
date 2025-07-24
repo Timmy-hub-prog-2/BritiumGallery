@@ -108,6 +108,7 @@ export class DiscountEventsComponent implements OnInit {
   nameError: string = '';
   startDateError: string = '';
   endDateError: string = '';
+  createFormGeneralError: string = '';
 
   // Edit form validation error messages
   editNameError: string = '';
@@ -241,6 +242,7 @@ export class DiscountEventsComponent implements OnInit {
         this.events = data; // Initial display of all events
         this.loading = false;
         this.applyFilters(); // Apply any existing filters
+        this.updateDiscountedIds(); // Update discounted IDs for create modal
       },
       error: (err: any) => {
         this.error = "Failed to load events."
@@ -492,8 +494,10 @@ export class DiscountEventsComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: any) {
     // Skip if document click is temporarily disabled
-    if (this.disableDocumentClick) return;
-    
+    if (this.disableDocumentClick) {
+      console.log('DOC CLICK IGNORED (disableDocumentClick=true)', event);
+      return;
+    }
     // CATEGORY
     if (this.showCategoryDropdown) {
       const trigger = event.target.closest('.category-dropdown-trigger');
@@ -501,6 +505,7 @@ export class DiscountEventsComponent implements OnInit {
       const container = event.target.closest('.category-dropdown-container');
       // Only close if clicking outside the entire dropdown container
       if (!container) {
+        console.log('CLOSE: showCategoryDropdown = false (doc click)');
         this.showCategoryDropdown = false;
       }
     }
@@ -510,6 +515,7 @@ export class DiscountEventsComponent implements OnInit {
       const content = event.target.closest('.category-dropdown-content');
       const container = event.target.closest('.category-dropdown-container');
       if (!container) {
+        console.log('CLOSE: showProductDropdown = false (doc click)', event);
         this.showProductDropdown = false;
       }
     }
@@ -519,6 +525,7 @@ export class DiscountEventsComponent implements OnInit {
       const content = event.target.closest('.category-dropdown-content');
       const container = event.target.closest('.category-dropdown-container');
       if (!container) {
+        console.log('CLOSE: showBrandDropdown = false (doc click)');
         this.showBrandDropdown = false;
       }
     }
@@ -1012,9 +1019,13 @@ export class DiscountEventsComponent implements OnInit {
   createEvent() {
     // Clear previous errors
     this.clearFormErrors();
-    
+    this.createFormGeneralError = '';
     // Validate form fields
     if (!this.validateCreateForm()) {
+      // If there is a general error, show it as a toast and above the form
+      if (this.createFormGeneralError) {
+        this.showToastMessage(this.createFormGeneralError);
+      }
       return;
     }
 
@@ -1063,19 +1074,23 @@ export class DiscountEventsComponent implements OnInit {
   // Form validation methods
   validateCreateForm(): boolean {
     let isValid = true;
+    let generalErrors: string[] = [];
 
     // Validate event name
     if (!this.newEvent.name || this.newEvent.name.trim() === '') {
       this.nameError = 'Event name is required';
+      generalErrors.push('Event name is required');
       isValid = false;
     } else if (this.newEvent.name.trim().length < 3) {
       this.nameError = 'Event name must be at least 3 characters long';
+      generalErrors.push('Event name must be at least 3 characters long');
       isValid = false;
     }
 
     // Validate start date
     if (!this.newEvent.startDate) {
       this.startDateError = 'Start date is required';
+      generalErrors.push('Start date is required');
       isValid = false;
     } else {
       const startDate = new Date(this.newEvent.startDate);
@@ -1083,6 +1098,7 @@ export class DiscountEventsComponent implements OnInit {
       today.setHours(0, 0, 0, 0);
       if (startDate < today) {
         this.startDateError = 'Start date cannot be in the past';
+        generalErrors.push('Start date cannot be in the past');
         isValid = false;
       }
     }
@@ -1090,16 +1106,44 @@ export class DiscountEventsComponent implements OnInit {
     // Validate end date
     if (!this.newEvent.endDate) {
       this.endDateError = 'End date is required';
+      generalErrors.push('End date is required');
       isValid = false;
     } else if (this.newEvent.startDate && this.newEvent.endDate) {
       const startDate = new Date(this.newEvent.startDate);
       const endDate = new Date(this.newEvent.endDate);
       if (endDate <= startDate) {
         this.endDateError = 'End date must be after start date';
+        generalErrors.push('End date must be after start date');
         isValid = false;
       }
     }
 
+    // Validate at least one rule
+    if (!this.newEvent.rules || this.newEvent.rules.length === 0) {
+      generalErrors.push('At least one discount rule is required');
+      isValid = false;
+    } else {
+      // Validate each rule
+      this.newEvent.rules.forEach((rule: any, idx: number) => {
+        if (!rule.selectedPath || rule.selectedPath.length === 0) {
+          generalErrors.push(`Rule ${idx + 1}: Target is required`);
+          isValid = false;
+        }
+        if (rule.discountPercent == null || rule.discountPercent === '' || isNaN(rule.discountPercent)) {
+          generalErrors.push(`Rule ${idx + 1}: Discount percent is required`);
+          isValid = false;
+        } else if (rule.discountPercent < 1 || rule.discountPercent > 100) {
+          generalErrors.push(`Rule ${idx + 1}: Discount percent must be between 1 and 100`);
+          isValid = false;
+        }
+      });
+    }
+
+    if (generalErrors.length > 0) {
+      this.createFormGeneralError = generalErrors.join('. ') + '.';
+    } else {
+      this.createFormGeneralError = '';
+    }
     return isValid;
   }
 
@@ -1107,6 +1151,7 @@ export class DiscountEventsComponent implements OnInit {
     this.nameError = '';
     this.startDateError = '';
     this.endDateError = '';
+    this.createFormGeneralError = '';
   }
 
   openEditModal(event: any) {
@@ -1167,6 +1212,7 @@ export class DiscountEventsComponent implements OnInit {
     this.currentEditRuleIndex = null;
     this.cascadePath = [];
     this.cascadeHoverPath = [];
+    this.updateDiscountedIds(event.id); // Exclude this event from discounted IDs
   }
 
   addEditRule() {
@@ -1910,11 +1956,14 @@ export class DiscountEventsComponent implements OnInit {
           this.showToastMessage('No variants selected!');
         }
         this.clearSelection('variant');
+        // DO NOT close the product dropdown here!
+        // this.showProductDropdown = false;
         break;
       }
       case 'product': {
         // Fix: handle empty rule
         const shouldRemoveCurrent = !rule.selectedPath || rule.selectedPath.length === 0;
+        let appliedProduct = false;
         this.selectedProducts.forEach((product, idx) => {
           if (idx === 0 && !shouldRemoveCurrent) {
             // Update the current rule
@@ -1940,6 +1989,7 @@ export class DiscountEventsComponent implements OnInit {
             });
           }
           count++;
+          appliedProduct = true;
         });
         // Also handle selectedVariants (from any product)
         this.selectedVariants.forEach((variant, idx) => {
@@ -1963,6 +2013,10 @@ export class DiscountEventsComponent implements OnInit {
         }
         this.clearSelection('product');
         this.clearSelection('variant');
+        if (appliedProduct) {
+          console.log('CLOSE: showProductDropdown = false (appliedProduct)');
+          this.showProductDropdown = false;
+        }
         break;
       }
       case 'category':
@@ -2077,6 +2131,8 @@ export class DiscountEventsComponent implements OnInit {
 
   // Add: Close the product variant modal and keep selectedVariants (for Add button)
   addSelectedVariantsAndCloseModal() {
+    console.log('addSelectedVariantsAndCloseModal called');
+    this.disableDocumentClick = true;
     // For edit modal: copy selectedVariants to editSelectedVariants
     if (this.showEditModal) {
       this.editSelectedVariants = [...this.selectedVariants];
@@ -2086,15 +2142,19 @@ export class DiscountEventsComponent implements OnInit {
     this.selectedProduct = null;
     this.openVariantProductId = null;
     if (this.cdr) this.cdr.detectChanges();
+    setTimeout(() => { this.disableDocumentClick = false; }, 150);
   }
 
   // Add: Close the product variant modal and clear selectedVariants (for Cancel button)
   cancelVariantSelectionAndCloseModal() {
+    console.log('cancelVariantSelectionAndCloseModal called');
+    this.disableDocumentClick = true;
     this.showProductVariantModal = false;
     this.selectedProductForVariant = null;
     this.selectedProduct = null;
     this.openVariantProductId = null;
     this.clearSelection('variant');
+    setTimeout(() => { this.disableDocumentClick = false; }, 150);
   }
 
   // Update: Only use this for cancel logic
@@ -2505,6 +2565,61 @@ export class DiscountEventsComponent implements OnInit {
       return true;
     }
     return product.name.toLowerCase().includes(this.productSearchTerm.toLowerCase());
+  }
+
+  // --- Discounted IDs logic ---
+  updateDiscountedIds(excludeEventId: number | null = null) {
+    this.discountedCategoryIds.clear();
+    this.discountedProductIds.clear();
+    this.discountedVariantIds.clear();
+    this.discountedBrandIds.clear();
+    const eventsToCheck = excludeEventId
+      ? this.allEvents.filter(e => e.id !== excludeEventId)
+      : this.allEvents;
+    for (const event of eventsToCheck) {
+      if (!event.rules) continue;
+      for (const rule of event.rules) {
+        if (rule.categoryId) this.discountedCategoryIds.add(rule.categoryId);
+        if (rule.productId) this.discountedProductIds.add(rule.productId);
+        if (rule.productVariantId) this.discountedVariantIds.add(rule.productVariantId);
+        if (rule.brandId) this.discountedBrandIds.add(rule.brandId);
+      }
+    }
+  }
+
+  // Helper methods for UI
+  isCategoryDiscounted(cat: any): boolean {
+    return this.discountedCategoryIds.has(cat.id);
+  }
+  isProductDiscounted(prod: any): boolean {
+    return this.discountedProductIds.has(prod.id);
+  }
+  isVariantDiscounted(variant: any): boolean {
+    return this.discountedVariantIds.has(variant.id);
+  }
+  isBrandDiscounted(brand: any): boolean {
+    return this.discountedBrandIds.has(brand.id);
+  }
+
+  // Discounted ID sets
+  discountedCategoryIds: Set<number> = new Set();
+  discountedProductIds: Set<number> = new Set();
+  discountedVariantIds: Set<number> = new Set();
+  discountedBrandIds: Set<number> = new Set();
+
+  openCreateModal() {
+    this.updateDiscountedIds();
+    console.log('Discounted category IDs:', Array.from(this.discountedCategoryIds));
+    console.log('Discounted product IDs:', Array.from(this.discountedProductIds));
+    console.log('Discounted variant IDs:', Array.from(this.discountedVariantIds));
+    console.log('Discounted brand IDs:', Array.from(this.discountedBrandIds));
+    this.showCreateModal = true;
+    if (this.cdr) this.cdr.detectChanges();
+  }
+
+  // Returns true if the category has at least one product that is not discounted
+  hasVisibleProducts(categoryId: number): boolean {
+    return this.getProductsInCategory(categoryId).some(product => !this.isProductDiscounted(product));
   }
 
 }
