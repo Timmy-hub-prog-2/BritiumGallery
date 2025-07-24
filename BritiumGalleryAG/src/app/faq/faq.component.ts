@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Faq, FAQService } from '../faq.service';
 import { AuthService } from '../AuthService';
+import Swal from 'sweetalert2';
  // 🔸 import
 
 @Component({
@@ -30,13 +31,23 @@ export class FAQComponent implements OnInit {
  saveFaq(): void {
   const loggedInId = this.authService.getLoggedInUserId();
   if (!loggedInId) {
-    alert('You must be logged in to create or update FAQs.');
+    Swal.fire({
+      icon: 'warning',
+      title: 'Login Required',
+      text: 'You must be logged in to create or update FAQs.',
+      confirmButtonColor: '#222'
+    });
     return;
   }
 
   // Trim inputs and validate
   if (!this.faq.question.trim() || !this.faq.answer.trim() || !this.faq.category.trim()) {
-    alert('Please fill in all fields (question, answer, category) before saving.');
+    Swal.fire({
+      icon: 'warning',
+      title: 'Validation Error',
+      text: 'Please fill in all fields (question, answer, category) before saving.',
+      confirmButtonColor: '#222'
+    });
     return;
   }
 

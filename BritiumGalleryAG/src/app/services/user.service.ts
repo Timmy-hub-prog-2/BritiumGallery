@@ -89,8 +89,8 @@ export class UserService {
       });
     }
     // Immediately clear local state and navigate
-    localStorage.removeItem('loggedInUser');
-    this.userSubject.next(null);
+          localStorage.removeItem('loggedInUser');
+          this.userSubject.next(null);
     this.ngZone.run(() => {
       this.router.navigate(['/login']).then(() => {
         window.location.reload();

@@ -1,11 +1,18 @@
 package com.maven.demo.entity;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "purchase_history")
@@ -24,4 +31,14 @@ public class PurchaseHistoryEntity {
     @ManyToOne
     @JoinColumn(name = "variant_id")
     private ProductVariantEntity variant;
+
+    @ManyToOne
+    @JoinColumn(name = "admin_id", nullable = true)
+    private UserEntity admin;
+
+    @OneToMany(mappedBy = "purchaseHistory", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<SaleFifoMappingEntity> saleFifoMappings = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "purchaseHistory", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<ReduceStockHistoryEntity> reduceStockHistories = new java.util.ArrayList<>();
 }

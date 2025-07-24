@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.maven.demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,19 +42,6 @@ import com.maven.demo.entity.PurchaseHistoryEntity;
 import com.maven.demo.entity.ReduceStockHistoryEntity;
 import com.maven.demo.entity.UserEntity;
 import com.maven.demo.entity.VariantAttributeValueEntity;
-import com.maven.demo.repository.AttributeOptionRepository;
-import com.maven.demo.repository.AttributeRepository;
-import com.maven.demo.repository.BrandRepository;
-import com.maven.demo.repository.CategoryRepository;
-import com.maven.demo.repository.DiscountEventRepository;
-import com.maven.demo.repository.DiscountRuleRepository;
-import com.maven.demo.repository.ProductRepository;
-import com.maven.demo.repository.ProductVariantPriceHistoryRepository;
-import com.maven.demo.repository.ProductVariantRepository;
-import com.maven.demo.repository.PurchaseHistoryRepository;
-import com.maven.demo.repository.ReduceStockHistoryRepository;
-import com.maven.demo.repository.RestockNotificationRepository;
-import com.maven.demo.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -106,6 +94,11 @@ public class ProductService {
     private RestockNotificationRepository restockNotificationRepository;
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private OrderDetailRepository orderDetailRepository;
+    @Autowired
+    private RefundRequestRepository refundRequestRepository;
 
     @Transactional
     public void saveProductWithVariants(ProductRequestDTO dto) {
@@ -218,35 +211,32 @@ public class ProductService {
 
     public List<ProductResponseDTO> getProductsByCategory(Long categoryId) {
         List<ProductEntity> products = proRepo.findByCategoryId(categoryId);
-
-        return products.stream().map(product -> {
-            ProductResponseDTO dto = new ProductResponseDTO();
-            dto.setId(product.getId());
-            dto.setName(product.getName());
-            dto.setDescription(product.getDescription());
-            dto.setRating(product.getRating());
-            dto.setCategoryId(product.getCategory().getId());
-            dto.setAdminId(product.getAdmin_id());
-            dto.setBasePhotoUrl(product.getBasePhotoUrl());
-
-            List<VariantResponseDTO> variantDTOs = product.getVariants().stream().map(variant -> {
-                VariantResponseDTO varDTO = new VariantResponseDTO();
-                varDTO.setId(variant.getId());
-                varDTO.setPrice(variant.getPrice());
-                varDTO.setStock(variant.getStock());
-
-                Map<String, String> attrMap = new HashMap<>();
-                for (VariantAttributeValueEntity vav : variant.getAttributeValues()) {
-                    attrMap.put(vav.getAttribute().getName(), vav.getValue());
-                }
-                varDTO.setAttributes(attrMap);
-
-                return varDTO;
+        return products.stream()
+            .map(product -> {
+                ProductResponseDTO dto = new ProductResponseDTO();
+                dto.setId(product.getId());
+                dto.setName(product.getName());
+                dto.setDescription(product.getDescription());
+                dto.setRating(product.getRating());
+                dto.setCategoryId(product.getCategory().getId());
+                dto.setAdminId(product.getAdmin_id());
+                dto.setBasePhotoUrl(product.getBasePhotoUrl());
+                dto.setStatus(product.getStatus());
+                List<VariantResponseDTO> variantDTOs = product.getVariants().stream().map(variant -> {
+                    VariantResponseDTO varDTO = new VariantResponseDTO();
+                    varDTO.setId(variant.getId());
+                    varDTO.setPrice(variant.getPrice());
+                    varDTO.setStock(variant.getStock());
+                    Map<String, String> attrMap = new HashMap<>();
+                    for (VariantAttributeValueEntity vav : variant.getAttributeValues()) {
+                        attrMap.put(vav.getAttribute().getName(), vav.getValue());
+                    }
+                    varDTO.setAttributes(attrMap);
+                    return varDTO;
+                }).toList();
+                dto.setVariants(variantDTOs);
+                return dto;
             }).toList();
-
-            dto.setVariants(variantDTOs);
-            return dto;
-        }).toList();
     }
 
     public ProductResponseDTO getProductDetailById(Long productId) {
@@ -263,6 +253,7 @@ public class ProductService {
         dto.setCategoryId(product.getCategory().getId());
         dto.setAdminId(product.getAdmin_id());
         dto.setBasePhotoUrl(product.getBasePhotoUrl());
+        dto.setStatus(product.getStatus());
 
         List<VariantResponseDTO> variantDTOs = product.getVariants().stream().map(variant -> {
             VariantResponseDTO varDTO = new VariantResponseDTO();
@@ -458,6 +449,13 @@ public class ProductService {
     public void deleteVariant(Long variantId) {
         ProductVariantEntity variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new RuntimeException("Variant not found"));
+        // Check if referenced by any order
+        boolean hasOrder = !orderDetailRepository.findByVariant_Id(variantId).isEmpty();
+        // Check if referenced by any refund
+        boolean hasRefund = !refundRequestRepository.findByOrderDetail_Variant_Id(variantId).isEmpty();
+        if (hasOrder || hasRefund) {
+            throw new RuntimeException("VARIANT_REFERENCED");
+        }
         variantRepository.delete(variant);
     }
 
@@ -545,6 +543,7 @@ public class ProductService {
         dto.setCategoryId(product.getCategory().getId());
         dto.setAdminId(product.getAdmin_id());
         dto.setBasePhotoUrl(product.getBasePhotoUrl());
+        dto.setStatus(product.getStatus());
 
         List<VariantResponseDTO> variantDTOs = product.getVariants().stream().map(variant -> {
             VariantResponseDTO varDTO = new VariantResponseDTO();
@@ -578,18 +577,55 @@ public class ProductService {
         return dto;
     }
 
+    /**
+     * Check if a product or any of its variants is referenced by orders or refunds
+     */
+    public boolean isProductReferenced(Long productId) {
+        // Check orders
+        if (!orderDetailRepository.findByVariant_Product_Id(productId).isEmpty()) {
+            return true;
+        }
+        // Check refunds
+        if (!refundRequestRepository.findByOrderDetail_Variant_Product_Id(productId).isEmpty()) {
+            return true;
+        }
+        List<ProductVariantEntity> variants = variantRepository.findByProductId(productId);
+        for (ProductVariantEntity variant : variants) {
+            // Check orders
+            if (!orderDetailRepository.findByVariant_Id(variant.getId()).isEmpty()) {
+                return true;
+            }
+            // Check refunds
+            if (!refundRequestRepository.findByOrderDetail_Variant_Id(variant.getId()).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Transactional
     public void deleteProduct(Long productId) {
-        ProductEntity product = proRepo.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
-        
-        // Delete all variants and their associated data first
-        for (ProductVariantEntity variant : product.getVariants()) {
-            variantRepository.delete(variant);
+        try {
+            if (isProductReferenced(productId)) {
+                throw new RuntimeException("PRODUCT_PURCHASED");
+            }
+            ProductEntity product = proRepo.findById(productId)
+                    .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
+            // Delete all variants and their associated data first
+            for (ProductVariantEntity variant : product.getVariants()) {
+                variantRepository.delete(variant);
+            }
+            // Then delete the product
+            proRepo.delete(product);
+        } catch (Exception ex) {
+            // If a constraint violation or order/refund-related exception occurs, soft delete
+            ProductEntity product = proRepo.findById(productId).orElse(null);
+            if (product != null) {
+                product.setStatus(0);
+                proRepo.save(product);
+            }
+            throw new RuntimeException("SOFT_DELETE: Product was hidden instead of deleted due to existing orders or refunds.", ex);
         }
-        
-        // Then delete the product
-        proRepo.delete(product);
     }
 
     @Transactional
@@ -602,65 +638,65 @@ public class ProductService {
         List<ProductEntity> products = proRepo.findByCategoryIdIn(categoryIds);
 
         return products.stream()
-                .filter(product -> {
-                    // Brand filter
-                    if (filters != null && filters.containsKey("brand")) {
-                        List<String> brandFilters = filters.get("brand");
-                        String productBrand = product.getBrand() != null ? product.getBrand().getName() : null;
-                        if (brandFilters != null && !brandFilters.isEmpty() && (productBrand == null || !brandFilters.contains(productBrand))) {
+            .filter(product -> {
+                // Brand filter
+                if (filters != null && filters.containsKey("brand")) {
+                    List<String> brandFilters = filters.get("brand");
+                    String productBrand = product.getBrand() != null ? product.getBrand().getName() : null;
+                    if (brandFilters != null && !brandFilters.isEmpty() && (productBrand == null || !brandFilters.contains(productBrand))) {
+                        return false;
+                    }
+                }
+                // Price filter (minPrice, maxPrice)
+                Integer minPrice = null, maxPrice = null;
+                if (filters != null && filters.containsKey("minPrice")) {
+                    try {
+                        minPrice = Integer.parseInt(filters.get("minPrice").get(0));
+                    } catch (Exception ignored) {}
+                }
+                if (filters != null && filters.containsKey("maxPrice")) {
+                    try {
+                        maxPrice = Integer.parseInt(filters.get("maxPrice").get(0));
+                    } catch (Exception ignored) {}
+                }
+                final Integer finalMinPrice = minPrice;
+                final Integer finalMaxPrice = maxPrice;
+                // A product is included if at least one of its variants matches ALL selected attribute filters and price
+                return product.getVariants().stream().anyMatch(variant -> {
+                    // Price check
+                    if (finalMinPrice != null && variant.getPrice() < finalMinPrice) return false;
+                    if (finalMaxPrice != null && variant.getPrice() > finalMaxPrice) return false;
+                    if (filters == null || filters.isEmpty()) {
+                        return true; // No filters, so all variants are considered valid
+                    }
+                    // Check if this variant matches all selected attribute filters (excluding brand and price)
+                    return filters.entrySet().stream().allMatch(filterEntry -> {
+                        String attributeName = filterEntry.getKey();
+                        if (attributeName.equals("brand") || attributeName.equals("minPrice") || attributeName.equals("maxPrice")) {
+                            return true; // Already handled
+                        }
+                        Object value = filterEntry.getValue();
+                        List<String> attributeValues;
+                        if (value instanceof String) {
+                            attributeValues = List.of((String) value);
+                        } else if (value instanceof List) {
+                            attributeValues = (List<String>) value;
+                        } else {
                             return false;
                         }
-                    }
-                    // Price filter (minPrice, maxPrice)
-                    Integer minPrice = null, maxPrice = null;
-                    if (filters != null && filters.containsKey("minPrice")) {
-                        try {
-                            minPrice = Integer.parseInt(filters.get("minPrice").get(0));
-                        } catch (Exception ignored) {}
-                    }
-                    if (filters != null && filters.containsKey("maxPrice")) {
-                        try {
-                            maxPrice = Integer.parseInt(filters.get("maxPrice").get(0));
-                        } catch (Exception ignored) {}
-                    }
-                    final Integer finalMinPrice = minPrice;
-                    final Integer finalMaxPrice = maxPrice;
-                    // A product is included if at least one of its variants matches ALL selected attribute filters and price
-                    return product.getVariants().stream().anyMatch(variant -> {
-                        // Price check
-                        if (finalMinPrice != null && variant.getPrice() < finalMinPrice) return false;
-                        if (finalMaxPrice != null && variant.getPrice() > finalMaxPrice) return false;
-                        if (filters == null || filters.isEmpty()) {
-                            return true; // No filters, so all variants are considered valid
-                        }
-                        // Check if this variant matches all selected attribute filters (excluding brand and price)
-                        return filters.entrySet().stream().allMatch(filterEntry -> {
-                            String attributeName = filterEntry.getKey();
-                            if (attributeName.equals("brand") || attributeName.equals("minPrice") || attributeName.equals("maxPrice")) {
-                                return true; // Already handled
-                            }
-                            Object value = filterEntry.getValue();
-                            List<String> attributeValues;
-                            if (value instanceof String) {
-                                attributeValues = List.of((String) value);
-                            } else if (value instanceof List) {
-                                attributeValues = (List<String>) value;
-                            } else {
-                                return false;
-                            }
-                            return variant.getAttributeValues().stream()
-                                    .anyMatch(vav -> {
-                                        String attrName = vav.getAttribute().getName();
-                                        String attrValue = vav.getValue();
-                                        return attrName.equals(attributeName) && 
-                                               attributeValues != null && 
-                                               attributeValues.contains(attrValue);
-                                    });
-                        });
+                        return variant.getAttributeValues().stream()
+                                .anyMatch(vav -> {
+                                    String attrName = vav.getAttribute().getName();
+                                    String attrValue = vav.getValue();
+                                    return attrName.equals(attributeName) && 
+                                           attributeValues != null && 
+                                           attributeValues.contains(attrValue);
+                                });
                     });
-                })
-                .map(this::convertToProductResponseDTO)
-                .collect(Collectors.toList());
+                });
+            })
+            .map(this::convertToProductResponseDTO)
+            .collect(Collectors.toList());
     }
 
     @Transactional
@@ -705,6 +741,12 @@ public class ProductService {
         purchase.setPurchasePrice(request.getPurchasePrice());
         purchase.setQuantity(request.getQuantity());
         purchase.setRemainingQuantity(request.getQuantity());
+        Long effectiveAdminId = request.getAdminId() != null ? request.getAdminId() : adminId;
+        if (effectiveAdminId != null) {
+            UserEntity admin = userRepository.findById(effectiveAdminId)
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+            purchase.setAdmin(admin);
+        }
         purchaseHistoryRepository.save(purchase);
 
         // If selling price changed, create a price history record (for the new price)
@@ -991,7 +1033,10 @@ public class ProductService {
         dto.setQuantity(entity.getQuantity());
         dto.setRemainingQuantity(entity.getRemainingQuantity());
         dto.setPurchaseDate(entity.getPurchaseDate());
-        // Note: PurchaseHistoryEntity doesn't have admin field, so we'll leave admin info null
+        if (entity.getAdmin() != null) {
+            dto.setAdminId(entity.getAdmin().getId());
+            dto.setAdminName(entity.getAdmin().getName());
+        }
         return dto;
     }
 

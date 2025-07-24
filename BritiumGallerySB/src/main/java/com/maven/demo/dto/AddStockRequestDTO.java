@@ -10,5 +10,6 @@ public class AddStockRequestDTO {
     private Integer purchasePrice;
     private Integer sellingPrice;
     private Integer quantity;
+    private Long adminId;
 }
 

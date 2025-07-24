@@ -86,6 +86,10 @@ export class CategoryService {
     });
   }
 
+  hideCategory(id: number): Observable<any> {
+    return this.http.put(`${this.baseUrl}/hide/${id}`, {});
+  }
+
   getCategoryById(id: number): Observable<category> {
     return this.http.get<category>(`${this.baseUrl}/${id}`);
   }
@@ -115,4 +119,8 @@ export class CategoryService {
   getCategoryPath(id: number): Observable<category[]> {
     return this.http.get<category[]>(`${this.baseUrl}/path/${id}`);
   }
+
+  unhideCategory(id: number): Observable<any> {
+  return this.http.put(`${this.baseUrl}/unhide/${id}`, {});
+}
 }

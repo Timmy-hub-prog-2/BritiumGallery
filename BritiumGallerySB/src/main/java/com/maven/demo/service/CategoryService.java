@@ -27,8 +27,12 @@ import com.maven.demo.repository.ProductRepository;
 import com.maven.demo.repository.ProductVariantRepository;
 import com.maven.demo.repository.VariantAttributeValueRepository;
 import com.maven.demo.repository.productVariantImageRepository;
+import com.maven.demo.repository.OrderDetailRepository;
+import com.maven.demo.repository.RefundRequestRepository;
 
 import jakarta.transaction.Transactional;
+import org.hibernate.TransientObjectException;
+import jakarta.persistence.PersistenceException;
 
 @Service
 public class CategoryService {
@@ -63,6 +67,12 @@ public class CategoryService {
     @Autowired
     private DiscountRuleAttributeOptionRepository discountRuleAttributeOptionRepository;
 
+    // Placeholder repositories for order and refund
+    @Autowired
+    private OrderDetailRepository orderDetailRepository;
+    @Autowired
+    private RefundRequestRepository refundRequestRepository;
+
     public CategoryDTO insertCategory(CategoryDTO dto) {
         CategoryEntity entity = new CategoryEntity();
         entity.setName(dto.getName());
@@ -92,20 +102,24 @@ public class CategoryService {
 
     public List<CategoryDTO> getAllCategories() {
         List<CategoryEntity> cateList = repo.findAll();
-        return cateList.stream().map(entity -> {
-            CategoryDTO dto = mapper.map(entity, CategoryDTO.class);
-            dto.setParent_category_id(entity.getParentCategory() != null ? entity.getParentCategory().getId() : null);
-            return dto;
-        }).toList();
+        return cateList.stream()
+            .map(entity -> {
+                CategoryDTO dto = mapper.map(entity, CategoryDTO.class);
+                dto.setParent_category_id(entity.getParentCategory() != null ? entity.getParentCategory().getId() : null);
+                dto.setStatus(entity.getStatus());
+                return dto;
+            }).toList();
     }
 
     public List<CategoryDTO> getSubCategories(Long id) {
         List<CategoryEntity> cateList = repo.findByParentCategoryId(id);
-        return cateList.stream().map(entity -> {
-            CategoryDTO dto = mapper.map(entity, CategoryDTO.class);
-            dto.setParent_category_id(entity.getParentCategory() != null ? entity.getParentCategory().getId() : null);
-            return dto;
-        }).toList();
+        return cateList.stream()
+            .map(entity -> {
+                CategoryDTO dto = mapper.map(entity, CategoryDTO.class);
+                dto.setParent_category_id(entity.getParentCategory() != null ? entity.getParentCategory().getId() : null);
+                dto.setStatus(entity.getStatus());
+                return dto;
+            }).toList();
     }
 
     // ✅ Update Category with selective updates
@@ -186,7 +200,7 @@ public class CategoryService {
         // Convert updated entity back to DTO
         CategoryDTO updatedDto = mapper.map(entity, CategoryDTO.class);
         updatedDto.setParent_category_id(entity.getParentCategory() != null ? entity.getParentCategory().getId() : null);
-        
+        updatedDto.setStatus(entity.getStatus());
         // Map attributes if they exist
         if (entity.getAttributes() != null) {
             updatedDto.setAttributes(
@@ -202,49 +216,84 @@ public class CategoryService {
         return updatedDto;
     }
 
+    /**
+     * Check if any product or variant in the category is referenced by orders or refunds
+     */
+    public boolean isCategoryReferenced(Long categoryId) {
+        List<ProductEntity> products = productRepository.findByCategoryId(categoryId);
+        for (ProductEntity product : products) {
+            // Check orders
+            if (!orderDetailRepository.findByVariant_Product_Id(product.getId()).isEmpty()) {
+                return true;
+            }
+            // Check refunds
+            if (!refundRequestRepository.findByOrderDetail_Variant_Product_Id(product.getId()).isEmpty()) {
+                return true;
+            }
+            List<ProductVariantEntity> variants = productVariantRepository.findByProductId(product.getId());
+            for (ProductVariantEntity variant : variants) {
+                // Check orders
+                if (!orderDetailRepository.findByVariant_Id(variant.getId()).isEmpty()) {
+                    return true;
+                }
+                // Check refunds
+                if (!refundRequestRepository.findByOrderDetail_Variant_Id(variant.getId()).isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Transactional
     public void deleteCategory(Long id) {
-        // Get all descendant category IDs (including the current one)
         Set<Long> allCategoryIds = new HashSet<>();
         allCategoryIds.add(id);
         allCategoryIds.addAll(getAllDescendantCategoryIds(id));
 
-        // For each category, delete discount rules, products, and variants
         for (Long categoryId : allCategoryIds) {
-            // 1. Delete discount rules by categoryId
-            List<DiscountRule> categoryRules = discountRuleRepository.findByCategoryId(categoryId);
-            for (DiscountRule rule : categoryRules) {
-                // Delete attribute options for this rule
-                discountRuleAttributeOptionRepository.deleteByRuleId(rule.getId());
-                // Delete the rule itself
-                discountRuleRepository.delete(rule);
+            // Check for references before attempting delete
+            if (isCategoryReferenced(categoryId)) {
+                throw new RuntimeException("CATEGORY_PURCHASED");
             }
-
-            // 2. Delete discount rules for products in this category
-            List<ProductEntity> products = productRepository.findByCategoryId(categoryId);
-            for (ProductEntity product : products) {
-                List<DiscountRule> productRules = discountRuleRepository.findByProductId(product.getId());
-                for (DiscountRule rule : productRules) {
+            try {
+                // 1. Delete discount rules by categoryId
+                List<DiscountRule> categoryRules = discountRuleRepository.findByCategoryId(categoryId);
+                for (DiscountRule rule : categoryRules) {
                     discountRuleAttributeOptionRepository.deleteByRuleId(rule.getId());
                     discountRuleRepository.delete(rule);
                 }
 
-                // 3. Delete discount rules for variants of this product
-                List<ProductVariantEntity> variants = productVariantRepository.findByProductId(product.getId());
-                for (ProductVariantEntity variant : variants) {
-                    List<DiscountRule> variantRules = discountRuleRepository.findByProductVariantId(variant.getId());
-                    for (DiscountRule rule : variantRules) {
+                // 2. Delete discount rules for products in this category
+                List<ProductEntity> products = productRepository.findByCategoryId(categoryId);
+                for (ProductEntity product : products) {
+                    List<DiscountRule> productRules = discountRuleRepository.findByProductId(product.getId());
+                    for (DiscountRule rule : productRules) {
                         discountRuleAttributeOptionRepository.deleteByRuleId(rule.getId());
                         discountRuleRepository.delete(rule);
                     }
+
+                    // 3. Delete discount rules for variants of this product
+                    List<ProductVariantEntity> variants = productVariantRepository.findByProductId(product.getId());
+                    for (ProductVariantEntity variant : variants) {
+                        List<DiscountRule> variantRules = discountRuleRepository.findByProductVariantId(variant.getId());
+                        for (DiscountRule rule : variantRules) {
+                            discountRuleAttributeOptionRepository.deleteByRuleId(rule.getId());
+                            discountRuleRepository.delete(rule);
+                        }
+                    }
                 }
+
+                // Try to delete the category (cascades to products/variants if set up)
+                CategoryEntity category = repo.findById(categoryId)
+                        .orElseThrow(() -> new RuntimeException("Category not found"));
+                repo.delete(category);
+            } catch (PersistenceException ex) {
+                throw new RuntimeException("CATEGORY_PURCHASED");
+            } catch (Exception ex) {
+                throw ex;
             }
         }
-
-        // Now delete the category (cascades to products/variants if set up)
-        CategoryEntity category = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-        repo.delete(category);
     }
 
     public CategoryDTO getCategoryById(Long id) {
@@ -253,6 +302,7 @@ public class CategoryService {
 
         CategoryDTO dto = mapper.map(entity, CategoryDTO.class);
         dto.setParent_category_id(entity.getParentCategory() != null ? entity.getParentCategory().getId() : null);
+        dto.setStatus(entity.getStatus());
         // Manually map attributes since ModelMapper may skip them depending on config
         dto.setAttributes(
                 entity.getAttributes().stream().map(attr -> {

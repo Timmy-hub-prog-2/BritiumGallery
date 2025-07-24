@@ -1654,11 +1654,11 @@
                 <th mat-header-cell *matHeaderCellDef class="header-cell-clean">
                   <div class="header-content-clean">
                     <mat-icon class="header-icon">person</mat-icon>
-                    <span>ADMIN</span>
+                    <span>Admin</span>
                   </div>
                 </th>
                 <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                  {{ row.adminName || "N/A" }} ({{ row.adminId }})
+                  {{ row.adminName || 'N/A' }} <span *ngIf="row.adminId">({{ row.adminId }})</span>
                 </td>
               </ng-container>
               <tr

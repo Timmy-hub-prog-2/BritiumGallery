@@ -130,19 +130,19 @@
       </div>
       <!-- End Search Results Section -->
       <div *ngIf="!searchTerm">
-        <div class="product-grid">
-          <a *ngFor="let product of products" class="product-card" [routerLink]="['/product-detail', product.id]">
-            <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" alt="Product Image">
-            <div class="product-info">
-              <p class="product-category">{{ currentCategory?.name }}</p>
-              <h3 class="product-name">{{ product.name }}</h3>
-              <p class="product-subtitle">{{ product.description }}</p>
+      <div class="product-grid">
+        <a *ngFor="let product of products" class="product-card" [routerLink]="['/product-detail', product.id]">
+          <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" alt="Product Image">
+          <div class="product-info">
+            <p class="product-category">{{ currentCategory?.name }}</p>
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-subtitle">{{ product.description }}</p> 
               <p class="product-price">{{ getPriceRange(product) }}</p>
-            </div>
-          </a>
-        </div>
-        <div *ngIf="products.length === 0" class="no-products">
-          No products found for this category or selected filters.
+          </div>
+        </a>
+      </div>
+      <div *ngIf="products.length === 0" class="no-products">
+        No products found for this category or selected filters.
         </div>
       </div>
     </div>

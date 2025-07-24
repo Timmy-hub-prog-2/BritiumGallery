@@ -15,4 +15,6 @@ public interface RefundRequestRepository extends JpaRepository<RefundRequestEnti
     List<RefundRequestEntity> findByOrderId(Long orderId);
     List<RefundRequestEntity> findByOrderDetail(OrderDetailEntity orderDetail);
     List<RefundRequestEntity> findByOrder_User_Id(Long userId);
+    List<RefundRequestEntity> findByOrderDetail_Variant_Id(Long variantId);
+    List<RefundRequestEntity> findByOrderDetail_Variant_Product_Id(Long productId);
 } 

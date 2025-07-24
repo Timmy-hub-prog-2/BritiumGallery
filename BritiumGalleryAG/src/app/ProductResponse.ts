@@ -2,15 +2,16 @@ export interface ProductResponse {
  
   id: number;
   name: string;
-  description: string;
-  rating: number;
-  categoryId: number;
+  description?: string;
+  rating?: number;
+  categoryId?: number;
   basePhotoUrl?: string;
   adminId?:number;
   variants: VariantResponse[];
   imageUrl?: string; // optional fallback
   brand?: string;
   brandId?:number;
+  status?: number;
 }
 
 export interface VariantResponse {

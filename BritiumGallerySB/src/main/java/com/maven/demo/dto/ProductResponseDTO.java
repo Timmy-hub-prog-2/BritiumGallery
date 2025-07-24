@@ -18,4 +18,6 @@ public class ProductResponseDTO {
     private Long brandId;
     private String basePhotoUrl;
     private List<VariantResponseDTO> variants;
+
+    private int status;
 }

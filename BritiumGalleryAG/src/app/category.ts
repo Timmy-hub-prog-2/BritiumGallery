@@ -6,7 +6,7 @@ export interface CategoryAttribute {
 }
 
 
-export interface category{
+export interface category {
     id:number;
     name:string;
     created_at?:string;
@@ -14,5 +14,5 @@ export interface category{
     parent_category_id?:number;
     attributes?: CategoryAttribute[];
     image_url?:string;
-
+    status?: number;
 }

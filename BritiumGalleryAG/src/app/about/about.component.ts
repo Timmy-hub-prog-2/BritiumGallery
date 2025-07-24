@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AboutService } from '../about.service';
+import Swal from 'sweetalert2';
 
 export interface About {
   id?: number;
@@ -45,7 +46,12 @@ export class AboutComponent implements OnInit {
   saveAbout() {
     if (!this.formAbout.mission.trim() || !this.formAbout.vision.trim() ||
         !this.formAbout.story.trim() || !this.formAbout.valueText.trim()) {
-      alert('Please fill in all fields before saving.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'Please fill in all fields before saving.',
+        confirmButtonColor: '#222'
+      });
       return;
     }
 

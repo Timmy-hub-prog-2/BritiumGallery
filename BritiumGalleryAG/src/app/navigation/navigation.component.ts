@@ -219,15 +219,15 @@ export class NavigationComponent implements OnInit, OnDestroy {
 
     const observables: Observable<any>[] = categories.map(cat => {
       return this.categoryService.getSubCategories(cat.id).pipe(
+        map(subcategories => subcategories.filter(sub => sub.status === 1)),
         switchMap(subcategories => {
           cat.subcategories = subcategories;
           if (subcategories.length > 0) {
             return this.loadCategoryChildren(subcategories); // Recursively load children
           } else {
-            // If no subcategories, load products for this category
             return this.productService.getProductsByCategory(cat.id).pipe(
               map(products => {
-                cat.products = products.map(product => ({
+                cat.products = products.filter(product => product.status === 1).map(product => ({
                   ...product,
                   imageUrl: product.basePhotoUrl || 'assets/img/phone.jpg' // Fallback image
                 }));
@@ -255,7 +255,7 @@ export class NavigationComponent implements OnInit, OnDestroy {
     this.productService.getProductsByCategory(category.id).subscribe({
       next: (products) => {
         // Ensure each product has an imageUrl or fallback
-        category.products = products.map(product => ({
+        category.products = products.filter(product => product.status === 1).map(product => ({
           ...product,
           imageUrl: product.basePhotoUrl || 'assets/img/phone.jpg' // Fallback image
         }));

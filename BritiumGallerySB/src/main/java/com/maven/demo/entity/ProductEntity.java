@@ -42,6 +42,9 @@ public class ProductEntity {
     @Column(name = "created_at")
     private LocalDateTime created_at;
 
+    @Column(name = "status", nullable = false)
+    private int status = 1;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private CategoryEntity category;

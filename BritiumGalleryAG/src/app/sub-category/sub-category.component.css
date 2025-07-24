@@ -630,3 +630,40 @@
     margin: 0 4px;
   }
 }
+
+.hidden-item {
+  filter: grayscale(0.8);
+  opacity: 0.55;
+  border: 2px dashed #222;
+  position: relative;
+  box-shadow: none;
+}
+
+.hidden-badge.prominent {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #222;
+  color: #fff;
+  font-weight: bold;
+  padding: 4px 12px 4px 8px;
+  border-radius: 16px;
+  font-size: 0.95em;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(34,34,34,0.15);
+  letter-spacing: 0.5px;
+}
+
+.hidden-badge.prominent i {
+  margin-right: 6px;
+  font-size: 1.1em;
+}
+
+/* Optionally, dim the text for hidden items */
+.hidden-item .card-title,
+.hidden-item .product-title {
+  color: #222;
+  text-decoration: line-through;
+}

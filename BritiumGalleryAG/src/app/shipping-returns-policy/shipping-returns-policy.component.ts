@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import Swal from 'sweetalert2';
 
 interface Policy {
   id?: number;
@@ -43,13 +44,23 @@ export class ShippingReturnsPolicyComponent implements OnInit {
 
     // 1️⃣ Basic validation
     if (!title || !content || displayOrder === null || displayOrder === undefined) {
-      alert('Please fill in all fields (title, content, display order) before saving.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'Please fill in all fields (title, content, display order) before saving.',
+        confirmButtonColor: '#222'
+      });
       return;
     }
 
     // 2️⃣ Prevent negative displayOrder
     if (displayOrder < 0) {
-      alert('Display order must be a non-negative number.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'Display order must be a non-negative number.',
+        confirmButtonColor: '#222'
+      });
       return;
     }
 
@@ -60,7 +71,12 @@ export class ShippingReturnsPolicyComponent implements OnInit {
     );
 
     if (isDuplicateTitle) {
-      alert('A policy with this title already exists. Please use a unique title.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'A policy with this title already exists. Please use a unique title.',
+        confirmButtonColor: '#222'
+      });
       return;
     }
 
@@ -69,7 +85,14 @@ export class ShippingReturnsPolicyComponent implements OnInit {
     if (this.editingPolicy) {
       // PUT (Update)
       this.http.put(`${this.BASE_URL}/${this.editingPolicy.id}`, payload).subscribe(() => {
-        alert('Policy updated successfully!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Policy updated successfully!',
+          confirmButtonColor: '#222',
+          timer: 2000,
+          showConfirmButton: false
+        });
         this.editingPolicy = null;
         this.resetForm();
         this.loadPolicies();
@@ -77,7 +100,14 @@ export class ShippingReturnsPolicyComponent implements OnInit {
     } else {
       // POST (Create)
       this.http.post(this.BASE_URL, payload).subscribe(() => {
-        alert('Policy created successfully!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Policy created successfully!',
+          confirmButtonColor: '#222',
+          timer: 2000,
+          showConfirmButton: false
+        });
         this.resetForm();
         this.loadPolicies();
       });

@@ -42,14 +42,17 @@ import com.maven.demo.dto.ReduceStockRequestDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
 import com.maven.demo.entity.BrandEntity;
+import com.maven.demo.entity.ProductEntity;
 import com.maven.demo.entity.ProductVariantEntity;
 import com.maven.demo.repository.BrandRepository;
+import com.maven.demo.repository.ProductRepository;
 import com.maven.demo.repository.ProductVariantRepository;
 import com.maven.demo.service.CloudinaryUploadService;
 import com.maven.demo.service.ExcelService;
 import com.maven.demo.service.ProductService;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -71,6 +74,9 @@ public class ProductController {
 
     @Autowired
     private BrandRepository brandRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
 
     @PostMapping("/saveWithFiles")
@@ -185,9 +191,23 @@ public class ProductController {
     }
 
     @DeleteMapping("/variants/{variantId}")
-    public ResponseEntity<Void> deleteVariant(@PathVariable Long variantId) {
-        productService.deleteVariant(variantId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> deleteVariant(@PathVariable Long variantId) {
+        try {
+            productService.deleteVariant(variantId);
+            return ResponseEntity.ok(java.util.Map.of("success", true, "message", "Delete success!"));
+        } catch (RuntimeException ex) {
+            ex.printStackTrace();
+            if (ex.getMessage() != null && ex.getMessage().contains("VARIANT_REFERENCED")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(java.util.Map.of(
+                        "success", false,
+                        "code", "VARIANT_REFERENCED",
+                        "message", "This variant is referenced by an order or refund and cannot be deleted. You can only hide it."
+                    ));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(java.util.Map.of("success", false, "message", "Failed to delete variant"));
+        }
     }
 
     @PostMapping("/variants/{productId}/with-photos")
@@ -219,13 +239,23 @@ public class ProductController {
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+    public ResponseEntity<?> deleteProduct(@PathVariable Long productId) {
         try {
             productService.deleteProduct(productId);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.ok(java.util.Map.of("success", true, "message", "Delete success!"));
+        } catch (RuntimeException ex) {
+            ex.printStackTrace();
+            // Check for product referenced error
+            if (ex.getMessage() != null && (ex.getMessage().contains("PRODUCT_PURCHASED") || ex.getMessage().contains("SOFT_DELETE"))) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(java.util.Map.of(
+                        "success", false,
+                        "code", "PRODUCT_PURCHASED",
+                        "message", "This product has already been purchased by a customer. You can only hide it, not delete it completely."
+                    ));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(java.util.Map.of("success", false, "message", "Failed to delete product"));
         }
     }
 
@@ -468,6 +498,34 @@ public class ProductController {
     public ResponseEntity<List<ProductSearchResultDTO>> getRecommendedProducts(@PathVariable Long productId, @RequestParam(defaultValue = "8") int limit) {
         List<ProductSearchResultDTO> recommendations = productService.getRecommendedProducts(productId, limit);
         return ResponseEntity.ok(recommendations);
+    }
+
+    @PutMapping("/hide/{id}")
+    public ResponseEntity<?> hideProduct(@PathVariable Long id) {
+        ProductEntity product = productRepository.findById(id).orElse(null);
+        if (product == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Collections.singletonMap("success", false));
+        }
+        product.setStatus(0);
+        productRepository.save(product);
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("success", true);
+        resp.put("message", "Product hidden successfully");
+        return ResponseEntity.ok(resp);
+    }
+
+    @PutMapping("/unhide/{id}")
+    public ResponseEntity<?> unhideProduct(@PathVariable Long id) {
+        ProductEntity product = productRepository.findById(id).orElse(null);
+        if (product == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Collections.singletonMap("success", false));
+        }
+        product.setStatus(1);
+        productRepository.save(product);
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("success", true);
+        resp.put("message", "Product unhidden successfully");
+        return ResponseEntity.ok(resp);
     }
 
 }

@@ -41,13 +41,14 @@
 
 <!-- Categories Grid -->
 <div class="categories-grid">
-  <div *ngFor="let category of filteredCategories" class="category-item" [routerLink]="['/sub-category', category.id]">
+  <div *ngFor="let category of filteredCategories" class="category-item" [ngClass]="{'hidden-item': category.status !== 1}" [routerLink]="['/sub-category', category.id]">
     <div class="category-image">
       <img [src]="category.image_url || 'assets/img/electronic.jpg'" alt="{{ category.name }}">
       <div class="stats-badge" *ngIf="category.subcategoryCount">
         <i class="fas fa-layer-group"></i>
         {{ category.subcategoryCount }}
       </div>
+      <span *ngIf="category.status !== 1" class="hidden-badge prominent"><i class="fas fa-eye-slash"></i> Hidden</span>
       <div class="category-overlay">
         <div class="category-actions">
           <button class="btn-icon" (click)="editCategory(category); $event.stopPropagation()" title="Edit Category">
@@ -55,6 +56,12 @@
           </button>
           <button class="btn-icon btn-danger" (click)="deleteCategory(category); $event.stopPropagation()" title="Delete Category and Subcategories">
             <i class="fas fa-trash"></i>
+          </button>
+          <button *ngIf="category.status === 1" class="btn-icon btn-warning" (click)="hideCategory(category); $event.stopPropagation()" title="Hide Category">
+            <i class="fas fa-eye-slash"></i>
+          </button>
+          <button *ngIf="category.status !== 1" class="btn-icon btn-success" (click)="unhideCategory(category); $event.stopPropagation()" title="Unhide Category">
+            <i class="fas fa-eye"></i>
           </button>
         </div>
       </div>

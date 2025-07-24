@@ -18,4 +18,5 @@ public class CategoryDTO {
     private List<AttributeDTO> attributes;
     private String image_url;
 
+    private int status;
 }

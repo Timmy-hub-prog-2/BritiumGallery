@@ -77,7 +77,7 @@
       <div *ngIf="filteredCategories?.length" class="search-results-section">
         <h3 class="results-title">Categories ({{filteredCategories.length}})</h3>
         <div class="subcategories-grid">
-          <div *ngFor="let category of filteredCategories" class="subcategory-card">
+          <div *ngFor="let category of filteredCategories" class="subcategory-card" [ngClass]="{'hidden-item': category.status === 0}">
             <div class="subcategory-image" (click)="navigateToSubCategory(category.id)">
               <img [src]="category.image_url || 'assets/img/electronic.jpg'" [alt]="category.name">
               <div class="category-overlay">
@@ -88,11 +88,18 @@
                   <button class="btn-icon btn-danger" (click)="deleteCategory(category); $event.stopPropagation()" title="Delete Category">
                     <i class="fas fa-trash"></i>
                   </button>
+                  <button *ngIf="category.status !== 0" class="btn-icon btn-warning" (click)="hideCategory(category); $event.stopPropagation()" title="Hide Category">
+                    <i class="fas fa-eye-slash"></i>
+                  </button>
+                  <button *ngIf="category.status === 0" class="btn-icon btn-success" (click)="unhideCategory(category); $event.stopPropagation()" title="Unhide Category">
+                    <i class="fas fa-eye"></i>
+                  </button>
                 </div>
               </div>
+              <span *ngIf="category.status === 0" class="hidden-badge prominent"><i class="fas fa-eye-slash"></i> Hidden</span>
             </div>
             <div class="card-content" (click)="navigateToSubCategory(category.id)">
-              <h3 class="card-title">{{category.name}}</h3>
+              <h3 class="card-title" [ngClass]="{'strikethrough': category.status === 0}">{{category.name}}</h3>
               <span class="card-id">ID: {{category.id}}</span>
               <span class="card-count">
                 <i class="fas fa-box"></i>
@@ -107,7 +114,7 @@
       <div *ngIf="filteredProducts?.length" class="search-results-section">
         <h3 class="results-title">Products ({{filteredProducts.length}})</h3>
         <div class="products-grid">
-          <div *ngFor="let product of filteredProducts" class="product-card">
+          <div *ngFor="let product of filteredProducts" class="product-card" [ngClass]="{'hidden-item': product.status === 0}">
             <div class="product-image">
               <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" [alt]="product.name">
               <div class="product-overlay">
@@ -118,11 +125,18 @@
                   <button class="btn-icon btn-danger" (click)="deleteProduct(product.id)" title="Delete Product">
                     <i class="fas fa-trash"></i>
                   </button>
+                  <button *ngIf="product.status !== 0" class="btn-icon btn-warning" (click)="hideProduct(product.id); $event.stopPropagation()" title="Hide Product">
+                    <i class="fas fa-eye-slash"></i>
+                  </button>
+                  <button *ngIf="product.status === 0" class="btn-icon btn-success" (click)="unhideProduct(product.id); $event.stopPropagation()" title="Unhide Product">
+                    <i class="fas fa-eye"></i>
+                  </button>
                 </div>
               </div>
+              <span *ngIf="product.status === 0" class="hidden-badge prominent"><i class="fas fa-eye-slash"></i> Hidden</span>
             </div>
             <div class="product-info">
-              <h3 class="product-title">{{ product.name }}</h3>
+              <h3 class="product-title" [ngClass]="{'strikethrough': product.status === 0}">{{ product.name }}</h3>
               <span class="product-id">ID: {{product.id}}</span>
               <span class="price-range">{{ getPriceRange(product) }}</span>
             </div>
@@ -151,7 +165,7 @@
         </div>
 
         <div class="subcategories-grid">
-          <div *ngFor="let category of categoryList" class="subcategory-card">
+          <div *ngFor="let category of categoryList" class="subcategory-card" [ngClass]="{'hidden-item': category.status === 0}">
             <div class="subcategory-image" (click)="navigateToSubCategory(category.id)">
               <img [src]="category.image_url || 'assets/img/electronic.jpg'" [alt]="category.name">
               <div class="category-overlay">
@@ -162,11 +176,18 @@
                   <button class="btn-icon btn-danger" (click)="deleteCategory(category); $event.stopPropagation()" title="Delete Category">
                     <i class="fas fa-trash"></i>
                   </button>
+                  <button *ngIf="category.status !== 0" class="btn-icon btn-warning" (click)="hideCategory(category); $event.stopPropagation()" title="Hide Category">
+                    <i class="fas fa-eye-slash"></i>
+                  </button>
+                  <button *ngIf="category.status === 0" class="btn-icon btn-success" (click)="unhideCategory(category); $event.stopPropagation()" title="Unhide Category">
+                    <i class="fas fa-eye"></i>
+                  </button>
                 </div>
               </div>
+              <span *ngIf="category.status === 0" class="hidden-badge prominent"><i class="fas fa-eye-slash"></i> Hidden</span>
             </div>
             <div class="card-content" (click)="navigateToSubCategory(category.id)">
-              <h3 class="card-title">{{category.name}}</h3>
+              <h3 class="card-title" [ngClass]="{'strikethrough': category.status === 0}">{{category.name}}</h3>
               <span class="card-count">
                 <i class="fas fa-box"></i>
                 {{category.productCount || 0}} Products
@@ -197,7 +218,7 @@
         </div>
 
         <div class="products-grid">
-          <div *ngFor="let product of productList" class="product-card">
+          <div *ngFor="let product of productList" class="product-card" [ngClass]="{'hidden-item': product.status === 0}">
             <div class="product-image">
               <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" [alt]="product.name">
               <div class="product-overlay">
@@ -208,11 +229,18 @@
                   <button class="btn-icon btn-danger" (click)="deleteProduct(product.id)" title="Delete Product">
                     <i class="fas fa-trash"></i>
                   </button>
+                  <button *ngIf="product.status !== 0" class="btn-icon btn-warning" (click)="hideProduct(product.id); $event.stopPropagation()" title="Hide Product">
+                    <i class="fas fa-eye-slash"></i>
+                  </button>
+                  <button *ngIf="product.status === 0" class="btn-icon btn-success" (click)="unhideProduct(product.id); $event.stopPropagation()" title="Unhide Product">
+                    <i class="fas fa-eye"></i>
+                  </button>
                 </div>
               </div>
+              <span *ngIf="product.status === 0" class="hidden-badge prominent"><i class="fas fa-eye-slash"></i> Hidden</span>
             </div>
             <div class="product-info">
-              <h3 class="product-title">{{ product.name }}</h3>
+              <h3 class="product-title" [ngClass]="{'strikethrough': product.status === 0}">{{ product.name }}</h3>
               <span class="price-range">{{ getPriceRange(product) }}</span>
             </div>
           </div>

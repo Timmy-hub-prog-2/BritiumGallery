@@ -174,4 +174,12 @@ export class ProductService {
   getRecommendedProducts(productId: number, limit: number = 8): Observable<ProductRecommendation[]> {
     return this.http.get<ProductRecommendation[]>(`${this.baseUrl}/${productId}/recommendations?limit=${limit}`);
   }
+
+  hideProduct(productId: number): Observable<any> {
+    return this.http.put(`${this.baseUrl}/hide/${productId}`, {});
+  }
+
+  unhideProduct(productId: number): Observable<any> {
+    return this.http.put(`${this.baseUrl}/unhide/${productId}`, {});
+  }
 }

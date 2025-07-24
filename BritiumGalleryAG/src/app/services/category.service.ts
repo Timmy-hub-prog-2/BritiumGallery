@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { CategoryAttribute } from '../category';
 
 interface Category {
   id: string;
@@ -38,5 +39,17 @@ export class CategoryService {
     responseType: 'text' as 'text',
   });
 }
+
+  hideCategory(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/hide/${id}`, {});
+  }
+
+  unhideCategory(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/unhide/${id}`, {});
+  }
+
+  getAttributesForCategory(categoryId: number): Observable<CategoryAttribute[]> {
+    return this.http.get<CategoryAttribute[]>(`${this.apiUrl}/attributes/${categoryId}`);
+  }
 
 } 

@@ -53,6 +53,9 @@ public class ProductVariantEntity {
     private List<PurchaseHistoryEntity> purchaseHistories = new ArrayList<>();
 
     @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReduceStockHistoryEntity> reduceStockHistories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductVariantPriceHistoryEntity> priceHistories = new ArrayList<>();
 
     public ProductVariantEntity() {

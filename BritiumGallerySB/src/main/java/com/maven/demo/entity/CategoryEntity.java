@@ -27,6 +27,9 @@ public class CategoryEntity {
     @Column(name = "admin_id")
     private long admin_id;
 
+    @Column(name = "status", nullable = false)
+    private int status = 1;
+
     @ManyToOne
     @JoinColumn(name = "parent_category_id")
     private CategoryEntity parentCategory;

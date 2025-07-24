@@ -40,6 +40,9 @@ import { forkJoin } from 'rxjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { CategoryService } from '../services/category.service';
+import { CategoryAttribute } from '../category';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-product-edit',
@@ -126,7 +129,8 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
     private dialog: MatDialog,
     private cdRef: ChangeDetectorRef,
     private brandService: BrandService,
-    private productVariantService: ProductVariantService
+    private productVariantService: ProductVariantService,
+    private categoryService: CategoryService
   ) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
@@ -384,33 +388,36 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
     this.removedExistingImageUrls = [];
     this.displayImageUrls = [...(variant.imageUrls || [])];
 
-    // Create a new form for editing without purchasePrice validation
-    this.variantForm = this.fb.group({
-      price: [
-        this.editingVariant.price,
-        [Validators.required, Validators.min(0.01)],
-      ],
-      stock: [
-        this.editingVariant.stock,
-        [Validators.required, Validators.min(0)],
-      ],
-      attributes: this.fb.array<FormGroup>([]),
-      photos: [[]],
-    });
+    // Fetch all category attributes for the product's category
+    if (this.product && this.product.categoryId) {
+      this.categoryService.getAttributesForCategory(this.product.categoryId).subscribe((attributes: CategoryAttribute[]) => {
+        // Create a new form for editing without purchasePrice validation
+        this.variantForm = this.fb.group({
+          price: [
+            this.editingVariant!.price,
+            [Validators.required, Validators.min(0.01)],
+          ],
+          stock: [
+            this.editingVariant!.stock,
+            [Validators.required, Validators.min(0)],
+          ],
+          attributes: this.fb.array<FormGroup>([]),
+          photos: [[]],
+        });
 
-    const newAttributesFormArray = this.fb.array<FormGroup>([]);
-    if (this.editingVariant.attributes) {
-      Object.entries(this.editingVariant.attributes).forEach(([key, value]) => {
-        newAttributesFormArray.push(
-          this.fb.group({
-            key: [key, Validators.required],
-            value: [value, Validators.required],
-          })
-        );
+        const newAttributesFormArray = this.fb.array<FormGroup>([]);
+        attributes.forEach((attr: CategoryAttribute) => {
+          newAttributesFormArray.push(
+            this.fb.group({
+              key: [attr.name, Validators.required],
+              value: [this.editingVariant && this.editingVariant.attributes && this.editingVariant.attributes[attr.name] ? this.editingVariant.attributes[attr.name] : '', Validators.required],
+            })
+          );
+        });
+        this.variantForm.setControl('attributes', newAttributesFormArray);
+        this.cdRef.detectChanges();
       });
     }
-    this.variantForm.setControl('attributes', newAttributesFormArray);
-    this.cdRef.detectChanges();
 
     const dialogRef = this.dialog.open(this.editVariantModal, {
       maxWidth: '800px',
@@ -462,31 +469,55 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         formData.append('basePhoto', this.basePhotoFile);
       }
 
+      Swal.fire({
+        title: 'Uploading...',
+        text: 'Uploading product image to cloud. Please wait...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
       this.productService.updateProduct(this.product.id, formData).subscribe({
         next: (response: ProductResponse) => {
+          Swal.close();
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Product updated successfully',
+            confirmButtonColor: '#222',
+            timer: 1500,
+            showConfirmButton: false
+          });
           this.product = response;
-          this.showSuccess('Product updated successfully');
           this.isLoading = false;
         },
         error: (error: Error) => {
+          Swal.close();
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update product',
+            confirmButtonColor: '#222'
+          });
           console.error('Error updating product:', error);
-          this.showError('Failed to update product');
           this.isLoading = false;
         },
       });
     }
   }
 
-  saveVariant(): void {
+  async saveVariant(): Promise<void> {
     if (this.variantForm.invalid) {
       this.markFormGroupTouched(this.variantForm);
-      this.showError('Please fill in all required fields and correct errors.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'Please fill in all required fields and correct errors.',
+        confirmButtonColor: '#222'
+      });
       return;
     }
-
     const variantData = this.variantForm.value;
     const attributes: { [key: string]: string } = {};
-
     this.attributesFormArray.controls.forEach((control) => {
       const key = control.get('key')?.value;
       const value = control.get('value')?.value;
@@ -494,52 +525,56 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         attributes[key] = value;
       }
     });
-
     variantData.attributes = attributes;
-    // Ensure purchasePrice is included in the payload
-    // (already present if using variantForm.value)
-
     const formData = new FormData();
     formData.append(
       'variant',
       new Blob([JSON.stringify(variantData)], { type: 'application/json' })
     );
-
     this.selectedFiles.forEach((file) => {
       formData.append('photos', file, file.name);
     });
-
     if (this.removedExistingImageUrls.length > 0) {
       formData.append(
         'removedImageUrls',
         JSON.stringify(this.removedExistingImageUrls)
       );
     }
-
-    // Add adminId from logged-in user
     const loggedInUser = JSON.parse(
       localStorage.getItem('loggedInUser') || '{}'
     );
     if (loggedInUser && loggedInUser.id) {
       formData.append('adminId', loggedInUser.id.toString());
     }
-
+    Swal.fire({
+      title: 'Uploading...',
+      text: 'Uploading images to cloud. Please wait...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
     this.isUpdating = true;
     if (this.product) {
       this.productService
         .addVariantWithPhotos(this.product.id, formData)
         .subscribe({
           next: () => {
-            this.showSuccess('Variant added successfully');
+            Swal.close();
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: 'Variant added successfully',
+              confirmButtonColor: '#222',
+              timer: 1500,
+              showConfirmButton: false
+            });
             this.loadProduct(this.product!.id);
             this.isUpdating = false;
-
             if (this.addVariantDialogRef) {
               this.addVariantDialogRef.close(true);
             }
           },
           error: (error: HttpErrorResponse) => {
-            console.error('Error adding variant:', error);
+            Swal.close();
             let errorMessage = 'Failed to add variant. Please try again.';
             if (
               error.status === 400 &&
@@ -553,14 +588,19 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
               errorMessage =
                 'Server does not support POST method for this endpoint. Please check backend configuration.';
             }
-            this.showError(errorMessage);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: errorMessage,
+              confirmButtonColor: '#222'
+            });
             this.isUpdating = false;
           },
         });
     }
   }
 
-  updateVariant(): void {
+  async updateVariant(): Promise<void> {
     if (
       this.editingVariant &&
       this.product &&
@@ -568,10 +608,8 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
       !this.isUpdating
     ) {
       this.isUpdating = true;
-
       this.editingVariant.price = this.variantForm.value.price;
       this.editingVariant.stock = this.variantForm.value.stock;
-
       const updatedAttributes: { [key: string]: string } = {};
       this.attributesFormArray.controls.forEach((control) => {
         const key = control.get('key')?.value;
@@ -581,9 +619,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         }
       });
       this.editingVariant.attributes = updatedAttributes;
-
       const formData = new FormData();
-
       const variantData = {
         id: this.editingVariant.id,
         price: this.editingVariant.price,
@@ -594,28 +630,38 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         ),
         imageUrlsToDelete: this.removedExistingImageUrls,
       };
-
       formData.append(
         'variant',
         new Blob([JSON.stringify(variantData)], { type: 'application/json' })
       );
-
       const loggedInUser = JSON.parse(
         localStorage.getItem('loggedInUser') || '{}'
       );
       if (loggedInUser && loggedInUser.id) {
         formData.append('adminId', loggedInUser.id.toString());
       }
-
       this.selectedFiles.forEach((file) => {
         formData.append('photos', file);
       });
-
+      Swal.fire({
+        title: 'Uploading...',
+        text: 'Uploading images to cloud. Please wait...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
       this.productService
         .updateVariantWithPhotos(this.editingVariant.id, formData)
         .subscribe({
           next: (response: VariantResponse) => {
-            this.showSuccess('Variant updated successfully');
+            Swal.close();
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: 'Variant updated successfully',
+              confirmButtonColor: '#222',
+              timer: 1500,
+              showConfirmButton: false
+            });
             this.loadProduct(this.product!.id);
             this.editingVariant = null;
             // Reset the form back to the original structure for adding new variants
@@ -633,31 +679,70 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
             this.isUpdating = false;
           },
           error: (error: Error) => {
-            console.error('Error updating variant:', error);
-            this.showError('Failed to update variant');
+            Swal.close();
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to update variant',
+              confirmButtonColor: '#222'
+            });
             this.isUpdating = false;
           },
         });
     } else if (this.editingVariant) {
       this.markFormGroupTouched(this.variantForm);
-      this.showError('Please fill in all required variant fields.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'Please fill in all required variant fields.',
+        confirmButtonColor: '#222'
+      });
     }
   }
 
-  deleteVariant(variant: VariantResponse): void {
-    if (confirm('Are you sure you want to delete this variant?')) {
-      if (this.product) {
-        this.productService.deleteVariant(variant.id).subscribe({
-          next: () => {
-            this.showSuccess('Variant deleted successfully');
-            this.loadProduct(this.product!.id);
-          },
-          error: (error: Error) => {
-            console.error('Error deleting variant:', error);
-            this.showError('Failed to delete variant');
-          },
-        });
-      }
+  async deleteVariant(variant: VariantResponse): Promise<void> {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you really want to delete this variant?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    });
+    if (result.isConfirmed && this.product) {
+      this.productService.deleteVariant(variant.id).subscribe({
+        next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'Variant deleted successfully',
+            confirmButtonColor: '#222',
+            timer: 1500,
+            showConfirmButton: false
+          });
+          this.loadProduct(this.product!.id);
+        },
+        error: (error: any) => {
+          console.error('Error deleting variant:', error);
+          if (error.status === 409 && error.error && error.error.code === 'VARIANT_REFERENCED') {
+            Swal.fire({
+              icon: 'error',
+              title: 'Cannot Delete Variant',
+              text: 'This variant is referenced by an order or refund and cannot be deleted.',
+              confirmButtonColor: '#222'
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to delete variant',
+              confirmButtonColor: '#222'
+            });
+          }
+        },
+      });
     }
   }
 
@@ -895,12 +980,14 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         purchasePrice: this.stockForm.value.purchasePrice,
         sellingPrice: this.stockForm.value.sellingPrice,
         quantity: this.stockForm.value.quantity,
+        adminId: null
       };
 
       const loggedInUser = JSON.parse(
         localStorage.getItem('loggedInUser') || '{}'
       );
       const adminId = loggedInUser && loggedInUser.id ? loggedInUser.id : null;
+      stockData.adminId = adminId;
 
       this.productService.addStock(stockData, adminId).subscribe({
         next: (response: VariantResponse) => {

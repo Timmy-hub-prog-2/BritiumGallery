@@ -12,6 +12,12 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 interface CategoryWithCount extends category {
   productCount?: number;
   imageUrl?: string;
+  status?: number;
+}
+
+// Extend ProductResponse to include status for UI
+interface ProductWithStatus extends ProductResponse {
+  status?: number;
 }
 
 @Component({
@@ -24,7 +30,7 @@ interface CategoryWithCount extends category {
 export class SubCategoryComponent implements OnInit {
   urlParam: number = 0;
   categoryList: CategoryWithCount[] = [];
-  productList: ProductResponse[] = [];
+  productList: ProductWithStatus[] = [];
   currentCategory: category | null = null;
   categoryPath: category[] = [];
   
@@ -32,9 +38,9 @@ export class SubCategoryComponent implements OnInit {
   searchTerm: string = '';
   private searchSubject = new Subject<string>();
   filteredCategories: CategoryWithCount[] = [];
-  filteredProducts: ProductResponse[] = [];
+  filteredProducts: ProductWithStatus[] = [];
   allCategories: CategoryWithCount[] = [];
-  allProducts: ProductResponse[] = [];
+  allProducts: ProductWithStatus[] = [];
   isLoading = false;
 
   constructor(
@@ -110,9 +116,9 @@ export class SubCategoryComponent implements OnInit {
 
     // Load all products recursively
     this.productService.getAllProductsUnderCategory(id).subscribe({
-      next: (products: ProductResponse[]) => {
+      next: (products: ProductWithStatus[]) => {
         this.allProducts = products;
-        this.productList = products.filter((prod: ProductResponse) => prod.categoryId === id);
+        this.productList = products.filter((prod: ProductWithStatus) => prod.categoryId === id);
         this.isLoading = false;
       },
       error: (err: Error) => {
@@ -187,12 +193,32 @@ export class SubCategoryComponent implements OnInit {
         this.categoryService.deleteCategory(category.id).subscribe({
           next: () => {
             this.showSuccessAlert('Category deleted successfully');
-            // Refresh the category list
             this.loadData(this.urlParam);
           },
           error: (err) => {
-            console.error('Error deleting category:', err);
-            this.showErrorAlert('Failed to delete category');
+            console.log('Delete category error:', err);
+            let errorObj = null;
+            if (err && err.error) {
+              errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            }
+            if (errorObj && errorObj.code === 'CATEGORY_PURCHASED') {
+              Swal.fire({
+                icon: 'info',
+                title: 'Cannot Delete Category',
+                text: 'This category has already been purchased by a customer. You can only hide it, not delete it completely.',
+                showCancelButton: true,
+                confirmButtonText: 'Hide Category',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#1976d2',
+                cancelButtonColor: '#6c757d'
+              }).then((hideResult) => {
+                if (hideResult.isConfirmed) {
+                  this.hideCategory(category);
+                }
+              });
+            } else {
+              this.showErrorAlert('Failed to delete category');
+            }
           }
         });
       }
@@ -210,7 +236,7 @@ export class SubCategoryComponent implements OnInit {
     this.router.navigate(['/categoryRegister', this.urlParam]);
   }
 
-  getPriceRange(product: ProductResponse): string {
+  getPriceRange(product: ProductWithStatus): string {
     if (!product.variants || product.variants.length === 0) return 'N/A';
 
     const prices = product.variants.map(v => v.price);
@@ -244,9 +270,33 @@ export class SubCategoryComponent implements OnInit {
             this.showSuccessAlert('Product deleted successfully');
             this.loadProducts();
           },
-          error: (error) => {
-            console.error('Error deleting product:', error);
-            this.showErrorAlert('Failed to delete product');
+          error: (err) => {
+            console.log('Delete product error:', err);
+            let errorObj = null;
+            if (err && err.error) {
+              errorObj = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            }
+            if ((errorObj && errorObj.code === 'PRODUCT_PURCHASED') || (typeof err.error === 'string' && err.error.includes('SOFT_DELETE'))) {
+              Swal.fire({
+                icon: 'info',
+                title: 'Cannot Delete Product',
+                text: 'This product has already been purchased by a customer. You can only hide it, not delete it completely.',
+                showCancelButton: true,
+                confirmButtonText: 'Hide Product',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#1976d2',
+                cancelButtonColor: '#6c757d'
+              }).then((hideResult) => {
+                if (hideResult.isConfirmed) {
+                  this.productService.hideProduct(productId).subscribe(() => {
+                    this.showSuccessAlert('Product hidden successfully');
+                    this.loadProducts();
+                  });
+                }
+              });
+            } else {
+              this.showErrorAlert('Failed to delete product');
+            }
           }
         });
       }
@@ -282,6 +332,94 @@ export class SubCategoryComponent implements OnInit {
       icon: 'error',
       title: 'Error',
       text: message
+    });
+  }
+
+  hideCategory(category: CategoryWithCount): void {
+    this.categoryService.hideCategory(category.id).subscribe({
+      next: () => {
+        this.showSuccessAlert('Category hidden successfully');
+        this.loadData(this.urlParam);
+      },
+      error: () => {
+        this.showErrorAlert('Failed to hide category');
+      }
+    });
+  }
+
+  unhideCategory(category: CategoryWithCount): void {
+    if (category.parent_category_id) {
+      this.categoryService.getCategoryById(category.parent_category_id).subscribe(parentCategory => {
+        if (parentCategory && parentCategory.status !== 1) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Cannot Unhide Category',
+            text: "You can't unhide this category since its parent category is hidden.",
+            confirmButtonColor: '#222'
+          });
+          return;
+        }
+        this.categoryService.unhideCategory(category.id).subscribe({
+          next: () => {
+            this.showSuccessAlert('Category unhidden successfully');
+            this.loadData(this.urlParam);
+          },
+          error: () => {
+            this.showErrorAlert('Failed to unhide category');
+          }
+        });
+      });
+    } else {
+      this.categoryService.unhideCategory(category.id).subscribe({
+        next: () => {
+          this.showSuccessAlert('Category unhidden successfully');
+          this.loadData(this.urlParam);
+        },
+        error: () => {
+          this.showErrorAlert('Failed to unhide category');
+        }
+      });
+    }
+  }
+
+  hideProduct(productId: number): void {
+    this.productService.hideProduct(productId).subscribe({
+      next: () => {
+        this.showSuccessAlert('Product hidden successfully');
+        this.loadProducts();
+      },
+      error: () => {
+        this.showErrorAlert('Failed to hide product');
+      }
+    });
+  }
+
+  unhideProduct(productId: number): void {
+    // Find the product and its category
+    const product = this.productList.find(p => p.id === productId);
+    if (!product) {
+      this.showErrorAlert('Product not found');
+      return;
+    }
+    // Find the category (from allCategories or categoryList)
+    const category = this.allCategories?.find(c => c.id === product.categoryId) || this.categoryList?.find(c => c.id === product.categoryId) || this.currentCategory;
+    if (category && category.status !== 1) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Cannot Unhide Product',
+        text: "You can't unhide this product since its category is hidden.",
+        confirmButtonColor: '#222'
+      });
+      return;
+    }
+    this.productService.unhideProduct(productId).subscribe({
+      next: () => {
+        this.showSuccessAlert('Product unhidden successfully');
+        this.loadProducts();
+      },
+      error: () => {
+        this.showErrorAlert('Failed to unhide product');
+      }
     });
   }
 }

@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import com.maven.demo.entity.CategoryEntity;
+import com.maven.demo.entity.ProductEntity;
+import com.maven.demo.repository.CategoryRepository;
+import com.maven.demo.repository.ProductRepository;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -27,6 +31,11 @@ public class CategoryController {
 
     @Autowired
     private CloudinaryUploadService cloudinaryService;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private ProductRepository productRepository;
 
     // ✅ Get category path from root to current category
     @GetMapping("/path/{id}")
@@ -106,9 +115,23 @@ public class CategoryController {
 
     // ✅ Delete category
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteCategory(@PathVariable Long id) {
-        catService.deleteCategory(id);
-        return ResponseEntity.ok("Delete success!");
+    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
+        try {
+            catService.deleteCategory(id);
+            return ResponseEntity.ok(java.util.Map.of("success", true, "message", "Delete success!"));
+        } catch (RuntimeException ex) {
+            ex.printStackTrace(); // Log all exceptions for debugging
+            if ("CATEGORY_PURCHASED".equals(ex.getMessage())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(java.util.Map.of(
+                        "success", false,
+                        "code", "CATEGORY_PURCHASED",
+                        "message", "This category has already been purchased by a customer. You can only hide it, not delete it completely."
+                    ));
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(java.util.Map.of("success", false, "message", "Failed to delete category"));
+        }
     }
 
     // ✅ Get category by ID (for editing)
@@ -122,5 +145,65 @@ public class CategoryController {
     public ResponseEntity<List<AttributeDTO>> getAttributesByCategory(@PathVariable Long categoryId) {
         List<AttributeDTO> attributes = attributeService.getAttributesForCategory(categoryId);
         return ResponseEntity.ok(attributes);
+    }
+
+    @PutMapping("/hide/{id}")
+    public ResponseEntity<?> hideCategory(@PathVariable Long id) {
+        CategoryEntity category = categoryRepository.findById(id).orElse(null);
+        if (category == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Collections.singletonMap("success", false));
+        }
+        // Recursively hide category, subcategories, and products
+        hideCategoryRecursive(category);
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("success", true);
+        resp.put("message", "Category and its subcategories/products hidden successfully");
+        return ResponseEntity.ok(resp);
+    }
+
+    private void hideCategoryRecursive(CategoryEntity category) {
+        category.setStatus(0);
+        categoryRepository.save(category);
+        // Hide all products in this category
+        java.util.List<ProductEntity> products = productRepository.findByCategoryId(category.getId());
+        for (ProductEntity product : products) {
+            product.setStatus(0);
+            productRepository.save(product);
+        }
+        // Hide all subcategories recursively
+        java.util.List<CategoryEntity> subcategories = categoryRepository.findByParentCategoryId(category.getId());
+        for (CategoryEntity sub : subcategories) {
+            hideCategoryRecursive(sub);
+        }
+    }
+
+    @PutMapping("/unhide/{id}")
+    public ResponseEntity<?> unhideCategory(@PathVariable Long id) {
+        CategoryEntity category = categoryRepository.findById(id).orElse(null);
+        if (category == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Collections.singletonMap("success", false));
+        }
+        // Recursively unhide category, subcategories, and products
+        unhideCategoryRecursive(category);
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("success", true);
+        resp.put("message", "Category and its subcategories/products unhidden successfully");
+        return ResponseEntity.ok(resp);
+    }
+
+    private void unhideCategoryRecursive(CategoryEntity category) {
+        category.setStatus(1);
+        categoryRepository.save(category);
+        // Unhide all products in this category
+        java.util.List<ProductEntity> products = productRepository.findByCategoryId(category.getId());
+        for (ProductEntity product : products) {
+            product.setStatus(1);
+            productRepository.save(product);
+        }
+        // Unhide all subcategories recursively
+        java.util.List<CategoryEntity> subcategories = categoryRepository.findByParentCategoryId(category.getId());
+        for (CategoryEntity sub : subcategories) {
+            unhideCategoryRecursive(sub);
+        }
     }
 }

@@ -86,7 +86,7 @@ export class CategoryProductComponent implements OnInit {
         // Always load direct subcategories of the current category
         if (this.categoryId) {
           this.categoryService.getSubCategories(this.categoryId).subscribe(subCats => {
-            this.subCategories = subCats;
+            this.subCategories = subCats.filter(cat => cat.status === 1);
           });
         }
 
@@ -107,7 +107,7 @@ export class CategoryProductComponent implements OnInit {
   loadProducts(): void {
     if (this.categoryId) {
       this.productService.getFilteredProducts(this.categoryId, this.selectedAttributeFilters, this.searchTerm).subscribe(products => {
-        this.products = products;
+        this.products = products.filter(product => product.status === 1);
         this.sortProducts();
       });
     }

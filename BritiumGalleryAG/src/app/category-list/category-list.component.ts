@@ -13,12 +13,14 @@ interface CategoryResponse {
   image_url?: string;
   created_at?: string;
   admin_id?: number;
+  status?: number;
 }
 
 // Define our extended type for the component
 interface CategoryWithCount extends CategoryResponse {
   productCount?: number;
   subcategoryCount?: number;
+  status?: number;
 }
 
 @Component({
@@ -184,6 +186,61 @@ export class CategoryListComponent implements OnInit, OnDestroy {
               text: 'There was an error deleting the category and its subcategories.'
             });
           }
+        });
+      }
+    });
+  }
+
+  hideCategory(category: CategoryWithCount): void {
+    this.categoryService.hideCategory(Number(category.id)).subscribe({
+      next: () => {
+        this.loadCategories();
+        Swal.fire({
+          icon: 'success',
+          title: 'Category Hidden',
+          text: `Category "${category.name}" has been hidden.`,
+          timer: 2000,
+          showConfirmButton: false
+        });
+      },
+      error: () => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to hide category.'
+        });
+      }
+    });
+  }
+
+  unhideCategory(category: CategoryWithCount): void {
+    // Find the parent category if any
+    const parentCategory = this.categories.find(c => Number(c.id) === Number(category.parent_category_id));
+    if (parentCategory && parentCategory.status !== 1) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Cannot Unhide Category',
+        text: "You can't unhide this category since its parent category is hidden.",
+        confirmButtonColor: '#222'
+      });
+      return;
+    }
+    this.categoryService.unhideCategory(Number(category.id)).subscribe({
+      next: () => {
+        this.loadCategories();
+        Swal.fire({
+          icon: 'success',
+          title: 'Category Unhidden',
+          text: `Category "${category.name}" is now visible.`,
+          timer: 2000,
+          showConfirmButton: false
+        });
+      },
+      error: () => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to unhide category.'
         });
       }
     });
