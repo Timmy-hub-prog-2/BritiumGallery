@@ -1,17 +1,18 @@
+/* Container */
 .policy-management-container {
-  margin-left: 330px;
-  margin-right: 330px;
+  margin-left: 330px; /* Match sidebar width */
   padding: 24px;
-
+  margin-right: 330px;
   min-height: 100vh;
 }
 
-/* Header */
+/* Header Styling */
 .management-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 15px;
 }
 
 .header-content {
@@ -20,54 +21,58 @@
   gap: 12px;
 }
 
-.header-icon svg {
-  stroke: #333;
+.header-icon {
+  margin-right: 15px;
+  color: #2c3e50;
 }
 
 .page-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 24px;
   font-weight: bold;
 }
 
 .page-subtitle {
-  margin: 0;
-  color: #777;
-  font-size: 0.9rem;
+  margin: 5px 0 0;
+  color: #666;
 }
 
-/* Card & Form */
+/* Form Sections */
 .card {
-  background: #fff;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  margin-bottom: 32px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
 }
 
 .section-title {
-  margin-bottom: 16px;
-  font-size: 1.25rem;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
 }
 
+/* Form Elements */
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 15px;
 }
 
 .form-label {
   font-weight: 500;
+  margin-bottom: 5px;
   display: block;
-  margin-bottom: 6px;
 }
 
 .form-input,
+input[type="text"],
+input[type="number"],
 textarea,
 select {
   width: 100%;
-  padding: 10px 12px;
-  font-size: 0.95rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
   font-family: 'Segoe UI', sans-serif;
   box-sizing: border-box;
 }
@@ -76,8 +81,9 @@ textarea {
   resize: vertical;
 }
 
+/* Footer Actions */
 .footer-actions {
-  margin-top: 16px;
+  margin-top: 20px;
   display: flex;
   gap: 10px;
   justify-content: flex-end;
@@ -85,39 +91,27 @@ textarea {
 
 /* Buttons */
 .btn {
-  padding: 8px 14px;
+  background-color: #2c3e50;
+  color: white;
+  padding: 10px 20px;
   border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  font-size: 15px;
   cursor: pointer;
-}
-
-.btn.primary {
-  background: #111;
-  color: #fff;
+  transition: background 0.3s ease;
 }
 
 .btn.secondary {
-  background: #eee;
-  color: #333;
+  background-color: #888;
 }
 
-.btn.icon {
-  background: none;
-  padding: 6px;
-  margin-right: 4px;
-}
-
-.btn.icon.danger {
-  color: red;
-}
-
-/* Table */
+/* Table Layout */
 .table-wrapper {
   background: #fff;
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  margin-top: 20px;
 }
 
 .styled-table {
@@ -137,18 +131,64 @@ textarea {
   font-weight: bold;
 }
 
+/* Action Buttons */
+.list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list-action-btn {
+  width: 34px;
+  height: 34px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.list-action-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.list-action-btn.edit {
+  color: #1a1a1a;
+}
+
+.list-action-btn.edit:hover {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: white;
+}
+
+.list-action-btn.delete {
+  color: #1a1a1a;
+}
+
+.list-action-btn.delete:hover {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: white;
+}
+
 /* Snippet Text */
 .snippet {
-  white-space: pre-line;
   word-break: break-word;
   line-height: 1.6;
   color: #444;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-height: 6em;
+}
+
+.snippet div {
+  white-space: pre-line;
 }
 
 .snippet + a {
@@ -156,10 +196,22 @@ textarea {
   font-size: 13px;
   cursor: pointer;
   text-decoration: none;
+  display: block;
+  margin-top: 5px;
 }
 
 .snippet + a:hover {
   text-decoration: underline;
+}
+
+/* When not expanded, apply truncation */
+.snippet:not(.expanded) div {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 3.2em;
 }
 
 /* Responsive */

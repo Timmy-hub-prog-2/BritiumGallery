@@ -135,28 +135,40 @@ table tbody tr:hover {
   border-radius: 20px;
   font-size: 12px;
 }
-
-/* Icon Button */
-.icon-button {
-  background: none;
-  border: none;
-  font-size: 18px;
-  padding: 4px;
-  cursor: pointer;
-  color: #333;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.icon-button:hover {
-  transform: scale(1.2);
-  color: #007bff;
-}
-
-.action-buttons {
+/* Updated List Action Buttons (Edit/Delete with SVG) */
+.list-actions {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
 }
+
+.list-action-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.list-action-btn.edit:hover {
+  background-color: #e0f7fa;
+}
+
+.list-action-btn.delete:hover {
+  background-color: #ffebee;
+}
+
+.list-action-btn svg {
+  stroke: #555;
+  transition: stroke 0.2s ease;
+}
+
+.list-action-btn:hover svg {
+  stroke: #000;
+}
+
 
 /* Modal */
 .modal {

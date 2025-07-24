@@ -19,10 +19,10 @@
     <h3 class="section-title">{{ policyId ? 'Edit Policy' : 'Add New Policy' }}</h3>
 
     <form [formGroup]="form" (ngSubmit)="savePolicy()">
+     
       <div class="form-group">
-        <label class="form-label">Policy Content</label>
-        <textarea class="form-input" rows="6" formControlName="content"
-          placeholder="Enter privacy policy content"></textarea>
+        <label class="form-label">Content (HTML/Text)</label>
+        <textarea class="form-input" rows="6" formControlName="content" placeholder="Enter policy content"></textarea>
       </div>
 
       <div class="form-group">
@@ -33,44 +33,61 @@
       </div>
 
       <div class="footer-actions">
-        <button type="submit" class="btn primary">{{ policyId ? 'Update' : 'Create' }}</button>
-        <button type="button" class="btn secondary" (click)="cancelEdit()" *ngIf="policyId">Cancel</button>
+        <button type="submit" class="btn primary">
+          {{ policyId ? 'Update Policy' : 'Create Policy' }}
+        </button>
+        <button type="button" class="btn secondary" *ngIf="policyId" (click)="cancelEdit()">Cancel</button>
       </div>
     </form>
   </div>
 
-  <!-- Policy List -->
-  <div class="table-wrapper" *ngIf="allPolicies.length > 0; else noData">
+  <!-- Policies Table -->
+  <div class="table-wrapper">
     <table class="styled-table">
       <thead>
         <tr>
           <th>ID</th>
-          <th>Content</th>
-          <th>Active</th>
+          
+          <th>Content Preview</th>
+          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let policy of allPolicies">
           <td>{{policy.id}}</td>
+         
           <td>
-            <div [ngClass]="{ 'snippet': !isExpanded(policy.id) }" [innerHTML]="policy.content"></div>
-            <a href="#" (click)="toggleExpand(policy.id, $event)">
-              {{ isExpanded(policy.id) ? 'Show Less ▲' : 'Read More ▼' }}
+            <div [ngClass]="{ 'snippet': !isExpanded(policy.id!) }">
+              <div *ngIf="!isExpanded(policy.id!)" [innerHTML]="policy.content | slice:0:100"></div>
+              <div *ngIf="isExpanded(policy.id!)" [innerHTML]="policy.content"></div>
+            </div>
+            <a href="#" (click)="toggleExpand(policy.id!, $event)">
+              {{ isExpanded(policy.id!) ? 'Show Less ▲' : 'Read More ▼' }}
             </a>
           </td>
-
           <td>{{ policy.active ? '✅' : '❌' }}</td>
           <td>
-            <button class="btn icon" (click)="editPolicy(policy)">✏️</button>
-            <button class="btn icon danger" (click)="deletePolicy(policy.id)">🗑️</button>
+            <div class="list-actions">
+              <button class="list-action-btn edit" (click)="editPolicy(policy)" title="Edit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+              <button class="list-action-btn delete" (click)="deletePolicy(policy.id!)" title="Delete">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" />
+                  <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
-
-  <ng-template #noData>
-    <p>No privacy policies found.</p>
-  </ng-template>
 </div>

@@ -4,10 +4,11 @@ import * as L from 'leaflet';
 import { NgForm } from '@angular/forms';
 import { AuthService } from '../AuthService';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-shopaddressform',
-  standalone:false,
+  standalone: false,
   templateUrl: './shopaddressform.component.html',
   styleUrls: ['./shopaddressform.component.css']
 })
@@ -45,7 +46,7 @@ export class ShopaddressformComponent implements AfterViewInit {
     private http: HttpClient,
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -160,55 +161,66 @@ export class ShopaddressformComponent implements AfterViewInit {
     });
   }
 
- submitForm(form: NgForm) {
-  this.formSubmitAttempted = true;
-  if (!form.valid || !this.userId) {
-    alert('Please fill in all required fields.');
-    return;
-  }
+  submitForm(form: NgForm) {
+    this.formSubmitAttempted = true;
+    if (!form.valid || !this.userId) {
+      alert('Please fill in all required fields.');
+      return;
+    }
 
-  // Check if this is the first address for the user
-  this.http.get<any[]>(`http://localhost:8080/api/shopaddresses/user/${this.userId}`)
-    .subscribe(existingAddresses => {
-      const isFirst = existingAddresses.length === 0;
+    // Check if this is the first address for the user
+    this.http.get<any[]>(`http://localhost:8080/api/shopaddresses/user/${this.userId}`)
+      .subscribe(existingAddresses => {
+        const isFirst = existingAddresses.length === 0;
 
-      const payload = {
-        userId: this.userId,
-        country: this.country,
-        state: this.state,
-        city: this.city,
-        township: this.township,
-        street: this.street,
-        houseNumber: this.houseNumber,
-        wardName: this.wardName,
-        postalCode: this.postalCode,
-        latitude: this.center.lat,
-        longitude: this.center.lng,
-        mainAddress: isFirst // ✅ set to true if first address
-      };
+        const payload = {
+          userId: this.userId,
+          country: this.country,
+          state: this.state,
+          city: this.city,
+          township: this.township,
+          street: this.street,
+          houseNumber: this.houseNumber,
+          wardName: this.wardName,
+          postalCode: this.postalCode,
+          latitude: this.center.lat,
+          longitude: this.center.lng,
+          mainAddress: isFirst // ✅ set to true if first address
+        };
 
-      const url = this.editingId
-        ? `http://localhost:8080/api/shopaddresses/${this.editingId}`
-        : `http://localhost:8080/api/shopaddresses`;
+        const url = this.editingId
+          ? `http://localhost:8080/api/shopaddresses/${this.editingId}`
+          : `http://localhost:8080/api/shopaddresses`;
 
-      const request = this.editingId
-        ? this.http.put(url, payload)
-        : this.http.post(url, payload);
+        const request = this.editingId
+          ? this.http.put(url, payload)
+          : this.http.post(url, payload);
 
-      request.subscribe({
-        next: () => {
-          alert(this.editingId ? 'Shop address updated successfully' : 'Shop address saved successfully');
-          this.resetForm();
-          this.loadShopAddresses();
-          this.router.navigate(['/shopaddresslist']);
-        },
-        error: err => {
-          console.error('Shop address save failed:', err);
-          alert('Something went wrong. Please try again.');
-        }
+        request.subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: this.editingId ? 'Updated!' : 'Saved!',
+              text: this.editingId ? 'Shop address updated successfully.' : 'Shop address saved successfully.',
+              timer: 2000,
+              showConfirmButton: false
+            });
+            this.resetForm();
+            this.loadShopAddresses();
+            this.router.navigate(['/shopaddresslist']);
+          },
+          error: err => {
+            console.error('Shop address save failed:', err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops!',
+              text: 'Something went wrong. Please try again.',
+            });
+
+          }
+        });
       });
-    });
-}
+  }
 
   loadShopAddresses() {
     if (!this.userId) return;
