@@ -270,3 +270,41 @@ input[type="tel"]:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 30px #ffffff inset;
   -webkit-text-fill-color: #000000;
 }
+
+.error-message {
+  color: #b00020;
+  background: #fff0f0;
+  border: 1px solid #b00020;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+}
+.error-message::before {
+  content: '\26A0'; /* Unicode warning sign */
+  font-size: 1.3em;
+  margin-right: 6px;
+}
+
+.fade {
+  opacity: 1;
+  transition: opacity 0.5s ease-in-out;
+}
+:host ::ng-deep .error-message.ng-animating {
+  opacity: 0;
+}
+
+.phone-error {
+  color: #b00020;
+  font-size: 0.92em;
+  margin-top: 4px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  padding: 0;
+  display: block;
+}
