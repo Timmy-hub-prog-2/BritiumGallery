@@ -254,8 +254,9 @@ public class OrderController {
             @RequestParam String query,
             @RequestParam(required = false, defaultValue = "all") String type,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String stockStatus) {
-        List<ProductSearchResultDTO> results = orderService.searchProducts(query, type, category, stockStatus);
+            @RequestParam(required = false) String stockStatus,
+            @RequestParam(required = false) String priceRange) {
+        List<ProductSearchResultDTO> results = orderService.searchProducts(query, type, category, stockStatus, priceRange);
         return ResponseEntity.ok(results);
     }
 
@@ -293,8 +294,9 @@ public class OrderController {
             @RequestParam(required = false, defaultValue = "all") String type,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String stockStatus,
+            @RequestParam(required = false) String priceRange,
             @RequestParam(required = false, defaultValue = "excel") String format) {
-        byte[] data = orderService.exportSearchResults(query, type, category, stockStatus, format);
+        byte[] data = orderService.exportSearchResults(query, type, category, stockStatus, priceRange, format);
         String filename = "product_search_results." + format;
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")

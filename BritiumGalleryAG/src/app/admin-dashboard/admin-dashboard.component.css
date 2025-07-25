@@ -3096,3 +3096,86 @@
   stroke: #8a94a6;
   stroke-width: 2;
 }
+
+/* --- Product List View: Single Line Layout --- */
+.products-list .list-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  min-height: 56px;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 12px;
+}
+.products-list .list-column {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  height: 56px;
+}
+.products-list .margin-column,
+.products-list .actions-column {
+  flex: 0 0 90px;
+  min-width: 90px;
+  justify-content: center;
+  text-align: center;
+}
+.products-list .actions-column .list-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+}
+.products-list .margin-value {
+  font-weight: 600;
+  color: #1aaf5d;
+  font-size: 15px;
+}
+.products-list .profit-amount.negative,
+.products-list .margin-value.negative {
+  color: #e74c3c;
+}
+.products-list .list-action-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  margin: 0 2px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.products-list .list-action-btn:hover {
+  background: #f5f5f5;
+}
+/* Ensure header columns align with body */
+.products-list .list-header {
+  display: flex;
+  align-items: center;
+  background: #fafbfc;
+  border-bottom: 2px solid #e0e0e0;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 0 12px;
+}
+.products-list .list-header .list-column {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 8px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+}
+.products-list .list-header .margin-column,
+.products-list .list-header .actions-column {
+  flex: 0 0 90px;
+  min-width: 90px;
+  justify-content: center;
+  text-align: center;
+}

@@ -71,6 +71,7 @@ import { ShopMapViewComponent } from './shop-map-view/shop-map-view.component';
 import { BritiumComponent } from './britium/britium.component';
 import { PrivacypolicyListComponent } from './privacypolicy-list/privacypolicy-list.component';
 import { NewPasswordComponent } from './new-password/new-password.component';
+import { UserRemainderListComponent } from './user-remainder-list/user-remainder-list.component';
 
 const routes: Routes = [
   { path: 'categoryRegister/:parentId', component: CategoryRegisterComponent },
@@ -150,7 +151,8 @@ const routes: Routes = [
    { path: 'privacypolicyList', component: PrivacypolicyListComponent },
    { path: 'shippinglist', component: ShippingListComponent },
    { path: 'aboutlist', component: AboutListComponent },
-   { path: 'newpassword', component: NewPasswordComponent }
+   { path: 'newpassword', component: NewPasswordComponent },
+   {path:'remainder-list',component:UserRemainderListComponent}
 
 
 

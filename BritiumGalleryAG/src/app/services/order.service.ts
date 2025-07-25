@@ -27,6 +27,7 @@ export interface ProductSearchParams {
   type: 'all' | 'productId' | 'variantId' | 'sku' | 'name' | 'category';
   category?: string;
   stockStatus?: string;
+  priceRange?: string; // e.g. '10000-50000', '0-10000', '100000+', etc.
 }
 
 export interface ProductSearchResult {
@@ -219,6 +220,7 @@ export class OrderService {
     params.append('type', searchParams.type);
     if (searchParams.category) params.append('category', searchParams.category);
     if (searchParams.stockStatus) params.append('stockStatus', searchParams.stockStatus);
+    if (searchParams.priceRange) params.append('priceRange', searchParams.priceRange);
     
     return this.http.get<ProductSearchResult[]>(`${this.baseUrl}/admin/search-products?${params.toString()}`);
   }
@@ -259,11 +261,9 @@ export class OrderService {
     params.append('type', searchParams.type);
     if (searchParams.category) params.append('category', searchParams.category);
     if (searchParams.stockStatus) params.append('stockStatus', searchParams.stockStatus);
+    if (searchParams.priceRange) params.append('priceRange', searchParams.priceRange);
     params.append('format', format);
-    
-    return this.http.get(`${this.baseUrl}/admin/export-search-results?${params.toString()}`, {
-      responseType: 'blob'
-    });
+    return this.http.get(`${this.baseUrl}/admin/export-search-results?${params.toString()}`, { responseType: 'blob' });
   }
 
   /**

@@ -13,6 +13,7 @@
     <router-outlet></router-outlet>
     
   </main>
-  <app-footer></app-footer>
+  <ng-container *ngIf="roleId === 3 || roleId === null">
+  <app-footer></app-footer></ng-container>
 </div>
 

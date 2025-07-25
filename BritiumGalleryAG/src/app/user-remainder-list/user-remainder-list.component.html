@@ -1,0 +1,38 @@
+<div class="remainder-list-container">
+  <h2 class="title">Restock Reminders</h2>
+  <div class="info-text">We will notify you as soon as this product is back in stock.</div>
+  <div class="divider"></div>
+  <div *ngIf="isLoading" class="loading">Loading...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+  <div *ngIf="!isLoading && !error && restockVariants.length === 0" class="empty">No reminders set.</div>
+  <div *ngIf="restockVariants.length > 0" class="reminder-list">
+    <div *ngFor="let item of restockVariants" class="reminder-card">
+      <div class="card-main">
+        <div class="img-section">
+          <img [src]="item.imageUrls[0] || item.productBasePhoto" alt="Product" class="product-img" />
+        </div>
+        <div class="info-section">
+          <div class="product-name">{{ item.productName }}</div>
+          <div class="sku">SKU: <span>{{ item.sku }}</span></div>
+          <div class="attributes">
+            <span *ngFor="let attr of (item.attributes | keyvalue)">
+              <span class="attr-key">{{ attr.key }}</span>: <span class="attr-value">{{ attr.value }}</span>
+            </span>
+          </div>
+          <div class="stock-price">
+            <span class="stock">Stock: <b>{{ item.stock }}</b></span>
+            <span class="price">Price: <b>{{ item.price | number:'1.0-0' }}</b> MMK</span>
+          </div>
+        </div>
+      </div>
+      <div class="action-section">
+        <button class="view-btn" (click)="viewDetail(item)">
+          <span class="material-icons">visibility</span> View Detail
+        </button>
+        <button class="remove-btn" (click)="removeNotification(item.notificationId)">
+          <span class="material-icons">remove_circle_outline</span> Remove
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

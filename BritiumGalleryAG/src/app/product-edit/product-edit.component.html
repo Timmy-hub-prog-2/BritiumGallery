@@ -624,6 +624,8 @@
                     matInput
                     formControlName="key"
                     placeholder="e.g., Color"
+                    [readonly]="true"
+                    [disabled]="true"
                   />
                   <mat-icon matSuffix>label</mat-icon>
                 </mat-form-field>
@@ -976,14 +978,7 @@
             <div class="section-title-clean">
               <mat-icon>tune</mat-icon>
               <span>Variant Attributes</span>
-              <button
-                mat-icon-button
-                type="button"
-                (click)="addAttribute()"
-                class="add-btn-clean"
-              >
-                <mat-icon>add_circle</mat-icon>
-              </button>
+              <!-- Remove add attribute button in edit modal -->
             </div>
 
             <div formArrayName="attributes" class="attributes-container-clean">
@@ -998,7 +993,7 @@
               >
                 <mat-form-field appearance="outline" class="attr-field-clean">
                   <mat-label>Attribute Name</mat-label>
-                  <input matInput formControlName="key" />
+                  <input matInput formControlName="key" [readonly]="true" [disabled]="true" />
                   <mat-icon matSuffix>label</mat-icon>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="attr-field-clean">
@@ -1006,13 +1001,7 @@
                   <input matInput formControlName="value" />
                   <mat-icon matSuffix>text_fields</mat-icon>
                 </mat-form-field>
-                <button
-                  mat-icon-button
-                  (click)="removeAttribute(i)"
-                  class="remove-btn-clean"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
+                <!-- Remove delete attribute button in edit modal -->
               </div>
             </div>
           </div>

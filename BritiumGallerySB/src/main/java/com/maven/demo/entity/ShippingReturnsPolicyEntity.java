@@ -14,6 +14,7 @@ public class ShippingReturnsPolicyEntity {
     private Long id;
 
     private String title; // e.g., "Shipping Information", "Returns"
+    @Column(columnDefinition = "TEXT")
     private String content; // full HTML/text content
     private Integer displayOrder; // for sorting
 }

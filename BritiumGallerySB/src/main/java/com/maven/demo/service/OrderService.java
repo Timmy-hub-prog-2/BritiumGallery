@@ -53,11 +53,11 @@ public interface OrderService {
 
     // Product Search Methods
     List<String> getProductCategories();
-    List<ProductSearchResultDTO> searchProducts(String query, String type, String category, String stockStatus);
+    List<ProductSearchResultDTO> searchProducts(String query, String type, String category, String stockStatus, String priceRange);
     ProductSearchResultDTO getProductById(Long productId);
     List<ProductSalesHistoryDTO> getProductSalesHistory(Long productId, Long variantId);
     byte[] exportProductData(Long productId, String format);
-    byte[] exportSearchResults(String query, String type, String category, String stockStatus, String format);
+    byte[] exportSearchResults(String query, String type, String category, String stockStatus, String priceRange, String format);
     
     // Update estimated delivery time for existing orders
     void updateEstimatedDeliveryTimeForOrder(Long orderId);

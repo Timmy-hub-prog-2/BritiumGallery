@@ -47,12 +47,13 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   salesTrend: any[] = [];
   chartLabels: string[] = [];
   salesData: number[] = [];
+  revenueData: number[] = [];
   costData: number[] = [];
   profitData: number[] = [];
 
   // Chart type state
-  chartType: 'line' | 'bar' = 'line';
-  currentChartType: 'line' | 'bar' = 'line';
+  chartType: 'line' | 'bar' | 'area' = 'line';
+  currentChartType: 'line' | 'bar' | 'area' = 'line';
 
   // Modal states
   showFiltersModal = false;
@@ -189,6 +190,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   salesTrendColumns: string[] = [
     'period',
     'sales',
+    'revenue',
     'cost',
     'profit',
     'margin',
@@ -623,7 +625,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   }
 
   // Chart methods
-  toggleChartType(type: 'line' | 'bar'): void {
+  toggleChartType(type: 'line' | 'bar' | 'area'): void {
     this.currentChartType = type;
     this.chartType = type;
     this.updateChartOptions();
@@ -713,12 +715,14 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
           this.salesTrend = data;
           this.chartLabels = data.map((d) => d.period);
           this.salesData = data.map((d) => d.sales);
+          this.revenueData = data.map((d) => d.sales - (d.deliveryFee || 0));
           this.costData = data.map((d) => d.cost);
           this.profitData = data.map((d) => d.profit);
 
-          // Add margin and orderCount to sales trend data for table
+          // Add margin, revenue, and orderCount to sales trend data for table
           const salesTrendWithMargin = data.map((item, index) => ({
             ...item,
+            revenue: item.sales - (item.deliveryFee || 0),
             margin: item.sales > 0 ? (item.profit / item.sales) * 100 : 0,
             orderCount: item.orderCount || 0,
           }));
@@ -732,6 +736,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
           this.salesTrend = [];
           this.chartLabels = [];
           this.salesData = [];
+          this.revenueData = [];
           this.costData = [];
           this.profitData = [];
           this.salesTrendDataSource.data = [];
@@ -742,26 +747,33 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   }
 
   updateChartOptions() {
+    const chartType = this.chartType;
     this.chartOptions = {
       ...this.chartOptions,
       series: [
         { name: 'Sales', data: this.salesData },
-        { name: 'Cost', data: this.costData },
+        { name: 'Revenue', data: this.revenueData },
+        { name: 'COGS', data: this.costData },
         { name: 'Profit', data: this.profitData },
       ],
       xaxis: { categories: this.chartLabels },
-      chart: { ...this.chartOptions.chart, type: this.chartType },
+      chart: { ...this.chartOptions.chart, type: chartType },
+      fill: chartType === 'area' ? { type: 'solid', opacity: 0.2 } : { type: 'solid', opacity: 0 },
+      stroke: { curve: chartType === 'area' ? 'smooth' : 'straight', width: chartType === 'area' ? 2 : 3 },
     };
 
     this.modalChartOptions = {
       ...this.modalChartOptions,
       series: [
         { name: 'Sales', data: this.salesData },
-        { name: 'Cost', data: this.costData },
+        { name: 'Revenue', data: this.revenueData },
+        { name: 'COGS', data: this.costData },
         { name: 'Profit', data: this.profitData },
       ],
       xaxis: { categories: this.chartLabels },
-      chart: { ...this.modalChartOptions.chart, type: this.chartType },
+      chart: { ...this.modalChartOptions.chart, type: chartType },
+      fill: chartType === 'area' ? { type: 'solid', opacity: 0.2 } : { type: 'solid', opacity: 0 },
+      stroke: { curve: chartType === 'area' ? 'smooth' : 'straight', width: chartType === 'area' ? 2 : 3 },
     };
   }
 
@@ -1387,9 +1399,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   }
 
   onProductSearch(): void {
-    if (this.productSearchQuery.trim()) {
-      this.performProductSearch();
-    }
+    this.performProductSearch();
   }
 
   performProductSearch(): void {
@@ -1400,6 +1410,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       type: this.productSearchType,
       category: this.productSearchCategory || undefined,
       stockStatus: this.productSearchStockStatus || undefined,
+      priceRange: this.productSearchPriceRange || undefined,
     };
 
     this.orderService.searchProducts(searchParams).subscribe({
@@ -1419,6 +1430,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     this.productSearchType = 'all';
     this.productSearchCategory = '';
     this.productSearchStockStatus = '';
+    this.productSearchPriceRange = '';
     this.productSearchResults = [];
   }
 
@@ -1784,6 +1796,139 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
         margin: { left: 10, right: 10 },
       });
       doc.save(`product-${product.productId}-report.pdf`);
+    }
+  }
+
+  /**
+   * Export all filtered product search results (not just a single product)
+   * Includes logo, shop info, and dynamic title/subtitle based on filters
+   */
+  async exportProductSearchResults(format: 'pdf' | 'excel' = 'excel') {
+    if (!this.productSearchResults.length) return;
+    const shopName = 'Britium Gallery';
+    const shopEmail = 'britiumgallery@gmail.com';
+    const shopPhone = '09678878539';
+    const generated = `Generated: ${new Date().toLocaleString()}`;
+    // Dynamic title/subtitle
+    let title = 'Product Search Results';
+    let subtitle = '';
+    if (this.productSearchCategory) subtitle += this.productSearchCategory;
+    if (this.productSearchStockStatus) {
+      if (subtitle) subtitle += ' - ';
+      subtitle +=
+        this.productSearchStockStatus === 'in_stock'
+          ? 'In Stock'
+          : this.productSearchStockStatus === 'low_stock'
+          ? 'Low Stock'
+          : this.productSearchStockStatus === 'out_of_stock'
+          ? 'Out of Stock'
+          : this.productSearchStockStatus;
+    }
+    if (this.productSearchPriceRange) {
+      if (subtitle) subtitle += ' - ';
+      subtitle +=
+        this.productSearchPriceRange === '0-10000'
+          ? 'Under 10K'
+          : this.productSearchPriceRange === '10000-50000'
+          ? '10K - 50K'
+          : this.productSearchPriceRange === '50000-100000'
+          ? '50K - 100K'
+          : this.productSearchPriceRange === '100000+'
+          ? 'Above 100K'
+          : this.productSearchPriceRange;
+    }
+    if (subtitle) title = `${subtitle} Products`;
+    // Columns for export
+    const columns = [
+      { header: 'Product Name', dataKey: 'productName' },
+      { header: 'SKU', dataKey: 'sku' },
+      { header: 'Category', dataKey: 'category' },
+      { header: 'Stock', dataKey: 'stockQuantity' },
+      { header: 'Selling Price', dataKey: 'sellingPrice' },
+      { header: 'Purchase Price', dataKey: 'purchasePrice' },
+      { header: 'Total Sales', dataKey: 'totalSales' },
+      { header: 'Total Profit', dataKey: 'totalProfit' },
+      { header: 'Profit Margin', dataKey: 'profitMargin' },
+    ];
+    const rows = this.productSearchResults.map((row: any) => ({
+      productName: row.productName,
+      sku: row.sku,
+      category: row.category,
+      stockQuantity: row.stockQuantity,
+      sellingPrice: row.sellingPrice ? `MMK ${row.sellingPrice.toLocaleString()}` : '',
+      purchasePrice: row.purchasePrice ? `MMK ${row.purchasePrice.toLocaleString()}` : '',
+      totalSales: row.totalSales ? `MMK ${row.totalSales.toLocaleString()}` : '',
+      totalProfit: row.totalProfit ? `MMK ${row.totalProfit.toLocaleString()}` : '',
+      profitMargin: row.profitMargin !== undefined ? `${row.profitMargin.toFixed(1)}%` : '',
+    }));
+    if (format === 'excel') {
+      const header = [[shopName], [shopEmail], [shopPhone], [title], [generated], [], columns.map((col) => col.header)];
+      const rowArr = this.productSearchResults.map((row: any) => [
+        row.productName,
+        row.sku,
+        row.category,
+        row.stockQuantity,
+        row.sellingPrice ? `MMK ${row.sellingPrice.toLocaleString()}` : '',
+        row.purchasePrice ? `MMK ${row.purchasePrice.toLocaleString()}` : '',
+        row.totalSales ? `MMK ${row.totalSales.toLocaleString()}` : '',
+        row.totalProfit ? `MMK ${row.totalProfit.toLocaleString()}` : '',
+        row.profitMargin !== undefined ? `${row.profitMargin.toFixed(1)}%` : '',
+      ]);
+      const ws = XLSX.utils.aoa_to_sheet(header);
+      XLSX.utils.sheet_add_aoa(ws, rowArr, { origin: -1 });
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'ProductSearch');
+      XLSX.writeFile(wb, 'product-search-results.xlsx');
+    } else if (format === 'pdf') {
+      const doc = new jsPDF();
+      let y = 15;
+      let logoBase64;
+      try {
+        logoBase64 = await this.getLogoBase64();
+      } catch {}
+      if (logoBase64) {
+        doc.addImage(logoBase64, 'PNG', 10, 10, 24, 24);
+        y = 38;
+      }
+      doc.setFontSize(18);
+      doc.text(shopName, 40, 18);
+      doc.setFontSize(11);
+      doc.text(`Email: ${shopEmail}`, 40, 25);
+      doc.text(`Phone: ${shopPhone}`, 40, 31);
+      y += 8;
+      doc.setFontSize(16);
+      doc.text(title, doc.internal.pageSize.getWidth() / 2, y, { align: 'center' });
+      y += 6;
+      doc.setFontSize(10);
+      doc.text(generated, 10, y);
+      autoTable(doc, {
+        columns,
+        body: rows,
+        startY: y + 8,
+        styles: {
+          textColor: [34, 34, 34],
+          fillColor: [255, 255, 255],
+          lineColor: [220, 220, 220],
+          lineWidth: 0.3,
+          fontSize: 10,
+          cellPadding: 3,
+        },
+        headStyles: {
+          textColor: [255, 255, 255],
+          fillColor: [33, 37, 41],
+          lineColor: [220, 220, 220],
+          lineWidth: 0.3,
+          fontStyle: 'bold',
+          fontSize: 11,
+        },
+        alternateRowStyles: {
+          fillColor: [245, 247, 250],
+        },
+        tableLineColor: [220, 220, 220],
+        tableLineWidth: 0.3,
+        margin: { left: 10, right: 10 },
+      });
+      doc.save('product-search-results.pdf');
     }
   }
 

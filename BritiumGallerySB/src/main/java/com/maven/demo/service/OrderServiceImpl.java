@@ -1142,26 +1142,41 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<ProductSearchResultDTO> searchProducts(String query, String type, String category, String stockStatus) {
+    public List<ProductSearchResultDTO> searchProducts(String query, String type, String category, String stockStatus, String priceRange) {
         List<ProductSearchResultDTO> results = new ArrayList<>();
         List<ProductVariantEntity> variants = variantRepository.findAll();
-        
+        Integer minPrice = null;
+        Integer maxPrice = null;
+        if (priceRange != null && !priceRange.isEmpty()) {
+            if (priceRange.endsWith("+")) {
+                minPrice = Integer.parseInt(priceRange.replace("+", ""));
+            } else if (priceRange.contains("-")) {
+                String[] parts = priceRange.split("-");
+                if (parts.length == 2) {
+                    minPrice = Integer.parseInt(parts[0]);
+                    maxPrice = Integer.parseInt(parts[1]);
+                }
+            }
+        }
         for (ProductVariantEntity variant : variants) {
             if (variant.getProduct() == null) continue;
-            
             // Apply filters
             if (category != null && !category.isEmpty() && 
                 !category.equals(variant.getProduct().getCategory().getName())) {
                 continue;
             }
-            
             if (stockStatus != null && !stockStatus.isEmpty()) {
                 int stock = variant.getStock();
                 if (stockStatus.equals("in_stock") && stock <= 0) continue;
                 if (stockStatus.equals("out_of_stock") && stock > 0) continue;
                 if (stockStatus.equals("low_stock") && (stock > 10 || stock <= 0)) continue;
             }
-            
+            if (minPrice != null || maxPrice != null) {
+                Integer price = variant.getPrice();
+                if (price == null) continue;
+                if (minPrice != null && price < minPrice) continue;
+                if (maxPrice != null && price > maxPrice) continue;
+            }
             // Apply search query
             boolean matchesQuery = false;
             if (query != null && !query.isEmpty()) {
@@ -1575,8 +1590,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public byte[] exportSearchResults(String query, String type, String category, String stockStatus, String format) {
-        List<ProductSearchResultDTO> results = searchProducts(query, type, category, stockStatus);
+    public byte[] exportSearchResults(String query, String type, String category, String stockStatus, String priceRange, String format) {
+        List<ProductSearchResultDTO> results = searchProducts(query, type, category, stockStatus, priceRange);
         
         // Simple CSV export for now
         StringBuilder csv = new StringBuilder();

@@ -11,4 +11,5 @@ import com.maven.demo.entity.UserEntity;
 public interface RestockNotificationRepository extends JpaRepository<RestockNotificationEntity, Long> {
     boolean existsByUserAndVariant(UserEntity user, ProductVariantEntity variant);
     java.util.List<RestockNotificationEntity> findByVariantId(Long variantId);
+    java.util.List<RestockNotificationEntity> findByUserId(Long userId);
 } 

@@ -42,4 +42,12 @@ public class RestockNotificationService {
         entity.setCreatedAt(LocalDateTime.now());
         return restockNotificationRepository.save(entity);
     }
+
+    public java.util.List<RestockNotificationEntity> getNotificationsForUser(Long userId) {
+        return restockNotificationRepository.findByUserId(userId);
+    }
+
+    public void deleteNotification(Long notificationId) {
+        restockNotificationRepository.deleteById(notificationId);
+    }
 } 

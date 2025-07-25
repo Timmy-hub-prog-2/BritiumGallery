@@ -111,6 +111,7 @@ import { ShopMapViewComponent } from './shop-map-view/shop-map-view.component';
 import { PrivacypolicyListComponent } from './privacypolicy-list/privacypolicy-list.component';
 import { BritiumComponent } from './britium/britium.component';
 import { NewPasswordComponent } from './new-password/new-password.component';
+import { UserRemainderListComponent } from './user-remainder-list/user-remainder-list.component';
 
 @NgModule({
   declarations: [
@@ -203,6 +204,7 @@ import { NewPasswordComponent } from './new-password/new-password.component';
     PrivacypolicyListComponent,
     BritiumComponent,
     NewPasswordComponent,
+    UserRemainderListComponent,
     
   ],
   imports: [
