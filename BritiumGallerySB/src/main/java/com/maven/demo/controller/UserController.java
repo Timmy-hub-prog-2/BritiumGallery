@@ -111,6 +111,11 @@ import com.maven.demo.service.UserService1;
             try {
                 LoginResponseDTO response = userService.login(dto.getEmail(), dto.getPassword());
                 return ResponseEntity.ok(response);
+            } catch (UserService.EmailNotVerifiedException ex) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", ex.getMessage());
+                errorResponse.put("phoneNumber", ex.getPhoneNumber());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
             } catch (RuntimeException ex) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
             }

@@ -495,7 +495,6 @@ export class DiscountEventsComponent implements OnInit {
   onDocumentClick(event: any) {
     // Skip if document click is temporarily disabled
     if (this.disableDocumentClick) {
-      console.log('DOC CLICK IGNORED (disableDocumentClick=true)', event);
       return;
     }
     // CATEGORY
@@ -505,7 +504,6 @@ export class DiscountEventsComponent implements OnInit {
       const container = event.target.closest('.category-dropdown-container');
       // Only close if clicking outside the entire dropdown container
       if (!container) {
-        console.log('CLOSE: showCategoryDropdown = false (doc click)');
         this.showCategoryDropdown = false;
       }
     }
@@ -515,7 +513,6 @@ export class DiscountEventsComponent implements OnInit {
       const content = event.target.closest('.category-dropdown-content');
       const container = event.target.closest('.category-dropdown-container');
       if (!container) {
-        console.log('CLOSE: showProductDropdown = false (doc click)', event);
         this.showProductDropdown = false;
       }
     }
@@ -525,7 +522,6 @@ export class DiscountEventsComponent implements OnInit {
       const content = event.target.closest('.category-dropdown-content');
       const container = event.target.closest('.category-dropdown-container');
       if (!container) {
-        console.log('CLOSE: showBrandDropdown = false (doc click)');
         this.showBrandDropdown = false;
       }
     }
@@ -1212,14 +1208,13 @@ export class DiscountEventsComponent implements OnInit {
     this.currentEditRuleIndex = null;
     this.cascadePath = [];
     this.cascadeHoverPath = [];
-    this.updateDiscountedIds(event.id); // Exclude this event from discounted IDs
+    this.updateCurrentEditEventDiscountedIds(); // Use new helper
   }
 
   addEditRule() {
     if (!this.editEvent.rules) {
       this.editEvent.rules = []
     }
-    
     const newRule: DiscountRule = {
       id: Date.now().toString(),
       targetType: "category",
@@ -1227,8 +1222,8 @@ export class DiscountEventsComponent implements OnInit {
       discountPercent: null,
       targetLevel: "category",
     }
-    
     this.editEvent.rules.push(newRule)
+    this.updateCurrentEditEventDiscountedIds();
   }
 
   removeEditRule(index: number) {
@@ -2589,16 +2584,45 @@ export class DiscountEventsComponent implements OnInit {
 
   // Helper methods for UI
   isCategoryDiscounted(cat: any): boolean {
-    return this.discountedCategoryIds.has(cat.id);
+    // Hide if discounted in any other event, or already in any rule of the current event
+    if (this.discountedCategoryIds.has(cat.id)) {
+      return true;
+    }
+    if (this.editEvent && this.editEvent.rules) {
+      for (const rule of this.editEvent.rules) {
+        if (rule.categoryId === cat.id) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
   isProductDiscounted(prod: any): boolean {
-    return this.discountedProductIds.has(prod.id);
+    if (this.discountedProductIds.has(prod.id)) return true;
+    if (this.editEvent && this.editEvent.rules) {
+      for (const rule of this.editEvent.rules) {
+        if (rule.productId === prod.id) return true;
+      }
+    }
+    return false;
   }
   isVariantDiscounted(variant: any): boolean {
-    return this.discountedVariantIds.has(variant.id);
+    if (this.discountedVariantIds.has(variant.id)) return true;
+    if (this.editEvent && this.editEvent.rules) {
+      for (const rule of this.editEvent.rules) {
+        if (rule.productVariantId === variant.id) return true;
+      }
+    }
+    return false;
   }
   isBrandDiscounted(brand: any): boolean {
-    return this.discountedBrandIds.has(brand.id);
+    if (this.discountedBrandIds.has(brand.id)) return true;
+    if (this.editEvent && this.editEvent.rules) {
+      for (const rule of this.editEvent.rules) {
+        if (rule.brandId === brand.id) return true;
+      }
+    }
+    return false;
   }
 
   // Discounted ID sets
@@ -2620,6 +2644,64 @@ export class DiscountEventsComponent implements OnInit {
   // Returns true if the category has at least one product that is not discounted
   hasVisibleProducts(categoryId: number): boolean {
     return this.getProductsInCategory(categoryId).some(product => !this.isProductDiscounted(product));
+  }
+
+  // Discounted IDs in the current event being edited
+  currentEditEventCategoryIds: Set<number> = new Set();
+  currentEditEventProductIds: Set<number> = new Set();
+  currentEditEventVariantIds: Set<number> = new Set();
+  currentEditEventBrandIds: Set<number> = new Set();
+
+  // Helpers to check if an item is discounted in the current event being edited
+  isDiscountedInCurrentEditEventCategory(cat: any): boolean {
+    return this.currentEditEventCategoryIds.has(cat.id);
+  }
+  isDiscountedInCurrentEditEventProduct(prod: any): boolean {
+    return this.currentEditEventProductIds.has(prod.id);
+  }
+  isDiscountedInCurrentEditEventVariant(variant: any): boolean {
+    return this.currentEditEventVariantIds.has(variant.id);
+  }
+  isDiscountedInCurrentEditEventBrand(brand: any): boolean {
+    return this.currentEditEventBrandIds.has(brand.id);
+  }
+
+  // Helper to update discounted IDs in the current event being edited
+  updateCurrentEditEventDiscountedIds() {
+    this.currentEditEventCategoryIds.clear();
+    this.currentEditEventProductIds.clear();
+    this.currentEditEventVariantIds.clear();
+    this.currentEditEventBrandIds.clear();
+    if (this.editEvent && this.editEvent.rules) {
+      for (const rule of this.editEvent.rules) {
+        if (rule.categoryId) this.currentEditEventCategoryIds.add(rule.categoryId);
+        if (rule.productId) this.currentEditEventProductIds.add(rule.productId);
+        if (rule.productVariantId) this.currentEditEventVariantIds.add(rule.productVariantId);
+        if (rule.brandId) this.currentEditEventBrandIds.add(rule.brandId);
+      }
+    }
+  }
+
+  // Returns true if any sub-category of the given category is discounted in any event or in the current event being edited
+  hasDiscountedSubCategory(category: any): boolean {
+    // Find all sub-categories (recursive)
+    const findAllSubCategories = (cat: any): any[] => {
+      let subs = this.sortedCategories.filter(c => c.parent_category_id === cat.id);
+      for (const sub of subs) {
+        subs = subs.concat(findAllSubCategories(sub));
+      }
+      return subs;
+    };
+    const subCategories = findAllSubCategories(category);
+    for (const sub of subCategories) {
+      if (this.discountedCategoryIds.has(sub.id)) return true;
+      if (this.editEvent && this.editEvent.rules) {
+        for (const rule of this.editEvent.rules) {
+          if (rule.categoryId === sub.id) return true;
+        }
+      }
+    }
+    return false;
   }
 
 }

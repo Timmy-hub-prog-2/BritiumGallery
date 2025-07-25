@@ -133,10 +133,23 @@ public class UserService {
                 e.printStackTrace();
                 throw new RuntimeException("Failed to send OTP: " + e.getMessage());
             }
-            throw new RuntimeException("Email not verified");
+            // Instead of throwing, throw a custom exception with phone number
+            throw new EmailNotVerifiedException("Email not verified", user.getPhoneNumber());
         }
 
         return new LoginResponseDTO(user);
+    }
+
+    // Custom exception for email not verified
+    public static class EmailNotVerifiedException extends RuntimeException {
+        private final String phoneNumber;
+        public EmailNotVerifiedException(String message, String phoneNumber) {
+            super(message);
+            this.phoneNumber = phoneNumber;
+        }
+        public String getPhoneNumber() {
+            return phoneNumber;
+        }
     }
 
 

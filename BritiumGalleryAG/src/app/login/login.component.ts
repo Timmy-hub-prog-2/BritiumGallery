@@ -27,13 +27,8 @@ login() {
     password: this.password
   }).subscribe({
     next: (user: User) => {
-      console.log('User received from backend:', user);
-      console.log('📞 Phone Number:', user.phoneNumber); // ✅ check this again
-
-
       this.userService.setLoggedInUser(user);
       localStorage.setItem('loggedInUser', JSON.stringify(user));
-
       if (user.roleId === 3) {
         this.router.navigate(['/customer-homepage']).then(() => window.location.reload());
       } else if ([1, 2, 4, 5, 6].includes(user.roleId)) {
@@ -43,9 +38,19 @@ login() {
       }
     },
     error: (err) => {
-      const errorMsg = err?.error || err?.message || '';
-
+      let errorMsg = '';
+      if (err && err.error) {
+        if (typeof err.error === 'string') {
+          errorMsg = err.error;
+        } else if (typeof err.error === 'object' && err.error.message) {
+          errorMsg = err.error.message;
+        }
+      }
       if (errorMsg === 'Email not verified') {
+        let phone = '';
+        if (err && err.error && typeof err.error === 'object' && err.error.phoneNumber) {
+          phone = err.error.phoneNumber;
+        }
         Swal.fire({
           icon: 'warning',
           title: 'Email Not Verified',
@@ -55,7 +60,7 @@ login() {
           cancelButtonText: 'Cancel',
         }).then(result => {
           if (result.isConfirmed) {
-            this.router.navigate(['/choose-verification'], { queryParams: { email: this.email } }); // Optional: send email as param
+            this.router.navigate(['/choose-verification'], { queryParams: { email: this.email, phone } });
           }
         });
       } else if (errorMsg === 'Invalid email' || errorMsg === 'Invalid password') {
