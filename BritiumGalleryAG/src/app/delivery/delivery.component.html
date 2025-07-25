@@ -94,9 +94,13 @@
                     <label>Fixed Amount:</label>
                     <input [(ngModel)]="delivery.fixAmount" name="fixAmount" type="number" />
                 </div>
-
                 <label>Minimum Delay Time (in days):</label>
                 <input [(ngModel)]="delivery.minDelayTime" name="minDelayTime" type="number" />
+
+                <!-- Show previous value if in edit mode -->
+                <!-- <div *ngIf="isEditMode" style="font-size: 13px; color: gray;">
+                    Previous: {{ previousDelayTime }} day(s)
+                </div> -->
 
                 <div class="modal-buttons">
                     <button type="submit">{{ isEditMode ? 'Update' : 'Save' }}</button>

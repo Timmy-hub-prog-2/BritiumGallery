@@ -1,8 +1,9 @@
 package com.maven.demo.service;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.time.format.DateTimeFormatter;
 
@@ -41,6 +41,7 @@ public class UserServiceImpl implements UserService1 {
     private final ShopAddressRepository shopAddressRepository;
     private final UserRepository userRepository;
     private CloudinaryUploadService cloudinaryUploadService;
+
     @Autowired
     private UserOnlineStatusRepository userOnlineStatusRepository;
 
@@ -50,42 +51,68 @@ public class UserServiceImpl implements UserService1 {
         this.userRepository = userRepository;
     }
 
+
     @Override
-    public List<UserResponseDTO> getAdmins() {
-        return userRepository.findByRoleId(ADMIN_ROLE_ID)
-                .stream()
+    public List<UserResponseDTO> getAdmins(String status) {
+        List<UserEntity> admins = userRepository.findAllByRoleName("Admin");
+
+        return admins.stream()
                 .map(this::convertToDto)
+                .filter(dto -> {
+                    if ("online".equalsIgnoreCase(status)) {
+                        return Boolean.TRUE.equals(dto.getIsOnline());
+                    } else if ("recent".equalsIgnoreCase(status)) {
+                        return Boolean.FALSE.equals(dto.getIsOnline());
+                    } else if ("offline".equalsIgnoreCase(status)) {
+                        // ✅ Only users without tracking record (isOnline == null)
+                        return dto.getIsOnline() == null;
+                    }
+                    return true; // No filter
+                })
                 .collect(Collectors.toList());
     }
 
+
     @Override
-    public List<UserResponseDTO> getCustomers() {
-        return userRepository.findByRoleId(CUSTOMER_ROLE_ID)
-                .stream()
+    public List<UserResponseDTO> getCustomers(String status) {
+        List<UserEntity> customers = userRepository.findAllByRoleName("Customer");
+
+        return customers.stream()
                 .map(this::convertToDto)
+                .filter(dto -> {
+                    if ("online".equalsIgnoreCase(status)) {
+                        return Boolean.TRUE.equals(dto.getIsOnline());
+                    } else if ("recent".equalsIgnoreCase(status)) {
+                        return Boolean.FALSE.equals(dto.getIsOnline());
+
+                    } else if ("offline".equalsIgnoreCase(status)) {
+                        // ✅ Only users without tracking record (isOnline == null)
+                        return dto.getIsOnline() == null;
+                    }
+                    return true; // No filter
+                })
                 .collect(Collectors.toList());
     }
-
 
 
     // Convert UserEntity to UserResponseDTO
     private UserResponseDTO convertToDto(UserEntity user) {
         UserResponseDTO dto = new UserResponseDTO();
+
         dto.setId(user.getId());
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setGender(user.getGender());
         dto.setPhoneNumber(user.getPhoneNumber());
-        dto.setRoleId(user.getRole() != null ? user.getRole().getId() : 3L);
+        dto.setRoleId(user.getRole() != null ? user.getRole().getId() : CUSTOMER_ROLE_ID);
         dto.setRoleName(user.getRole() != null ? user.getRole().getType() : "Unknown");
 
         dto.setImageUrls(user.getImageUrls());
 
-        // Set customerType if present
         if (user.getCustomerType() != null) {
             dto.setCustomerType(user.getCustomerType().getType());
         }
-        // Set totalSpend (sum all, or use first if only one)
+
         if (user.getTotalSpends() != null && !user.getTotalSpends().isEmpty()) {
             int total = user.getTotalSpends().stream().mapToInt(ts -> ts.getAmount()).sum();
             dto.setTotalSpend(total);
@@ -93,42 +120,43 @@ public class UserServiceImpl implements UserService1 {
             dto.setTotalSpend(0);
         }
 
-        // Include main address from AddressEntity if present (for any role)
-        Optional<AddressEntity> mainAddressOpt = user.getAddresses()
-                .stream()
+        // Map main address
+        user.getAddresses().stream()
                 .filter(AddressEntity::isMainAddress)
-                .findFirst();
-
-        mainAddressOpt.ifPresent(address -> {
-            AddressDTO addressDTO = mapToAddressDTO(address);
-            dto.setAddress(addressDTO);
-        });
+                .findFirst()
+                .ifPresent(address -> dto.setAddress(mapToAddressDTO(address)));
 
         // --- Online status ---
-        UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user);
-        if (status != null) {
+        Optional<UserOnlineStatusEntity> statusOpt = userOnlineStatusRepository.findByUser(user);
+
+        if (statusOpt.isPresent()) {
+            UserOnlineStatusEntity status = statusOpt.get();
             dto.setIsOnline(status.isOnline());
+
             if (status.isOnline()) {
-                if (status.getUpdatedAt() != null) {
-                    dto.setLastSeenAt(status.getUpdatedAt().format(DateTimeFormatter.ISO_DATE_TIME));
+                dto.setLastSeenAt("Online");
+            } else if (status.getLastOnlineAt() != null) {
+                Duration duration = Duration.between(status.getLastOnlineAt(), LocalDateTime.now());
+                long minutes = duration.toMinutes();
+                if (minutes < 60) {
+                    dto.setLastSeenAt("Last seen " + minutes + " minutes ago");
+                } else if (minutes < 1440) {
+                    long hours = minutes / 60;
+                    dto.setLastSeenAt("Last seen " + hours + " hours ago");
+                } else {
+                    long days = minutes / 1440;
+                    dto.setLastSeenAt("Last seen " + days + " days ago");
                 }
             } else {
-                if (status.getLastOnlineAt() != null) {
-                    dto.setLastSeenAt(status.getLastOnlineAt().format(DateTimeFormatter.ISO_DATE_TIME));
-                } else if (status.getUpdatedAt() != null) {
-                    dto.setLastSeenAt(status.getUpdatedAt().format(DateTimeFormatter.ISO_DATE_TIME));
-                } else {
-                    dto.setLastSeenAt(null);
-                }
+                dto.setLastSeenAt("Offline");
             }
         } else {
-            dto.setIsOnline(false);
-            dto.setLastSeenAt(null);
+            dto.setIsOnline(null); // not tracked
+            dto.setLastSeenAt("Status unknown");
         }
 
         return dto;
     }
-
     // Mapping AddressEntity to AddressDTO
     private AddressDTO mapToAddressDTO(AddressEntity addr) {
         AddressDTO dto = new AddressDTO();

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 
 // Define models for UserDto and Role
@@ -9,16 +10,13 @@ export class Role {
   type?: string;
 }
 
-
-
 export class UserDto {
   name?: string;
   email?: string;
   password?: string;
- phoneNumber?: string;
+  phoneNumber?: string;
   roleId?: number;
 }
-
 
 @Component({
   selector: 'app-create-role',
@@ -33,7 +31,7 @@ export class CreateRoleComponent implements OnInit {
   phoneError: string = '';
   emailError: string = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   ngOnInit(): void {
     this.getRoles();
@@ -41,7 +39,7 @@ export class CreateRoleComponent implements OnInit {
 
   // Get the list of roles from the backend
   getRoles(): void {
-   this.http.get<Role[]>('http://localhost:8080/api/roles').subscribe(
+    this.http.get<Role[]>('http://localhost:8080/api/roles').subscribe(
       (data) => {
         this.roles = data;
       },
@@ -80,11 +78,18 @@ export class CreateRoleComponent implements OnInit {
       .subscribe(
         (response) => {
           if (response && response.message) {
-            alert('Admin created successfully. Login details were sent to email.');
-            this.router.navigate(['/admin-dashboard']);
+            Swal.fire({
+              icon: 'success',
+              title: 'Admin Created',
+              text: 'Login details were sent to the registered email.',
+              confirmButtonColor: '#3085d6',
+            }).then(() => {
+              this.router.navigate(['/admin-dashboard']);
+            });
+
           } else {
-            alert('An error occurred while creating the admin. Please try again.');
-          }
+           Swal.fire('Error', 'An error occurred while creating the admin. Please try again.', 'error');
+      }
         },
         (error) => {
           console.error('Error creating admin:', error);

@@ -116,14 +116,13 @@ import com.maven.demo.service.UserService1;
             }
         }
 
-        @GetMapping("/admins")
-        public List<UserResponseDTO> viewAdmins() {
-            return userService1.getAdmins();
+          @GetMapping("/admins")
+        public List<UserResponseDTO> getAdmins(@RequestParam(required = false) String status) {
+            return userService1.getAdmins(status);
         }
-
         @GetMapping("/customers")
-        public List<UserResponseDTO> viewCustomers() {
-            return userService1.getCustomers();
+        public List<UserResponseDTO> getCustomers(@RequestParam(required = false) String status) {
+            return userService1.getCustomers(status);
         }
 
         @GetMapping(value = "/admin/customer-growth", produces = "application/json")
@@ -184,7 +183,12 @@ import com.maven.demo.service.UserService1;
                 dto.address = addr;
             }
             // Set online status
-            UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user);
+            UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user)
+                    .orElseGet(() -> {
+                        UserOnlineStatusEntity s = new UserOnlineStatusEntity();
+                        s.setUser(user);
+                        return s;
+                    });
             if (status != null) {
                 dto.setIsOnline(status.isOnline());
                 if (status.isOnline()) {
@@ -324,7 +328,12 @@ import com.maven.demo.service.UserService1;
             if (userId == null) return ResponseEntity.badRequest().body("Missing userId");
             UserEntity user = userRepository.findById(userId).orElse(null);
             if (user == null) return ResponseEntity.badRequest().body("User not found");
-            UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user);
+            UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user)
+                    .orElseGet(() -> {
+                        UserOnlineStatusEntity s = new UserOnlineStatusEntity();
+                        s.setUser(user);
+                        return s;
+                    });
             if (status == null) {
                 status = new UserOnlineStatusEntity();
                 status.setUser(user);
@@ -341,7 +350,12 @@ import com.maven.demo.service.UserService1;
             if (userId == null) return ResponseEntity.badRequest().body("Missing userId");
             UserEntity user = userRepository.findById(userId).orElse(null);
             if (user == null) return ResponseEntity.badRequest().body("User not found");
-            UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user);
+            UserOnlineStatusEntity status = userOnlineStatusRepository.findByUser(user)
+                    .orElseGet(() -> {
+                        UserOnlineStatusEntity s = new UserOnlineStatusEntity();
+                        s.setUser(user);
+                        return s;
+                    });
             if (status == null) {
                 status = new UserOnlineStatusEntity();
                 status.setUser(user);

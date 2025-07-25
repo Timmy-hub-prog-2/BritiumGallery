@@ -1,3 +1,4 @@
+// ExcelService.java
 package com.maven.demo.service;
 
 import com.maven.demo.entity.*;
@@ -37,12 +38,12 @@ public class ExcelService {
 
         Map<String, ProductEntity> productMap = new HashMap<>();
 
-        // 🔍 Header
         Row headerRow = sheet.getRow(0);
         if (headerRow == null) {
             workbook.close();
             throw new RuntimeException("Excel file is missing a header row.");
         }
+
         Map<String, Integer> colIndex = new HashMap<>();
         Set<String> seenAttributeNames = new HashSet<>();
 
@@ -57,91 +58,85 @@ public class ExcelService {
             }
         }
 
-        // Ensure all required columns exist
-        List<String> requiredColumns = List.of("name", "description", "brand", "rating", "price", "stock", "purchaseprice");
-        for (String required : requiredColumns) {
-            if (!colIndex.containsKey(required)) {
-                workbook.close();
-                throw new RuntimeException("Excel file is missing required column: '" + required + "'");
-            }
-        }
+        String lastName = null;
+        String lastDescription = null;
+        String lastBrandName = null;
+        Integer lastRating = null;
+        Double lastPrice = null;
+        Integer lastStock = null;
+        Integer lastPurchasePrice = null;
 
         for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
             Row row = sheet.getRow(i);
             if (row == null) continue;
 
-            // Defensive: check all required columns have valid indices
-            boolean skipRow = false;
-            for (String required : requiredColumns) {
-                Integer idx = colIndex.get(required);
-                if (idx == null || idx < 0 || idx >= row.getPhysicalNumberOfCells()) {
-                    System.err.println("[ExcelService] Row " + i + " skipped: missing or invalid column '" + required + "'.");
-                    skipRow = true;
-                    break;
-                }
-            }
-            if (skipRow) continue;
-
             String productName = getCellString(row.getCell(colIndex.get("name")));
-            if (productName.isEmpty()) continue;
+            if (!productName.isEmpty()) lastName = productName;
 
             String description = getCellString(row.getCell(colIndex.get("description")));
+            if (!description.isEmpty()) lastDescription = description;
+
             String brandName = getCellString(row.getCell(colIndex.get("brand")));
-            int rating = getCellInt(row.getCell(colIndex.get("rating")));
-            double price = getCellDouble(row.getCell(colIndex.get("price")));
-            int stock = getCellInt(row.getCell(colIndex.get("stock")));
-            int purchasePrice = getCellInt(row.getCell(colIndex.get("purchaseprice")));
+            if (!brandName.isEmpty()) lastBrandName = brandName;
+
+            int ratingVal = getCellInt(row.getCell(colIndex.get("rating")));
+            if (ratingVal != 0) lastRating = ratingVal;
+
+            double priceVal = getCellDouble(row.getCell(colIndex.get("price")));
+            if (priceVal != 0.0) lastPrice = priceVal;
+
+            int stockVal = getCellInt(row.getCell(colIndex.get("stock")));
+            if (stockVal != 0) lastStock = stockVal;
+
+            int purchasePriceVal = getCellInt(row.getCell(colIndex.get("purchaseprice")));
+            if (purchasePriceVal != 0) lastPurchasePrice = purchasePriceVal;
+
+            if (lastName == null || lastPrice == null || lastStock == null) continue;
 
             BrandEntity brandEntity = null;
-            if (!brandName.isEmpty()) {
-                brandEntity = brandRepository.findByNameIgnoreCase(brandName).orElse(null);
+            if (lastBrandName != null) {
+                brandEntity = brandRepository.findByNameIgnoreCase(lastBrandName).orElse(null);
             }
 
-            // 1️⃣ Product creation or fetch
-            ProductEntity product = productMap.get(productName);
+            ProductEntity product = productMap.get(lastName);
             if (product == null) {
                 product = new ProductEntity();
-                product.setName(productName);
-                product.setDescription(description);
+                product.setName(lastName);
+                product.setDescription(lastDescription);
                 product.setBrand(brandEntity);
-                product.setRating(rating);
+                product.setRating(lastRating != null ? lastRating : 0);
                 product.setCreated_at(LocalDateTime.now());
                 product.setCategory(category);
-
-                UserEntity admin = userRepository.findById(adminId).orElse(null);
-                if (admin != null) product.setAdmin_id(adminId);
+                product.setAdmin_id(adminId);
 
                 product = productRepository.save(product);
-                productMap.put(productName, product);
+                productMap.put(lastName, product);
             }
 
-            // 2️⃣ Create variant with SKU
-            String prefix = productName.replaceAll("\\s+", "").toUpperCase();
+            String prefix = lastName.replaceAll("\\s+", "").toUpperCase();
             prefix = prefix.length() > 4 ? prefix.substring(0, 4) : prefix;
             Long productId = product.getId();
             int skuCounter = (int) productVariantRepository.countByProductId(productId) + 1;
 
             ProductVariantEntity variant = new ProductVariantEntity();
             variant.setProduct(product);
-            variant.setPrice((int) price);
-            variant.setStock(stock);
+            variant.setPrice(lastPrice.intValue());
+            variant.setStock(lastStock);
             String sku = String.format("%s%d%03d", prefix, productId, skuCounter);
             variant.setSku(sku);
             productVariantRepository.save(variant);
 
-            // 3️⃣ Save purchase history
             PurchaseHistoryEntity purchase = new PurchaseHistoryEntity();
             purchase.setVariant(variant);
-            purchase.setQuantity(stock);
-            purchase.setRemainingQuantity(stock);
-            purchase.setPurchasePrice(purchasePrice);
+            purchase.setQuantity(lastStock);
+            purchase.setRemainingQuantity(lastStock);
+            purchase.setPurchasePrice(lastPurchasePrice != null ? lastPurchasePrice : 0);
             purchase.setPurchaseDate(LocalDateTime.now());
             variant.getPurchaseHistories().add(purchase);
 
-            // 4️⃣ Save price history (💡 Newly added)
             ProductVariantPriceHistoryEntity priceHistory = new ProductVariantPriceHistoryEntity();
             priceHistory.setVariant(variant);
-            priceHistory.setPrice((int) price);
+            priceHistory.setPrice(lastPrice.intValue());
             priceHistory.setPriceDate(LocalDateTime.now());
 
             UserEntity admin = userRepository.findById(adminId).orElse(null);
@@ -150,7 +145,6 @@ public class ExcelService {
             }
             priceHistoryRepository.save(priceHistory);
 
-            // 5️⃣ Save variant attributes
             for (Map.Entry<String, Integer> entry : colIndex.entrySet()) {
                 String attrName = entry.getKey();
                 if (List.of("name", "description", "price", "stock", "brand", "rating", "purchaseprice").contains(attrName)) continue;
@@ -159,10 +153,7 @@ public class ExcelService {
                 if (attrValue.isEmpty()) continue;
 
                 Optional<AttributeEntity> attributeOpt = attributeRepository.findByNameIgnoreCaseAndCategoryId(attrName, category.getId());
-                if (attributeOpt.isEmpty()) {
-                    System.out.println("⚠️ Attribute not found: " + attrName);
-                    continue;
-                }
+                if (attributeOpt.isEmpty()) continue;
 
                 AttributeEntity attribute = attributeOpt.get();
                 attributeOptionRepository.findByAttributeIdAndValueIgnoreCase(attribute.getId(), attrValue)
@@ -179,7 +170,6 @@ public class ExcelService {
         workbook.close();
     }
 
-    // Cell helpers
     private String getCellString(Cell cell) {
         if (cell == null) return "";
         try {

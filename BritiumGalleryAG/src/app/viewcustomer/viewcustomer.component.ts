@@ -12,12 +12,13 @@ import { MatTableDataSource } from '@angular/material/table';
   styleUrls: ['./viewcustomer.component.css']
 })
 export class ViewcustomerComponent implements OnInit {
-  displayedColumns: string[] = ['no', 'name', 'email', 'gender', 'phNumber', 'address'];
+  displayedColumns: string[] = ['no', 'name', 'email', 'gender', 'phNumber', 'address','status'];
   dataSource: MatTableDataSource<People> = new MatTableDataSource<People>();
   searchText: string = '';
   pageIndex: number = 0;
   pageSize: number = 5;
 
+  selectedStatus: string = '';
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -27,14 +28,16 @@ export class ViewcustomerComponent implements OnInit {
     this.loadCustomers();
   }
 
-  loadCustomers(): void {
-    this.peopleService.getCustomers().subscribe((data: People[]) => {
-      this.dataSource = new MatTableDataSource(data);
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
-  }
-
+ loadCustomers(): void {
+  this.peopleService.getCustomers(this.selectedStatus).subscribe((data: People[]) => {
+    this.dataSource = new MatTableDataSource(data);
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  });
+}
+filterByStatus(): void {
+  this.loadCustomers(); // reload with selected status
+}
   // Apply search filter
   applyFilter(): void {
     this.dataSource.filter = this.searchText.trim().toLowerCase();

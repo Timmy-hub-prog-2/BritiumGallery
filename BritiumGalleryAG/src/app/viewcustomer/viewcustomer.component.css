@@ -1,79 +1,243 @@
+/* Main Container Styles */
+:host {
+  display: block;
+  padding: 24px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
 /* Title */
 .title {
-  font-size: 28px;
-  font-weight: bold;
-  color: #222;
-  margin-bottom: 20px;
+  font-size: 32px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 30px;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(to right, #3498db, #2980b9);
+  border-radius: 2px;
+}
+
+/* Filter Bar */
+.filter-bar {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.filter-bar label {
+  font-weight: 500;
+  color: #34495e;
+  font-size: 15px;
+}
+
+.filter-bar select {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  background-color: white;
+  color: #2c3e50;
+  outline: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+.filter-bar select:hover {
+  border-color: #3498db;
+}
+
+.filter-bar select:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 /* Top Bar */
 .top-bar {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  gap: 20px;
 }
 
 /* Search Bar */
 .search-bar input {
-  width: 250px;
-  padding: 10px;
-  border: 1px solid #ccc;
+  width: 300px;
+  padding: 12px 20px;
+  border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 14px;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.search-bar input:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  outline: none;
+}
+
+.search-bar input::placeholder {
+  color: #95a5a6;
 }
 
 /* Table */
 .customer-table {
   width: 100%;
-  margin-bottom: 20px;
-  border-radius: 8px;
+  background: white;
+  border-radius: 12px;
   overflow: hidden;
-  background-color: white;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.mat-header-cell {
+  background: #f8f9fa;
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 16px;
+}
+
+.mat-cell {
+  padding: 16px;
+  color: #34495e;
+  font-size: 14px;
+  border-bottom: 1px solid #ecf0f1;
 }
 
 /* Avatar and Name */
 .customer-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid #ccc;
+  border: 2px solid #e0e0e0;
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: scale(1.1);
 }
 
 .placeholder-avatar {
-  width: 36px;
-  height: 36px;
-  background-color: #1976d2;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
   color: white;
-  font-weight: bold;
+  font-weight: 600;
   font-size: 16px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.placeholder-avatar:hover {
+  transform: scale(1.1);
 }
 
 .customer-name {
   font-weight: 500;
-  color: #222;
+  color: #2c3e50;
 }
 
 /* Email with Icon */
 .email-info {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .email-icon {
   font-size: 18px;
-  color: #1976d2;
+  color: #3498db;
+}
+
+/* Status Styles */
+.status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.status.online {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status.offline {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.status.unknown {
+  background-color: #f5f5f5;
+  color: #757575;
+}
+
+/* Paginator Styles */
+::ng-deep .mat-paginator {
+  background: transparent;
+  border-radius: 8px;
+}
+
+::ng-deep .mat-paginator-container {
+  min-height: 48px;
+}
+
+/* Hover Effects */
+.mat-row:hover {
+  background-color: #f8f9fa;
+  transition: background-color 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .top-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-bar input {
+    width: 100%;
+  }
+  
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-bar select {
+    width: 100%;
+  }
 }

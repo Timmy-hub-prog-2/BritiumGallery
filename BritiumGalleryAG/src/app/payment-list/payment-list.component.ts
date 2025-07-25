@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import Swal from 'sweetalert2';
 
 interface Payment {
   id: number;
@@ -248,14 +249,34 @@ export class PaymentListComponent implements OnInit {
       });
   }
 
-  delete(id: number) {
-    if (confirm('Are you sure you want to delete this payment?')) {
-      this.http
-        .delete(`http://localhost:8080/payment-register/${id}`)
-        .subscribe({
-          next: () => this.loadPayments(),
-          error: (err) => console.error(err),
-        });
+ delete(id: number) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'This payment will be permanently deleted.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.http.delete(`http://localhost:8080/payment-register/${id}`).subscribe({
+        next: () => {
+          this.loadPayments();
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'Payment was deleted successfully.',
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        },
+        error: (err) => {
+          console.error(err);
+          Swal.fire('Error', 'Failed to delete payment.', 'error');
+        },
+      });
     }
-  }
+  });
+}
 }
