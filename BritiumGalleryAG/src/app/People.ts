@@ -20,4 +20,6 @@ export interface People {
   profilePic?: string;
   customerType?: string;
   roleName?: string;
+   isOnline?: boolean; 
+  lastSeenAt?: string;
 }

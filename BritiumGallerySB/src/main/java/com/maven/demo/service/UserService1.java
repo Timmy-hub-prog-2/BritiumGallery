@@ -10,8 +10,8 @@ import com.maven.demo.dto.UserResponseDTO;
 import com.maven.demo.entity.UserEntity;
 
 public interface UserService1 {
-    List<UserResponseDTO> getAdmins();
-    List<UserResponseDTO> getCustomers();
+    List<UserResponseDTO> getAdmins(String status);
+    List<UserResponseDTO> getCustomers(String status);
 
     Optional<UserResponseDTO> getUserProfileById(Long id);
 

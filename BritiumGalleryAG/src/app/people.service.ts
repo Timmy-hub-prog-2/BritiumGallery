@@ -12,12 +12,18 @@ export class PeopleService {
 
   constructor(private http: HttpClient) {}
 
-  // Get all customers
-  getCustomers(): Observable<People[]> {
-    return this.http.get<People[]>(`${this.baseUrl}/customers`);
+getCustomers(status: string = ''): Observable<People[]> {
+  let url = 'http://localhost:8080/gallery/users/customers';
+  if (status) {
+    url += `?status=${status}`;
   }
-
-  getAdmins(): Observable<People[]> {
-    return this.http.get<People[]>(`${this.baseUrl}/admins`);
+  return this.http.get<People[]>(url);
+}
+getAdmins(status: string = ''): Observable<People[]> {
+   let url = 'http://localhost:8080/gallery/users/admins';
+    if (status) {
+    url += `?status=${status}`;
   }
+  return this.http.get<People[]>(url);
+}
 }

@@ -13,14 +13,14 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./viewadmin.component.css']
 })
 export class ViewadminComponent implements OnInit {
-  displayedColumns: string[] = ['no', 'name', 'email', 'gender', 'phNumber', 'address','role'];
+  displayedColumns: string[] = ['no', 'name', 'email', 'gender', 'phNumber', 'address','role','status'];
   dataSource: MatTableDataSource<People> = new MatTableDataSource<People>();
   searchText: string = '';
   selectedRole: string = ''; // This will store the selected role from the dropdown
   roles: any[] = []; 
   pageIndex: number = 0;
   pageSize: number = 5;
-
+ selectedStatus: string = '';
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -53,13 +53,16 @@ onRoleFilterChange(): void {
 }
 
   loadAdmins(): void {
-    this.peopleService.getAdmins().subscribe((data: People[]) => {
+       this.peopleService.getAdmins(this.selectedStatus).subscribe((data: People[]) => {
       console.log(data);
       this.dataSource = new MatTableDataSource(data);
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;
     });
   }
+filterByStatus(): void {
+  this.loadAdmins(); // reload with selected status
+}
 
   applyFilter(): void {
     this.dataSource.filter = this.searchText.trim().toLowerCase();
