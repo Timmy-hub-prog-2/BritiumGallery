@@ -105,8 +105,8 @@ public class AddressService {
 
     public AddressDTO getMainAddressByUserId(Long userId) {
         AddressEntity mainAddress = addressRepository.findByUserIdAndMainAddressTrue(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Main address not found for user ID: " + userId));
-        return toDto(mainAddress);
+                .orElse(null); // Return null if not found
+        return mainAddress != null ? toDto(mainAddress) : null;
     }
 
 

@@ -289,7 +289,7 @@
                                             <div class="category-item-row" [ngClass]="{'has-children': child.children && child.children.length > 0}">
                                               <div class="category-item-left">
                                                 <span class="child-indent"></span>
-                                                <input type="checkbox" [checked]="isSelected(child, 'category')" (change)="toggleSelection(child, 'category')" class="category-checkbox" [disabled]="isSelected(category, 'category')" />
+                                                <input type="checkbox" [checked]="isSelected(child, 'category')" (change)="toggleSelection(child, 'category')" class="category-checkbox" />
                                                 <span class="category-name">{{ child.name }}</span>
                                               </div>
                                               <div class="category-item-right" *ngIf="child.children && child.children.length > 0">

@@ -64,8 +64,12 @@ export class ViewProfileComponent {
 
   loadMainAddress(userId: number): void {
     this.addressService.getMainAddressByUserId(userId).subscribe({
-      next: (address: AddressDTO) => {
-      this.mainAddress =`${address.houseNumber}, ${address.wardName},${address.street}, ${address.township}, ${address.city},${address.state}`;
+      next: (address: AddressDTO | null) => {
+        if (address) {
+          this.mainAddress = `${address.houseNumber}, ${address.wardName},${address.street}, ${address.township}, ${address.city},${address.state}`;
+        } else {
+          this.mainAddress = 'No address found';
+        }
       },
       error: (err) => {
         console.error('Error loading main address', err);
@@ -108,7 +112,7 @@ export class ViewProfileComponent {
   }
 
   updateProfileImageUrl(): void {
-    if (this.user?.imageUrls && this.user.imageUrls.length > 0) {
+    if (this.user?.imageUrls && this.user.imageUrls.length > 0 && this.user.imageUrls[0]) {
       const baseUrl = this.user.imageUrls[0];
       const isBase64 = baseUrl.startsWith('data:image');
   
@@ -116,7 +120,8 @@ export class ViewProfileComponent {
         ? baseUrl // no timestamp for preview
         : baseUrl + '?t=' + new Date().getTime(); // for real URLs
     } else {
-      this.profileImageUrlWithTimestamp = 'assets/default-profile.png';
+      // Use Cloudinary default image URL as fallback
+      this.profileImageUrlWithTimestamp = 'https://res.cloudinary.com/dmbwaqjta/image/upload/v1748967961/Default_Photo_k8ihoe.png';
     }
   
     this.cdr.detectChanges();
