@@ -150,6 +150,40 @@ import com.maven.demo.service.UserService1;
                     .orElse(ResponseEntity.notFound().build());
         }
 
+        @GetMapping("/profile/by-identifier")
+        public ResponseEntity<UserResponseDTO> getUserProfileByIdentifier(@RequestParam String identifier) {
+            Optional<UserEntity> userOpt;
+            if (identifier.contains("@")) {
+                userOpt = userRepository.findByEmail(identifier);
+            } else {
+                userOpt = userRepository.findByPhoneNumber(identifier);
+            }
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            UserEntity user = userOpt.get();
+            // Map to UserResponseDTO (reuse your mapping logic)
+            UserResponseDTO dto = new UserResponseDTO();
+            dto.setId(user.getId());
+            dto.setName(user.getName());
+            dto.setEmail(user.getEmail());
+            dto.setPhoneNumber(user.getPhoneNumber());
+            dto.setImageUrls(user.getImageUrls());
+            dto.setGender(user.getGender());
+            dto.setStatus(user.getStatus());
+            dto.setRoleId(user.getRole() != null ? user.getRole().getId() : null);
+            if (user.getCustomerType() != null) {
+                dto.setCustomerType(user.getCustomerType().getType());
+            }
+            if (user.getTotalSpends() != null && !user.getTotalSpends().isEmpty()) {
+                int total = user.getTotalSpends().stream().mapToInt(ts -> ts.getAmount()).sum();
+                dto.setTotalSpend(total);
+            } else {
+                dto.setTotalSpend(0);
+            }
+            return ResponseEntity.ok(dto);
+        }
+
         @GetMapping("/people/{id}")
         public ResponseEntity<PeopleDTO> getPeopleById(@PathVariable Long id) {
             Optional<UserEntity> userOpt = userService1.getUserEntityById(id);

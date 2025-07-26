@@ -128,7 +128,7 @@ public class UserService {
         if (status == null || status == 0) {
             boolean useSms = false;
             try {
-                otpService.generateAndSendOtp(user, useSms, true);
+                otpService.generateAndSendOtp(user, useSms, false); // isResend = false for first-time verification
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException("Failed to send OTP: " + e.getMessage());

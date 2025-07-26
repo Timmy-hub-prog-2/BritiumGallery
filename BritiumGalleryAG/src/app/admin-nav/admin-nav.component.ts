@@ -152,6 +152,13 @@ export class AdminNavComponent implements OnInit, OnDestroy {
     this.isProfileMenuVisible = false;
   }
 
+  getProfileImageUrl(): string {
+    if (this.user?.imageUrls && this.user.imageUrls.length > 0 && this.user.imageUrls[0]) {
+      return this.user.imageUrls[0];
+    }
+    return 'https://res.cloudinary.com/dmbwaqjta/image/upload/v1748967961/Default_Photo_k8ihoe.png';
+  }
+
   // Notification methods
   fetchNotifications(userId: number) {
     this.notificationService.getUserNotifications(userId).subscribe(

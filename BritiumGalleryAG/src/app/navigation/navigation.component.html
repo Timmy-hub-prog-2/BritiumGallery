@@ -295,13 +295,9 @@
   <!-- Logged in user profile -->
   <div *ngIf="user">
     <button class="action-button profile-button" [class.active]="isProfileMenuVisible" (click)="toggleProfileMenu($event)">
-      <img *ngIf="user?.imageUrls?.length" 
-           [src]="user!.imageUrls![0]" 
+      <img [src]="getProfileImageUrl()" 
            alt="User Profile" 
            class="profile-image" />
-      <svg *ngIf="!user?.imageUrls?.length" width="32" height="32" viewBox="0 0 32 32" focusable="false" class="fr-ec-icon fr-ec-icon--default" role="presentation">
-        <path d="M20.8129 13.7902C21.4753 12.8404 21.8667 11.6884 21.8667 10.4453C21.8667 7.20996 19.2349 4.57812 16 4.57812C12.7651 4.57812 10.1338 7.20996 10.1338 10.4453C10.1338 11.6884 10.5251 12.8404 11.1874 13.7903L6.9668 16.7676V25.6211H25.0332V16.7676L20.8129 13.7902ZM16 6.17773C18.3525 6.17773 20.2671 8.0918 20.2671 10.4453C20.2671 12.7979 18.3525 14.7119 16 14.7119C13.6475 14.7119 11.7334 12.7979 11.7334 10.4453C11.7334 8.0918 13.6475 6.17773 16 6.17773ZM23.4336 24.0215H8.56641V17.5977L12.28 14.9772C13.2932 15.8104 14.589 16.3115 16 16.3115C17.4111 16.3115 18.7071 15.8103 19.7203 14.9772L23.4336 17.5977V24.0215Z"></path>
-      </svg>
     </button>
 
     <div class="profile-dropdown-menu" [class.visible]="isProfileMenuVisible">
