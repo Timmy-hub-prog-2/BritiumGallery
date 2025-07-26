@@ -134,6 +134,11 @@ export class UserService {
     return this.http.get<User>(`${this.userBase}/profile/${id}`);
   }
 
+  getUserProfileByIdentifier(identifier: string): Observable<User> {
+    // Try to fetch by email or phone (backend should support this endpoint)
+    return this.http.get<User>(`${this.userBase}/profile/by-identifier?identifier=${encodeURIComponent(identifier)}`);
+  }
+
   getCustomerGrowth(from: string, to: string, groupBy: string = 'day'): Observable<CustomerGrowthDTO[]> {
     return this.http.get<CustomerGrowthDTO[]>(`${this.userBase}/admin/customer-growth?from=${from}&to=${to}&groupBy=${groupBy}`);
   }

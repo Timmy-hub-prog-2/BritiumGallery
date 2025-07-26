@@ -13,7 +13,7 @@
             <img [src]="profileImageUrlWithTimestamp" 
                  alt="Profile Picture" 
                  class="hero-avatar"
-                 *ngIf="profileImageUrlWithTimestamp; else heroDefaultAvatar">
+                 *ngIf="profileImageUrlWithTimestamp && profileImageUrlWithTimestamp.trim() !== ''; else heroDefaultAvatar">
             
             <ng-template #heroDefaultAvatar>
               <div class="hero-default-avatar">

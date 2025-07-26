@@ -374,6 +374,13 @@ export class NavigationComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
+  getProfileImageUrl(): string {
+    if (this.user?.imageUrls && this.user.imageUrls.length > 0 && this.user.imageUrls[0]) {
+      return this.user.imageUrls[0];
+    }
+    return 'https://res.cloudinary.com/dmbwaqjta/image/upload/v1748967961/Default_Photo_k8ihoe.png';
+  }
+
   @HostListener('document:click', ['$event'])
   onClick(event: MouseEvent) {
     const target = event.target as HTMLElement;

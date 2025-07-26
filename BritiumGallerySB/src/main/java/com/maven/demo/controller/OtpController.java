@@ -38,7 +38,7 @@ public class OtpController {
 
         UserEntity user = userOpt.get();
 
-        if (user.getStatus() == 1) {
+        if (user.getStatus() != null && user.getStatus() == 1) {
             System.out.println("❌ User already verified");
             return ResponseEntity.badRequest().body("User already verified");
         }
