@@ -39,7 +39,7 @@ public class UserEntity {
     private String email;
 
     @Column(name = "password", length = 100, nullable = false)
-    private String password;
+    private String password;    
 
     @Column(name = "ph_number", length = 20, nullable = false )
     private String phoneNumber;
@@ -63,7 +63,7 @@ public class UserEntity {
     private RoleEntity role;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "customer_type_id")
+    @JoinColumn(name = "customer_type_id",nullable = true)
     private CustomerTypeEntity customerType;
 
     @JsonIgnore
@@ -86,9 +86,9 @@ public class UserEntity {
     @OneToMany(mappedBy = "user")
     private List<WishlistEntity> wishlists;
 
-    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<DeliveryEntity> deliveries;
+//    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
+//    @JsonIgnore
+//    private List<DeliveryEntity> deliveries;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

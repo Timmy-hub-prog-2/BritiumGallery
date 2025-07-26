@@ -334,56 +334,91 @@
           </div>
 
           <!-- Scheduling (if scheduled mode) -->
-          <div class="form-section" *ngIf="isScheduled">
-            <div class="section-header">
-              <h3 class="section-title">Schedule Settings</h3>
-              <p class="section-description">Configure when and how often to send</p>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label" for="cronExpression">
-                Cron Expression <span class="required">*</span>
-              </label>
-              <input id="cronExpression" 
-                     class="form-input" 
-                     formControlName="cronExpression" 
-                     type="text" 
-                     placeholder="e.g., 0 0 9 ? * SUN (Every Sunday at 9 AM)">
-              <div class="form-error" *ngIf="isScheduled && notificationForm.get('cronExpression')?.errors?.['required'] && notificationForm.get('cronExpression')?.touched">
-                Cron expression is required for scheduled notifications
+          <div *ngIf="isScheduled">
+            <div class="form-section">
+              <div class="section-header">
+                <h3 class="section-title">Schedule Settings</h3>
+                <p class="section-description">Configure when and how often to send</p>
               </div>
-              <div class="form-help">
-                <a href="https://crontab.guru/" target="_blank" class="help-link">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
-                    <line x1="12" y1="17" x2="12.01" y2="17"/>
-                  </svg>
-                  Need help with cron expressions?
-                </a>
-              </div>
-            </div>
 
-            <div class="form-grid">
+              <!-- Preset Options -->
               <div class="form-group">
-                <label class="form-label" for="startDate">
-                  Start Date <span class="required">*</span>
-                </label>
-                <input id="startDate" 
-                       class="form-input" 
-                       formControlName="startDate" 
-                       type="datetime-local">
-                <div class="form-error" *ngIf="isScheduled && notificationForm.get('startDate')?.errors?.['required'] && notificationForm.get('startDate')?.touched">
-                  Start date is required for scheduled notifications
+                <label class="form-label" for="preset">Presets</label>
+                <select id="preset" class="form-select" formControlName="preset" (change)="onPresetChange()">
+                  <option value="">-- Select a preset --</option>
+                  <option *ngFor="let preset of cronPresets" [value]="preset.value">{{ preset.label }}</option>
+                </select>
+              </div>
+
+              <!-- Frequency -->
+              <div class="form-group">
+                <label class="form-label" for="frequency">Frequency <span class="required">*</span></label>
+                <select id="frequency" class="form-select" formControlName="frequency" (change)="onFrequencyChange()">
+                  <option value="DAILY">Daily</option>
+                  <option value="WEEKLY">Weekly</option>
+                  <option value="MONTHLY">Monthly</option>
+                  <option value="CUSTOM">Custom (Advanced)</option>
+                </select>
+              </div>
+
+              <!-- Day(s) (for weekly/monthly) -->
+              <div class="form-group" *ngIf="notificationForm.get('frequency')?.value === 'WEEKLY'">
+                <label class="form-label">Day(s) of Week <span class="required">*</span></label>
+                <div class="multi-select-wrapper">
+                  <select class="form-select multi" formControlName="daysOfWeek" multiple>
+                    <option *ngFor="let day of weekDays" [value]="day.value">{{ day.label }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group" *ngIf="notificationForm.get('frequency')?.value === 'MONTHLY'">
+                <label class="form-label">Day(s) of Month <span class="required">*</span></label>
+                <input class="form-input" type="text" formControlName="daysOfMonth" placeholder="e.g., 1,15,28">
+                <div class="form-help">Comma-separated days (e.g., 1,15,28)</div>
+              </div>
+
+              <!-- Time Picker -->
+              <div class="form-group">
+                <label class="form-label" for="time">Time <span class="required">*</span></label>
+                <input id="time" class="form-input" type="time" formControlName="time">
+              </div>
+
+              <!-- Raw Cron (Custom) -->
+              <div class="form-group" *ngIf="notificationForm.get('frequency')?.value === 'CUSTOM'">
+                <label class="form-label" for="cronExpression">Cron Expression <span class="required">*</span></label>
+                <input id="cronExpression" class="form-input" formControlName="cronExpression" type="text" placeholder="e.g., 0 0 9 ? * SUN (Every Sunday at 9 AM)">
+                <div class="form-help">
+                  <a href="https://crontab.guru/" target="_blank" class="help-link">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                      <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    Need help with cron expressions?
+                  </a>
                 </div>
               </div>
 
+              <!-- Preview -->
               <div class="form-group">
-                <label class="form-label" for="endDate">End Date</label>
-                <input id="endDate" 
-                       class="form-input" 
-                       formControlName="endDate" 
-                       type="datetime-local">
+                <label class="form-label">Preview</label>
+                <div class="form-help">
+                  <strong>{{ cronPreviewLabel }}</strong><br>
+                  <span style="font-family:monospace;">{{ notificationForm.get('cronExpression')?.value }}</span>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="startDate">Start Date <span class="required">*</span></label>
+                  <input id="startDate" class="form-input" formControlName="startDate" type="datetime-local">
+                  <div class="form-error" *ngIf="isScheduled && notificationForm.get('startDate')?.errors?.['required'] && notificationForm.get('startDate')?.touched">
+                    Start date is required for scheduled notifications
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="endDate">End Date</label>
+                  <input id="endDate" class="form-input" formControlName="endDate" type="datetime-local">
+                </div>
               </div>
             </div>
           </div>

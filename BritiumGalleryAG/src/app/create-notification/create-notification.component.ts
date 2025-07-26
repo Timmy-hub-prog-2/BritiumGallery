@@ -28,6 +28,24 @@ export class CreateNotificationComponent implements OnInit {
     ]
   ];
 
+  // --- Cron Scheduling Additions ---
+  cronPresets = [
+    { label: 'Daily at 8:00 AM', value: '0 0 8 ? * *', preview: 'Every day at 8:00 AM' },
+    { label: 'Every weekday at 9:00 AM', value: '0 0 9 ? * MON-FRI', preview: 'Every weekday at 9:00 AM' },
+    { label: 'Every Monday at 9:00 AM', value: '0 0 9 ? * MON', preview: 'Every Monday at 9:00 AM' },
+    { label: 'First day of each month at 10:00 AM', value: '0 0 10 1 * ?', preview: 'First day of each month at 10:00 AM' },
+  ];
+  weekDays = [
+    { label: 'Sunday', value: 'SUN' },
+    { label: 'Monday', value: 'MON' },
+    { label: 'Tuesday', value: 'TUE' },
+    { label: 'Wednesday', value: 'WED' },
+    { label: 'Thursday', value: 'THU' },
+    { label: 'Friday', value: 'FRI' },
+    { label: 'Saturday', value: 'SAT' },
+  ];
+  // Remove: selectedPreset: string = '';
+  cronPreviewLabel: string = '';
   showModal = false;
   editMode = false;
   editingNotificationId: number | null = null;
@@ -141,7 +159,13 @@ export class CreateNotificationComponent implements OnInit {
       cronExpression: [''],
       startDate: [''],
       endDate: [''],
-      active: [true]
+      active: [true],
+      // New controls for friendly scheduling
+      frequency: ['DAILY', Validators.required],
+      daysOfWeek: [[]],
+      daysOfMonth: [''],
+      time: ['09:00'],
+      preset: ['']
     });
   }
 
@@ -169,12 +193,126 @@ export class CreateNotificationComponent implements OnInit {
       } else {
         this.notificationForm.get('cronExpression')?.clearValidators();
         this.notificationForm.get('startDate')?.clearValidators();
+        // Clear schedule fields for instant mode
+        this.notificationForm.patchValue({
+          cronExpression: '',
+          startDate: '',
+          endDate: '',
+          frequency: 'DAILY',
+          daysOfWeek: [],
+          daysOfMonth: '',
+          time: '09:00',
+          preset: ''
+        });
       }
       this.notificationForm.get('cronExpression')?.updateValueAndValidity();
       this.notificationForm.get('startDate')?.updateValueAndValidity();
     });
     
     this.fetchScheduledNotifications();
+    // Add cron preview and generation logic
+    this.notificationForm.get('frequency')?.valueChanges.subscribe(() => this.updateCronFromUI());
+    this.notificationForm.get('daysOfWeek')?.valueChanges.subscribe(() => this.updateCronFromUI());
+    this.notificationForm.get('daysOfMonth')?.valueChanges.subscribe(() => this.updateCronFromUI());
+    this.notificationForm.get('time')?.valueChanges.subscribe(() => this.updateCronFromUI());
+    this.notificationForm.get('cronExpression')?.valueChanges.subscribe(() => this.updatePreviewLabel());
+    this.updateCronFromUI();
+  }
+
+  onPresetChange() {
+    const presetValue = this.notificationForm.get('preset')?.value;
+    const preset = this.cronPresets.find(p => p.value === presetValue);
+    if (preset) {
+      // Parse the preset cron to update frequency, time, and days controls
+      let frequency = 'CUSTOM';
+      let time = '09:00';
+      let daysOfWeek: string[] = [];
+      let daysOfMonth = '';
+      // Simple parsing for known presets
+      if (preset.value === '0 0 8 ? * *') {
+        frequency = 'DAILY';
+        time = '08:00';
+      } else if (preset.value === '0 0 9 ? * MON-FRI') {
+        frequency = 'WEEKLY';
+        time = '09:00';
+        daysOfWeek = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+      } else if (preset.value === '0 0 9 ? * MON') {
+        frequency = 'WEEKLY';
+        time = '09:00';
+        daysOfWeek = ['MON'];
+      } else if (preset.value === '0 0 10 1 * ?') {
+        frequency = 'MONTHLY';
+        time = '10:00';
+        daysOfMonth = '1';
+      }
+      this.notificationForm.patchValue({
+        frequency,
+        time,
+        daysOfWeek,
+        daysOfMonth,
+        cronExpression: preset.value
+      });
+      this.cronPreviewLabel = preset.preview;
+      // Ensure UI and cron preview update
+      setTimeout(() => this.updateCronFromUI(), 0);
+    }
+  }
+
+  onFrequencyChange() {
+    this.updateCronFromUI();
+  }
+
+  updateCronFromUI() {
+    const freq = this.notificationForm.get('frequency')?.value;
+    const time = this.notificationForm.get('time')?.value || '09:00';
+    let cron = '';
+    let label = '';
+    if (freq === 'DAILY') {
+      const [h, m] = time.split(':');
+      cron = `0 ${+m} ${+h} ? * *`;
+      label = `Every day at ${this.formatTimeLabel(time)}`;
+    } else if (freq === 'WEEKLY') {
+      const days = this.notificationForm.get('daysOfWeek')?.value || [];
+      const [h, m] = time.split(':');
+      cron = `0 ${+m} ${+h} ? * ${days.length ? days.join(',') : '*'}`;
+      label = days.length ? `Every ${days.map((d: string) => this.weekDays.find(w => w.value === d)?.label).join(', ')} at ${this.formatTimeLabel(time)}` : 'Select day(s) of week';
+    } else if (freq === 'MONTHLY') {
+      const dom = this.notificationForm.get('daysOfMonth')?.value || '';
+      const [h, m] = time.split(':');
+      cron = `0 ${+m} ${+h} ${dom || '1'} * ?`;
+      label = dom ? `On day(s) ${dom} of each month at ${this.formatTimeLabel(time)}` : 'Select day(s) of month';
+    } else if (freq === 'CUSTOM') {
+      cron = this.notificationForm.get('cronExpression')?.value || '';
+      label = this.getCustomLabelFromCron(cron);
+    }
+    this.notificationForm.patchValue({ cronExpression: cron }, { emitEvent: false });
+    this.cronPreviewLabel = label;
+  }
+
+  updatePreviewLabel() {
+    const freq = this.notificationForm.get('frequency')?.value;
+    if (freq === 'CUSTOM') {
+      const cron = this.notificationForm.get('cronExpression')?.value;
+      this.cronPreviewLabel = this.getCustomLabelFromCron(cron);
+    }
+  }
+
+  formatTimeLabel(time: string): string {
+    if (!time) return '';
+    const [h, m] = time.split(':');
+    const hour = +h;
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return `${hour12}:${m} ${ampm}`;
+  }
+
+  getCustomLabelFromCron(cron: string): string {
+    // Simple mapping for common patterns, otherwise show raw cron
+    if (cron === '0 0 8 ? * *') return 'Every day at 8:00 AM';
+    if (cron === '0 0 9 ? * MON-FRI') return 'Every weekday at 9:00 AM';
+    if (cron === '0 0 9 ? * MON') return 'Every Monday at 9:00 AM';
+    if (cron === '0 0 10 1 * ?') return 'First day of each month at 10:00 AM';
+    return cron ? `Custom schedule: ${cron}` : '';
   }
 
   ngOnDestroy(): void {
@@ -197,12 +335,23 @@ export class CreateNotificationComponent implements OnInit {
     // Use setTimeout to ensure the modal is fully rendered before resetting
     setTimeout(() => {
       this.notificationForm.reset({ 
-        mode: 'INSTANT', 
-        roleIds: [], 
-        customerTypeIds: [], 
-        active: true 
+        mode: 'INSTANT',
+        title: '',
+        message: '',
+        type: '',
+        roleIds: [],
+        customerTypeIds: [],
+        actionLink: '',
+        cronExpression: '',
+        startDate: '',
+        endDate: '',
+        active: true,
+        frequency: 'DAILY',
+        daysOfWeek: [],
+        daysOfMonth: '',
+        time: '09:00',
+        preset: ''
       });
-      
       // Trigger form validation
       this.notificationForm.updateValueAndValidity();
     }, 100);
@@ -298,6 +447,8 @@ export class CreateNotificationComponent implements OnInit {
     } catch (e) {}
     // Convert message to HTML string if needed
     const messageHtml = typeof formValue.message === 'string' ? formValue.message : toHTML(formValue.message);
+    // Use generated cron unless custom
+    const cronToSend = formValue.frequency === 'CUSTOM' ? formValue.cronExpression : this.notificationForm.get('cronExpression')?.value;
     const payload: CreateNotificationRequest = {
       mode: formValue.mode,
       title: formValue.title,
@@ -306,7 +457,7 @@ export class CreateNotificationComponent implements OnInit {
       roleIds: formValue.roleIds,
       customerTypeIds: formValue.roleIds.includes(3) ? formValue.customerTypeIds : undefined,
       actionLink: formValue.actionLink || undefined,
-      cronExpression: this.isScheduled ? formValue.cronExpression : undefined,
+      cronExpression: this.isScheduled ? cronToSend : undefined,
       startDate: this.isScheduled ? formValue.startDate : undefined,
       endDate: this.isScheduled ? formValue.endDate : undefined,
       active: formValue.active,

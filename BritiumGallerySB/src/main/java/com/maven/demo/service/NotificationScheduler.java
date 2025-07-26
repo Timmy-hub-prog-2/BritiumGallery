@@ -3,7 +3,6 @@ package com.maven.demo.service;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -46,7 +45,7 @@ public class NotificationScheduler {
     public void pushDueScheduledNotifications() {
         ZoneId zone = ZoneId.of("Asia/Rangoon");
         ZonedDateTime now = ZonedDateTime.now(zone).withSecond(0).withNano(0);
-        System.out.println("Scheduler running at: " + now);
+        System.out.println("=== Scheduler running at: " + now + " ===");
         List<ScheduledNotificationDetail> all = scheduledNotificationDetailRepository.findAll();
         for (ScheduledNotificationDetail sched : all) {
             System.out.println("Checking notification " + sched.getNotification().getId() +
@@ -109,42 +108,7 @@ public class NotificationScheduler {
             String expr = cronExpression.trim();
             String[] parts = expr.split("\\s+");
             
-            // Handle Quartz cron expressions with ? in day-of-month
-            if (parts.length >= 6 && parts[3].equals("?") && !parts[5].equals("?")) {
-                // For day-of-week based crons, we need to manually check if current time matches
-                // Convert day-of-week to number using Java's DayOfWeek enum
-                String dayOfWeek = parts[5];
-                int targetDayOfWeek = convertDayOfWeekToNumber(dayOfWeek);
-                int currentDayOfWeek = now.getDayOfWeek().getValue();
-                
-                System.out.println("  [DEBUG] Day-of-week check: target=" + targetDayOfWeek + " (" + dayOfWeek + "), current=" + currentDayOfWeek + " (" + now.getDayOfWeek() + ") at " + now.toLocalDate() + " " + now.toLocalTime() + " timezone=" + now.getZone());
-                
-                // Check if current day matches target day
-                if (currentDayOfWeek != targetDayOfWeek) {
-                    System.out.println("  [DEBUG] Day-of-week mismatch, not due");
-                    return false;
-                }
-                
-                // Manually check if current time matches scheduled time
-                int scheduledSecond = Integer.parseInt(parts[0]);
-                int scheduledMinute = Integer.parseInt(parts[1]);
-                int scheduledHour = Integer.parseInt(parts[2]);
-                
-                int currentSecond = now.getSecond();
-                int currentMinute = now.getMinute();
-                int currentHour = now.getHour();
-                
-                System.out.println("  [DEBUG] Time comparison: scheduled=" + scheduledHour + ":" + scheduledMinute + ":" + scheduledSecond + 
-                                 ", current=" + currentHour + ":" + currentMinute + ":" + currentSecond);
-                
-                // Check if time matches (within 1 minute tolerance)
-                boolean timeMatches = (currentHour == scheduledHour && 
-                                     currentMinute == scheduledMinute && 
-                                     Math.abs(currentSecond - scheduledSecond) < 60);
-                
-                System.out.println("  [DEBUG] Time matches: " + timeMatches);
-                return timeMatches;
-            }
+            System.out.println("  [DEBUG] Parsing cron: " + expr + " with " + parts.length + " parts");
             
             int partCount = parts.length;
             CronParser parser;
@@ -156,41 +120,32 @@ public class NotificationScheduler {
                 System.out.println("Unsupported cron format (must be 5 for UNIX or 6/7 for Quartz): " + cronExpression);
                 return false;
             }
+            
+            // Parse the cron expression
             Cron cron = parser.parse(expr);
             ExecutionTime executionTime = ExecutionTime.forCron(cron);
-            Optional<ZonedDateTime> last = executionTime.lastExecution(now);
-            System.out.println("  [DEBUG] now: " + now + " cron: " + expr + " last: " + (last.isPresent() ? last.get() : "none"));
-            if (last.isPresent()) {
-                long secondsDiff = Math.abs(java.time.Duration.between(last.get().withSecond(0).withNano(0), now.withSecond(0).withNano(0)).getSeconds());
-                System.out.println("  [DEBUG] Seconds difference: " + secondsDiff);
-                boolean due = secondsDiff < 60; // due within the last minute
-                System.out.println("  [DEBUG] Time check result: " + due);
-                return due;
+            
+            // Check if the current time matches the cron expression
+            boolean isMatch = executionTime.isMatch(now);
+            System.out.println("  [DEBUG] Cron match check: " + isMatch + " for time: " + now);
+            
+            if (isMatch) {
+                // For scheduled notifications, if the cron matches, we should execute
+                // The scheduler runs every minute, so we need to ensure we don't execute multiple times
+                // We'll use the notification's lastPushedAt field to prevent duplicate executions
+                System.out.println("  [DEBUG] Cron matches current time - should execute");
+                return true;
             }
-            System.out.println("  [DEBUG] No last execution found");
+            
+            System.out.println("  [DEBUG] Not due - cron does not match current time");
             return false;
+            
         } catch (Exception e) {
             System.out.println("Cron parse error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
     
-    private int convertDayOfWeekToNumber(String dayOfWeek) {
-        try {
-            // Try to parse as number first
-            return Integer.parseInt(dayOfWeek);
-        } catch (NumberFormatException e) {
-            // Convert 3-letter day names to Java DayOfWeek values
-            switch (dayOfWeek.toUpperCase()) {
-                case "SUN": return java.time.DayOfWeek.SUNDAY.getValue();
-                case "MON": return java.time.DayOfWeek.MONDAY.getValue();
-                case "TUE": return java.time.DayOfWeek.TUESDAY.getValue();
-                case "WED": return java.time.DayOfWeek.WEDNESDAY.getValue();
-                case "THU": return java.time.DayOfWeek.THURSDAY.getValue();
-                case "FRI": return java.time.DayOfWeek.FRIDAY.getValue();
-                case "SAT": return java.time.DayOfWeek.SATURDAY.getValue();
-                default: throw new IllegalArgumentException("Invalid day of week: " + dayOfWeek);
-            }
-        }
-    }
+
 } 
