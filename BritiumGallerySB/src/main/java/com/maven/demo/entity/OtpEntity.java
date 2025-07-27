@@ -27,4 +27,8 @@ public class OtpEntity {
     @ManyToOne(fetch =  FetchType.EAGER )
     @JoinColumn(name = "user_id" , nullable = false)
     private UserEntity user;
+    
+    @Version
+    @Column(name = "version")
+    private Long version;
 }

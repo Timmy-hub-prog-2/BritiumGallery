@@ -8,6 +8,8 @@ import com.maven.demo.repository.UserRepository;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -29,9 +32,29 @@ public class OtpService {
 
     @Autowired
     private JavaMailSender mailSender;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private String generateOtpCode() {
         return String.format("%06d", new Random().nextInt(999999));
+    }
+    
+    /**
+     * Safely delete OTP entities using native query to avoid Hibernate entity state issues
+     */
+    private void safelyDeleteOtpsForUser(UserEntity user) {
+        try {
+            // Use native query to delete OTPs directly from database
+            String deleteQuery = "DELETE FROM otp WHERE user_id = :userId";
+            int deletedCount = entityManager.createNativeQuery(deleteQuery)
+                    .setParameter("userId", user.getId())
+                    .executeUpdate();
+            System.out.println("✅ Safely deleted " + deletedCount + " OTP entities for user " + user.getId());
+        } catch (Exception e) {
+            System.err.println("⚠️ Warning: Could not safely delete OTP entities: " + e.getMessage());
+            // Don't throw exception, just log the warning
+        }
     }
 
     public void sendOtpEmail(String toEmail, String otpCode, boolean isResend) {
@@ -136,7 +159,8 @@ public class OtpService {
         System.out.println("📊 User Status: " + user.getStatus());
         System.out.println("📊 User Role: " + (user.getRole() != null ? user.getRole().getType() : "No role"));
         
-        otpRepository.deleteByUser(user);
+        // Safely delete existing OTPs for this user
+        safelyDeleteOtpsForUser(user);
 
         String otp = generateOtpCode();
         System.out.println("🔢 Generated OTP: " + otp);
@@ -164,31 +188,59 @@ public class OtpService {
 
     @Transactional
     public String verifyOtp(String identifier, String inputOtp) {
+        System.out.println("🔍 ===== VERIFYING OTP ===== 🔍");
+        System.out.println("📧 Identifier: " + identifier);
+        System.out.println("🔢 Input OTP: " + inputOtp);
+        
         Optional<UserEntity> userOpt = identifier.contains("@") ?
                 userRepository.findByEmail(identifier) :
                 userRepository.findByPhoneNumber(identifier);
 
-        if (userOpt.isEmpty()) return "User not found";
+        if (userOpt.isEmpty()) {
+            System.out.println("❌ User not found for identifier: " + identifier);
+            return "User not found";
+        }
 
         UserEntity user = userOpt.get();
+        System.out.println("👤 Found user: " + user.getEmail() + " (ID: " + user.getId() + ")");
+        System.out.println("📊 User status: " + user.getStatus());
 
         if (user.getStatus() != null && user.getStatus() == 1) {
+            System.out.println("✅ User already verified");
             return "already-verified";
         }
 
         Optional<OtpEntity> latestOtpOpt = otpRepository.findTopByUserOrderByCreatedAtDesc(user);
-        if (latestOtpOpt.isEmpty()) return "No OTP found";
+        if (latestOtpOpt.isEmpty()) {
+            System.out.println("❌ No OTP found for user");
+            return "No OTP found";
+        }
 
         OtpEntity latestOtp = latestOtpOpt.get();
+        System.out.println("🔢 Found OTP: " + latestOtp.getOtpCode() + " (ID: " + latestOtp.getId() + ")");
+        System.out.println("⏰ OTP expires at: " + latestOtp.getExpiresAt());
 
-        if (latestOtp.getExpiresAt().isBefore(LocalDateTime.now())) return "OTP expired";
+        if (latestOtp.getExpiresAt().isBefore(LocalDateTime.now())) {
+            System.out.println("⏰ OTP has expired");
+            return "OTP expired";
+        }
 
-        if (!latestOtp.getOtpCode().equals(inputOtp.trim())) return "Invalid OTP";
+        if (!latestOtp.getOtpCode().equals(inputOtp.trim())) {
+            System.out.println("❌ Invalid OTP - expected: " + latestOtp.getOtpCode() + ", got: " + inputOtp.trim());
+            return "Invalid OTP";
+        }
 
+        System.out.println("✅ OTP is valid, updating user status...");
+        
+        // Update user status first
         user.setStatus(1);
         userRepository.save(user);
-        otpRepository.deleteByUser(user);
+        System.out.println("✅ User status updated to verified");
+        
+        // Safely delete OTP entities using native query
+        safelyDeleteOtpsForUser(user);
 
+        System.out.println("✅ ===== OTP VERIFICATION SUCCESSFUL ===== ✅");
         return "verified";
     }
 

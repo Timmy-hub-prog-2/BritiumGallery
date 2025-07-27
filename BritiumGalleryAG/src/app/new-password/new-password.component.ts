@@ -14,6 +14,8 @@ export class NewPasswordComponent implements OnInit {
   confirmPassword = '';
   message = '';
   error = '';
+  showNewPassword = false;
+  showConfirmPassword = false;
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -25,6 +27,14 @@ export class NewPasswordComponent implements OnInit {
     } else {
       this.router.navigate(['/reset']); // Redirect if no code found
     }
+  }
+
+  toggleNewPasswordVisibility(): void {
+    this.showNewPassword = !this.showNewPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 
   onSubmit() {

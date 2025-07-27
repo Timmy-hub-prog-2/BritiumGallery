@@ -17,6 +17,9 @@ export class ChangePasswordComponent {
   successMessage = '';
   loading = false;
   userId!: number;
+  showCurrentPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
 
   constructor(
     private userService: UserService,
@@ -48,6 +51,18 @@ export class ChangePasswordComponent {
 
   hasNumber(): boolean {
     return !!(this.newPassword && /[0-9]/.test(this.newPassword));
+  }
+
+  toggleCurrentPasswordVisibility(): void {
+    this.showCurrentPassword = !this.showCurrentPassword;
+  }
+
+  toggleNewPasswordVisibility(): void {
+    this.showNewPassword = !this.showNewPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 
   changePassword() {
