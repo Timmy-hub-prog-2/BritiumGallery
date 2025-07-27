@@ -54,7 +54,12 @@ public class UserService {
     @Autowired
     private EmailService emailService;
 
-    public String registerUser(UserDTO dto) {
+    public String registerUser(UserDTO dto, boolean useSms) {
+        System.out.println("🎯 ===== USER REGISTRATION START ===== 🎯");
+        System.out.println("📧 Email: " + dto.getEmail());
+        System.out.println("📱 Phone: " + dto.getPhoneNumber());
+        System.out.println("🔐 Use SMS: " + useSms);
+        
         String phone = dto.getPhoneNumber().trim();
         if (phone.startsWith("+959")) {
             phone = phone.replaceFirst("\\+959", "09");
@@ -102,14 +107,16 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found after save"));
         System.out.println("🔍 Saved user ID: " + savedUser.getId());
 
-        boolean useSms = false;
+        // Send OTP via user's chosen method
+        System.out.println("📤 SENDING FIRST-TIME OTP...");
         otpService.generateAndSendOtp(savedUser, useSms, false);
+        System.out.println("✅ FIRST-TIME OTP SENT SUCCESSFULLY");
 
         return "User registered successfully";
     }
 
 
-    public LoginResponseDTO login(String email, String password) {
+    public LoginResponseDTO login(String email, String password, boolean useSms) {
         Optional<UserEntity> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) throw new RuntimeException("Invalid email");
 
@@ -125,15 +132,14 @@ public class UserService {
         Long roleIdLong = (user.getRole() != null) ? user.getRole().getId() : null;
         int roleId = (roleIdLong != null) ? roleIdLong.intValue() : -1;
 
+        System.out.println("🔐 Login attempt for user: " + user.getEmail());
+        System.out.println("📊 User status: " + status);
+        System.out.println("👤 User role: " + (user.getRole() != null ? user.getRole().getType() : "No role"));
+        System.out.println("📱 User phone: " + user.getPhoneNumber());
+
         if (status == null || status == 0) {
-            boolean useSms = false;
-            try {
-                otpService.generateAndSendOtp(user, useSms, false); // isResend = false for first-time verification
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to send OTP: " + e.getMessage());
-            }
-            // Instead of throwing, throw a custom exception with phone number
+            System.out.println("⚠️ User not verified, redirecting to verification choice...");
+            // Don't send OTP automatically - let user choose their preferred method
             throw new EmailNotVerifiedException("Email not verified", user.getPhoneNumber());
         }
 
@@ -291,6 +297,8 @@ public class UserService {
         user.setPhoneNumber(phone);
         user.setImageUrls(userDto.getImageUrls());
         user.setPassword(passwordEncoder.encode(generatedPassword));
+        user.setStatus(0); // Set status to 0 (unverified) for admin-created users
+        user.setCreatedAt(java.time.LocalDateTime.now());
 
         RoleEntity role = roleRepository.findById(userDto.getRoleId())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
@@ -320,25 +328,34 @@ public class UserService {
         return "Admin created successfully. Login details sent to email.";
     }
 
-    public void processForgotPassword(String email) {
-        // Find the user by email
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    public void processForgotPassword(String identifier, boolean useSms) {
+        // Find the user by email or phone
+        Optional<UserEntity> userOpt = identifier.contains("@") 
+            ? userRepository.findByEmail(identifier)
+            : userRepository.findByPhoneNumber(identifier);
+            
+        UserEntity user = userOpt.orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        // Generate a 6-digit code (or any length)
+        // Generate a 6-digit code
         String verificationCode = generateVerificationCode();
 
-        // You can also save the code in a temporary table or directly in the database if you want to track expiry.
-        // Save the verification code into the PasswordResetToken entity.
+        // Save the verification code into the PasswordResetToken entity
         passwordResetTokenRepository.save(new PasswordResetToken(verificationCode, user));
 
-        // Send the verification code to the user's email
-        String subject = "Your Verification Code";
-        String message = "Your verification code is: " + verificationCode;
-        try {
-            emailService.sendHtmlEmail(user.getEmail(), subject, message);
-        } catch (MessagingException e) {
-            e.printStackTrace(); // Handle error sending email
+        // Send the verification code via chosen method
+        if (useSms) {
+            // Send via SMS using existing OTP service
+            otpService.sendOtpSms(user.getPhoneNumber(), verificationCode);
+        } else {
+            // Send via email
+            String subject = "Your Password Reset Code";
+            String message = "Your password reset code is: " + verificationCode;
+            try {
+                emailService.sendHtmlEmail(user.getEmail(), subject, message);
+            } catch (MessagingException e) {
+                e.printStackTrace();
+                throw new RuntimeException("Failed to send email");
+            }
         }
     }
 

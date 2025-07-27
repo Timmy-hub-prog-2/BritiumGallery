@@ -22,7 +22,17 @@ public class TwilioConfig {
 
     @PostConstruct
     public void init() {
-        Twilio.init(accountSid, authToken);
-        FROM_PHONE = fromPhone;
+        try {
+            System.out.println("🔧 Initializing Twilio with Account SID: " + accountSid.substring(0, 10) + "...");
+            System.out.println("📱 From Phone: " + fromPhone);
+            
+            Twilio.init(accountSid, authToken);
+            FROM_PHONE = fromPhone;
+            
+            System.out.println("✅ Twilio initialized successfully!");
+        } catch (Exception e) {
+            System.err.println("❌ Failed to initialize Twilio: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

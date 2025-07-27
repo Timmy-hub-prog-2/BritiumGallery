@@ -78,7 +78,8 @@ import com.maven.demo.service.UserService1;
         @PostMapping("/register")
         public ResponseEntity<Map<String, String>> registerUser(
                 @RequestPart("user") UserDTO userDto,
-                @RequestPart(value = "images",  required = false) MultipartFile[] imageFiles) throws IOException {
+                @RequestPart(value = "images",  required = false) MultipartFile[] imageFiles,
+                @RequestParam(defaultValue = "false") boolean useSms) throws IOException {
 
             List<String> imageUrls = new ArrayList<>();
 
@@ -94,7 +95,7 @@ import com.maven.demo.service.UserService1;
 
             userDto.setImageUrls(imageUrls);
 
-            String result = userService.registerUser(userDto);
+            String result = userService.registerUser(userDto, useSms);
 
             Map<String, String> response = new HashMap<>();
             response.put("message", result);
@@ -109,7 +110,25 @@ import com.maven.demo.service.UserService1;
         @PostMapping("/login")
         public ResponseEntity<?> login(@RequestBody LoginRequestDTO dto) {
             try {
-                LoginResponseDTO response = userService.login(dto.getEmail(), dto.getPassword());
+                // Default to email verification, but user will choose on verification page
+                boolean useSms = false; // User will choose their preferred method
+                LoginResponseDTO response = userService.login(dto.getEmail(), dto.getPassword(), useSms);
+                return ResponseEntity.ok(response);
+            } catch (UserService.EmailNotVerifiedException ex) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("message", ex.getMessage());
+                errorResponse.put("phoneNumber", ex.getPhoneNumber());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+            } catch (RuntimeException ex) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+            }
+        }
+
+        @PostMapping("/login-with-verification")
+        public ResponseEntity<?> loginWithVerification(@RequestBody LoginRequestDTO dto, 
+                                                      @RequestParam(defaultValue = "false") boolean useSms) {
+            try {
+                LoginResponseDTO response = userService.login(dto.getEmail(), dto.getPassword(), useSms);
                 return ResponseEntity.ok(response);
             } catch (UserService.EmailNotVerifiedException ex) {
                 Map<String, String> errorResponse = new HashMap<>();
@@ -318,9 +337,20 @@ import com.maven.demo.service.UserService1;
 
         @PostMapping("/auth/forgot-password")
         public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
-            String email = request.get("email");
-            userService.processForgotPassword(email);
-            return ResponseEntity.ok("Reset code sent");
+            String identifier = request.get("identifier");
+            Boolean useSms = Boolean.valueOf(request.get("useSms"));
+            
+            if (identifier == null || identifier.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Email or phone number is required.");
+            }
+            
+            try {
+                userService.processForgotPassword(identifier, useSms);
+                String method = useSms ? "SMS" : "email";
+                return ResponseEntity.ok("Password reset code sent to your " + method + ".");
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
         }
 
         @PostMapping("/auth/validate-code")

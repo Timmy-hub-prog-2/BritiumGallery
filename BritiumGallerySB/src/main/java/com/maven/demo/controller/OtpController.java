@@ -21,11 +21,14 @@ public class OtpController {
     @Autowired
     private UserRepository userRepository;
 
-    // ✅ Resend OTP (email or phone)
+    // ✅ Send/Resend OTP (email or phone)
     @PostMapping("/resend")
     public ResponseEntity<String> resendOtp(@RequestParam String identifier,
-                                            @RequestParam(required = false) Boolean useSms) {
-        System.out.println("🔁 Resend OTP for: " + identifier);
+                                            @RequestParam(required = false) Boolean useSms,
+                                            @RequestParam(required = false) Boolean isFirstTime) {
+        System.out.println("🔁 Send/Resend OTP for: " + identifier);
+        System.out.println("📱 Use SMS: " + useSms);
+        System.out.println("🆕 Is First Time: " + isFirstTime);
 
         Optional<UserEntity> userOpt = identifier.contains("@")
                 ? userRepository.findByEmail(identifier)
@@ -43,15 +46,25 @@ public class OtpController {
             return ResponseEntity.badRequest().body("User already verified");
         }
 
-        if (!otpService.canResend(user)) {
+        // Skip cooldown check for first-time OTP sending
+        if (!Boolean.TRUE.equals(isFirstTime) && !otpService.canResend(user)) {
             System.out.println("⏱️ Resend called too early");
             return ResponseEntity.badRequest().body("Please wait before requesting another code.");
         }
 
-        otpService.generateAndSendOtp(user, Boolean.TRUE.equals(useSms), true); // 👈 Pass true for "isResend"
-        String channel = Boolean.TRUE.equals(useSms) ? "phone" : "email";
-        System.out.println("✅ OTP resent to " + channel);
-        return ResponseEntity.ok("OTP has been resent to your " + channel + ".");
+        try {
+            otpService.generateAndSendOtp(user, Boolean.TRUE.equals(useSms), !Boolean.TRUE.equals(isFirstTime));
+            String channel = Boolean.TRUE.equals(useSms) ? "phone" : "email";
+            String action = Boolean.TRUE.equals(isFirstTime) ? "sent" : "resent";
+            System.out.println("✅ OTP " + action + " to " + channel);
+            return ResponseEntity.ok("OTP has been " + action + " to your " + channel + ".");
+        } catch (RuntimeException e) {
+            System.err.println("❌ Failed to send OTP: " + e.getMessage());
+            String errorMessage = Boolean.TRUE.equals(useSms) 
+                ? "Failed to send SMS. Please try email verification or contact support." 
+                : "Failed to send email. Please try SMS verification or contact support.";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+        }
     }
 
     // ✅ Verify OTP (email or phone)

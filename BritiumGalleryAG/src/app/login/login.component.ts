@@ -51,11 +51,16 @@ login() {
         if (err && err.error && typeof err.error === 'object' && err.error.phoneNumber) {
           phone = err.error.phoneNumber;
         }
+        
+        // Check if user has phone number to determine verification method
+        const hasPhone = phone && phone.trim().length > 0;
+        const verificationMethod = hasPhone ? 'phone number' : 'email';
+        
         Swal.fire({
           icon: 'warning',
-          title: 'Email Not Verified',
-          text: 'Please verify your email before logging in.',
-          confirmButtonText: 'Verify Now',
+          title: 'Account Not Verified',
+          text: 'Please choose your preferred verification method to continue.',
+          confirmButtonText: 'Choose Method',
           showCancelButton: true,
           cancelButtonText: 'Cancel',
         }).then(result => {

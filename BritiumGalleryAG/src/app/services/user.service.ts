@@ -35,10 +35,16 @@ export class UserService {
   }
 
   registerUser(user: User): Observable<any> {
-    console.log("📤 [Frontend] Sending user:", user);
-    return this.http.post(`${this.userBase}/register`, user, {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const formData = new FormData();
+    formData.append('user', new Blob([JSON.stringify(user)], { type: 'application/json' }));
+    return this.http.post(`${this.userBase}/register`, formData);
+  }
+
+  registerUserWithVerification(user: User, useSms: boolean): Observable<any> {
+    const formData = new FormData();
+    formData.append('user', new Blob([JSON.stringify(user)], { type: 'application/json' }));
+    formData.append('useSms', useSms.toString());
+    return this.http.post(`${this.userBase}/register?useSms=${useSms}`, formData);
   }
 
   verifyOtp(identifier: string, otp: string): Observable<string> {
@@ -52,7 +58,9 @@ export class UserService {
   }
 
   resendEmailOtp(email: string): Observable<string> {
-    const params = new HttpParams().set('identifier', email);
+    const params = new HttpParams()
+      .set('identifier', email)
+      .set('isFirstTime', true);
     return this.http.post(`${this.otpBase}/resend`, null, {
       params,
       responseType: 'text' as const
@@ -60,6 +68,26 @@ export class UserService {
   }
 
   resendSmsOtp(phone: string): Observable<string> {
+    const params = new HttpParams()
+      .set('identifier', phone)
+      .set('useSms', true)
+      .set('isFirstTime', true);
+    return this.http.post(`${this.otpBase}/resend`, null, {
+      params,
+      responseType: 'text' as const
+    });
+  }
+
+  // Methods for actual resend (not first time)
+  resendEmailOtpResend(email: string): Observable<string> {
+    const params = new HttpParams().set('identifier', email);
+    return this.http.post(`${this.otpBase}/resend`, null, {
+      params,
+      responseType: 'text' as const
+    });
+  }
+
+  resendSmsOtpResend(phone: string): Observable<string> {
     const params = new HttpParams()
       .set('identifier', phone)
       .set('useSms', true);
@@ -71,6 +99,12 @@ export class UserService {
 
   login(email: string, password: string): Observable<string> {
     return this.http.post(`${this.userBase}/login`, { email, password }, {
+      responseType: 'text' as const
+    });
+  }
+
+  loginWithVerification(email: string, password: string, useSms: boolean): Observable<string> {
+    return this.http.post(`${this.userBase}/login-with-verification?useSms=${useSms}`, { email, password }, {
       responseType: 'text' as const
     });
   }

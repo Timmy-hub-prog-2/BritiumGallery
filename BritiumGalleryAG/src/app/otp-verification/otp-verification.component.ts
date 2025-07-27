@@ -21,12 +21,15 @@ export class OtpVerificationComponent implements OnInit {
   resendCooldown: number = 30; // 30 seconds cooldown
   canResend: boolean = false;
   private countdownInterval: any;
+  private hasResentOnce: boolean = false; // Track if user has clicked resend before
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private userService: UserService
   ) {}
+
+
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -39,10 +42,10 @@ export class OtpVerificationComponent implements OnInit {
       }
 
       // ✅ Don't call resend here — first-time OTP already sent from backend
-      this.message = '📨 Please check your ' + (this.useSms ? 'phone' : 'email') + ' for the OTP.';
+      this.message = '📱 Please check your ' + (this.useSms ? 'phone' : 'email') + ' for the OTP.';
       
-      // Start countdown timer for resend
-      this.startResendCooldown();
+      // Don't start countdown immediately - let user click resend first
+      this.canResend = true; // Allow resend immediately on first load
     });
   }
 
@@ -115,21 +118,55 @@ export class OtpVerificationComponent implements OnInit {
   onPaste(event: ClipboardEvent): void {
     event.preventDefault();
     const pasted = event.clipboardData?.getData('text') || '';
+    
+    // Extract only digits from pasted content
     const digits = pasted.replace(/\D/g, '').slice(0, 6).split('');
+    
+    if (digits.length === 0) {
+      return;
+    }
+    
+    // Clear all inputs first
     this.inputs.forEach((input, i) => {
-      input.nativeElement.value = digits[i] || '';
+      const value = digits[i] || '';
+      input.nativeElement.value = value;
     });
+    
     this.updateOtpCode();
-    // Auto-verify if all boxes are filled
+    
+    // Focus on the next empty input or the last one if all filled
+    const nextEmptyIndex = digits.length < 6 ? digits.length : 5;
+    if (this.inputs.toArray()[nextEmptyIndex]) {
+      this.inputs.toArray()[nextEmptyIndex].nativeElement.focus();
+    }
+    
+    // Auto-verify if all boxes are filled with valid digits
     if (this.otpCode.length === 6 && this.otpCode.split('').every(d => d.match(/\d/))) {
-      this.verifyOtp();
+      setTimeout(() => this.verifyOtp(), 100);
     }
   }
 
   ngAfterViewInit(): void {
-    // Attach paste handler to the first input
-    if (this.inputs && this.inputs.first) {
-      this.inputs.first.nativeElement.addEventListener('paste', (e: ClipboardEvent) => this.onPaste(e));
+    // Attach paste handler to all inputs
+    if (this.inputs) {
+      this.inputs.forEach((input, index) => {
+        input.nativeElement.addEventListener('paste', (e: ClipboardEvent) => this.onPaste(e));
+      });
+      
+      // Also add paste event to the container for better UX
+      const firstInput = this.inputs.first;
+      if (firstInput) {
+        const container = firstInput.nativeElement.closest('.otp-input-container');
+        if (container) {
+          container.addEventListener('paste', (e: ClipboardEvent) => this.onPaste(e));
+        }
+      }
+      
+      // Add paste event to the entire card for maximum coverage
+      const card = firstInput?.nativeElement.closest('.otp-card');
+      if (card) {
+        card.addEventListener('paste', (e: ClipboardEvent) => this.onPaste(e));
+      }
     }
   }
 
@@ -207,15 +244,17 @@ export class OtpVerificationComponent implements OnInit {
     this.isResending = true;
 
     const resend$ = this.useSms
-      ? this.userService.resendSmsOtp(this.identifier)
-      : this.userService.resendEmailOtp(this.identifier);
+      ? this.userService.resendSmsOtpResend(this.identifier)
+      : this.userService.resendEmailOtpResend(this.identifier);
 
     resend$.subscribe({
       next: () => {
         this.isResending = false;
         this.message = '📨 OTP has been resent successfully!';
         this.error = '';
-        this.startResendCooldown(); // Reset cooldown after successful resend
+        // Start countdown only after first successful resend
+        this.hasResentOnce = true;
+        this.startResendCooldown();
       },
       error: err => {
         this.isResending = false;
