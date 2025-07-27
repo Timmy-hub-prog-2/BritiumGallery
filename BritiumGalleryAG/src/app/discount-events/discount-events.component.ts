@@ -10,6 +10,7 @@ import { forkJoin } from 'rxjs'
 import { HostListener } from '@angular/core'
 import { CategoryFilterPipe } from '../category-filter.pipe'
 import { ProductFilterPipe } from '../product-filter.pipe'
+import Swal from 'sweetalert2';
 
 export interface CascadeNode {
   name: string
@@ -1243,17 +1244,32 @@ export class DiscountEventsComponent implements OnInit {
       return;
     }
 
-    this.eventService.updateEvent(this.editEvent.id, this.editEvent).subscribe({
-      next: () => {
-        this.showEditModal = false
-        this.editEvent = null
-        this.fetchEvents()
-        this.showToastMessage("Discount event updated successfully!")
-      },
-      error: (err) => {
-        this.handleUpdateEventError(err);
-      }
-    })
+this.eventService.updateEvent(this.editEvent.id, this.editEvent).subscribe({
+  next: () => {
+    this.showEditModal = false;
+    this.editEvent = null;
+    this.fetchEvents();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: 'Discount event updated successfully!',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  },
+  error: (err) => {
+    Swal.fire({
+      icon: 'error',
+      title: 'Update Failed',
+      text: err?.error?.message || 'Something went wrong while updating the event.'
+    });
+
+    // Optional: If you still want to handle errors with your method
+    this.handleUpdateEventError(err);
+  }
+});
+
   }
 
   private handleUpdateEventError(err: any) {
@@ -1314,15 +1330,25 @@ export class DiscountEventsComponent implements OnInit {
     this.editStartDateError = '';
     this.editEndDateError = '';
   }
-
-  deleteEvent(eventId: number) {
-    if (confirm("Are you sure you want to delete this event?")) {
+deleteEvent(eventId: number) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you really want to delete this event?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
       this.eventService.deleteEvent(eventId).subscribe(() => {
-        this.fetchEvents()
-      })
+        this.fetchEvents();
+        Swal.fire('Deleted!', 'The event has been deleted.', 'success');
+      });
     }
-  }
-
+  });
+}
   viewHistory(eventId: number) {
     this.eventService.getEventHistory(eventId).subscribe((history) => {
       this.eventHistory = history

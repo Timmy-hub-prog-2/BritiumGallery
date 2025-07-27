@@ -4,6 +4,7 @@ import * as L from 'leaflet';
 import { NgForm } from '@angular/forms';
 import 'leaflet-control-geocoder';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-addressform',
@@ -162,12 +163,19 @@ export class AddressformComponent implements AfterViewInit {
     });
   }
 
-  submitForm(form: NgForm) {
-    this.formSubmitAttempted = true;
-    if (!form.valid) {
-      alert('Please fill in all required fields.');
-      return;
-    }
+ 
+submitForm(form: NgForm) {
+  this.formSubmitAttempted = true;
+
+  if (!form.valid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Missing Required Fields',
+      text: 'Please fill in all required fields.',
+      confirmButtonText: 'OK'
+    });
+    return;
+  }
 
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
     const userId = loggedInUser.id;
@@ -194,19 +202,31 @@ export class AddressformComponent implements AfterViewInit {
       ? this.http.put(url, addressPayload)
       : this.http.post(url, addressPayload);
 
-    request.subscribe({
-      next: () => {
-        alert(this.editingId ? 'Address updated successfully' : 'Address saved successfully');
-        this.resetForm();
-        this.loadAddresses();
-         this.router.navigate(['/addresslist']);
-      },
-      error: err => {
-        console.error('Address save failed:', err);
-        alert('Something went wrong. Please try again.');
-      }
+   request.subscribe({
+  next: () => {
+    Swal.fire({
+      icon: 'success',
+      title: this.editingId ? 'Address updated successfully' : 'Address saved successfully',
+      timer: 2000,
+      showConfirmButton: false
+    });
+
+    this.resetForm();
+    this.loadAddresses();
+    this.router.navigate(['/addresslist']);
+  },
+  error: err => {
+    console.error('Address save failed:', err);
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Something went wrong. Please try again.',
+      confirmButtonText: 'OK'
     });
   }
+});
+}
 
   loadAddresses() {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
@@ -235,14 +255,31 @@ export class AddressformComponent implements AfterViewInit {
     }
   }
 
-  deleteAddress(id: number) {
-    if (!confirm('Are you sure you want to delete this address?')) return;
-
-    this.http.delete(`http://localhost:8080/api/addresses/${id}`).subscribe(() => {
-      alert('Address deleted.');
-      this.loadAddresses();
-    });
-  }
+ deleteAddress(id: number) {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you really want to delete this address?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.http.delete(`http://localhost:8080/api/addresses/${id}`).subscribe(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'Address deleted successfully.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.loadAddresses();
+      });
+    }
+  });
+}
 
   resetForm() {
     this.city = '';

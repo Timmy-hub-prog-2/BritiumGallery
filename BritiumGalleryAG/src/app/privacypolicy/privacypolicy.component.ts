@@ -1,6 +1,7 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, FormControl } from '@angular/forms';
+import { Editor, Toolbar } from 'ngx-editor';
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
 import Swal from 'sweetalert2';
 
 interface Policy {
@@ -11,12 +12,24 @@ interface Policy {
 
 @Component({
   selector: 'app-privacypolicy',
-  standalone: false,
+  standalone:false,
   templateUrl: './privacypolicy.component.html',
   styleUrls: ['./privacypolicy.component.css']
 })
-export class PrivacypolicyComponent implements OnInit {
+export class PrivacypolicyComponent implements OnInit, OnDestroy {
   form!: FormGroup;
+  editor!: Editor;
+  toolbar: Toolbar = [
+    ['bold', 'italic'],
+    ['underline', 'strike'],
+    ['code', 'blockquote'],
+    ['ordered_list', 'bullet_list'],
+    [{ heading: ['h1', 'h2', 'h3', 'h4'] }],
+    ['link', 'image'],
+    ['text_color', 'background_color'],
+    ['align_left', 'align_center', 'align_right', 'align_justify'],
+  ];
+
   policyId: number | null = null;
   allPolicies: Policy[] = [];
   expandedPolicies: Set<number> = new Set();
@@ -26,12 +39,16 @@ export class PrivacypolicyComponent implements OnInit {
   constructor(private fb: FormBuilder, private http: HttpClient) {}
 
   ngOnInit(): void {
+    this.editor = new Editor();
     this.form = this.fb.group({
-     
-      content: [''],
+      content: new FormControl(''),
       active: [true]
     });
     this.fetchPolicies();
+  }
+
+  ngOnDestroy(): void {
+    this.editor?.destroy();
   }
 
   fetchPolicies(): void {
@@ -42,22 +59,18 @@ export class PrivacypolicyComponent implements OnInit {
   }
 
   savePolicy(): void {
-    const title = this.form.value.title?.trim();
     const content = this.form.value.content?.trim();
-
-    // Basic validation
     if (!content) {
       Swal.fire({
         icon: 'warning',
         title: 'Validation Error',
-        text: 'Please fill in all fields (content) before saving.',
+        text: 'Please fill in the content before saving.',
         confirmButtonColor: '#222'
       });
       return;
     }
 
     const payload: Policy = {
-    
       content,
       active: this.form.value.active
     };
@@ -67,7 +80,6 @@ export class PrivacypolicyComponent implements OnInit {
       this.http.put(`${this.BASE_URL}/${this.policyId}`, payload).subscribe(() => {
         Swal.fire({
           icon: 'success',
-         
           text: 'Policy updated successfully!',
           confirmButtonColor: '#222',
           timer: 2000,
@@ -81,7 +93,6 @@ export class PrivacypolicyComponent implements OnInit {
       this.http.post(this.BASE_URL, payload).subscribe(() => {
         Swal.fire({
           icon: 'success',
-         
           text: 'Policy created successfully!',
           confirmButtonColor: '#222',
           timer: 2000,
@@ -96,7 +107,6 @@ export class PrivacypolicyComponent implements OnInit {
   editPolicy(policy: Policy): void {
     this.policyId = policy.id || null;
     this.form.patchValue({
-     
       content: policy.content,
       active: policy.active
     });
@@ -104,7 +114,7 @@ export class PrivacypolicyComponent implements OnInit {
   }
 
   deletePolicy(id: number): void {
-    if (!id) return; // Guard against undefined id
+    if (!id) return;
     Swal.fire({
       title: 'Are you sure?',
       text: 'Do you want to delete this policy?',
@@ -138,13 +148,13 @@ export class PrivacypolicyComponent implements OnInit {
   }
 
   resetForm(): void {
-    this.form.reset({ active: true });
+    this.form.reset({ content: '', active: true });
     this.policyId = null;
   }
 
   toggleExpand(id: number, event: Event): void {
     event.preventDefault();
-    if (!id) return; // Guard against undefined id
+    if (!id) return;
     if (this.expandedPolicies.has(id)) {
       this.expandedPolicies.delete(id);
     } else {
@@ -153,7 +163,10 @@ export class PrivacypolicyComponent implements OnInit {
   }
 
   isExpanded(id: number): boolean {
-    if (!id) return false; // Guard against undefined id
     return this.expandedPolicies.has(id);
+  }
+
+  get contentControl(): FormControl {
+    return this.form.get('content') as FormControl;
   }
 }

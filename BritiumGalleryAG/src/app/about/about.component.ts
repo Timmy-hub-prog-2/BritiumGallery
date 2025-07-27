@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { AboutService } from '../about.service';
 import Swal from 'sweetalert2';
+import { Editor, Toolbar } from 'ngx-editor';
 
 export interface About {
   id?: number;
@@ -17,17 +18,47 @@ export interface About {
   templateUrl: './about.component.html',
   styleUrls: ['./about.component.css']
 })
-export class AboutComponent implements OnInit {
+export class AboutComponent implements OnInit, OnDestroy {
 
   aboutList: About[] = [];
   formAbout: About = { mission: '', vision: '', story: '', valueText: '', imageUrl: '' };
   editingAbout: About | null = null;
   selectedImage: File | null = null;
 
+  // Editor instances for each field
+  missionEditor!: Editor;
+  visionEditor!: Editor;
+  storyEditor!: Editor;
+  valueTextEditor!: Editor;
+
+  toolbar: Toolbar = [
+    ['bold', 'italic'],
+    ['underline', 'strike'],
+    ['code', 'blockquote'],
+    ['ordered_list', 'bullet_list'],
+    [{ heading: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] }],
+    ['link', 'image'],
+    ['text_color', 'background_color'],
+    ['align_left', 'align_center', 'align_right', 'align_justify'],
+  ];
+
   constructor(private aboutService: AboutService) {}
 
   ngOnInit(): void {
     this.loadAbouts();
+    // Initialize editors
+    this.missionEditor = new Editor();
+    this.visionEditor = new Editor();
+    this.storyEditor = new Editor();
+    this.valueTextEditor = new Editor();
+  }
+
+  ngOnDestroy(): void {
+    // Destroy editors
+    this.missionEditor.destroy();
+    this.visionEditor.destroy();
+    this.storyEditor.destroy();
+    this.valueTextEditor.destroy();
   }
 
   loadAbouts() {
@@ -59,20 +90,20 @@ export class AboutComponent implements OnInit {
     this.submitAbout();
   }
 
-submitAbout() {
-  const formData = new FormData();
-  
-  // Append each form field as individual form data entries
-  formData.append('mission', this.formAbout.mission);
-  formData.append('vision', this.formAbout.vision);
-  formData.append('story', this.formAbout.story);
-  formData.append('valueText', this.formAbout.valueText);
-  
-  if (this.selectedImage) {
-    formData.append('file', this.selectedImage, this.selectedImage.name);
-  }
+  submitAbout() {
+    const formData = new FormData();
+    
+    // Append each form field as individual form data entries
+    formData.append('mission', this.formAbout.mission);
+    formData.append('vision', this.formAbout.vision);
+    formData.append('story', this.formAbout.story);
+    formData.append('valueText', this.formAbout.valueText);
+    
+    if (this.selectedImage) {
+      formData.append('file', this.selectedImage, this.selectedImage.name);
+    }
 
- if (this.editingAbout) {
+   if (this.editingAbout) {
   this.aboutService.update(this.editingAbout.id!, formData).subscribe(() => {
     Swal.fire({
       icon: 'success',
@@ -85,45 +116,50 @@ submitAbout() {
     this.resetForm();
     this.loadAbouts();
   });
-  } else {
-    this.aboutService.create(formData).subscribe(() => {
-      this.resetForm();
-      this.loadAbouts();
+} else {
+  this.aboutService.create(formData).subscribe(() => {
+    Swal.fire({
+      icon: 'success',
+      title: 'Created!',
+      text: 'New About section has been added.',
+      timer: 2000,
+      showConfirmButton: false
     });
-  }
+    this.resetForm();
+    this.loadAbouts();
+  });
 }
-
+  }
   editAbout(about: About) {
     this.editingAbout = about;
     this.formAbout = { ...about };
   }
 
- deleteAbout(id: number) {
-  Swal.fire({
-    title: 'Are you sure?',
-    text: 'Do you want to delete this about us post?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#e74c3c',
-    cancelButtonColor: '#aaa',
-    confirmButtonText: 'Yes, delete it!',
-    cancelButtonText: 'Cancel'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      this.aboutService.delete(id).subscribe(() => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'The About section has been deleted.',
-          timer: 2000,
-          showConfirmButton: false
+  deleteAbout(id: number) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you want to delete this about us post?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e74c3c',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.aboutService.delete(id).subscribe(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'The About section has been deleted.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.loadAbouts();
         });
-        this.loadAbouts();
-      });
-    }
-  });
-}
-
+      }
+    });
+  }
 
   cancelEdit() {
     this.editingAbout = null;

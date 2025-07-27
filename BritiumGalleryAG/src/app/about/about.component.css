@@ -236,3 +236,36 @@ form button:hover {
   color: white;
 }
 
+/* Editor Styles */
+.editor-wrapper {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.form-editor {
+  min-height: 150px;
+  background: white;
+}
+
+::ng-deep .NgxEditor {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+::ng-deep .NgxEditor__MenuBar {
+  border-bottom: 1px solid #ccc !important;
+  background-color: #f8f9fa !important;
+  padding: 8px !important;
+}
+
+::ng-deep .NgxEditor__Content {
+  padding: 12px !important;
+  min-height: 150px !important;
+}
+
+::ng-deep .NgxEditor__Placeholder {
+  color: #999 !important;
+}
+

@@ -21,26 +21,42 @@
 
     <div class="form-group">
       <label class="form-label">Mission</label>
-      <textarea [(ngModel)]="formAbout.mission" name="mission" rows="2" class="form-input"
-        placeholder="Enter your mission"></textarea>
+      <div class="editor-wrapper">
+        <ngx-editor-menu [editor]="missionEditor" [toolbar]="toolbar"></ngx-editor-menu>
+        <ngx-editor class="form-editor" [editor]="missionEditor" [(ngModel)]="formAbout.mission" name="mission"
+          placeholder="Enter your mission">
+        </ngx-editor>
+      </div>
     </div>
 
     <div class="form-group">
       <label class="form-label">Vision</label>
-      <textarea [(ngModel)]="formAbout.vision" name="vision" rows="2" class="form-input"
-        placeholder="Enter your vision"></textarea>
+      <div class="editor-wrapper">
+        <ngx-editor-menu [editor]="visionEditor" [toolbar]="toolbar"></ngx-editor-menu>
+        <ngx-editor class="form-editor" [editor]="visionEditor" [(ngModel)]="formAbout.vision" name="vision"
+          placeholder="Enter your vision">
+        </ngx-editor>
+      </div>
     </div>
 
     <div class="form-group">
       <label class="form-label">Story</label>
-      <textarea [(ngModel)]="formAbout.story" name="story" rows="4" class="form-input"
-        placeholder="Enter your story"></textarea>
+      <div class="editor-wrapper">
+        <ngx-editor-menu [editor]="storyEditor" [toolbar]="toolbar"></ngx-editor-menu>
+        <ngx-editor class="form-editor" [editor]="storyEditor" [(ngModel)]="formAbout.story" name="story"
+          placeholder="Enter your story">
+        </ngx-editor>
+      </div>
     </div>
 
     <div class="form-group">
       <label class="form-label">Values</label>
-      <textarea [(ngModel)]="formAbout.valueText" name="valueText" rows="4" class="form-input"
-        placeholder="Enter your values"></textarea>
+      <div class="editor-wrapper">
+        <ngx-editor-menu [editor]="valueTextEditor" [toolbar]="toolbar"></ngx-editor-menu>
+        <ngx-editor class="form-editor" [editor]="valueTextEditor" [(ngModel)]="formAbout.valueText" name="valueText"
+          placeholder="Enter your values">
+        </ngx-editor>
+      </div>
     </div>
 
     <!-- Image Input -->
@@ -76,10 +92,11 @@
       <tbody>
         <tr *ngFor="let about of aboutList">
           <td>{{ about.id }}</td>
-          <td>{{ about.mission }}</td>
-          <td>{{ about.vision }}</td>
-          <td>{{ about.story }}</td>
-          <td>{{ about.valueText }}</td>
+          <td [innerHTML]="about.mission"></td>
+          <td [innerHTML]="about.vision"></td>
+          <td [innerHTML]="about.story"></td>
+          <td [innerHTML]="about.valueText"></td>
+
           <td><img *ngIf="about.imageUrl" [src]="about.imageUrl" alt="About Us Image" class="about-image" /></td>
           <td>
             <!-- Action Buttons -->

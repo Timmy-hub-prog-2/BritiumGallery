@@ -25,8 +25,15 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Content (HTML/Text)</label>
-        <textarea class="form-input" rows="6" formControlName="content" placeholder="Enter term content"></textarea>
+        <label class="form-label">Content</label>
+        <div class="editor-wrapper">
+          <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+          <ngx-editor class="form-editor"
+                      [editor]="editor"
+                      formControlName="content"
+                      placeholder="Enter your term content...">
+          </ngx-editor>
+        </div>
       </div>
 
       <div class="form-group">
@@ -98,5 +105,4 @@
   <ng-template #noTerms>
     <p>No terms found.</p>
   </ng-template>
-
 </div>

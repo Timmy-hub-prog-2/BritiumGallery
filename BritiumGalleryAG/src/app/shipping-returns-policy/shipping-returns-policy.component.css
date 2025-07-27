@@ -1,9 +1,6 @@
 /* Container */
 .policy-management-container {
-  
   padding: 24px;
-  
-  
   min-height: 100vh;
 }
 
@@ -38,7 +35,7 @@
   color: #666;
 }
 
-/* Form Sections */
+/* Card Sections */
 .card {
   background: white;
   border-radius: 12px;
@@ -83,6 +80,20 @@ textarea {
 
 input[type="file"] {
   margin-bottom: 20px;
+}
+
+/* NgxEditor Styling */
+.editor-wrapper {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: #fff;
+}
+
+.form-editor {
+  min-height: 200px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 15px;
 }
 
 /* Footer Actions */
@@ -181,27 +192,14 @@ form button:hover {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.list-action-btn.edit {
-  color: #1a1a1a;
-}
-
-.list-action-btn.edit:hover {
-  background: #1a1a1a;
-  border-color: #1a1a1a;
-  color: white;
-}
-
-.list-action-btn.delete {
-  color: #1a1a1a;
-}
-
+.list-action-btn.edit:hover,
 .list-action-btn.delete:hover {
   background: #1a1a1a;
   border-color: #1a1a1a;
   color: white;
 }
 
-/* Remove old icon button styles */
+/* Hide unused icon button styles */
 .icon-button {
   display: none;
 }
