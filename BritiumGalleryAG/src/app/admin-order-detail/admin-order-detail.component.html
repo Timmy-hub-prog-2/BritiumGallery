@@ -51,20 +51,105 @@
           <span class="status-dot"></span>
           <span class="status-text">{{ order.status }}</span>
         </div>
-        <div class="status-update-inline-section">
-          <div class="status-update-inline" *ngIf="canChangeStatus()">
-            <ng-container *ngIf="!showStatusForm">
-              <button class="status-update-btn" (click)="showStatusForm = true">Change Status</button>
-            </ng-container>
-            <ng-container *ngIf="showStatusForm">
-              <select [(ngModel)]="nextStatus" class="status-select">
-                <option *ngIf="order.status === 'ACCEPTED'" value="SHIPPED">Shipped</option>
-                <option *ngIf="order.status === 'SHIPPED'" value="DELIVERED">Delivered</option>
-                <option *ngIf="order.status === 'DELIVERED'" value="COMPLETED">Completed</option>
-              </select>
-              <button (click)="submitStatusUpdate()" [disabled]="!nextStatus" class="submit-status-btn">Update</button>
-              <button (click)="showStatusForm = false" class="cancel-status-btn">Cancel</button>
-            </ng-container>
+        <div class="status-update-section" *ngIf="canChangeStatus()">
+          <div class="status-update-card" *ngIf="!showStatusForm">
+            <div class="status-update-header">
+              <div class="status-update-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <div class="status-update-info">
+                <h4>Update Order Status</h4>
+                <p>Change the current status to the next step</p>
+              </div>
+            </div>
+            <button class="status-update-btn" (click)="showStatusForm = true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Change Status
+            </button>
+          </div>
+          
+          <div class="status-form-card" *ngIf="showStatusForm">
+            <div class="status-form-header">
+              <h4>Update Order Status</h4>
+              <p>Select the new status for this order</p>
+            </div>
+            
+            <div class="status-form-content">
+              <div class="status-options">
+                <div class="status-option" *ngIf="order.status === 'ACCEPTED'">
+                  <input type="radio" id="shipped" name="status" value="SHIPPED" [(ngModel)]="nextStatus">
+                  <label for="shipped" class="status-option-label">
+                    <div class="status-option-icon shipped">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M3 3h18v18H3z"/>
+                        <path d="M21 12H3"/>
+                        <path d="M12 3v18"/>
+                      </svg>
+                    </div>
+                    <div class="status-option-text">
+                      <span class="status-option-title">Shipped</span>
+                      <span class="status-option-desc">Order has been shipped to customer</span>
+                    </div>
+                  </label>
+                </div>
+                
+                <div class="status-option" *ngIf="order.status === 'SHIPPED'">
+                  <input type="radio" id="delivered" name="status" value="DELIVERED" [(ngModel)]="nextStatus">
+                  <label for="delivered" class="status-option-label">
+                    <div class="status-option-icon delivered">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22,4 12,14.01 9,11.01"/>
+                      </svg>
+                    </div>
+                    <div class="status-option-text">
+                      <span class="status-option-title">Delivered</span>
+                      <span class="status-option-desc">Order has been delivered to customer</span>
+                    </div>
+                  </label>
+                </div>
+                
+                <div class="status-option" *ngIf="order.status === 'DELIVERED'">
+                  <input type="radio" id="completed" name="status" value="COMPLETED" [(ngModel)]="nextStatus">
+                  <label for="completed" class="status-option-label">
+                    <div class="status-option-icon completed">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22,4 12,14.01 9,11.01"/>
+                      </svg>
+                    </div>
+                    <div class="status-option-text">
+                      <span class="status-option-title">Completed</span>
+                      <span class="status-option-desc">Order has been completed successfully</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="status-form-actions">
+                <button (click)="submitStatusUpdate()" [disabled]="!nextStatus" class="submit-status-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22,4 12,14.01 9,11.01"/>
+                  </svg>
+                  Update Status
+                </button>
+                <button (click)="showStatusForm = false" class="cancel-status-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -298,7 +383,7 @@
                       </div>
                       <div class="pricing-row total">
                         <span class="pricing-label">Subtotal</span>
-                        <span class="pricing-value">MMK {{ item.quantity * item.price | number:'1.0-0' }}</span>
+                         <span class="pricing-value">MMK {{ getItemSubtotal(item) | number:'1.0-0' }}</span>
                       </div>
                     </div>
                   </div>
@@ -341,7 +426,7 @@
               <div class="summary-breakdown">
                 <div class="summary-row">
                   <span class="summary-label">Subtotal</span>
-                  <span class="summary-value">MMK {{ order.subtotal | number:'1.0-0' }}</span>
+                  <span class="summary-value">MMK {{ getTotalSubtotal() | number:'1.0-0' }}</span>
                 </div>
                 
                 <div class="summary-row">
@@ -480,15 +565,15 @@
         <div class="modal-summary">
           <div class="modal-summary-row">
             <span class="summary-label">Total Items</span>
-            <span class="summary-value">{{ order.orderDetails?.length }}</span>
+            <span class="summary-value">{{ getTotalItemsExcludingRefunds() }}</span>
           </div>
           <div class="modal-summary-row">
             <span class="summary-label">Total Quantity</span>
-            <span class="summary-value">{{ getTotalQuantity() }}</span>
+            <span class="summary-value">{{ getTotalQuantityExcludingRefunds() }}</span>
           </div>
           <div class="modal-summary-row total">
             <span class="summary-label">Items Subtotal</span>
-            <span class="summary-value">MMK {{ order.subtotal | number:'1.0-0' }}</span>
+            <span class="summary-value">MMK {{ getTotalSubtotalExcludingRefunds() | number:'1.0-0' }}</span>
           </div>
         </div>
       </div>

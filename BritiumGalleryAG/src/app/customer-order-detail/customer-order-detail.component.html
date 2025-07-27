@@ -92,8 +92,8 @@
       <div class="export-btn-wrapper">
         <button
           (click)="downloadPDF()"
-          [disabled]="order?.status !== 'SHIPPED'"
-          [ngClass]="{ 'export-enabled': order?.status === 'SHIPPED' }"
+          [disabled]="!canExportPDF()"
+          [ngClass]="{ 'export-enabled': canExportPDF() }"
           style="
             display: flex;
             align-items: center;
@@ -383,10 +383,7 @@
                       </div>
                       <div class="pricing-row total">
                         <span class="pricing-label">Subtotal</span>
-                        <span class="pricing-value"
-                          >MMK
-                          {{ getItemSubtotal(item) | number : "1.0-0" }}</span
-                        >
+                        <span class="pricing-value">MMK {{ getItemSubtotal(item) | number:'1.0-0' }}</span>
                       </div>
                     </div>
                   </div>
@@ -612,329 +609,600 @@
         <div class="modal-summary">
           <div class="modal-summary-row">
             <span class="summary-label">Total Items</span>
-            <span class="summary-value">{{ order?.orderDetails?.length }}</span>
+            <span class="summary-value">{{ getTotalItemsExcludingRefunds() }}</span>
           </div>
           <div class="modal-summary-row">
             <span class="summary-label">Total Quantity</span>
-            <span class="summary-value">{{ getTotalQuantity() }}</span>
+            <span class="summary-value">{{ getTotalQuantityExcludingRefunds() }}</span>
           </div>
           <div class="modal-summary-row total">
             <span class="summary-label">Items Subtotal</span>
-            <span class="summary-value"
-              >MMK {{ order?.subtotal | number : "1.0-0" }}</span
-            >
+            <span class="summary-value">MMK {{ getTotalSubtotalExcludingRefunds() | number:'1.0-0' }}</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Hidden simple PDF receipt for export -->
+  <!-- Hidden professional PDF receipt for export -->
   <div
     id="pdf-receipt"
     style="
       position: absolute;
       left: -9999px;
       top: 0;
-      width: 794px;
-      height: 1123px;
-      background: #fff;
-      color: #111;
-      font-family: Arial, Helvetica, sans-serif;
+      width: 850px;
+      height: 800px;
+      background: #ffffff;
+      color: #000000;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       padding: 0;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
+      justify-content: space-between;
+      border: 1px solid #e2e8f0;
     "
   >
-    <!-- Minimalist Invoice Header -->
+    <!-- Professional Header with Logo and Branding -->
     <div
-      style="padding: 64px 56px 0 56px; margin-bottom: 40px; position: relative"
+      style="
+        padding: 20px 30px 12px 30px;
+        background: #000000;
+        color: white;
+        position: relative;
+        flex-shrink: 0;
+      "
     >
       <div
         style="
           display: flex;
-          flex-direction: row;
           align-items: center;
-          gap: 8px;
-          justify-content: flex-start;
+          justify-content: space-between;
+          margin-bottom: 10px;
         "
       >
-        <img
-          src="assets/img/britiumGalleryBlack.png"
-          alt="Britium Gallery Logo"
-          style="height: 48px; width: auto; display: block"
-        />
-        <div
-          style="
-            font-size: 32px;
-            font-weight: 900;
-            letter-spacing: -1px;
-            color: #111;
-            line-height: 1;
-          "
-        >
-          BRITIUM GALLERY
-        </div>
-      </div>
-      <div
-        style="
-          position: absolute;
-          right: 56px;
-          top: 64px;
-          text-align: right;
-          min-width: 260px;
-          font-size: 15px;
-        "
-      >
-        <div>
-          <span style="font-weight: bold; color: #111">ORDER NO.</span> #{{
-            order?.trackingCode
-          }}
-        </div>
-        <div>
-          <span style="font-weight: bold; color: #111">ORDER DATE</span>
-          {{ order?.orderDate | date : "dd MMMM yyyy" }}
-        </div>
-        <div>
-          <span style="font-weight: bold; color: #111">PAYMENT</span>
-          {{ transaction?.paymentMethod || "N/A" }}
-        </div>
-        <div>
-          <span style="font-weight: bold; color: #111">SHIPPING</span>
-          {{ order?.deliveryMethod
-          }}<ng-container *ngIf="order?.deliveryProvider">
-            ({{ order?.deliveryProvider }})</ng-container
-          >
-        </div>
-      </div>
-    </div>
-    <!-- Address Row -->
-    <div
-      style="
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        padding: 32px 56px 0 56px;
-        gap: 48px;
-        margin-top: 40px;
-      "
-    >
-      <div style="flex: 1">
-        <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px">
-          BILL TO
-        </div>
-        <div style="font-size: 15px; font-weight: bold">
-          {{ order?.user?.name }}
-        </div>
-        <div style="font-size: 15px">{{ order?.user?.email }}</div>
-        <div style="font-size: 15px">{{ order?.user?.phoneNumber }}</div>
-        <div style="font-size: 15px">{{ order?.user?.address }}</div>
-      </div>
-      <div style="flex: 1">
-        <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px">
-          SHIP TO
-        </div>
-        <div style="font-size: 15px">
-          {{ order?.deliveryAddress?.houseNumber }}
-          {{ order?.deliveryAddress?.street }}
-        </div>
-        <div style="font-size: 15px">
-          {{ order?.deliveryAddress?.wardName }},
-          {{ order?.deliveryAddress?.township }}
-        </div>
-        <div style="font-size: 15px">
-          {{ order?.deliveryAddress?.city }},
-          {{ order?.deliveryAddress?.state }},
-          {{ order?.deliveryAddress?.country }}
-        </div>
-        <div style="font-size: 15px">
-          {{ order?.deliveryAddress?.phoneNumber }}
-        </div>
-      </div>
-    </div>
-    <!-- Item Table -->
-    <div style="padding: 32px 56px 0 56px">
-      <table
-        style="
-          width: 100%;
-          font-size: 15px;
-          color: #111;
-          background: #fff;
-          border-collapse: collapse;
-          border: none;
-          box-shadow: none;
-          margin-bottom: 24px;
-        "
-      >
-        <thead>
-          <tr
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div
             style="
-              background: transparent;
-              color: #111;
-              font-weight: bold;
-              border-bottom: 2px solid #000;
+              width: 36px;
+              height: 36px;
+              background: white;
+              border-radius: 6px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             "
           >
-            <th style="padding: 8px 0; text-align: left">ITEM</th>
-            <th style="padding: 8px 0; text-align: center">QTY</th>
-            <th style="padding: 8px 0; text-align: right">PRICE</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            *ngFor="let item of order?.orderDetails"
-            style="margin-bottom: 12px"
+            <img
+              src="assets/img/britiumGalleryBlack.png"
+              alt="Britium Gallery"
+              style="width: 28px; height: auto;"
+            />
+          </div>
+          <div>
+            <div
+              style="
+                font-size: 16px;
+                font-weight: 700;
+                margin-bottom: 1px;
+              "
+            >
+              BRITIUM GALLERY
+            </div>
+            <div
+              style="
+                font-size: 10px;
+                opacity: 0.8;
+                font-weight: 500;
+              "
+            >
+              Premium Fashion & Lifestyle
+            </div>
+          </div>
+        </div>
+        
+        <div style="text-align: right;">
+          <div
+            style="
+              font-size: 9px;
+              opacity: 0.8;
+              margin-bottom: 1px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            "
           >
-            <td>
-              <div style="font-weight: bold">
-                {{ item.variant?.productName }}
-              </div>
-              <div
-                *ngIf="item.variant?.attributes"
-                style="font-size: 12px; color: #111; margin-top: 2px"
-              >
-                <span
-                  *ngFor="
-                    let attr of item.variant.attributes | keyvalue;
-                    let last = last
-                  "
-                >
-                  {{ attr.key }}: {{ attr.value }}<span *ngIf="!last">, </span>
-                </span>
-              </div>
-            </td>
-            <td style="text-align: center">{{ item.quantity }}</td>
-            <td style="text-align: right">
-              <ng-container
-                *ngIf="
-                  getDiscountedPrice(item) < item.price;
-                  else noDiscountPrice
+            Order Receipt
+          </div>
+          <div
+            style="
+              font-size: 14px;
+              font-weight: 700;
+              margin-bottom: 2px;
+            "
+          >
+            #{{ order?.trackingCode }}
+          </div>
+          <div
+            style="
+              font-size: 10px;
+              opacity: 0.8;
+            "
+          >
+            {{ order?.orderDate | date : "dd MMMM yyyy" }}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Order Status Badge -->
+      <div
+        style="
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 8px;
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 12px;
+          font-size: 8px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        "
+      >
+        <div
+          style="
+            width: 4px;
+            height: 4px;
+            background: #10b981;
+            border-radius: 50%;
+          "
+        ></div>
+        {{ order?.status }}
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative;">
+      <!-- Customer & Order Information -->
+      <div
+        style="
+          padding: 12px 30px 12px 30px;
+          background: white;
+          border-bottom: 1px solid #e2e8f0;
+          flex-shrink: 0;
+        "
+      >
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+          "
+        >
+          <!-- Customer Information -->
+          <div>
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                color: #4a5568;
+                margin-bottom: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              "
+            >
+              Customer Information
+            </div>
+            <div
+              style="
+                font-size: 11px;
+                font-weight: 600;
+                margin-bottom: 3px;
+              "
+            >
+              {{ order?.user?.name }}
+            </div>
+            <div
+              style="
+                font-size: 10px;
+                color: #718096;
+                margin-bottom: 1px;
+              "
+            >
+              {{ order?.user?.email }}
+            </div>
+            <div
+              style="
+                font-size: 10px;
+                color: #718096;
+                margin-bottom: 1px;
+              "
+            >
+              {{ order?.user?.phoneNumber }}
+            </div>
+          </div>
+          
+          <!-- Order Details -->
+          <div>
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                color: #4a5568;
+                margin-bottom: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              "
+            >
+              Order Details
+            </div>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: auto 1fr;
+                gap: 6px;
+                font-size: 10px;
+              "
+            >
+              <div style="color: #718096; font-weight: 500;">Payment:</div>
+              <div style="font-weight: 600;">{{ transaction?.paymentMethod || 'N/A' }}</div>
+              
+              <div style="color: #718096; font-weight: 500;">Delivery:</div>
+              <div style="font-weight: 600;">{{ order?.deliveryMethod }} - {{ order?.deliveryProvider }}</div>
+              
+              <div style="color: #718096; font-weight: 500;">Date:</div>
+              <div style="font-weight: 600;">{{ order?.orderDate | date : "dd MMMM yyyy" }}</div>
+              
+              <div style="color: #718096; font-weight: 500;">Status:</div>
+              <div style="font-weight: 600;">{{ order?.status }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Address -->
+      <div
+        style="
+          padding: 10px 30px 10px 30px;
+          background: #f7fafc;
+          border-bottom: 1px solid #e2e8f0;
+          flex-shrink: 0;
+        "
+      >
+        <div
+          style="
+            font-size: 10px;
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+        >
+          Delivery Address
+        </div>
+        <div
+          style="
+            font-size: 10px;
+            line-height: 1.3;
+            color: #2d3748;
+          "
+        >
+          {{ order?.deliveryAddress?.houseNumber }}, {{ order?.deliveryAddress?.street }}, {{ order?.deliveryAddress?.wardName }}, {{ order?.deliveryAddress?.township }}, {{ order?.deliveryAddress?.city }}, {{ order?.deliveryAddress?.state }}, {{ order?.deliveryAddress?.country }}
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div style="padding: 12px 30px 0px 30px; flex: 1; min-height: 0;">
+        <div
+          style="
+            font-size: 12px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+          "
+        >
+          Order Items
+        </div>
+        
+        <table
+          style="
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+          "
+        >
+          <thead>
+            <tr
+              style="
+                background: #f7fafc;
+                border-bottom: 1px solid #e2e8f0;
+              "
+            >
+              <th
+                style="
+                  padding: 8px 0;
+                  text-align: left;
+                  font-weight: 700;
+                  color: #4a5568;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  font-size: 8px;
+                  width: 40%;
                 "
               >
-                <div>
+                Item
+              </th>
+              <th
+                style="
+                  padding: 8px 0;
+                  text-align: center;
+                  font-weight: 700;
+                  color: #4a5568;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  font-size: 8px;
+                  width: 15%;
+                "
+              >
+                Qty
+              </th>
+              <th
+                style="
+                  padding: 8px 0;
+                  text-align: right;
+                  font-weight: 700;
+                  color: #4a5568;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  font-size: 8px;
+                  width: 20%;
+                "
+              >
+                Price
+              </th>
+              <th
+                style="
+                  padding: 8px 0;
+                  text-align: right;
+                  font-weight: 700;
+                  color: #4a5568;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  font-size: 8px;
+                  width: 25%;
+                "
+              >
+                Total
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let item of order?.orderDetails; let i = index"
+              style="border-bottom: 1px solid #f1f5f9;"
+              [ngStyle]="{'display': item.isRefunded ? 'none' : 'table-row'}"
+            >
+              <td style="padding: 8px 0;">
+                <div
+                  style="
+                    font-weight: 600;
+                    color: #2d3748;
+                    margin-bottom: 1px;
+                    font-size: 9px;
+                  "
+                >
+                  {{ item.variant?.productName }}
+                </div>
+                <div
+                  *ngIf="item.variant?.attributes"
+                  style="
+                    font-size: 8px;
+                    color: #718096;
+                  "
+                >
                   <span
-                    style="
-                      text-decoration: line-through;
-                      color: #888;
-                      font-size: 14px;
+                    *ngFor="
+                      let attr of item.variant.attributes | keyvalue;
+                      let last = last
                     "
                   >
-                    MMK {{ item.price | number : "1.0-0" }}
-                  </span>
-                  <span
-                    *ngIf="item.discountPercent"
-                    style="color: #888; font-size: 13px; margin-left: 4px"
-                  >
-                    ({{ item.discountPercent }}%)
+                    {{ attr.key }}: {{ attr.value }}<span *ngIf="!last">, </span>
                   </span>
                 </div>
                 <div
+                  *ngIf="item.variant?.sku"
                   style="
-                    font-weight: bold;
-                    color: #111;
-                    font-size: 15px;
-                    margin-top: 2px;
+                    font-size: 8px;
+                    color: #a0aec0;
+                    margin-top: 1px;
                   "
                 >
-                  MMK {{ getDiscountedPrice(item) | number : "1.0-0" }}
+                  SKU: {{ item.variant.sku }}
                 </div>
-              </ng-container>
-              <ng-template #noDiscountPrice>
-                MMK {{ item.price | number : "1.0-0" }}
-              </ng-template>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- Totals Section (no notes) -->
-    <div
-      style="
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-end;
-        align-items: flex-start;
-        padding: 0 56px 0 56px;
-        gap: 48px;
-      "
-    >
-      <div style="flex: 1"></div>
-      <div style="flex: 1; max-width: 320px">
+              </td>
+              <td style="padding: 8px 0; text-align: center; font-weight: 600; font-size: 9px;">
+                {{ item.quantity }}
+              </td>
+              <td style="padding: 8px 0; text-align: right;">
+                <ng-container
+                  *ngIf="
+                    getDiscountedPrice(item) < item.price;
+                    else noDiscountPrice
+                  "
+                >
+                  <div
+                    style="
+                      text-decoration: line-through;
+                      color: #a0aec0;
+                      font-size: 8px;
+                      margin-bottom: 1px;
+                    "
+                  >
+                    MMK {{ item.price | number : "1.0-0" }}
+                  </div>
+                  <div
+                    style="
+                      font-weight: 600;
+                      color: #2d3748;
+                      font-size: 9px;
+                    "
+                  >
+                    MMK {{ getDiscountedPrice(item) | number : "1.0-0" }}
+                  </div>
+                </ng-container>
+                <ng-template #noDiscountPrice>
+                  <div style="font-weight: 600; color: #2d3748; font-size: 9px;">
+                    MMK {{ item.price | number : "1.0-0" }}
+                  </div>
+                </ng-template>
+              </td>
+              <td style="padding: 8px 0; text-align: right; font-weight: 700; font-size: 9px;">
+                MMK {{ getItemSubtotal(item) | number : "1.0-0" }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Order Summary -->
+      <div
+        style="
+          padding: 12px 30px 12px 30px;
+          background: #f7fafc;
+          border-top: 1px solid #e2e8f0;
+          flex-shrink: 0;
+          margin-top: 0;
+        "
+      >
         <div
           style="
             display: flex;
-            justify-content: space-between;
-            font-size: 15px;
-            margin-bottom: 6px;
+            justify-content: flex-end;
           "
         >
-          <span>Subtotal</span
-          ><span>MMK {{ order?.subtotal | number : "1.0-0" }}</span>
-        </div>
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            font-size: 15px;
-            margin-bottom: 6px;
-          "
-        >
-          <span>Deli Fees</span
-          ><span>MMK {{ order?.deliveryFee | number : "1.0-0" }}</span>
-        </div>
-        <div
-          *ngIf="order?.couponCode"
-          style="
-            display: flex;
-            justify-content: space-between;
-            font-size: 15px;
-            margin-bottom: 6px;
-          "
-        >
-          <span>Coupon</span>
-          <span>
-            {{ order?.couponCode }}
-            <ng-container *ngIf="order?.discountAmount > 0"
-              >-MMK {{ order?.discountAmount | number : "1.0-0" }}</ng-container
+          <div
+            style="
+              width: 280px;
+              padding-right: 0px;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px;
+                font-size: 10px;
+              "
             >
-          </span>
-        </div>
-        <div style="height: 2px; background: #000; margin: 12px 0"></div>
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-          "
-        >
-          <span
-            style="font-size: 22px; font-weight: bold; letter-spacing: 0.5px"
-            >Total</span
-          >
-          <span style="font-size: 28px; font-weight: bold; letter-spacing: 1px"
-            >MMK {{ order?.total | number : "1.0-0" }}</span
-          >
+              <span style="color: #4a5568;">Subtotal</span>
+              <span style="font-weight: 600;">MMK {{ getTotalSubtotalExcludingRefunds() | number : "1.0-0" }}</span>
+            </div>
+            
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px;
+                font-size: 10px;
+              "
+            >
+              <span style="color: #4a5568;">Delivery Fee</span>
+              <span style="font-weight: 600;">MMK {{ order?.deliveryFee | number : "1.0-0" }}</span>
+            </div>
+            
+            <div
+              *ngIf="order?.couponCode"
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px;
+                font-size: 10px;
+              "
+            >
+              <span style="color: #4a5568;">Coupon ({{ order?.couponCode }})</span>
+              <span style="font-weight: 600; color: #e53e3e;">
+                -MMK {{ order?.discountAmount | number : "1.0-0" }}
+              </span>
+            </div>
+            
+            <div
+              *ngIf="order?.discountAmount > 0 && !order?.couponCode"
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px;
+                font-size: 10px;
+              "
+            >
+              <span style="color: #4a5568;">Discount</span>
+              <span style="font-weight: 600; color: #e53e3e;">
+                -MMK {{ order?.discountAmount | number : "1.0-0" }}
+              </span>
+            </div>
+            
+            <div
+              style="
+                height: 1px;
+                background: #e2e8f0;
+                margin: 8px 0;
+              "
+            ></div>
+            
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 14px;
+                font-weight: 700;
+                color: #2d3748;
+              "
+            >
+              <span>Total Amount</span>
+              <span>MMK {{ getTotalAmountExcludingRefunds() | number : "1.0-0" }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <!-- Footer: Only thank you and website, centered at the very bottom -->
+
+    <!-- Footer -->
     <div
       style="
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 48px;
+        padding: 12px 30px;
+        background: #000000;
+        color: white;
         text-align: center;
-        color: #111;
+        flex-shrink: 0;
       "
     >
-      <div style="font-size: 22px; font-weight: bold; margin-bottom: 8px">
-        THANK YOU FOR YOUR ORDER!
+      <div
+        style="
+          font-size: 12px;
+          font-weight: 700;
+          margin-bottom: 4px;
+        "
+      >
+        Thank You for Your Order!
       </div>
-      <div style="font-size: 13px; font-weight: 500">
+      <div
+        style="
+          font-size: 9px;
+          opacity: 0.8;
+          margin-bottom: 8px;
+        "
+      >
+        We appreciate your business and hope you enjoy your purchase.
+      </div>
+      <div
+        style="
+          font-size: 8px;
+          opacity: 0.6;
+          font-weight: 500;
+        "
+      >
         www.britiumgallery.com
       </div>
     </div>

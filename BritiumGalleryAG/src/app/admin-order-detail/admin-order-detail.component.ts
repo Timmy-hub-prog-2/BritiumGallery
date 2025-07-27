@@ -175,7 +175,38 @@ export class AdminOrderDetailComponent implements OnInit {
   }
 
   getItemSubtotal(item: any): number {
-    return item.quantity * this.getDiscountedPrice(item);
+    if (this.hasDiscount(item)) {
+      return item.quantity * this.getDiscountedPrice(item);
+    }
+    return item.quantity * item.price;
+  }
+
+  getTotalSubtotal(): number {
+    if (!this.order || !this.order.orderDetails) return 0;
+    return this.order.orderDetails.reduce((sum: number, item: any) => {
+      return sum + this.getItemSubtotal(item);
+    }, 0);
+  }
+
+  getTotalItemsExcludingRefunds(): number {
+    if (!this.order || !this.order.orderDetails) return 0;
+    return this.order.orderDetails.filter((item: any) => !item.isRefunded).length;
+  }
+
+  getTotalQuantityExcludingRefunds(): number {
+    if (!this.order || !this.order.orderDetails) return 0;
+    return this.order.orderDetails
+      .filter((item: any) => !item.isRefunded)
+      .reduce((sum: number, item: any) => sum + item.quantity, 0);
+  }
+
+  getTotalSubtotalExcludingRefunds(): number {
+    if (!this.order || !this.order.orderDetails) return 0;
+    return this.order.orderDetails
+      .filter((item: any) => !item.isRefunded)
+      .reduce((sum: number, item: any) => {
+        return sum + this.getItemSubtotal(item);
+      }, 0);
   }
 
 }

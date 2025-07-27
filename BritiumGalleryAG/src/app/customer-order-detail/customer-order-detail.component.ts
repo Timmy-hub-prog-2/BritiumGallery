@@ -220,6 +220,42 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
     return item.quantity * this.getDiscountedPrice(item);
   }
 
+  getTotalSubtotal(): number {
+    if (!this.order || !this.order.orderDetails) return 0;
+    return this.order.orderDetails.reduce((sum: number, item: any) => {
+      return sum + this.getItemSubtotal(item);
+    }, 0);
+  }
+
+  getTotalItemsExcludingRefunds(): number {
+    if (!this.order || !this.order.orderDetails) return 0;
+    return this.order.orderDetails.filter((item: any) => !item.isRefunded).length;
+  }
+
+  getTotalQuantityExcludingRefunds(): number {
+    if (!this.order || !this.order.orderDetails) return 0;
+    return this.order.orderDetails
+      .filter((item: any) => !item.isRefunded)
+      .reduce((sum: number, item: any) => sum + item.quantity, 0);
+  }
+
+  getTotalSubtotalExcludingRefunds(): number {
+    if (!this.order || !this.order.orderDetails) return 0;
+    return this.order.orderDetails
+      .filter((item: any) => !item.isRefunded)
+      .reduce((sum: number, item: any) => {
+        return sum + this.getItemSubtotal(item);
+      }, 0);
+  }
+
+  getTotalAmountExcludingRefunds(): number {
+    if (!this.order) return 0;
+    const subtotalExcludingRefunds = this.getTotalSubtotalExcludingRefunds();
+    const deliveryFee = this.order.deliveryFee || 0;
+    const discountAmount = this.order.discountAmount || 0;
+    return subtotalExcludingRefunds + deliveryFee - discountAmount;
+  }
+
   getReceiptSummary(): string {
     if (!this.order) return '';
     // Set up columns for perfect alignment: label left, value right
@@ -254,34 +290,99 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
     return lines.join('\n');
   }
 
-  downloadPDF() {
-    if (!this.order || this.order.status !== 'SHIPPED') {
+  async downloadPDF() {
+    console.log('Download PDF clicked');
+    console.log('Order status:', this.order?.status);
+    console.log('Can export PDF:', this.canExportPDF());
+    
+    if (!this.order || !this.canExportPDF()) {
+      alert('PDF download is only available for shipped, delivered, or completed orders.');
       return;
     }
-    const element = document.getElementById('pdf-receipt') as HTMLElement;
-    if (!element) return;
-    import('html2canvas').then(({ default: html2canvas }) => {
-      html2canvas(element, { backgroundColor: null }).then((canvas) => {
-        // Get the size of the receipt in pixels
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
 
-        // Convert px to mm (1px = 0.264583 mm)
-        const pdfWidth = imgWidth * 0.264583;
-        const pdfHeight = imgHeight * 0.264583;
+    try {
+      const element = document.getElementById('pdf-receipt') as HTMLElement;
+      if (!element) {
+        console.error('PDF receipt element not found');
+        alert('PDF receipt element not found. Please try refreshing the page.');
+        return;
+      }
 
-        const contentDataURL = canvas.toDataURL('image/png');
-        import('jspdf').then(({ default: jsPDF }) => {
-          // Set PDF size to match receipt
-          let pdf = new jsPDF({
-            orientation: pdfWidth > pdfHeight ? 'l' : 'p',
-            unit: 'mm',
-            format: [pdfWidth, pdfHeight],
-          });
-          pdf.addImage(contentDataURL, 'PNG', 0, 0, pdfWidth, pdfHeight);
-          pdf.save(`order-receipt-${this.order.trackingCode}.pdf`);
-        });
+      console.log('PDF element found, starting generation...');
+
+      // Show loading state
+      const exportBtn = document.querySelector('.export-btn-wrapper button') as HTMLButtonElement;
+      if (exportBtn) {
+        exportBtn.disabled = true;
+        exportBtn.textContent = 'Generating PDF...';
+      }
+
+      console.log('Loading html2canvas...');
+      const html2canvas = (await import('html2canvas')).default;
+      console.log('Loading jsPDF...');
+      const jsPDF = (await import('jspdf')).default;
+
+      console.log('Generating canvas...');
+      const canvas = await html2canvas(element, { 
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        width: 850, // Match the HTML container width
+        height: 800  // Match the HTML container height
       });
-    });
+
+      console.log('Canvas generated, creating PDF...');
+
+      // Calculate PDF dimensions to fit the content properly
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Use standard A4 size to ensure all content fits
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Add the image to fit the page width, let height adjust
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+
+      console.log('PDF created, saving...');
+      // Save the PDF
+      pdf.save(`order-receipt-${this.order.trackingCode}.pdf`);
+      console.log('PDF saved successfully!');
+
+      // Reset button state
+      if (exportBtn) {
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = `
+          Export
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        `;
+      }
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again. Check console for details.');
+      
+      // Reset button state on error
+      const exportBtn = document.querySelector('.export-btn-wrapper button') as HTMLButtonElement;
+      if (exportBtn) {
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = `
+          Export
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle">
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        `;
+      }
+    }
+  }
+
+  canExportPDF(): boolean {
+    if (!this.order || !this.order.status) return false;
+    const allowedStatuses = ['SHIPPED', 'DELIVERED', 'COMPLETED'];
+    return allowedStatuses.includes(this.order.status.toUpperCase());
   }
 }
