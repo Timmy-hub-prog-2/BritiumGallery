@@ -49,6 +49,16 @@ public List<DeliveryDTO> getAllDeliveryTypes() {
     return deliveryService.getAllDeliveries();
 }
 
+@GetMapping("/types/{deliveryType}")
+public List<DeliveryDTO> getDeliveriesByType(@PathVariable String deliveryType) {
+    return deliveryService.getDeliveriesByType(deliveryType);
+}
+
+@GetMapping("/types/{deliveryType}/speeds/{speedType}")
+public DeliveryDTO getDeliveryByTypeAndSpeed(@PathVariable String deliveryType, @PathVariable String speedType) {
+    return deliveryService.getDeliveryByTypeAndSpeed(deliveryType, speedType);
+}
+
     @PostMapping("/calculate-fee")
     public ResponseEntity<DeliveryFeeResponseDTO> calculate(@RequestBody DeliveryFeeRequestDTO dto) {
         DeliveryFeeResponseDTO response = deliveryService.calculateFee(dto);

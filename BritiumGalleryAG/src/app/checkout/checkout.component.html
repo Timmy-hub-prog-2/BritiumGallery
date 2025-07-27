@@ -1,4 +1,11 @@
 <div class="checkout-container">
+  <!-- Header Section -->
+  <div class="checkout-header">
+    <div class="header-content">
+      <h1 class="main-title">Complete Your Order</h1>
+      <p class="main-subtitle">Secure checkout with multiple payment options</p>
+    </div>
+  </div>
 
   <div class="checkout-content">
     <!-- LEFT SIDE: Checkout Form -->
@@ -8,7 +15,9 @@
         <!-- Contact Information -->
         <div class="form-card">
           <div class="card-header">
-            <div class="step-number"><i class="fa fa-user"></i></div>
+            <div class="step-number">
+              <i class="fa fa-user"></i>
+            </div>
             <div class="step-info">
               <h2 class="step-title">Contact Information</h2>
               <p class="step-subtitle">Your personal details</p>
@@ -23,7 +32,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="email" class="form-label">Email</label>
+                <label for="email" class="form-label">Email Address</label>
                 <input id="email" [value]="checkoutForm.get('email')?.value" disabled class="form-input disabled" placeholder="Email" />
               </div>
               <div class="form-group">
@@ -37,7 +46,9 @@
         <!-- Shipping Address -->
         <div class="form-card">
           <div class="card-header">
-            <div class="step-number"><i class="fa fa-location-dot"></i></div>
+            <div class="step-number">
+              <i class="fa fa-location-dot"></i>
+            </div>
             <div class="step-info">
               <h2 class="step-title">Delivery Address</h2>
               <p class="step-subtitle">Where should we deliver your order?</p>
@@ -59,81 +70,131 @@
             <div class="form-group">
               <button type="button" class="address-toggle-btn" (click)="openAddressModal()">
                 <i class="fa fa-map-marker-alt"></i>
-                Show All Addresses
+                Manage All Addresses
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Shipping Method -->
+        <!-- Delivery Method -->
         <div class="form-card">
           <div class="card-header">
-            <div class="step-number"><i class="fa fa-truck"></i></div>
+            <div class="step-number">
+              <i class="fa fa-truck"></i>
+            </div>
             <div class="step-info">
-              <h2 class="step-title">Shipping Method</h2>
+              <h2 class="step-title">Delivery Method</h2>
               <p class="step-subtitle">Choose your preferred delivery speed</p>
             </div>
           </div>
 
           <div class="form-content">
+            <!-- Delivery Type Selection -->
             <div class="form-group">
-              <label for="shippingMethod" class="form-label">Choose Shipping Method</label>
-              <select id="shippingMethod" formControlName="shippingMethod" class="form-select">
-                <option value="Standard" [disabled]="suggestedMethod !== 'Standard'">
-                   Standard Shipping 
-                </option>
-                <option value="Express" [disabled]="suggestedMethod !== 'Express'">
-                   Express Shipping 
-                </option>
-                <option value="Ship" [disabled]="suggestedMethod !== 'Ship'">
-                   Ship Shipping 
-                </option>
-                <option *ngIf="!suggestedMethod" disabled selected>No shipping method available</option>
-              </select>
-              <div *ngIf="suggestedMethod">
-                <small>Suggested: {{ suggestedMethod }} Shipping</small>
+              <label for="deliveryType" class="form-label">Delivery Type</label>
+              <div class="delivery-type-selector">
+                <div class="delivery-option" 
+                     [class.selected]="checkoutForm.get('deliveryType')?.value === 'standard'"
+                     [class.disabled]="suggestedMethod !== 'standard'"
+                     (click)="checkoutForm.patchValue({deliveryType: 'standard'})">
+                  <div class="delivery-icon">
+                    <i class="fa fa-truck"></i>
+                  </div>
+                  <div class="delivery-info">
+                    <h4>Standard Delivery</h4>
+                    <p>Same city delivery</p>
+                  </div>
+                </div>
+                
+                <div class="delivery-option" 
+                     [class.selected]="checkoutForm.get('deliveryType')?.value === 'express'"
+                     [class.disabled]="suggestedMethod !== 'express'"
+                     (click)="checkoutForm.patchValue({deliveryType: 'express'})">
+                  <div class="delivery-icon">
+                    <i class="fa fa-bolt"></i>
+                  </div>
+                  <div class="delivery-info">
+                    <h4>Express Delivery</h4>
+                    <p>Inter-city delivery</p>
+                  </div>
+                </div>
+                
+                <div class="delivery-option" 
+                     [class.selected]="checkoutForm.get('deliveryType')?.value === 'ship'"
+                     [class.disabled]="suggestedMethod !== 'ship'"
+                     (click)="checkoutForm.patchValue({deliveryType: 'ship'})">
+                  <div class="delivery-icon">
+                    <i class="fa fa-ship"></i>
+                  </div>
+                  <div class="delivery-info">
+                    <h4>Ship Delivery</h4>
+                    <p>International delivery</p>
+                  </div>
+                </div>
               </div>
-              <div *ngIf="!suggestedMethod">
-                <small class="text-danger">No shipping method could be suggested. Please check your address or try again.</small>
+              
+              <div *ngIf="suggestedMethod" class="suggestion-badge">
+                <i class="fa fa-lightbulb"></i>
+                Suggested: {{ suggestedMethod.charAt(0).toUpperCase() + suggestedMethod.slice(1) }} Delivery
               </div>
             </div>
 
-            <!-- Auto-selected Shipping Notice -->
+            <!-- Auto-selected Delivery Notice -->
             <div class="form-group" *ngIf="methodAutoChanged">
               <div class="shipping-notice">
                 <i class="fa fa-info-circle notice-icon"></i>
                 <span class="notice-text">
-                  Delivery method changed to <strong>{{ checkoutForm.get('shippingMethod')?.value }}</strong>
+                  Delivery method changed to <strong>{{ (checkoutForm.get('deliveryType')?.value || '').charAt(0).toUpperCase() + (checkoutForm.get('deliveryType')?.value || '').slice(1) }}</strong>
                   based on your address distance.
                 </span>
               </div>
             </div>
 
-            <!-- Standard Provider -->
-            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Standard'">
-              <label for="standardName" class="form-label">Choose Standard Provider</label>
-              <select id="standardName" formControlName="standardName" class="form-select">
-                <option value="" disabled>Select a provider</option>
-                <option *ngFor="let standard of standardOptions" [value]="standard.name">{{ standard.name }}</option>
-              </select>
+            <!-- Speed Type Selection -->
+            <div class="form-group" *ngIf="getAvailableSpeedTypes().length > 0">
+              <label class="form-label">Speed Options</label>
+              <div class="speed-options">
+                <div *ngFor="let option of getAvailableSpeedTypes()" 
+                     class="speed-option" 
+                     [class.selected]="checkoutForm.get('speedType')?.value === option.speedType"
+                     (click)="checkoutForm.patchValue({speedType: option.speedType})">
+                  <div class="speed-icon">
+                    <i [class]="getDeliveryIconClass(option.deliveryType || '', option.speedType || '')"></i>
+                  </div>
+                  <div class="speed-info">
+                    <div class="speed-name">{{ getDeliveryDisplayName(option) }}</div>
+                    <div class="speed-description">{{ getDeliveryDescription(option) }}</div>
+                  </div>
+                  <div class="speed-price" *ngIf="calculatedDistance > 0">
+                    <div class="price-amount">{{ calculateFeeForOption(option) | number:'1.0-0' }} MMK</div>
+                    <div class="distance-info">{{ calculatedDistance | number:'1.1' }} km</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Express Provider -->
-            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Express'">
-              <label for="expressName" class="form-label">Choose Express Provider</label>
-              <select id="expressName" formControlName="expressName" class="form-select">
-                <option value="" disabled>Select a provider</option>
-                <option *ngFor="let express of expressOptions" [value]="express.name">{{ express.name }}</option>
-              </select>
-            </div>
-
-            <!-- Ship Provider -->
-            <div class="form-group" *ngIf="checkoutForm.get('shippingMethod')?.value === 'Ship'">
-              <label for="shipName" class="form-label">Choose Ship Provider</label>
-              <select id="shipName" formControlName="shipName" class="form-select">
-                <option value="" disabled>Select a provider</option>
-                <option *ngFor="let ship of shipOptions" [value]="ship.name">{{ ship.name }}</option>
-              </select>
+            <!-- Delivery Information -->
+            <div class="form-group" *ngIf="selectedDelayRange && calculatedDistance > 0">
+              <div class="delivery-info">
+                <div class="info-header">
+                  <i class="fa fa-info-circle"></i>
+                  <span>Delivery Summary</span>
+                </div>
+                <div class="info-content">
+                  <div class="info-row">
+                    <span class="info-label">Distance:</span>
+                    <span class="info-value">{{ calculatedDistance | number:'1.1' }} km</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Estimated Delivery:</span>
+                    <span class="info-value">{{ selectedDelayRange }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Delivery Fee:</span>
+                    <span class="info-value fee">{{ deliveryFee | number:'1.0-0' }} MMK</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -148,80 +209,87 @@
     <!-- RIGHT SIDE: Summary -->
     <div class="cart-summary-section">
       <!-- Promo Code -->
-    <div class="summary-card promo-card">
-      <div class="card-header-small">
-        <div class="promo-icon"><i class="fa fa-tag"></i></div>
-        <div>
-          <h3 class="card-title">Promo Code</h3>
-          <p class="card-subtitle">Apply discount code</p>
-        </div>
-      </div>
-      <div class="promo-input-group">
-        <input type="text" [(ngModel)]="promoCode" placeholder="Enter discount code" class="promo-input">
-        <button class="apply-btn" (click)="applyPromo()">Apply Code</button>
-      </div>
-      <!-- Feedback messages -->
-      <p class="text-success" *ngIf="couponSuccess">
-        Coupon applied.
-        <span *ngIf="discountType === 'Percentage'">
-          Discount: {{ discountValue }}% (MMK {{ appliedDiscount | number:'1.0-0' }})
-        </span>
-        <span *ngIf="discountType === 'Fixed Amount'">
-          Discount: MMK {{ appliedDiscount | number:'1.0-0' }}
-        </span>
-      </p>
-      <p class="text-danger" *ngIf="couponError">{{ couponError }}</p>
-    </div>
-
-    <!-- Order Summary -->
-    <div class="summary-card order-summary-card">
-      <div class="card-header-small">
-        <div class="summary-icon"><i class="fa fa-cart-shopping"></i></div>
-        <div>
-          <h3 class="card-title">Cart Summary</h3>
-          <p class="card-subtitle">Review your items</p>
-        </div>
-      </div>
-      
-      <div class="summary-content">
-        <div class="summary-row">
-          <span class="summary-label">Subtotal</span>
-          <span class="summary-value">MMK {{ getSubtotal() | number:'1.0-0' }}</span>
-        </div>
-        <div class="summary-row text-success" *ngIf="appliedDiscount > 0">
-          <span class="summary-label">Discount</span>
-          <span class="summary-value">
-            <ng-container *ngIf="discountType === 'Percentage'">
-              - {{ discountValue }}% (MMK {{ appliedDiscount | number:'1.0-0' }})
-            </ng-container>
-            <ng-container *ngIf="discountType === 'Fixed Amount'">
-              - MMK {{ appliedDiscount | number:'1.0-0' }}
-            </ng-container>
-          </span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">Items</span>
-          <span class="summary-badge">{{ getTotalItems() }} items</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">Delivery Fee</span>
-          <span class="summary-value">MMK {{ deliveryFee | number:'1.0-0' }}</span>
-        </div>
-        <div class="summary-row" *ngIf="selectedDelayRange && checkoutForm.get(shippingMethodProviderField())?.value">
-          <span class="summary-label">Estimated Delivery</span>
-          <span class="summary-value">{{ selectedDelayRange }}</span>
-        </div>
-        <div class="summary-total">
-          <div class="total-row">
-            <span class="total-label">Total</span>
-            <span class="total-value">MMK {{ getTotalCost() | number:'1.0-0' }}</span>
+      <div class="summary-card promo-card">
+        <div class="card-header-small">
+          <div class="promo-icon">
+            <i class="fa fa-tag"></i>
+          </div>
+          <div>
+            <h3 class="card-title">Promo Code</h3>
+            <p class="card-subtitle">Apply discount code</p>
           </div>
         </div>
+        <div class="promo-input-group">
+          <input type="text" [(ngModel)]="promoCode" placeholder="Enter discount code" class="promo-input">
+          <button class="apply-btn" (click)="applyPromo()">Apply Code</button>
+        </div>
+        <!-- Feedback messages -->
+        <p class="text-success" *ngIf="couponSuccess">
+          Coupon applied.
+          <span *ngIf="discountType === 'Percentage'">
+            Discount: {{ discountValue }}% (MMK {{ appliedDiscount | number:'1.0-0' }})
+          </span>
+          <span *ngIf="discountType === 'Fixed Amount'">
+            Discount: MMK {{ appliedDiscount | number:'1.0-0' }}
+          </span>
+        </p>
+        <p class="text-danger" *ngIf="couponError">{{ couponError }}</p>
       </div>
-      <div style="margin-top: 16px; text-align: right;">
-        <a href="#" (click)="$event.preventDefault(); showOrderItemsModal = true;">View Cart Items</a>
+
+      <!-- Order Summary -->
+      <div class="summary-card order-summary-card">
+        <div class="card-header-small">
+          <div class="summary-icon">
+            <i class="fa fa-cart-shopping"></i>
+          </div>
+          <div>
+            <h3 class="card-title">Order Summary</h3>
+            <p class="card-subtitle">Review your items</p>
+          </div>
+        </div>
+        
+        <div class="summary-content">
+          <div class="summary-row">
+            <span class="summary-label">Subtotal</span>
+            <span class="summary-value">MMK {{ getSubtotal() | number:'1.0-0' }}</span>
+          </div>
+          <div class="summary-row text-success" *ngIf="appliedDiscount > 0">
+            <span class="summary-label">Discount</span>
+            <span class="summary-value">
+              <ng-container *ngIf="discountType === 'Percentage'">
+                - {{ discountValue }}% (MMK {{ appliedDiscount | number:'1.0-0' }})
+              </ng-container>
+              <ng-container *ngIf="discountType === 'Fixed Amount'">
+                - MMK {{ appliedDiscount | number:'1.0-0' }}
+              </ng-container>
+            </span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Items</span>
+            <span class="summary-badge">{{ getTotalItems() }} items</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Delivery Fee</span>
+            <span class="summary-value">MMK {{ deliveryFee | number:'1.0-0' }}</span>
+          </div>
+          <div class="summary-row" *ngIf="selectedDelayRange">
+            <span class="summary-label">Estimated Delivery</span>
+            <span class="summary-value">{{ selectedDelayRange }}</span>
+          </div>
+          <div class="summary-total">
+            <div class="total-row">
+              <span class="total-label">Total</span>
+              <span class="total-value">MMK {{ getTotalCost() | number:'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="view-cart-link">
+          <a href="#" (click)="$event.preventDefault(); showOrderItemsModal = true;">
+            <i class="fa fa-eye"></i>
+            View Cart Items
+          </a>
+        </div>
       </div>
-    </div>
     </div>
   </div>
 
@@ -230,7 +298,9 @@
     <div class="modal-content">
       <div class="modal-header">
         <h3 class="modal-title">My Addresses</h3>
-        <button class="close-btn" (click)="closeAddressModal()"><i class="fa fa-times"></i></button>
+        <button class="close-btn" (click)="closeAddressModal()">
+          <i class="fa fa-times"></i>
+        </button>
       </div>
       <div class="modal-body">
         <div *ngFor="let address of addresses" class="address-card">
@@ -260,7 +330,9 @@
     <div class="modal-content order-items-modal">
       <div class="modal-header">
         <h3 class="modal-title">Cart Items</h3>
-        <button class="close-btn" (click)="showOrderItemsModal = false"><i class="fa fa-times"></i></button>
+        <button class="close-btn" (click)="showOrderItemsModal = false">
+          <i class="fa fa-times"></i>
+        </button>
       </div>
       <div class="modal-body">
         <ul class="order-items-list">

@@ -56,6 +56,21 @@ public class HomepageService {
         return result;
     }
 
+    public EventDiscountProductsDTO getEventDiscountGroupById(Long eventId) {
+        List<EventDiscountProductsDTO> allDiscounts = productService.getEventDiscountProductsGrouped();
+        for (EventDiscountProductsDTO event : allDiscounts) {
+            if (event.getEventId().equals(eventId)) {
+                EventDiscountProductsDTO eventWithDetails = new EventDiscountProductsDTO();
+                eventWithDetails.setEventId(event.getEventId());
+                eventWithDetails.setEventName(event.getEventName());
+                eventWithDetails.setEventDueDate(event.getEventDueDate());
+                eventWithDetails.setProducts(event.getProducts());
+                return eventWithDetails;
+            }
+        }
+        return null;
+    }
+
     public List<TopCategoryDTO> getTopCategories(int limit) {
         // Get top categories by sales (name, sales)
         List<CategoryAnalyticsDTO> analytics = orderService.getTopCategories(null, null);

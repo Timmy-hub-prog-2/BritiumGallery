@@ -14,6 +14,7 @@ public interface DeliveryService {
 
     void deleteDelivery(Integer id);
     DeliveryFeeResponseDTO calculateFee(DeliveryFeeRequestDTO request);
-
-
+    
+    List<DeliveryDTO> getDeliveriesByType(String deliveryType);
+    DeliveryDTO getDeliveryByTypeAndSpeed(String deliveryType, String speedType);
 }

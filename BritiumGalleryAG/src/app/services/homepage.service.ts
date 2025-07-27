@@ -24,8 +24,12 @@ export class HomepageService {
     return this.http.get<any[]>(`${this.baseUrl}/top-best-sellers?limit=${limit}`);
   }
 
-  getEventDiscountGroups() {
+  getEventDiscountGroups(): Observable<any[]> {
     return this.http.get<any[]>(this.baseUrl + '/event-discount-groups');
+  }
+
+  getEventDiscountGroupById(eventId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/event-discount-groups/${eventId}`);
   }
 
   getTopCategories(limit: number = 4): Observable<any[]> {

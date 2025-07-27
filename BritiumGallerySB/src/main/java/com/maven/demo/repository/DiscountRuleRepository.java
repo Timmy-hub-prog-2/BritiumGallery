@@ -40,4 +40,20 @@ public interface DiscountRuleRepository extends JpaRepository<DiscountRule, Long
 
     // Find all discount rules for a specific product variant (active or not)
     List<DiscountRule> findByProductVariantId(Long productVariantId);
+
+    // Find active discount rules for a specific product variant (event must be active and within date)
+    @Query("SELECT r FROM DiscountRule r WHERE r.productVariantId = :variantId AND r.event.active = true AND r.event.startDate <= :today AND r.event.endDate >= :today")
+    List<DiscountRule> findActiveVariantDiscounts(@Param("variantId") Long variantId, @Param("today") java.time.LocalDate today);
+
+    // Find active discount rules for a specific product (event must be active and within date)
+    @Query("SELECT r FROM DiscountRule r WHERE r.productId = :productId AND r.event.active = true AND r.event.startDate <= :today AND r.event.endDate >= :today")
+    List<DiscountRule> findActiveProductDiscountsByDate(@Param("productId") Long productId, @Param("today") java.time.LocalDate today);
+
+    // Find active discount rules for a specific category (event must be active and within date)
+    @Query("SELECT r FROM DiscountRule r WHERE r.categoryId = :categoryId AND r.event.active = true AND r.event.startDate <= :today AND r.event.endDate >= :today")
+    List<DiscountRule> findActiveCategoryDiscountsByDate(@Param("categoryId") Long categoryId, @Param("today") java.time.LocalDate today);
+
+    // Find active discount rules for a specific brand (event must be active and within date)
+    @Query("SELECT r FROM DiscountRule r WHERE r.brandId = :brandId AND r.event.active = true AND r.event.startDate <= :today AND r.event.endDate >= :today")
+    List<DiscountRule> findActiveBrandDiscountsByDate(@Param("brandId") Long brandId, @Param("today") java.time.LocalDate today);
 }

@@ -277,20 +277,21 @@ public class ProductService {
 
             // --- Discount logic ---
             Double discountPercent = null;
+            java.time.LocalDate today = java.time.LocalDate.now();
             // 1. Variant discount (highest priority)
-            List<DiscountRule> variantDiscounts = discountRuleRepository.findAllByProductVariantIdAndActive(variant.getId());
+            List<DiscountRule> variantDiscounts = discountRuleRepository.findActiveVariantDiscounts(variant.getId(), today);
             if (!variantDiscounts.isEmpty()) {
                 discountPercent = variantDiscounts.get(0).getDiscountPercent();
             } else {
                 // 2. Product discount
-                List<DiscountRule> productDiscounts = discountRuleRepository.findActiveProductDiscounts(product.getId());
+                List<DiscountRule> productDiscounts = discountRuleRepository.findActiveProductDiscountsByDate(product.getId(), today);
                 if (!productDiscounts.isEmpty()) {
                     discountPercent = productDiscounts.get(0).getDiscountPercent();
                 } else {
                     // 3. Category discount (check all ancestors, closest first)
                     CategoryEntity cat = product.getCategory();
                     while (cat != null && discountPercent == null) {
-                        List<DiscountRule> categoryDiscounts = discountRuleRepository.findActiveCategoryDiscounts(cat.getId());
+                        List<DiscountRule> categoryDiscounts = discountRuleRepository.findActiveCategoryDiscountsByDate(cat.getId(), today);
                         if (!categoryDiscounts.isEmpty()) {
                             discountPercent = categoryDiscounts.get(0).getDiscountPercent();
                             break;
@@ -299,7 +300,7 @@ public class ProductService {
                     }
                     // 4. Brand discount (lowest priority)
                     if (discountPercent == null && product.getBrand() != null) {
-                        List<DiscountRule> brandDiscounts = discountRuleRepository.findActiveBrandDiscounts(product.getBrand().getId());
+                        List<DiscountRule> brandDiscounts = discountRuleRepository.findActiveBrandDiscountsByDate(product.getBrand().getId(), today);
                         if (!brandDiscounts.isEmpty()) {
                             discountPercent = brandDiscounts.get(0).getDiscountPercent();
                         }

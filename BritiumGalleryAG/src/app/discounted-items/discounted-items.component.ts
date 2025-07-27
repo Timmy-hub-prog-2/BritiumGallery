@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HomepageService } from '../services/homepage.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-discounted-items',
@@ -12,23 +13,24 @@ export class DiscountedItemsComponent implements OnInit, OnDestroy {
   countdowns: { [eventId: string]: string } = {};
   private timer: any;
 
-  constructor(private homepageService: HomepageService) {}
+  constructor(private homepageService: HomepageService, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.homepageService.getEventDiscountGroups().subscribe(data => {
-      this.eventDiscountGroups = data;
-      // Log the entire eventDiscountGroups array
-      console.log('Event Discount Groups:', this.eventDiscountGroups);
-      // Log attributes for each product in each event
-      this.eventDiscountGroups.forEach(event => {
-        if (event.products) {
-          event.products.forEach((product: any) => {
-            console.log('Product:', product.productName, 'Attributes:', product.attributes);
-          });
-        }
-      });
-      this.updateCountdowns();
-      this.timer = setInterval(() => this.updateCountdowns(), 1000);
+    this.route.paramMap.subscribe(params => {
+      const eventId = params.get('eventId');
+      if (eventId) {
+        this.homepageService.getEventDiscountGroupById(+eventId).subscribe((data: any) => {
+          this.eventDiscountGroups = data ? [data] : [];
+          this.updateCountdowns();
+          this.timer = setInterval(() => this.updateCountdowns(), 1000);
+        });
+      } else {
+        this.homepageService.getEventDiscountGroups().subscribe((data: any[]) => {
+          this.eventDiscountGroups = data;
+          this.updateCountdowns();
+          this.timer = setInterval(() => this.updateCountdowns(), 1000);
+        });
+      }
     });
   }
 

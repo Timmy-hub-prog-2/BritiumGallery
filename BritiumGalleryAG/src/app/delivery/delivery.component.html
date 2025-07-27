@@ -12,9 +12,9 @@
     <!-- Tabs -->
     <div class="tabs">
         <button (click)="activeTab = 'ALL'" [class.active]="activeTab === 'ALL'">All Methods</button>
-        <button (click)="activeTab = 'STANDARD'" [class.active]="activeTab === 'STANDARD'">Standard</button>
-        <button (click)="activeTab = 'EXPRESS'" [class.active]="activeTab === 'EXPRESS'">Express</button>
-        <button (click)="activeTab = 'SHIP'" [class.active]="activeTab === 'SHIP'">Ship</button>
+        <button (click)="activeTab = 'standard'" [class.active]="activeTab === 'standard'">Standard</button>
+        <button (click)="activeTab = 'express'" [class.active]="activeTab === 'express'">Express</button>
+        <button (click)="activeTab = 'ship'" [class.active]="activeTab === 'ship'">Ship</button>
     </div>
 
     <!-- Table -->
@@ -25,26 +25,36 @@
                 <tr>
                     <th>Name</th>
                     <th>Type</th>
+                    <th>Speed</th>
                     <th>Pricing</th>
-                    <th>Min Delay</th>
+                    <th>Base Fee</th>
+                    <th>Max Fee</th>
+                    <th>Delivery Time</th>
+                    <th>Speed</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngFor="let delivery of filteredDeliveries()">
-                    <td>{{ delivery.name }}</td>
+                    <td>{{ getDeliveryDisplayName(delivery) }}</td>
                     <td>
                         <span [ngClass]="{
-              'badge-standard': delivery.type === 'STANDARD',
-              'badge-express': delivery.type === 'EXPRESS',
-              'badge-ship': delivery.type === 'SHIP'
-            }">{{ delivery.type }}</span>
+                            'badge-standard': delivery.deliveryType === 'standard',
+                            'badge-express': delivery.deliveryType === 'express',
+                            'badge-ship': delivery.deliveryType === 'ship'
+                        }">{{ delivery.deliveryType?.toUpperCase() }}</span>
                     </td>
                     <td>
-                        <span *ngIf="delivery.type === 'STANDARD'">{{ delivery.feesPer1km }} /km</span>
-                        <span *ngIf="delivery.type !== 'STANDARD'">{{ delivery.fixAmount }}</span>
+                        <span class="speed-badge">{{ delivery.speedType?.toUpperCase() }}</span>
                     </td>
-                    <td>{{ delivery.minDelayTime }} days</td>
+                    <td>
+                        <span *ngIf="delivery.deliveryType === 'standard'">{{ delivery.feePerKm }} MMK/km</span>
+                        <span *ngIf="delivery.deliveryType !== 'standard'">Distance-based</span>
+                    </td>
+                    <td>{{ delivery.baseFee }} MMK</td>
+                    <td>{{ delivery.maxFee }} MMK</td>
+                    <td>{{ getDeliveryTimeDisplay(delivery) }}</td>
+                    <td>{{ delivery.speedKmHr }} km/hr</td>
                     <td class="list-actions">
                         <button class="list-action-btn edit" (click)="editDelivery(delivery)" title="Edit">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -64,7 +74,6 @@
                             </svg>
                         </button>
                     </td>
-
                 </tr>
             </tbody>
         </table>
@@ -72,41 +81,133 @@
 
     <!-- Modal -->
     <div class="modal" *ngIf="showModal">
-        <div class="modal-content">
-            <h2>{{ isEditMode ? 'Edit' : 'Create' }} Delivery Method</h2>
-            <form (ngSubmit)="onSubmit()">
-                <label>Type:</label>
-                <select [(ngModel)]="delivery.type" name="type" required>
-                    <option value="STANDARD">STANDARD</option>
-                    <option value="EXPRESS">EXPRESS</option>
-                    <option value="SHIP">SHIP</option>
-                </select>
-
-                <label>Name:</label>
-                <input type="text" [(ngModel)]="delivery.name" name="name" required />
-
-                <div *ngIf="delivery.type === 'STANDARD'">
-                    <label>Fees Per KM:</label>
-                    <input [(ngModel)]="delivery.feesPer1km" name="feesPer1km" type="number" />
+        <div class="modal-content modal-flex-row" #modalContent>
+            <!-- Preview Section (Left) -->
+            <div class="modal-preview-col">
+                <button type="button" class="preview-toggle" (click)="togglePreview()">
+                    <span *ngIf="!showPreview"> Show Pricing Examples</span>
+                    <span *ngIf="showPreview"> Hide Pricing Examples</span>
+                </button>
+                <div class="preview-content" *ngIf="showPreview && previewExamples.length > 0">
+                    <h4>Pricing Examples</h4>
+                    <div class="preview-examples">
+                        <div class="example-card" *ngFor="let example of previewExamples">
+                            <div class="example-header">
+                                <h5>{{ example.from }} → {{ example.to }}</h5>
+                                <span class="example-description">{{ example.description }}</span>
+                            </div>
+                            <div class="example-details">
+                                <div class="detail-row">
+                                    <span class="label">Distance:</span>
+                                    <span class="value">{{ example.distance }} km</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">Delivery Time:</span>
+                                    <span class="value">{{ example.deliveryTime }}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">Total Fee:</span>
+                                    <span class="value fee">{{ example.fee }} MMK</span>
+                                </div>
+                                <div class="detail-row breakdown">
+                                    <span class="label">Breakdown:</span>
+                                    <span class="value">{{ example.breakdown }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            <!-- Form Section (Right) -->
+            <div class="modal-form-col">
+                <h2>{{ isEditMode ? 'Edit' : 'Create' }} Delivery Method</h2>
+                <form (ngSubmit)="onSubmit()">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Delivery Type:</label>
+                            <select [(ngModel)]="delivery.deliveryType" name="deliveryType" required (change)="onDeliveryTypeChange()">
+                                <option value="standard">Standard</option>
+                                <option value="express">Express</option>
+                                <option value="ship">Ship</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Speed Type:</label>
+                            <select [(ngModel)]="delivery.speedType" name="speedType" required (change)="onSpeedTypeChange()">
+                                <option value="normal">Normal</option>
+                                <option value="fast">Fast</option>
+                                <option value="speed plus">Speed Plus</option>
+                                <option value="custom">Custom (Manual Input)</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <div *ngIf="delivery.type === 'EXPRESS' || delivery.type === 'SHIP'">
-                    <label>Fixed Amount:</label>
-                    <input [(ngModel)]="delivery.fixAmount" name="fixAmount" type="number" />
-                </div>
-                <label>Minimum Delay Time (in days):</label>
-                <input [(ngModel)]="delivery.minDelayTime" name="minDelayTime" type="number" />
+                    <!-- Custom Speed Type Input -->
+                    <div class="form-row" *ngIf="showCustomSpeedInput">
+                        <div class="form-group">
+                            <label>Custom Speed Type:</label>
+                            <input [(ngModel)]="customSpeedType" name="customSpeedType" type="text" 
+                                   placeholder="Enter custom speed type" (input)="onCustomSpeedTypeChange()" />
+                        </div>
+                    </div>
 
-                <!-- Show previous value if in edit mode -->
-                <!-- <div *ngIf="isEditMode" style="font-size: 13px; color: gray;">
-                    Previous: {{ previousDelayTime }} day(s)
-                </div> -->
+                    <!-- Delay Time Fields -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Base Delay (Days):</label>
+                            <input [(ngModel)]="delivery.baseDelayDays" name="baseDelayDays" type="number" min="0" 
+                                   [disabled]="isBaseDelayDaysDisabled()" 
+                                   [class.disabled]="isBaseDelayDaysDisabled()" />
+                            <small *ngIf="isBaseDelayDaysDisabled()" class="field-note">
+                                Not applicable for Standard delivery
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label>Base Delay (Hours):</label>
+                            <input [(ngModel)]="delivery.baseDelayHours" name="baseDelayHours" type="number" min="0" step="0.25" 
+                                   [disabled]="isBaseDelayHoursDisabled()" 
+                                   [class.disabled]="isBaseDelayHoursDisabled()" />
+                            <small *ngIf="isBaseDelayHoursDisabled()" class="field-note">
+                                Not applicable for Express/Ship delivery
+                            </small>
+                        </div>
+                    </div>
 
-                <div class="modal-buttons">
-                    <button type="submit">{{ isEditMode ? 'Update' : 'Save' }}</button>
-                    <button type="button" (click)="closeModal()">Cancel</button>
-                </div>
-            </form>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Speed (km/hr):</label>
+                            <input [(ngModel)]="delivery.speedKmHr" name="speedKmHr" type="number" min="1" (input)="updatePreview()" />
+                        </div>
+                        <div class="form-group">
+                            <label>Fee per KM (MMK):</label>
+                            <input [(ngModel)]="delivery.feePerKm" name="feePerKm" type="number" min="0" (input)="updatePreview()" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Base Fee (MMK):</label>
+                            <input [(ngModel)]="delivery.baseFee" name="baseFee" type="number" min="0" (input)="updatePreview()" />
+                        </div>
+                        <div class="form-group">
+                            <label>Max Fee (MMK):</label>
+                            <input [(ngModel)]="delivery.maxFee" name="maxFee" type="number" min="0" (input)="updatePreview()" />
+                        </div>
+                    </div>
+
+                    <!-- Legacy fields for backward compatibility (hidden) -->
+                    <input type="hidden" [(ngModel)]="delivery.type" name="type" />
+                    <input type="hidden" [(ngModel)]="delivery.name" name="name" />
+                    <input type="hidden" [(ngModel)]="delivery.feesPer1km" name="feesPer1km" />
+                    <input type="hidden" [(ngModel)]="delivery.fixAmount" name="fixAmount" />
+                    <input type="hidden" [(ngModel)]="delivery.minDelayTime" name="minDelayTime" />
+
+                    <div class="modal-buttons">
+                        <button type="submit">{{ isEditMode ? 'Update' : 'Save' }}</button>
+                        <button type="button" (click)="closeModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

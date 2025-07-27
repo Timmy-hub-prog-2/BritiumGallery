@@ -41,10 +41,18 @@ update(delivery: Delivery): Observable<any> {
   
   getAllDeliveryTypes(): Observable<Delivery[]> {
     return this.http.get<Delivery[]>(this.typesApi);
-  
   }
 
-   calculateStandardFee(dto: DeliveryFeeRequestDTO): Observable<DeliveryFeeResponseDTO> {
+  // New methods for the updated structure
+  getDeliveriesByType(deliveryType: string): Observable<Delivery[]> {
+    return this.http.get<Delivery[]>(`${this.api}/types/${deliveryType}`);
+  }
+
+  getDeliveryByTypeAndSpeed(deliveryType: string, speedType: string): Observable<Delivery> {
+    return this.http.get<Delivery>(`${this.api}/types/${deliveryType}/speeds/${speedType}`);
+  }
+
+  calculateStandardFee(dto: DeliveryFeeRequestDTO): Observable<DeliveryFeeResponseDTO> {
     return this.http.post<DeliveryFeeResponseDTO>(`${this.api}/calculate-fee`, dto);
   }
 

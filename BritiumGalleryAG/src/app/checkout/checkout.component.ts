@@ -28,7 +28,6 @@ export class CheckoutComponent implements OnInit {
   promoCode: string = '';
   appliedDiscount = 0;
   deliveryFee: number = 0;
-  shipFee: number = 0;
   couponSuccess: boolean = false;
   couponError: string = '';
 
@@ -41,14 +40,16 @@ export class CheckoutComponent implements OnInit {
   mainAddressId!: number;
   showAllAddresses = false;
 
+  // New delivery structure with speed types
   standardOptions: Delivery[] = [];
   expressOptions: Delivery[] = [];
   shipOptions: Delivery[] = [];
 
   selectedDelayTime: string | null = null;
   selectedDelayRange: string | null = null;
+  calculatedDistance: number = 0;
 
-  suggestedMethod: string = 'Standard';
+  suggestedMethod: string = 'standard';
   isAddressModalOpen = false;
   methodAutoChanged = false;
   showCouponAppliedPopup = false;
@@ -75,7 +76,7 @@ export class CheckoutComponent implements OnInit {
     this.initForm();
     this.loadCurrentUser();
     this.loadCartItems();
-    this.loadAdminDeliveryFees();
+    this.loadDeliveryOptions();
     this.appliedDiscount = this.cartService.getDiscount();
     this.promoCode = this.cartService.getAppliedCouponCode();
     this.discountType = this.cartService.getDiscountType();
@@ -87,35 +88,24 @@ export class CheckoutComponent implements OnInit {
       setTimeout(() => this.showCouponAppliedPopup = false, 3000);
     }
 
-    // Always recalculate delivery fee when shipping method changes
-    this.checkoutForm.get('shippingMethod')?.valueChanges
+    // Recalculate delivery fee when shipping method changes
+    this.checkoutForm.get('deliveryType')?.valueChanges
       .pipe(distinctUntilChanged())
       .subscribe(() => {
         this.calculateDeliveryFee();
       });
 
-    // Always recalculate delivery fee when provider changes
-    this.checkoutForm.get('standardName')?.valueChanges
+    // Recalculate delivery fee when speed type changes
+    this.checkoutForm.get('speedType')?.valueChanges
       .pipe(distinctUntilChanged())
       .subscribe(() => {
-        if (this.checkoutForm.get('shippingMethod')?.value === 'Standard') {
           this.calculateDeliveryFee();
-        }
       });
-    this.checkoutForm.get('expressName')?.valueChanges
-      .pipe(distinctUntilChanged())
-      .subscribe(() => {
-        if (this.checkoutForm.get('shippingMethod')?.value === 'Express') {
+
+    // Final calculation after all data is loaded
+    setTimeout(() => {
           this.calculateDeliveryFee();
-        }
-      });
-    this.checkoutForm.get('shipName')?.valueChanges
-      .pipe(distinctUntilChanged())
-      .subscribe(() => {
-        if (this.checkoutForm.get('shippingMethod')?.value === 'Ship') {
-          this.calculateDeliveryFee();
-        }
-      });
+    }, 1000);
   }
 
   private initForm(): void {
@@ -131,10 +121,8 @@ export class CheckoutComponent implements OnInit {
       state: [''],
       postalCode: [''],
       billingSameAsShipping: [true],
-      shippingMethod: ['Standard', Validators.required],
-      standardName: ['', Validators.required],
-      expressName: [''],
-      shipName: ['']
+      deliveryType: ['standard', Validators.required],
+      speedType: ['normal', Validators.required]
     });
   }
 
@@ -158,7 +146,10 @@ export class CheckoutComponent implements OnInit {
         this.mainAddressDTO = address;
         this.mainAddressId = address.id!;
         this.mainAddress = this.formatAddress(address);
+        // Calculate delivery fee after address is loaded
+        setTimeout(() => {
         this.calculateDeliveryFee();
+        }, 0);
       },
       error: err => console.error('❌ Error loading main address:', err)
     });
@@ -180,7 +171,6 @@ export class CheckoutComponent implements OnInit {
   closeAddressModal(): void {
     this.isAddressModalOpen = false;
   }
-  
 
   setAsMain(addressId: number): void {
     if (!this.currentUser) return;
@@ -193,7 +183,7 @@ export class CheckoutComponent implements OnInit {
           timer: 1500
         });
         this.loadMainAddress(this.currentUser!.id);
-        this.checkoutForm.patchValue({ shippingMethod: 'Standard' });
+        this.checkoutForm.patchValue({ deliveryType: 'standard' });
         this.calculateDeliveryFee();
         this.closeAddressModal();
       },
@@ -205,211 +195,272 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
-  loadAdminDeliveryFees(): void {
-    this.deliveryService.getAllDeliveryTypes().subscribe({
-      next: (types: Delivery[]) => {
-        this.standardOptions = types.filter(t => t.type === 'STANDARD');
-        this.expressOptions = types.filter(t => t.type === 'EXPRESS');
-        this.shipOptions = types.filter(t => t.type === 'SHIP');
-        const ship = this.shipOptions[0];
-        if (ship?.fixAmount) this.shipFee = ship.fixAmount;
+  loadDeliveryOptions(): void {
+    // Load all delivery options in parallel
+    const standardPromise = this.deliveryService.getDeliveriesByType('standard').toPromise();
+    const expressPromise = this.deliveryService.getDeliveriesByType('express').toPromise();
+    const shipPromise = this.deliveryService.getDeliveriesByType('ship').toPromise();
 
-        // --- Auto-select shipping method and provider if not set or invalid ---
-        let method = this.checkoutForm.get('shippingMethod')?.value;
-        let validMethod = method;
-        if (!['Standard', 'Express', 'Ship'].includes(method) || (
-          method === 'Standard' && this.standardOptions.length === 0
-        ) || (
-          method === 'Express' && this.expressOptions.length === 0
-        ) || (
-          method === 'Ship' && this.shipOptions.length === 0
-        )) {
-          // Pick the first available method with options
-          if (this.standardOptions.length > 0) validMethod = 'Standard';
-          else if (this.expressOptions.length > 0) validMethod = 'Express';
-          else if (this.shipOptions.length > 0) validMethod = 'Ship';
-          else validMethod = '';
-          this.checkoutForm.patchValue({ shippingMethod: validMethod });
-        }
-
-        // Auto-select provider for the selected method if not set
-        if (validMethod === 'Standard' && this.standardOptions.length > 0) {
-          const current = this.checkoutForm.get('standardName')?.value;
-          if (!current || !this.standardOptions.some(opt => opt.name === current)) {
-            this.checkoutForm.patchValue({ standardName: this.standardOptions[0].name });
-          }
-        } else if (validMethod === 'Express' && this.expressOptions.length > 0) {
-          const current = this.checkoutForm.get('expressName')?.value;
-          if (!current || !this.expressOptions.some(opt => opt.name === current)) {
-            this.checkoutForm.patchValue({ expressName: this.expressOptions[0].name });
-          }
-        } else if (validMethod === 'Ship' && this.shipOptions.length > 0) {
-          const current = this.checkoutForm.get('shipName')?.value;
-          if (!current || !this.shipOptions.some(opt => opt.name === current)) {
-            this.checkoutForm.patchValue({ shipName: this.shipOptions[0].name });
-          }
-        }
-
-        this.calculateDeliveryFee();
-      },
-      error: err => console.error('Error loading delivery types', err)
-    });
+    Promise.all([standardPromise, expressPromise, shipPromise])
+      .then(([standardDeliveries, expressDeliveries, shipDeliveries]) => {
+        this.standardOptions = standardDeliveries || [];
+        this.expressOptions = expressDeliveries || [];
+        this.shipOptions = shipDeliveries || [];
+        
+        // Now that all options are loaded, auto-select and calculate
+        this.autoSelectDeliveryOptions();
+      })
+      .catch(err => {
+        console.error('Error loading delivery options:', err);
+        // Still try to auto-select with whatever data we have
+        this.autoSelectDeliveryOptions();
+      });
   }
 
-  calculateStandardDeliveryFromBackend(): void {
-    if (!this.currentUser) return;
+  autoSelectDeliveryOptions(): void {
+    // Auto-select delivery type if not set or invalid
+    let deliveryType = this.checkoutForm.get('deliveryType')?.value;
+    let validType = deliveryType;
+    
+    if (!['standard', 'express', 'ship'].includes(deliveryType) || (
+      deliveryType === 'standard' && this.standardOptions.length === 0
+    ) || (
+      deliveryType === 'express' && this.expressOptions.length === 0
+    ) || (
+      deliveryType === 'ship' && this.shipOptions.length === 0
+    )) {
+      // Pick the first available type with options
+      if (this.standardOptions.length > 0) validType = 'standard';
+      else if (this.expressOptions.length > 0) validType = 'express';
+      else if (this.shipOptions.length > 0) validType = 'ship';
+      else validType = '';
+      this.checkoutForm.patchValue({ deliveryType: validType });
+    }
 
-    const selectedStandard = this.standardOptions.find(
-      opt => opt.name === this.checkoutForm.get('standardName')?.value
-    );
+    // Always set speed type to the first available option for the selected delivery type
+    if (validType === 'standard' && this.standardOptions.length > 0) {
+      this.checkoutForm.patchValue({ speedType: this.standardOptions[0].speedType });
+    } else if (validType === 'express' && this.expressOptions.length > 0) {
+      this.checkoutForm.patchValue({ speedType: this.expressOptions[0].speedType });
+    } else if (validType === 'ship' && this.shipOptions.length > 0) {
+      this.checkoutForm.patchValue({ speedType: this.shipOptions[0].speedType });
+    }
 
-    if (!selectedStandard) return;
-
-    const dto: DeliveryFeeRequestDTO = {
-      userId: this.currentUser.id,
-      deliveryId: selectedStandard.id!,
-      method: 'Standard',
-      name: selectedStandard.name
-    };
-
-    this.deliveryService.calculateStandardFee(dto).subscribe({
-      next: (res) => {
-        // Ensure suggestedMethod is always set to a valid value
-        const validMethods = ['Standard', 'Express', 'Ship'];
-        const backendMethod = (res.suggestedMethod ?? '').toLowerCase();
-        const normalizedMethod = validMethods.find(m => m.toLowerCase() === backendMethod);
-        this.suggestedMethod = normalizedMethod ? normalizedMethod : 'Standard';
-        this.deliveryFee = res.fee;
-        this.selectedDelayTime = res.estimatedTime || null;
-        this.selectedDelayRange = this.getEstimatedDateRange(this.selectedDelayTime);
-        this.reapplyCouponIfNeeded();
-
-        if (this.suggestedMethod !== 'Standard') {
-          this.checkoutForm.patchValue({ shippingMethod: this.suggestedMethod });
-        }
-      },
-      error: () => {
-        this.deliveryFee = 0;
-        this.suggestedMethod = 'Standard';
-      }
-    });
+    // Force calculation after setting form values programmatically
+    setTimeout(() => {
+      this.calculateDeliveryFee();
+    }, 0);
   }
 
   calculateDeliveryFee(): void {
     if (this.isCalculatingDeliveryFee) return;
     this.isCalculatingDeliveryFee = true;
+    
     if (!this.currentUser) {
       this.isCalculatingDeliveryFee = false;
       return;
     }
 
-    const method = this.checkoutForm.get('shippingMethod')?.value;
-    let selectedOption: Delivery | undefined;
-    let providerPatched = false;
-
-    if (method === 'Standard') {
-      const current = this.checkoutForm.get('standardName')?.value;
-      selectedOption = this.standardOptions.find(opt => opt.name === current);
-      if ((!current || current === '') && this.standardOptions.length > 0) {
-        this.checkoutForm.patchValue({ standardName: this.standardOptions[0].name });
-        providerPatched = true;
-      }
-    } else if (method === 'Express') {
-      const current = this.checkoutForm.get('expressName')?.value;
-      selectedOption = this.expressOptions.find(opt => opt.name === current);
-      if ((!current || current === '') && this.expressOptions.length > 0) {
-        this.checkoutForm.patchValue({ expressName: this.expressOptions[0].name });
-        providerPatched = true;
-      }
-    } else if (method === 'Ship') {
-      const current = this.checkoutForm.get('shipName')?.value;
-      selectedOption = this.shipOptions.find(opt => opt.name === current);
-      if ((!current || current === '') && this.shipOptions.length > 0) {
-        this.checkoutForm.patchValue({ shipName: this.shipOptions[0].name });
-        providerPatched = true;
-      }
-    }
-
-    // If we just patched the provider, return and let the next value change trigger calculation
-    if (providerPatched) {
+    const deliveryType = this.checkoutForm.get('deliveryType')?.value;
+    const speedType = this.checkoutForm.get('speedType')?.value;
+    
+    if (!deliveryType || !speedType) {
       this.isCalculatingDeliveryFee = false;
       return;
     }
+
+    // Get the selected delivery option
+    let selectedOption: Delivery | undefined;
+    if (deliveryType === 'standard') {
+      selectedOption = this.standardOptions.find(opt => opt.speedType === speedType);
+    } else if (deliveryType === 'express') {
+      selectedOption = this.expressOptions.find(opt => opt.speedType === speedType);
+    } else if (deliveryType === 'ship') {
+      selectedOption = this.shipOptions.find(opt => opt.speedType === speedType);
+    }
+
+    // Debug logging
+    console.log('🔍 Delivery Calculation Debug:', {
+      deliveryType,
+      speedType,
+      selectedOption: selectedOption ? {
+        id: selectedOption.id,
+        name: selectedOption.name,
+        speedType: selectedOption.speedType,
+        baseFee: selectedOption.baseFee,
+        feePerKm: selectedOption.feePerKm,
+        maxFee: selectedOption.maxFee
+      } : null,
+      standardOptions: this.standardOptions.map(opt => ({ speedType: opt.speedType, baseFee: opt.baseFee })),
+      expressOptions: this.expressOptions.map(opt => ({ speedType: opt.speedType, baseFee: opt.baseFee })),
+      shipOptions: this.shipOptions.map(opt => ({ speedType: opt.speedType, baseFee: opt.baseFee }))
+    });
 
     if (!selectedOption) {
+      this.deliveryFee = 0;
       this.selectedDelayTime = null;
       this.selectedDelayRange = null;
+      this.calculatedDistance = 0;
       this.isCalculatingDeliveryFee = false;
       return;
     }
 
+    // Calculate fee using the new backend structure
     const dto: DeliveryFeeRequestDTO = {
       userId: this.currentUser.id,
       deliveryId: selectedOption.id!,
-      method: method,
-      name: selectedOption.name
+      method: deliveryType,
+      name: speedType
     };
 
     this.deliveryService.calculateStandardFee(dto).subscribe({
       next: (res) => {
-        const validMethods = ['Standard', 'Express', 'Ship'];
+        this.calculatedDistance = res.distance;
+        
+        // Always use frontend calculation for consistency
+        this.deliveryFee = this.calculateFeeForOption(selectedOption);
+        this.selectedDelayTime = this.getDeliveryTimeForOption(selectedOption);
+        this.selectedDelayRange = this.selectedDelayTime; // Direct assignment
+        
+        // Update suggested method
+        const validMethods = ['standard', 'express', 'ship'];
         const backendMethod = (res.suggestedMethod ?? '').toLowerCase();
         const normalizedMethod = validMethods.find(m => m.toLowerCase() === backendMethod);
-        const prevMethod = this.checkoutForm.get('shippingMethod')?.value;
-        this.suggestedMethod = normalizedMethod ? normalizedMethod : method;
-        this.deliveryFee = res.fee;
-        this.selectedDelayTime = res.estimatedTime || null;
-        this.selectedDelayRange = this.getEstimatedDateRange(this.selectedDelayTime);
-        this.reapplyCouponIfNeeded();
+        const prevMethod = this.checkoutForm.get('deliveryType')?.value;
+        this.suggestedMethod = normalizedMethod ? normalizedMethod : deliveryType;
+        
+        // Auto-change delivery type if backend suggests different
         if (normalizedMethod && normalizedMethod !== prevMethod) {
           this.methodAutoChanged = true;
-          this.checkoutForm.patchValue({ shippingMethod: this.suggestedMethod });
+          this.checkoutForm.patchValue({ deliveryType: this.suggestedMethod });
           setTimeout(() => {
             this.methodAutoChanged = false;
-          }, 8000); // Show notice for 8 seconds
+          }, 8000);
         } else if (!normalizedMethod || normalizedMethod === prevMethod) {
           if (!this.methodAutoChanged) {
             this.methodAutoChanged = false;
           }
         }
+        
+        this.reapplyCouponIfNeeded();
         this.isCalculatingDeliveryFee = false;
       },
       error: () => {
         this.deliveryFee = 0;
-        this.suggestedMethod = 'Standard';
+        this.suggestedMethod = 'standard';
         this.selectedDelayTime = null;
         this.selectedDelayRange = null;
+        this.calculatedDistance = 0;
         this.isCalculatingDeliveryFee = false;
       }
     });
   }
 
-  getEstimatedDateRange(minDelayTime: string | null): string | null {
-    if (!minDelayTime) return null;
-    const today = new Date();
-    const trimmed = minDelayTime.trim();
 
-    // Accept 'Day' or 'Days', case-insensitive
-    if (/^\d+\s+days?$/i.test(trimmed)) {
-      const days = parseInt(trimmed);
-      const arrival = new Date();
-      arrival.setDate(today.getDate() + days);
-      return `Arrives by ${arrival.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+
+  // Get available speed types for the selected delivery type
+  getAvailableSpeedTypes(): Delivery[] {
+    const deliveryType = this.checkoutForm.get('deliveryType')?.value;
+    if (deliveryType === 'standard') {
+      return this.standardOptions;
+    } else if (deliveryType === 'express') {
+      return this.expressOptions;
+    } else if (deliveryType === 'ship') {
+      return this.shipOptions;
     }
+    return [];
+  }
 
-    // Accept ranges like '2–4 Days' (en dash or hyphen)
-    const rangeMatch = trimmed.match(/(\d+)\s*[–-]\s*(\d+)/);
-    if (rangeMatch) {
-      const min = parseInt(rangeMatch[1]);
-      const max = parseInt(rangeMatch[2]);
-      const start = new Date();
-      const end = new Date();
-      start.setDate(today.getDate() + min);
-      end.setDate(today.getDate() + max);
-      return `Arrives between ${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  // Get icon class for delivery type and speed
+  getDeliveryIconClass(deliveryType: string, speedType: string): string {
+    if (deliveryType === 'standard') {
+      if (speedType === 'normal') {
+        return 'fa fa-truck';
+      } else if (speedType === 'fast') {
+        return 'fa fa-bolt';
+      } else {
+        return 'fa fa-clock';
+      }
+    } else if (deliveryType === 'express') {
+      return 'fa fa-rocket';
+    } else if (deliveryType === 'ship') {
+      return 'fa fa-ship';
     }
+    return 'fa fa-truck';
+  }
 
-    return null;
+  // Get delivery display name
+  getDeliveryDisplayName(delivery: Delivery): string {
+    const speedType = delivery.speedType || 'normal';
+    const baseFee = delivery.baseFee || 0;
+    const feePerKm = delivery.feePerKm || 0;
+    
+    if (delivery.deliveryType === 'standard') {
+      return `${speedType.charAt(0).toUpperCase() + speedType.slice(1)} (${feePerKm} MMK/km)`;
+    } else {
+      return `${speedType.charAt(0).toUpperCase() + speedType.slice(1)} (${baseFee} MMK base)`;
+    }
+  }
+
+  // Get delivery description
+  getDeliveryDescription(delivery: Delivery): string {
+    const baseDelayHours = delivery.baseDelayHours || 0;
+    const baseDelayDays = delivery.baseDelayDays || 0;
+    const speedKmHr = delivery.speedKmHr || 30;
+    
+    if (delivery.deliveryType === 'standard') {
+      return `${baseDelayHours}h base + ${speedKmHr} km/h`;
+    } else {
+      return `${baseDelayDays} days base + ${speedKmHr} km/h`;
+    }
+  }
+
+  // Calculate fee for a specific delivery option (matches delivery.component.ts)
+  calculateFeeForOption(option: Delivery): number {
+    if (!this.calculatedDistance || this.calculatedDistance <= 0) return 0;
+    const baseFee = option.baseFee || 0;
+    const feePerKm = option.feePerKm || 0;
+    const maxFee = option.maxFee || 0;
+    // Calculate delivery fee based on distance
+    let deliveryFee = this.calculatedDistance * feePerKm;
+    // Apply base fee logic: if delivery fee is less than base fee, use base fee
+    let fee = Math.max(deliveryFee, baseFee);
+    // Apply max fee cap if set
+    if (maxFee > 0 && fee > maxFee) {
+      fee = maxFee;
+    }
+    return Math.round(fee);
+  }
+
+  // Get delivery time for a specific option (matches delivery.component.ts)
+  getDeliveryTimeForOption(option: Delivery): string {
+    if (!this.calculatedDistance || this.calculatedDistance <= 0) return '';
+    if (option.deliveryType === 'standard') {
+      const baseHours = option.baseDelayHours || 0;
+      const speedKmHr = option.speedKmHr || 30;
+      const travelHours = this.calculatedDistance / speedKmHr;
+      const totalHours = baseHours + travelHours;
+      const days = Math.floor(totalHours / 24);
+      const hours = Math.round(totalHours % 24);
+      if (days > 0) {
+        return `${days} day${days > 1 ? 's' : ''} ${hours > 0 ? hours + ' hour' + (hours > 1 ? 's' : '') : ''}`.trim();
+      } else {
+        return `${hours} hour${hours > 1 ? 's' : ''}`;
+      }
+    } else if (option.deliveryType === 'express' || option.deliveryType === 'ship') {
+      const baseDays = option.baseDelayDays || 0;
+      const speedKmHr = option.speedKmHr || 30;
+      const travelHours = this.calculatedDistance / speedKmHr;
+      const totalHours = (baseDays * 24) + travelHours;
+      const days = Math.floor(totalHours / 24);
+      const hours = Math.round(totalHours % 24);
+      if (days > 0) {
+        return `${days} day${days > 1 ? 's' : ''} ${hours > 0 ? hours + ' hour' + (hours > 1 ? 's' : '') : ''}`.trim();
+      } else {
+        return `${hours} hour${hours > 1 ? 's' : ''}`;
+      }
+    }
+    return '';
   }
 
   private loadCartItems(): void {
@@ -506,8 +557,8 @@ export class CheckoutComponent implements OnInit {
   submitCheckout(): void {
     if (this.checkoutForm.invalid || !this.currentUser) return;
 
-    const method = this.checkoutForm.value.shippingMethod;
-    const provider = this.checkoutForm.value[`${method.toLowerCase()}Name`];
+    const deliveryType = this.checkoutForm.value.deliveryType;
+    const speedType = this.checkoutForm.value.speedType;
 
     // Map cart items to the format expected by the backend
     const mappedItems = this.items.map(item => ({
@@ -530,8 +581,8 @@ export class CheckoutComponent implements OnInit {
       appliedCouponCode: this.promoCode || null,
       total: this.getTotalCost(),
       deliveryFee: this.deliveryFee,
-      deliveryMethod: method,
-      deliveryProvider: provider,
+      deliveryMethod: deliveryType,
+      deliveryProvider: speedType,
       deliveryAddressId: this.mainAddressId
     };
 
@@ -574,16 +625,15 @@ export class CheckoutComponent implements OnInit {
       return false;
     }
 
-    // Check if shipping method is selected
-    const shippingMethod = this.checkoutForm.get('shippingMethod')?.value;
-    if (!shippingMethod) {
+    // Check if delivery type is selected
+    const deliveryType = this.checkoutForm.get('deliveryType')?.value;
+    if (!deliveryType) {
       return false;
     }
 
-    // Check if provider is selected for the shipping method
-    const providerField = `${shippingMethod.toLowerCase()}Name`;
-    const provider = this.checkoutForm.get(providerField)?.value;
-    if (!provider) {
+    // Check if speed type is selected
+    const speedType = this.checkoutForm.get('speedType')?.value;
+    if (!speedType) {
       return false;
     }
 
@@ -605,11 +655,6 @@ export class CheckoutComponent implements OnInit {
       localStorage.setItem('couponApplied', 'true');
     }
     this.router.navigate(['/checkout']);
-  }
-
-  shippingMethodProviderField(): string {
-    const method = this.checkoutForm.get('shippingMethod')?.value;
-    return method ? `${method.toLowerCase()}Name` : '';
   }
 
   private reapplyCouponIfNeeded(): void {

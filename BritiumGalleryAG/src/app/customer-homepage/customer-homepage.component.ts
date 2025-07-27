@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { HomepageService } from '../services/homepage.service';
 import { BlogService } from '../blog.service';
 import { BlogPost } from '../blog-create/blog-create.component';
+import { HomepageService } from '../services/homepage.service';
 
 @Component({
   selector: 'app-customer-homepage',

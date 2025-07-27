@@ -139,6 +139,7 @@ const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'customer-homepage', component: CustomerHomepageComponent },
   { path: 'discounted-items', component: DiscountedItemsComponent },
+  { path: 'discounted-items/:eventId', component: DiscountedItemsComponent },
   { path: 'create-role', component: CreateRoleComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },

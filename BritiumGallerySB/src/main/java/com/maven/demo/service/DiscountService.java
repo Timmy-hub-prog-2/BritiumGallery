@@ -1,5 +1,17 @@
 package com.maven.demo.service;
 
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maven.demo.dto.DiscountEventDTO;
 import com.maven.demo.dto.DiscountEventResponseDTO;
@@ -9,17 +21,10 @@ import com.maven.demo.entity.DiscountEvent;
 import com.maven.demo.entity.DiscountEventHistory;
 import com.maven.demo.entity.DiscountRule;
 import com.maven.demo.entity.DiscountRuleAttributeOption;
-import com.maven.demo.repository.DiscountEventRepository;
 import com.maven.demo.repository.DiscountEventHistoryRepository;
+import com.maven.demo.repository.DiscountEventRepository;
 import com.maven.demo.repository.DiscountRuleAttributeOptionRepository;
 import com.maven.demo.repository.DiscountRuleRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.scheduling.annotation.Scheduled;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class DiscountService {
@@ -232,7 +237,7 @@ public class DiscountService {
     // Get discount information for admin management
     public Map<String, Object> getDiscountInfo(Long categoryId, Long productVariantId) {
         LocalDate today = LocalDate.now();
-        List<DiscountEvent> activeEvents = eventRepo.findByActiveTrueAndStartDateBeforeAndEndDateAfter(today, today);
+        List<DiscountEvent> activeEvents = eventRepo.findByActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqual(today, today);
 
         Map<String, Object> result = new HashMap<>();
         result.put("hasCategoryDiscount", false);
@@ -278,7 +283,7 @@ public class DiscountService {
     // Real-world discount logic with hierarchy prevention
     public Optional<Double> getBestDiscount(Long categoryId, Long productVariantId, List<Long> variantAttributeOptionIds) {
         LocalDate today = LocalDate.now();
-        List<DiscountEvent> activeEvents = eventRepo.findByActiveTrueAndStartDateBeforeAndEndDateAfter(today, today);
+        List<DiscountEvent> activeEvents = eventRepo.findByActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqual(today, today);
 
         // Check for category-level discount first (prevents product-specific discounts)
         Double categoryDiscount = null;

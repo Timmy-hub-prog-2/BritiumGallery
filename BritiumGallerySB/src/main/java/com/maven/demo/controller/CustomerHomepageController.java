@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,6 +41,11 @@ public class CustomerHomepageController {
     @GetMapping("/event-discount-groups")
     public List<EventDiscountProductsDTO> getEventDiscountGroups() {
         return homepageService.getEventDiscountGroups();
+    }
+
+    @GetMapping("/event-discount-groups/{eventId}")
+    public EventDiscountProductsDTO getEventDiscountGroupById(@PathVariable Long eventId) {
+        return homepageService.getEventDiscountGroupById(eventId);
     }
 
     @GetMapping("/top-best-sellers")

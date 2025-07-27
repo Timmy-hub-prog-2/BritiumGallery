@@ -60,6 +60,7 @@ import com.maven.demo.repository.PurchaseHistoryRepository;
 import com.maven.demo.repository.RefundRequestRepository;
 import com.maven.demo.repository.RoleRepository;
 import com.maven.demo.repository.SaleFifoMappingRepository;
+import com.maven.demo.repository.ShopAddressRepository;
 import com.maven.demo.repository.TotalSpendRepository;
 import com.maven.demo.repository.TransactionRepository;
 import com.maven.demo.repository.UserCouponUsageRepository;
@@ -107,6 +108,8 @@ public class OrderServiceImpl implements OrderService {
     private RoleRepository roleRepository;
     @Autowired
     private DeliveryRepository deliveryRepository;
+    @Autowired
+    private ShopAddressRepository shopAddressRepo;
 
     @Override
     @Transactional
@@ -1670,7 +1673,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * Calculate estimated delivery time based on delivery method and delivery type
+     * Calculate estimated delivery time based on new delivery structure
      */
     private LocalDateTime calculateEstimatedDeliveryTime(OrderEntity order) {
         // Use order date as base time, or current time if order date is null
@@ -1680,78 +1683,76 @@ public class OrderServiceImpl implements OrderService {
         String deliveryMethod = order.getDeliveryMethod();
         String deliveryProvider = order.getDeliveryProvider();
         
-        // Find delivery entity to get delivery type and settings
-        DeliveryEntity delivery = deliveryRepository.findByTypeIgnoreCaseAndNameIgnoreCase(
-            deliveryMethod, deliveryProvider
-        ).orElse(null);
+        // Find delivery entity using new structure
+        DeliveryEntity delivery = null;
+        try {
+            // Try to find by delivery type and speed type
+            List<DeliveryEntity> deliveries = deliveryRepository.findByDeliveryTypeIgnoreCaseAndSpeedTypeIgnoreCase(
+                deliveryMethod, deliveryProvider
+            );
+            if (!deliveries.isEmpty()) {
+                delivery = deliveries.get(0);
+            }
+        } catch (Exception e) {
+            // Fallback to legacy method
+            delivery = deliveryRepository.findByTypeIgnoreCaseAndNameIgnoreCase(
+                deliveryMethod, deliveryProvider
+            ).orElse(null);
+        }
         
-        int deliveryDays = 0;
+        double totalHours = 0.0;
         
         if (delivery != null) {
-            // Check if this is a distance-based delivery (Standard) or fixed delivery (Express/Ship)
-            if ("Standard".equalsIgnoreCase(deliveryMethod)) {
-                // Standard delivery: Calculate based on distance (km)
-                double distance = calculateDistance(order);
-                System.out.println("Standard delivery - Distance: " + distance + " km");
-                
-                if (distance <= 10) {
-                    deliveryDays = 1; // Same city: 1 day
-                } else if (distance <= 50) {
-                    deliveryDays = 2; // Nearby city: 2 days
-                } else if (distance <= 100) {
-                    deliveryDays = 3; // Regional: 3 days
-                } else {
-                    deliveryDays = 4; // Long distance: 4 days
-                }
-                System.out.println("Standard delivery - Calculated days: " + deliveryDays);
+            // Use new calculation logic matching frontend
+            double distance = calculateDistance(order);
+            System.out.println("Delivery calculation - Distance: " + distance + " km");
+            
+            double baseDelayHours = delivery.getBaseDelayHours() != null ? delivery.getBaseDelayHours() : 0.0;
+            double baseDelayDays = delivery.getBaseDelayDays() != null ? delivery.getBaseDelayDays() : 0.0;
+            double speedKmHr = delivery.getSpeedKmHr() != null ? delivery.getSpeedKmHr() : 30.0;
+            
+            // For standard delivery: use baseDelayHours as minimum
+            if ("standard".equalsIgnoreCase(delivery.getDeliveryType())) {
+                double travelHours = distance / speedKmHr;
+                totalHours = Math.max(baseDelayHours, travelHours);
+                System.out.println("Standard delivery - Base delay hours: " + baseDelayHours + ", Travel time: " + travelHours + " hours (using max)");
             } else {
-                // Express/Ship delivery: Use fixed days from delivery entity
-                String minDelayTime = delivery.getMinDelayTime();
-                if (minDelayTime != null && !minDelayTime.isEmpty()) {
-                    try {
-                        // Parse the delay time (e.g., "2 days", "8 days")
-                        deliveryDays = Integer.parseInt(minDelayTime.replaceAll("[^0-9]", ""));
-                        System.out.println("Fixed delivery - Days from minDelayTime: " + deliveryDays);
-                    } catch (NumberFormatException e) {
-                        // Fallback to default values
-                        if ("Express".equalsIgnoreCase(deliveryMethod)) {
-                            deliveryDays = 2;
-                        } else if ("Ship".equalsIgnoreCase(deliveryMethod)) {
-                            deliveryDays = 8;
-                        } else {
-                            deliveryDays = 3;
-                        }
-                        System.out.println("Fixed delivery - Fallback days: " + deliveryDays);
-                    }
-                } else {
-                    // Fallback to default values if minDelayTime is not set
-                    if ("Express".equalsIgnoreCase(deliveryMethod)) {
-                        deliveryDays = 2;
-                    } else if ("Ship".equalsIgnoreCase(deliveryMethod)) {
-                        deliveryDays = 8;
-                    } else {
-                        deliveryDays = 3;
-                    }
-                    System.out.println("Fixed delivery - Default fallback days: " + deliveryDays);
-                }
+                // For express and ship: use baseDelayDays as minimum
+                double travelHours = distance / speedKmHr;
+                totalHours = Math.max(baseDelayDays * 24, travelHours);
+                System.out.println("Express/Ship delivery - Base delay days: " + baseDelayDays + ", Travel time: " + travelHours + " hours (using max)");
             }
+            
+            System.out.println("Total delivery hours: " + totalHours);
         } else {
-            // Fallback if delivery entity not found
-            if ("Standard".equalsIgnoreCase(deliveryMethod)) {
-                deliveryDays = 3; // Default for Standard
-            } else if ("Express".equalsIgnoreCase(deliveryMethod)) {
-                deliveryDays = 2; // Default for Express
-            } else if ("Ship".equalsIgnoreCase(deliveryMethod)) {
-                deliveryDays = 8; // Default for Ship
+            // Fallback calculation if delivery entity not found
+            double distance = calculateDistance(order);
+            System.out.println("Delivery entity not found - using fallback calculation");
+            
+            if ("standard".equalsIgnoreCase(deliveryMethod)) {
+                if (distance <= 10) {
+                    totalHours = 24; // Same city: 1 day
+                } else if (distance <= 50) {
+                    totalHours = 48; // Nearby city: 2 days
+                } else if (distance <= 100) {
+                    totalHours = 72; // Regional: 3 days
+                } else {
+                    totalHours = 96; // Long distance: 4 days
+                }
+            } else if ("express".equalsIgnoreCase(deliveryMethod)) {
+                totalHours = 48; // 2 days
+            } else if ("ship".equalsIgnoreCase(deliveryMethod)) {
+                totalHours = 192; // 8 days
             } else {
-                deliveryDays = 3; // General fallback
+                totalHours = 72; // General fallback: 3 days
             }
-            System.out.println("Delivery entity not found - Fallback days: " + deliveryDays);
         }
         
         // Add processing time (1 day for order processing)
-        int processingDays = 1;
-        int totalDays = deliveryDays + processingDays;
+        totalHours += 24;
+        
+        // Convert hours to days
+        int totalDays = (int) Math.ceil(totalHours / 24);
         
         System.out.println("Total delivery days (including processing): " + totalDays);
         
@@ -1780,20 +1781,14 @@ public class OrderServiceImpl implements OrderService {
                 return 50.0; // Default distance if no address
             }
             
-            // Get shop address from delivery method
-            String deliveryMethod = order.getDeliveryMethod();
-            String deliveryProvider = order.getDeliveryProvider();
+            // Get main shop address (not from delivery entity anymore)
+            ShopAddressEntity shopAddress = shopAddressRepo.findByMainAddressTrue()
+                    .orElse(null);
             
-            // Find delivery entity to get shop address
-            DeliveryEntity delivery = deliveryRepository.findByTypeIgnoreCaseAndNameIgnoreCase(
-                deliveryMethod, deliveryProvider
-            ).orElse(null);
-            
-            if (delivery == null || delivery.getShopAddress() == null) {
+            if (shopAddress == null) {
                 return 50.0; // Default distance if no shop address
             }
             
-            ShopAddressEntity shopAddress = delivery.getShopAddress();
             if (shopAddress.getLatitude() == null || shopAddress.getLongitude() == null) {
                 return 50.0; // Default distance if no coordinates
             }
