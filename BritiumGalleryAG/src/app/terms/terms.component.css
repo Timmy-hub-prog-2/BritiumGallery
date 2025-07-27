@@ -16,9 +16,7 @@
 
 /* Container */
 .policy-management-container {
-  
   padding: 24px;
-  
   min-height: 100vh;
 }
 
@@ -235,4 +233,16 @@ textarea {
   .policy-management-container {
     margin-left: 56px;
   }
+}
+
+/* Editor Styling */
+.editor-wrapper {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  background: #fff;
+}
+
+.form-editor {
+  min-height: 200px;
 }

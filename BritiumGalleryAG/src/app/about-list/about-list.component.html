@@ -14,15 +14,15 @@
     <ul class="about-card__sections">
       <li>
         <div class="section-title"><strong>Our Mission</strong></div>
-        <div class="section-content">{{ about.mission }}</div>
+        <div class="section-content" [innerHTML]="about.mission"></div>
       </li>
       <li>
         <div class="section-title"><strong>Our Vision</strong></div>
-        <div class="section-content">{{ about.vision }}</div>
+        <div class="section-content" [innerHTML]="about.vision"></div>
       </li>
       <li>
         <div class="section-title"><strong>Our Values</strong></div>
-        <div class="section-content">{{ about.valueText }}</div>
+        <div class="section-content" [innerHTML]="about.valueText"></div>
       </li>
     </ul>
   </div>

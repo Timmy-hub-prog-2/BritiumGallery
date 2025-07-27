@@ -5,7 +5,7 @@ import { NgForm } from '@angular/forms';
 import * as L from 'leaflet'; // Import Leaflet
 import { HttpClient } from '@angular/common/http';
 import { AddressDTO } from '../../AddressDTO';
-
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-addressedit',
@@ -208,24 +208,46 @@ export class AddresseditComponent implements OnInit {
   }, 300); // Wait 300ms or tweak as needed
 }
 
-  // Submit the form to update address
-  submitForm(form: NgForm): void {
-    this.formSubmitAttempted = true;
-    if (form.valid && this.editingId) {
-      this.address.id = this.editingId;
-      this.addressService.updateAddress(this.editingId, this.address).subscribe(() => {
-        alert('Address updated successfully!');
-        this.router.navigate(['/addresslist']);
-      });
-    }
-  }
+ 
 
-  // Cancel edit
-  cancelEdit(): void {
-    if (confirm('Are you sure you want to cancel editing?')) {
+submitForm(form: NgForm): void {
+  this.formSubmitAttempted = true;
+
+  if (form.valid && this.editingId) {
+    this.address.id = this.editingId;
+
+    this.addressService.updateAddress(this.editingId, this.address).subscribe(() => {
+      Swal.fire({
+        icon: 'success',
+        title: 'Address Updated',
+        text: 'The address has been successfully updated.',
+        timer: 2000,
+       
+        showConfirmButton: false
+      });
+
+      this.router.navigate(['/addresslist']);
+    });
+    
+  }
+}
+cancelEdit(): void {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you want to cancel editing?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, cancel',
+    cancelButtonText: 'No, stay',
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6'
+  }).then((result) => {
+    if (result.isConfirmed) {
       this.router.navigate(['/addresslist']);
     }
-  }
+  });
+}
+
 
 
   resetForm(): void {

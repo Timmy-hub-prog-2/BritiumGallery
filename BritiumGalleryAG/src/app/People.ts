@@ -22,4 +22,5 @@ export interface People {
   roleName?: string;
    isOnline?: boolean; 
   lastSeenAt?: string;
+  status?: string;
 }

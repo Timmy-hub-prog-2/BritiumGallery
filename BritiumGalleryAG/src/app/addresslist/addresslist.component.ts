@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AddressService } from '../address.service';
 import { AuthService } from '../AuthService';
 import * as L from 'leaflet';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-addresslist',
@@ -88,13 +89,42 @@ export class AddresslistComponent implements OnInit {
     });
   }
 
-  deleteAddress(id: number): void {
-    if (confirm('Are you sure you want to delete this address?')) {
-      this.addressService.deleteAddress(id).subscribe(() => {
-        this.fetchAddresses(); // Refresh after delete
+ deleteAddress(id: number): void {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you want to delete this address?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      this.addressService.deleteAddress(id).subscribe({
+        next: () => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'The address has been deleted.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.fetchAddresses(); // Refresh the list
+        },
+        error: (err) => {
+          console.error('Delete failed:', err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to delete address. Please try again later.'
+          });
+        }
       });
     }
-  }
+  });
+}
+
 
   addNewAddress() {
     this.router.navigate(['/addressform']);
@@ -106,9 +136,29 @@ markAsMain(addressId: number): void {
   }
 
   console.log("Setting as main address: ", addressId);
-  this.addressService.setMainAddress(this.currentUserId, addressId).subscribe(() => {
-    this.fetchAddresses();
+
+  this.addressService.setMainAddress(this.currentUserId, addressId).subscribe({
+    next: () => {
+      Swal.fire({
+        icon: 'success',
+        title: 'Main Address Updated',
+        text: 'This address is now set as your main address.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      this.fetchAddresses();
+    },
+    error: (err) => {
+      console.error('Failed to set main address:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update the main address. Please try again.',
+        confirmButtonText: 'OK'
+      });
+    }
   });
+
 }
 
 

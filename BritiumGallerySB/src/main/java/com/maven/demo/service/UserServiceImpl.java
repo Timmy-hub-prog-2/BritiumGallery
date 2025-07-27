@@ -51,10 +51,9 @@ public class UserServiceImpl implements UserService1 {
         this.userRepository = userRepository;
     }
 
-
     @Override
     public List<UserResponseDTO> getAdmins(String status) {
-        List<UserEntity> admins = userRepository.findAllByRoleName("Admin");
+        List<UserEntity> admins = userRepository.findAllByRoleNameNot("Customer");
 
         return admins.stream()
                 .map(this::convertToDto)
@@ -64,14 +63,12 @@ public class UserServiceImpl implements UserService1 {
                     } else if ("recent".equalsIgnoreCase(status)) {
                         return Boolean.FALSE.equals(dto.getIsOnline());
                     } else if ("offline".equalsIgnoreCase(status)) {
-                        // ✅ Only users without tracking record (isOnline == null)
                         return dto.getIsOnline() == null;
                     }
-                    return true; // No filter
+                    return true;
                 })
                 .collect(Collectors.toList());
     }
-
 
     @Override
     public List<UserResponseDTO> getCustomers(String status) {

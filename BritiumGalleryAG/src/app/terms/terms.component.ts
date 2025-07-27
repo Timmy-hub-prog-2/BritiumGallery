@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { Terms, TermsService } from '../terms.service';
 import Swal from 'sweetalert2';
+import { Editor, Toolbar } from 'ngx-editor';
 
 @Component({
   selector: 'app-terms',
@@ -11,6 +12,17 @@ import Swal from 'sweetalert2';
 })
 export class TermsComponent implements OnInit {
   termsForm!: FormGroup;
+  editor!: Editor;
+  toolbar: Toolbar = [
+    ['bold', 'italic'],
+    ['underline', 'strike'],
+    ['code', 'blockquote'],
+    ['ordered_list', 'bullet_list'],
+    [{ heading: ['h1', 'h2', 'h3', 'h4'] }],
+    ['link', 'image'],
+    ['text_color', 'background_color'],
+    ['align_left', 'align_center', 'align_right', 'align_justify'],
+  ];
   allTerms: Terms[] = [];
   editingId: number | null = null;
   expandedTerms: Set<number> = new Set();
@@ -18,13 +30,18 @@ export class TermsComponent implements OnInit {
   constructor(private termsService: TermsService, private fb: FormBuilder) {}
 
   ngOnInit(): void {
+    this.editor = new Editor();
     this.termsForm = this.fb.group({
       title: [''],
-      content: [''],
+      content: new FormControl(''),
       active: [true]
     });
 
     this.loadTerms();
+  }
+
+    ngOnDestroy(): void {
+    this.editor?.destroy();
   }
 
   loadTerms() {
