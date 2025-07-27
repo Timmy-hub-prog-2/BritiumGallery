@@ -3,8 +3,10 @@
   <div class="register-image">
     <div class="image-content">
       <h2>Join Our Community</h2>
-      <p>Create your account and start sharing your moments with the world. Connect with others and showcase your unique
-        perspective.</p>
+      <p>
+        Create your account and start sharing your moments with the world.
+        Connect with others and showcase your unique perspective.
+      </p>
     </div>
   </div>
 
@@ -22,10 +24,25 @@
           <label class="form-label">Full Name</label>
           <div class="input-wrapper">
             <i class="input-icon"></i>
-            <input type="text" name="name" placeholder="Enter your full name" [(ngModel)]="user.name"
-              #nameField="ngModel" required class="form-input" />
+            <input
+              type="text"
+              name="name"
+              placeholder="Enter your full name"
+              [(ngModel)]="user.name"
+              #nameField="ngModel"
+              required
+              (input)="nameValidationShown = false; formSubmitted = false"
+              (blur)="onNameBlur(nameField)"
+              class="form-input"
+            />
           </div>
-          <div *ngIf="nameField.invalid && (nameField.touched || registerForm.submitted)" class="error-message">
+          <div
+            *ngIf="
+              (nameField.invalid || (formSubmitted && !nameField.value)) &&
+              (nameValidationShown || formSubmitted)
+            "
+            class="error-message"
+          >
             <i class="error-icon"></i>
             Name is required
           </div>
@@ -36,17 +53,46 @@
           <label class="form-label">Email Address</label>
           <div class="input-wrapper">
             <i class="input-icon"></i>
-            <input type="email" name="email" placeholder="Enter your email" [(ngModel)]="user.email"
-              #emailField="ngModel" required email (input)="emailExists = false" class="form-input" />
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              [(ngModel)]="user.email"
+              #emailField="ngModel"
+              required
+              email
+              (input)="
+                emailExists = false;
+                emailNotVerified = false;
+                emailValidationShown = false;
+                formSubmitted = false
+              "
+              (blur)="onEmailBlur(emailField)"
+              class="form-input"
+            />
           </div>
-          <div *ngIf="emailField.invalid && (emailField.touched || registerForm.submitted)" class="error-message">
+          <div
+            *ngIf="
+              (emailField.invalid || (formSubmitted && !emailField.value)) &&
+              (emailValidationShown || formSubmitted)
+            "
+            class="error-message"
+          >
             <i class="error-icon"></i>
-            <ng-container *ngIf="emailField.errors?.['required']">Email is required</ng-container>
-            <ng-container *ngIf="emailField.errors?.['email']">Invalid email format</ng-container>
+            <ng-container *ngIf="emailField.errors?.['required']"
+              >Email is required</ng-container
+            >
+            <ng-container *ngIf="emailField.errors?.['email']"
+              >Invalid email format</ng-container
+            >
           </div>
           <div *ngIf="emailExists" class="error-message">
             <i class="error-icon"></i>
             This email is already registered
+          </div>
+          <div *ngIf="emailNotVerified" class="error-message">
+            <i class="error-icon"></i>
+            Email is not valid or deliverable. Please use a real email address.
           </div>
         </div>
 
@@ -55,22 +101,72 @@
           <label class="form-label">Password</label>
           <div class="input-wrapper">
             <i class="input-icon"></i>
-            <input [type]="showPassword ? 'text' : 'password'" name="password" placeholder="Create a password"
-              [(ngModel)]="user.password" required (input)="checkPasswordStrength(user.password)"
-              #passwordField="ngModel" class="form-input" />
-            <button type="button" (click)="togglePasswordVisibility()" class="password-toggle">
-
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              name="password"
+              placeholder="Create a password"
+              [(ngModel)]="user.password"
+              required
+              (input)="
+                checkPasswordStrength(user.password);
+                passwordValidationShown = false;
+                formSubmitted = false
+              "
+              (blur)="onPasswordBlur(passwordField)"
+              #passwordField="ngModel"
+              class="form-input"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="password-toggle"
+              [attr.aria-label]="
+                showPassword ? 'Hide password' : 'Show password'
+              "
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  [attr.d]="
+                    showPassword
+                      ? 'M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22'
+                      : 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'
+                  "
+                />
+                <circle
+                  [attr.cx]="showPassword ? '0' : '12'"
+                  [attr.cy]="showPassword ? '0' : '12'"
+                  [attr.r]="showPassword ? '0' : '3'"
+                />
+              </svg>
             </button>
           </div>
-          <div *ngIf="passwordField.invalid && (passwordField.touched || registerForm.submitted)" class="error-message">
+          <div
+            *ngIf="
+              (passwordField.invalid ||
+                (formSubmitted && !passwordField.value)) &&
+              (passwordValidationShown || formSubmitted)
+            "
+            class="error-message"
+          >
             <i class="error-icon"></i>
             Password is required
           </div>
-          <div *ngIf="user.password?.length" class="password-strength" [ngClass]="{
-              'weak': passwordStrength === 'Weak',
-              'medium': passwordStrength === 'Medium',
-              'strong': passwordStrength === 'Strong'
-            }">
+          <div
+            *ngIf="user.password?.length"
+            class="password-strength"
+            [ngClass]="{
+              weak: passwordStrength === 'Weak',
+              medium: passwordStrength === 'Medium',
+              strong: passwordStrength === 'Strong'
+            }"
+          >
             Password Strength: {{ passwordStrength }}
           </div>
         </div>
@@ -80,18 +176,41 @@
           <label class="form-label">Phone Number</label>
           <div class="input-wrapper">
             <i class="input-icon"></i>
-            <input type="text" name="phoneNumber" placeholder="Enter your phone number" [(ngModel)]="user.phoneNumber"
-              pattern="^(\+959|09)[0-9]{7,9}$" required #phoneField="ngModel" (input)="phoneExists = false"
-              class="form-input" />
+            <input
+              type="text"
+              name="phoneNumber"
+              placeholder="Enter your phone number"
+              [(ngModel)]="user.phoneNumber"
+              pattern="^(\+959|09)[0-9]{7,9}$"
+              required
+              #phoneField="ngModel"
+              (input)="
+                phoneExists = false;
+                phoneValidationShown = false;
+                formSubmitted = false
+              "
+              (blur)="onPhoneBlur(phoneField)"
+              class="form-input"
+            />
           </div>
-          <div *ngIf="phoneField.invalid && (phoneField.touched || registerForm.submitted)" class="error-message">
-            <i class="error-icon">⚠️</i>
-            <ng-container *ngIf="phoneField.errors?.['required']">Phone number is required</ng-container>
-            <ng-container *ngIf="phoneField.errors?.['pattern']">Format must start with +959 or 09 and be followed by
-              7–9 digits</ng-container>
+          <div
+            *ngIf="
+              (phoneField.invalid || (formSubmitted && !phoneField.value)) &&
+              (phoneValidationShown || formSubmitted)
+            "
+            class="error-message"
+          >
+            <i class="error-icon"></i>
+            <ng-container *ngIf="phoneField.errors?.['required']"
+              >Phone number is required</ng-container
+            >
+            <ng-container *ngIf="phoneField.errors?.['pattern']"
+              >Format must start with +959 or 09 and be followed by 7–9
+              digits</ng-container
+            >
           </div>
           <div *ngIf="phoneExists" class="error-message">
-            <i class="error-icon">⚠️</i>
+            <i class="error-icon"></i>
             This phone number is already registered
           </div>
         </div>
@@ -101,100 +220,76 @@
           <label class="form-label">Gender</label>
           <div class="gender-options">
             <label class="gender-option">
-              <input type="radio" name="gender" [(ngModel)]="user.gender" value="Male" required />
+              <input
+                type="radio"
+                name="gender"
+                [(ngModel)]="user.gender"
+                value="Male"
+                required
+                (change)="onGenderChange()"
+              />
               <span>Male</span>
             </label>
             <label class="gender-option">
-              <input type="radio" name="gender" [(ngModel)]="user.gender" value="Female" required />
+              <input
+                type="radio"
+                name="gender"
+                [(ngModel)]="user.gender"
+                value="Female"
+                required
+                (change)="onGenderChange()"
+              />
               <span>Female</span>
             </label>
           </div>
-          <div *ngIf="!user.gender && registerForm.submitted" class="error-message">
+          <div
+            *ngIf="!user.gender && (genderInteracted || formSubmitted)"
+            class="error-message"
+          >
             <i class="error-icon"></i>
             Please select your gender
           </div>
         </div>
 
-        <!-- Image Upload -->
+        <!-- Terms and Conditions Checkbox -->
         <div class="form-group">
-          <label class="form-label">Profile Images</label>
-          <div class="image-upload">
-            <div class="upload-zone" (click)="fileInput.click()" (dragover)="$event.preventDefault()"
-              (drop)="onFilesDropped($event)">
-              <div class="upload-zone-icon">📷</div>
-              <div class="upload-zone-text">Drag and drop images here or click to browse</div>
-              <input #fileInput type="file" name="images" accept="image/*" multiple (change)="onImagesSelected($event)"
-                class="hidden" />
-            </div>
-            <div *ngIf="selectedFiles.length > 0" class="file-count">
-              <span>📁</span>
-              {{ selectedFiles.length }} file{{ selectedFiles.length === 1 ? '' : 's' }} chosen
-            </div>
-            <div class="image-previews" *ngIf="filePreviews.length > 0">
-              <div *ngFor="let preview of filePreviews; let i = index" class="preview-item">
-                <img [src]="preview" alt="Preview" />
-                <div class="preview-name">{{ selectedFiles[i].name }}</div>
-                <button type="button" (click)="removeImage(i)" class="remove-image" title="Remove image">×</button>
-              </div>
-            </div>
+          <div class="form-check">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              [(ngModel)]="acceptedTerms"
+              name="acceptedTerms"
+              id="termsCheck"
+              #termsCheck="ngModel"
+              required
+              (change)="onTermsChange()"
+            />
+            <label class="form-check-label" for="termsCheck">
+              I accept the Terms and Conditions and Privacy Policy.
+            </label>
+          </div>
+          <div
+            *ngIf="(termsInteracted || formSubmitted) && !acceptedTerms"
+            class="error-message"
+          >
+            <i class="error-icon"></i>
+            You must accept the Terms and Conditions and Privacy Policy to
+            continue
           </div>
         </div>
-        <!-- Inside the form, wherever you want -->
-        <div class="form-check">
-          <input type="checkbox" class="form-check-input" formControlName="acceptedTerms" id="termsCheck">
-          <label class="form-check-label" for="termsCheck">
-            I accept the <a href="#" (click)="openTermsModal($event)">Terms and Conditions</a>
-            and
-            <a href="#" (click)="openPrivacyPolicyModal($event)">Privacy Policy</a>.
-          </label>
-        </div>
-
 
         <!-- Submit Button -->
         <button type="submit" class="register-button" [disabled]="isSubmitting">
-          <ng-container *ngIf="!isSubmitting">🚀 Create Account</ng-container>
-          <ng-container *ngIf="isSubmitting">⏳ Creating Account...</ng-container>
+          <ng-container *ngIf="!isSubmitting">Create Account</ng-container>
+          <ng-container *ngIf="isSubmitting">Creating Account...</ng-container>
         </button>
-
 
         <!-- Login Link -->
         <div class="login-prompt">
-          Already have an account? <a routerLink="/login" class="login-link">Sign In</a>
+          Already have an account?
+          <a routerLink="/login" class="login-link">Sign In</a>
         </div>
       </form>
-    </div>
-  </div>
-</div>
-
-<!-- Terms & Conditions Modal -->
-<div class="modal-overlay" *ngIf="showTermsModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h2 class="modal-title">{{ latestTerms?.title || 'Terms & Conditions' }}</h2>
-      <button type="button" class="modal-close" (click)="closeTermsModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="terms-content" [innerHTML]="latestTerms?.content || 'Loading terms...'"></div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="modal-btn" (click)="closeTermsModal()">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- Privacy Policy Modal -->
-<div class="modal-overlay" *ngIf="showPrivacyPolicyModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h2 class="modal-title">{{ latestPrivacyPolicy?.title || 'Privacy Policy' }}</h2>
-      <button type="button" class="modal-close" (click)="closePrivacyPolicyModal()">×</button>
-    </div>
-   <div class="modal-body">
-   <div class="privacy-policy-content" [innerHTML]="latestPrivacyPolicy?.content || 'Loading privacy policy...'"></div>
-</div>
-
-    <div class="modal-footer">
-      <button type="button" class="modal-btn" (click)="closePrivacyPolicyModal()">Close</button>
     </div>
   </div>
 </div>
