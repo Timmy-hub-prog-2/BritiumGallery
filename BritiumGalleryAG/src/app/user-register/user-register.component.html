@@ -141,16 +141,13 @@
         </div>
         <!-- Inside the form, wherever you want -->
         <div class="form-check">
-          <input type="checkbox" class="form-check-input" id="termsCheck" [(ngModel)]="acceptedTerms"
-            name="acceptedTerms" required>
+          <input type="checkbox" class="form-check-input" formControlName="acceptedTerms" id="termsCheck">
           <label class="form-check-label" for="termsCheck">
-            I accept the
-            <a href="#" (click)="openTermsModal($event)">Terms and Conditions</a>
+            I accept the <a href="#" (click)="openTermsModal($event)">Terms and Conditions</a>
             and
             <a href="#" (click)="openPrivacyPolicyModal($event)">Privacy Policy</a>.
           </label>
         </div>
-
 
 
         <!-- Submit Button -->
@@ -192,10 +189,9 @@
       <h2 class="modal-title">{{ latestPrivacyPolicy?.title || 'Privacy Policy' }}</h2>
       <button type="button" class="modal-close" (click)="closePrivacyPolicyModal()">×</button>
     </div>
-    <div class="modal-body">
-      <div class="privacy-policy-content" [innerHTML]="latestPrivacyPolicy?.content || 'Loading privacy policy...'">
-      </div>
-    </div>
+   <div class="modal-body">
+   <div class="privacy-policy-content" [innerHTML]="latestPrivacyPolicy?.content || 'Loading privacy policy...'"></div>
+</div>
 
     <div class="modal-footer">
       <button type="button" class="modal-btn" (click)="closePrivacyPolicyModal()">Close</button>

@@ -27,6 +27,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import com.maven.demo.dto.*;
+import com.maven.demo.entity.*;
+import com.maven.demo.repository.*;
+
 @Service
 public class UserService {
 
@@ -46,6 +50,9 @@ public class UserService {
     private OtpService otpService;
 
     @Autowired
+    private EmailValidationService emailValidationService;
+
+    @Autowired
     private CustomerTypeRepository customerTypeRepository;
 
     @Autowired
@@ -59,7 +66,7 @@ public class UserService {
         System.out.println("📧 Email: " + dto.getEmail());
         System.out.println("📱 Phone: " + dto.getPhoneNumber());
         System.out.println("🔐 Use SMS: " + useSms);
-        
+
         String phone = dto.getPhoneNumber().trim();
         if (phone.startsWith("+959")) {
             phone = phone.replaceFirst("\\+959", "09");
@@ -75,6 +82,11 @@ public class UserService {
 
         if (!phone.matches("^09[0-9]{7,9}$")) {
             return "Invalid phone number format";
+        }
+
+        boolean isEmailValid = emailValidationService.isEmailValid(dto.getEmail());
+        if (!isEmailValid) {
+            throw new EmailNotVerifiedException("Invalid email address — please provide a valid one.", dto.getPhoneNumber());
         }
 
         RoleEntity role = roleRepository.findById(dto.getRoleId())
@@ -99,7 +111,7 @@ public class UserService {
         user.setRole(role);
 
         user.setCustomerType(defaultType);
-        user.setCreatedAt(java.time.LocalDateTime.now());
+        user.setCreatedAt(LocalDateTime.now());
 
         userRepository.save(user);
 
@@ -146,18 +158,6 @@ public class UserService {
         return new LoginResponseDTO(user);
     }
 
-    // Custom exception for email not verified
-    public static class EmailNotVerifiedException extends RuntimeException {
-        private final String phoneNumber;
-        public EmailNotVerifiedException(String message, String phoneNumber) {
-            super(message);
-            this.phoneNumber = phoneNumber;
-        }
-        public String getPhoneNumber() {
-            return phoneNumber;
-        }
-    }
-
 
     public Optional<UserResponseDTO> updateUserProfile(Long id, UserDTO userDto) {
         return userRepository.findById(id).map(existingUser -> {
@@ -196,8 +196,7 @@ public class UserService {
             // Save updated entity
             UserEntity updatedUser = userRepository.save(existingUser);
 
-            AddressDTO dto =  addressService.getMainAddressByUserId(id);
-
+            AddressDTO dto = addressService.getMainAddressByUserId(id);
 
 
             // Manually map entity to response DTO
@@ -254,9 +253,15 @@ public class UserService {
             if ((from != null && date.isBefore(from)) || (to != null && date.isAfter(to))) continue;
             String period;
             switch (groupBy == null ? "day" : groupBy) {
-                case "month": period = date.format(monthFmt); break;
-                case "week": period = date.format(weekFmt); break;
-                default: period = date.format(dayFmt); break;
+                case "month":
+                    period = date.format(monthFmt);
+                    break;
+                case "week":
+                    period = date.format(weekFmt);
+                    break;
+                default:
+                    period = date.format(dayFmt);
+                    break;
             }
             periodMap.put(period, periodMap.getOrDefault(period, 0) + 1);
         }
@@ -268,7 +273,6 @@ public class UserService {
         }
         return result;
     }
-
 
 
     public String createAdmin(UserDTO userDto) {
@@ -294,7 +298,7 @@ public class UserService {
         UserEntity user = new UserEntity();
         user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());
-        user.setPhoneNumber(phone);
+        user.setPhoneNumber(userDto.getPhoneNumber());
         user.setImageUrls(userDto.getImageUrls());
         user.setPassword(passwordEncoder.encode(generatedPassword));
         user.setStatus(0); // Set status to 0 (unverified) for admin-created users
@@ -311,7 +315,7 @@ public class UserService {
 
         String htmlContent = "<div style='font-family:Arial,sans-serif;padding:10px;'>"
                 + "<h3>Hello " + user.getName() + ",</h3>"
-                + "<p> Your "+role.getType()+" account has been successfully created.</p>"
+                + "<p> Your " + role.getType() + " account has been successfully created.</p>"
                 + "<p><strong>Role:</strong> " + role.getType() + "</p>"
                 + "<p><strong>Email:</strong> " + user.getEmail() + "</p>"
                 + "<p><strong>Temporary Password:</strong> <span style='color:blue;'>" + generatedPassword + "</span></p>"
@@ -330,10 +334,10 @@ public class UserService {
 
     public void processForgotPassword(String identifier, boolean useSms) {
         // Find the user by email or phone
-        Optional<UserEntity> userOpt = identifier.contains("@") 
-            ? userRepository.findByEmail(identifier)
-            : userRepository.findByPhoneNumber(identifier);
-            
+        Optional<UserEntity> userOpt = identifier.contains("@")
+                ? userRepository.findByEmail(identifier)
+                : userRepository.findByPhoneNumber(identifier);
+
         UserEntity user = userOpt.orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         // Generate a 6-digit code
@@ -386,6 +390,7 @@ public class UserService {
 
         passwordResetTokenRepository.delete(token);
     }
+
     public boolean checkCode(String code) {
         Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByCode(code);
 
@@ -399,6 +404,7 @@ public class UserService {
 
         return true;
     }
+
     public void resendVerificationCode(String email) {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -416,6 +422,7 @@ public class UserService {
         // Send email with new code
         emailService.sendResetCode(email, token.getCode()); // make sure this method exists
     }
+
     private String generate6DigitCode() {
         Random random = new Random();
         int code = 100000 + random.nextInt(900000); // 100000–999999
@@ -437,4 +444,16 @@ public class UserService {
         passwordResetTokenRepository.delete(token); // Invalidate token after use
     }
 
+    public static class EmailNotVerifiedException extends RuntimeException {
+        private final String phoneNumber;
+
+        public EmailNotVerifiedException(String message, String phoneNumber) {
+            super(message);
+            this.phoneNumber = phoneNumber;
+        }
+
+        public String getPhoneNumber() {
+            return phoneNumber;
+        }
+    }
 }

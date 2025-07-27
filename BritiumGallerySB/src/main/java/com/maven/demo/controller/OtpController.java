@@ -71,18 +71,30 @@ public class OtpController {
     @PostMapping("/verify")
     public ResponseEntity<String> verifyOtp(@RequestParam String identifier,
                                             @RequestParam String otp) {
-        String result = otpService.verifyOtp(identifier, otp);
+        System.out.println("🔍 ===== OTP VERIFICATION REQUEST ===== 🔍");
+        System.out.println("📧 Identifier: " + identifier);
+        System.out.println("🔢 OTP: " + otp);
+        
+        try {
+            String result = otpService.verifyOtp(identifier, otp);
+            System.out.println("✅ Verification result: " + result);
 
-        switch (result) {
-            case "verified":
-            case "already-verified":
-                return ResponseEntity.ok(result);
-            case "OTP expired":
-            case "Invalid OTP":
-            case "No OTP found":
-            case "User not found":
-            default:
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+            switch (result) {
+                case "verified":
+                case "already-verified":
+                    return ResponseEntity.ok(result);
+                case "OTP expired":
+                case "Invalid OTP":
+                case "No OTP found":
+                case "User not found":
+                default:
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error during OTP verification: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred during verification. Please try again.");
         }
     }
 }

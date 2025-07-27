@@ -84,6 +84,14 @@ export class ResetPasswordComponent implements OnInit, AfterViewInit {
     if (this.inputs.toArray()[nextEmptyIndex]) {
       this.inputs.toArray()[nextEmptyIndex].nativeElement.focus();
     }
+    
+    // Auto-verify if all boxes are filled with valid digits
+    if (this.otp.length === 6 && this.otp.every(d => d && d.match(/\d/))) {
+      setTimeout(() => this.onVerify(), 100);
+    } else if (this.otp.length === 6) {
+      // Show error if 6 characters but not all digits
+      this.error = '❌ Please enter a valid 6-digit OTP code.';
+    }
   }
 
   onInput(event: any, index: number) {

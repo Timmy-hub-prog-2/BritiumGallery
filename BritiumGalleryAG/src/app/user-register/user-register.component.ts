@@ -1,18 +1,10 @@
-import {
-  Component,
-  ViewChild
-} from '@angular/core';
-import {
-  trigger,
-  transition,
-  style,
-  animate
-} from '@angular/animations';
+import { Component, ViewChild } from '@angular/core';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { User } from '../../user.model';
-import { Terms, TermsService } from '../terms.service';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-user-register',
@@ -23,10 +15,13 @@ import { Terms, TermsService } from '../terms.service';
     trigger('fadeIn', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('500ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
-    ])
-  ]
+        animate(
+          '500ms ease-out',
+          style({ opacity: 1, transform: 'translateY(0)' })
+        ),
+      ]),
+    ]),
+  ],
 })
 export class UserRegisterComponent {
   @ViewChild('registerForm') registerForm!: NgForm;
@@ -41,25 +36,34 @@ export class UserRegisterComponent {
     gender: '',
     status: 0,
     roleId: 3,
-    customerType: ''
+    customerType: '',
   };
 
-  selectedFiles: File[] = [];
-  filePreviews: string[] = [];
+  selectedFile: File | null = null;
+  filePreview: string | null = null;
 
   emailExists = false;
+  emailNotVerified = false;
   phoneExists = false;
+  emailValidationShown = false;
+  phoneValidationShown = false;
+  nameValidationShown = false;
+  passwordValidationShown = false;
+  formSubmitted = false;
+
   showPassword = false;
   passwordStrength = '';
   isSubmitting = false;
+  termsInteracted = false;
+  genderInteracted = false;
 
-  latestTerms: Terms | null = null;
-   latestPrivacyPolicy: any = null;
-   showTermsModal = false;
-   showPrivacyPolicyModal = false;
   acceptedTerms = false;
 
-  constructor(private http: HttpClient, private router: Router,private termsService:TermsService) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private userService: UserService
+  ) {}
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -75,66 +79,120 @@ export class UserRegisterComponent {
     }
   }
 
-  removeImage(index: number): void {
-    URL.revokeObjectURL(this.filePreviews[index]);
-    this.selectedFiles.splice(index, 1);
-    this.filePreviews.splice(index, 1);
+  removeImage(): void {
+    if (this.filePreview) {
+      URL.revokeObjectURL(this.filePreview);
+    }
+    this.selectedFile = null;
+    this.filePreview = null;
   }
 
   onImagesSelected(event: any): void {
-    const files = Array.from(event.target.files) as File[];
-    this.selectedFiles.push(...files);
-    this.filePreviews.push(...files.map(file => URL.createObjectURL(file)));
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      this.removeImage();
+      const file = files[0];
+      this.selectedFile = file;
+      this.filePreview = URL.createObjectURL(file);
+    }
     event.target.value = null;
   }
 
   onFilesDropped(event: DragEvent) {
     event.preventDefault();
     const files = event.dataTransfer?.files;
-    if (files) {
-      this.onImagesSelected({ target: { files } } as any);
+    if (files && files.length > 0) {
+      const fileList = { 0: files[0], length: 1 };
+      this.onImagesSelected({ target: { files: fileList } } as any);
     }
   }
- openTermsModal(event: Event): void {
-    event.preventDefault();
-    this.termsService.getLatestTerms().subscribe({
-      next: (terms) => {
-        this.latestTerms = terms;
-        this.showTermsModal = true;
-      },
-      error: () => {
-        alert("Unable to load latest terms.");
+
+  onTermsChange(): void {
+    this.termsInteracted = true;
+  }
+
+  onTermsInteracted(): void {
+    this.termsInteracted = true;
+  }
+
+  onFieldBlur(field: any): void {
+    if (field.value && field.markAsDirty) {
+      field.markAsDirty();
+    }
+  }
+
+  onEmailBlur(field: any): void {
+    // Only show validation when user has finished entering email and left the field
+    if (field.value && field.value.trim() !== '') {
+      this.emailValidationShown = true;
+      if (field.markAsTouched) {
+        field.markAsTouched();
       }
-    });
-  }
-
-  closeTermsModal(): void {
-    this.showTermsModal = false;
-  }
-
- openPrivacyPolicyModal(event: Event): void {
-  event.preventDefault();
-  this.http.get('http://localhost:8080/api/privacy-policy/latest')
-    .subscribe({
-      next: (policy) => {
-        this.latestPrivacyPolicy = policy;
-        this.showPrivacyPolicyModal = true;
-      },
-      error: () => {
-        alert('Unable to load latest privacy policy.');
+      if (field.markAsDirty) {
+        field.markAsDirty();
       }
-    });
-}
-
-
-  // Close the privacy policy modal
-  closePrivacyPolicyModal(): void {
-    this.showPrivacyPolicyModal = false;
+    }
   }
-  
+
+  onPhoneBlur(field: any): void {
+    // Only show validation when user has finished entering phone and left the field
+    if (field.value && field.value.trim() !== '') {
+      this.phoneValidationShown = true;
+      if (field.markAsTouched) {
+        field.markAsTouched();
+      }
+      if (field.markAsDirty) {
+        field.markAsDirty();
+      }
+    }
+  }
+
+  onNameBlur(field: any): void {
+    // Only show validation when user has finished entering name and left the field
+    if (field.value && field.value.trim() !== '') {
+      this.nameValidationShown = true;
+      if (field.markAsTouched) {
+        field.markAsTouched();
+      }
+      if (field.markAsDirty) {
+        field.markAsDirty();
+      }
+    }
+  }
+
+  onPasswordBlur(field: any): void {
+    // Only show validation when user has finished entering password and left the field
+    if (field.value && field.value.trim() !== '') {
+      this.passwordValidationShown = true;
+      if (field.markAsTouched) {
+        field.markAsTouched();
+      }
+      if (field.markAsDirty) {
+        field.markAsDirty();
+      }
+    }
+  }
+
+  onGenderChange(): void {
+    this.genderInteracted = true;
+  }
+
   register(): void {
+    // Always show all validation errors when form is submitted
+    this.formSubmitted = true;
+    this.nameValidationShown = true;
+    this.emailValidationShown = true;
+    this.passwordValidationShown = true;
+    this.phoneValidationShown = true;
+    this.genderInteracted = true;
+    this.termsInteracted = true;
+    this.registerForm.control.markAllAsTouched();
+
+    if (!this.acceptedTerms) {
+      return;
+    }
+
     if (!this.registerForm.valid) {
-      this.registerForm.control.markAllAsTouched();
       return;
     }
 
@@ -146,40 +204,100 @@ export class UserRegisterComponent {
     }
     this.user.phoneNumber = phone;
 
-    const formData = new FormData();
-    formData.append('user', new Blob([JSON.stringify(this.user)], { type: 'application/json' }));
+    const userData = {
+      ...this.user,
+      id: 0,
+      status: 0,
+      roleId: 3,
+      imageUrls: [],
+      address: '',
+      customerType: '',
+      totalSpend: 0,
+      isOnline: false,
+      lastSeenAt: new Date().toISOString(),
+    };
 
-    if (this.selectedFiles.length > 0) {
-      this.selectedFiles.forEach(file => {
-        formData.append('images', file);
-      });
+    const formData = new FormData();
+    formData.append(
+      'user',
+      new Blob([JSON.stringify(userData)], { type: 'application/json' })
+    );
+
+    if (this.selectedFile) {
+      formData.append('images', this.selectedFile);
     } else {
-      formData.append('images', new Blob([], { type: 'application/octet-stream' }), '');
+      formData.append(
+        'images',
+        new Blob([], { type: 'application/octet-stream' }),
+        ''
+      );
     }
 
-    this.http.post('http://localhost:8080/gallery/users/register', formData).subscribe({
-      next: (res: any) => {
-        this.isSubmitting = false;
-        if (res.message === 'User registered successfully') {
-          localStorage.setItem('pendingEmail', this.user.email);
-          this.router.navigate(['/choose-verification'], {
-            queryParams: {
-              email: this.user.email,
-              phone: this.user.phoneNumber
+    this.http
+      .post('http://localhost:8080/gallery/users/register', formData)
+      .subscribe({
+        next: (res: any) => {
+          this.isSubmitting = false;
+          if (res.message === 'User registered successfully') {
+            localStorage.setItem('pendingEmail', this.user.email);
+            this.router.navigate(['/choose-verification'], {
+              queryParams: {
+                email: this.user.email,
+                phone: this.user.phoneNumber,
+              },
+            });
+          }
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+
+          // Reset flags
+          this.emailExists = false;
+          this.emailNotVerified = false;
+          this.phoneExists = false;
+
+          let msg = 'Something went wrong. Please try again.';
+
+          if (err.error) {
+            if (typeof err.error === 'string') {
+              msg = err.error;
+            } else if (err.error.message) {
+              msg = err.error.message;
+            } else if (err.error.error) {
+              msg = err.error.error;
             }
-          });
-          
-        } else {
-          alert(res.message);
-        }
-      },
-      error: err => {
-        this.isSubmitting = false;
-        const msg = typeof err.error === 'string' ? err.error : err.error?.message || 'Something went wrong.';
-        this.emailExists = msg.toLowerCase().includes("email");
-        this.phoneExists = msg.toLowerCase().includes("phone");
-        alert("⚠️ " + msg);
-      }
-    });
+          }
+
+          const lowerMsg = msg.toLowerCase();
+
+          // Match backend error messages
+          if (
+            lowerMsg.includes('email already exists') ||
+            lowerMsg.includes('email is already registered') ||
+            lowerMsg.includes('email already registered')
+          ) {
+            this.emailExists = true;
+          } else if (
+            lowerMsg.includes('not deliverable') ||
+            lowerMsg.includes('not verified') ||
+            lowerMsg.includes('invalid email') ||
+            lowerMsg.includes('please provide a valid one')
+          ) {
+            this.emailNotVerified = true;
+          }
+
+          if (
+            lowerMsg.includes('phone already exists') ||
+            lowerMsg.includes('phone already registered')
+          ) {
+            this.phoneExists = true;
+          }
+
+          console.log('Error message:', msg);
+          console.log('Email exists:', this.emailExists);
+          console.log('Phone exists:', this.phoneExists);
+          console.log('Email not verified:', this.emailNotVerified);
+        },
+      });
   }
 }

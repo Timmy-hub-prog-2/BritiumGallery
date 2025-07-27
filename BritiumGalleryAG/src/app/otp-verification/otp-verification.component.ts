@@ -143,6 +143,10 @@ export class OtpVerificationComponent implements OnInit {
     // Auto-verify if all boxes are filled with valid digits
     if (this.otpCode.length === 6 && this.otpCode.split('').every(d => d.match(/\d/))) {
       setTimeout(() => this.verifyOtp(), 100);
+    } else if (this.otpCode.length === 6) {
+      // Show error if 6 characters but not all digits
+      this.error = '❌ Please enter a valid 6-digit OTP code.';
+      this.message = '';
     }
   }
 
@@ -218,7 +222,7 @@ export class OtpVerificationComponent implements OnInit {
               if (roleId === 1 || roleId === 2 || roleId === 4 || roleId === 5 || roleId === 6) {
                 this.router.navigate(['/admin-dashboard']);
               } else {
-                this.router.navigate(['/home']);
+                this.router.navigate(['/customer-homepage']);
               }
             },
             error: () => {
