@@ -541,12 +541,6 @@ public class ProductController {
         return ResponseEntity.ok(history);
     }
 
-    @GetMapping("/variants/{variantId}/history")
-    public ResponseEntity<List<ProductHistoryDTO>> getProductHistoryByVariant(@PathVariable Long variantId) {
-        List<ProductHistoryDTO> history = productService.getProductHistoryByVariant(variantId);
-        return ResponseEntity.ok(history);
-    }
-
     @GetMapping("/admin/{adminId}/history")
     public ResponseEntity<List<ProductHistoryDTO>> getProductHistoryByAdmin(@PathVariable Long adminId) {
         List<ProductHistoryDTO> history = productService.getProductHistoryByAdmin(adminId);

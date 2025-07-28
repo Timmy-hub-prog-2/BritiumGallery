@@ -32,9 +32,6 @@ public class ProductHistory {
     @Column(name = "new_value", columnDefinition = "TEXT")
     private String newValue;
 
-    @Column(name = "variant_id")
-    private Long variantId; // For variant-specific changes
-
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

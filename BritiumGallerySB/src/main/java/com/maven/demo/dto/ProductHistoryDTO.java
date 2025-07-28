@@ -11,7 +11,6 @@ public class ProductHistoryDTO {
     private String fieldName;
     private String oldValue;
     private String newValue;
-    private Long variantId;
     private LocalDateTime createdAt;
 
     // Constructors
@@ -19,7 +18,7 @@ public class ProductHistoryDTO {
 
     public ProductHistoryDTO(Long id, Long productId, Long adminId, String adminName, 
                            String action, String fieldName, String oldValue, String newValue, 
-                           Long variantId, LocalDateTime createdAt) {
+                           LocalDateTime createdAt) {
         this.id = id;
         this.productId = productId;
         this.adminId = adminId;
@@ -28,7 +27,6 @@ public class ProductHistoryDTO {
         this.fieldName = fieldName;
         this.oldValue = oldValue;
         this.newValue = newValue;
-        this.variantId = variantId;
         this.createdAt = createdAt;
     }
 
@@ -95,14 +93,6 @@ public class ProductHistoryDTO {
 
     public void setNewValue(String newValue) {
         this.newValue = newValue;
-    }
-
-    public Long getVariantId() {
-        return variantId;
-    }
-
-    public void setVariantId(Long variantId) {
-        this.variantId = variantId;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -17,9 +17,6 @@ public interface ProductHistoryRepository extends JpaRepository<ProductHistory, 
     // Find history records by product ID and action
     List<ProductHistory> findByProductIdAndActionOrderByCreatedAtDesc(Long productId, String action);
     
-    // Find history records by variant ID
-    List<ProductHistory> findByVariantIdOrderByCreatedAtDesc(Long variantId);
-    
     // Find history records by product ID and field name
     List<ProductHistory> findByProductIdAndFieldNameOrderByCreatedAtDesc(Long productId, String fieldName);
 } 

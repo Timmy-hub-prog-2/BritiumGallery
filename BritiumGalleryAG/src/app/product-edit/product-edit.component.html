@@ -1906,7 +1906,6 @@
                 <th>Changed By</th>
                 <th>Old Value</th>
                 <th>New Value</th>
-                <th>Variant ID</th>
               </tr>
             </thead>
             <tbody>
@@ -1949,17 +1948,9 @@
                     </ng-template>
                   </ng-template>
                 </td>
-                <td>
-                  <span *ngIf="history.variantId" class="variant-id-clean">
-                    #{{ history.variantId }}
-                  </span>
-                  <span *ngIf="!history.variantId" class="no-variant-clean">
-                    N/A
-                  </span>
-                </td>
               </tr>
               <tr *ngIf="filteredProductHistory.length === 0" class="empty-row-clean">
-                <td colspan="7" class="empty-cell-clean">
+                <td colspan="6" class="empty-cell-clean">
                   <div class="empty-state-clean">
                     <mat-icon>history</mat-icon>
                     <p>No history available for this product</p>

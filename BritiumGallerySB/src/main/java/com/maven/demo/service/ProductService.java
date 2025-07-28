@@ -372,22 +372,22 @@ public class ProductService {
         // Product fields: name, description, rating, brand, base_photo
         if (!product.getName().equals(dto.getName())) {
             String action = dto.getName().length() > product.getName().length() ? "ADDED" : "REMOVED";
-            recordProductHistory(productId, adminId, action, "name", product.getName(), dto.getName(), null);
+            recordProductHistory(productId, adminId, action, "name", product.getName(), dto.getName());
         }
         if (!product.getDescription().equals(dto.getDescription())) {
             String action = dto.getDescription().length() > product.getDescription().length() ? "ADDED" : "REMOVED";
-            recordProductHistory(productId, adminId, action, "description", product.getDescription(), dto.getDescription(), null);
+            recordProductHistory(productId, adminId, action, "description", product.getDescription(), dto.getDescription());
         }
         if (product.getRating() != dto.getRating()) {
-            recordProductHistory(productId, adminId, "UPDATED", "rating", String.valueOf(product.getRating()), String.valueOf(dto.getRating()), null);
+            recordProductHistory(productId, adminId, "UPDATED", "rating", String.valueOf(product.getRating()), String.valueOf(dto.getRating()));
         }
         if (dto.getBasePhotoUrl() != null && !dto.getBasePhotoUrl().equals(product.getBasePhotoUrl())) {
-            recordProductHistory(productId, adminId, "UPDATED", "base_photo", product.getBasePhotoUrl(), dto.getBasePhotoUrl(), null);
+            recordProductHistory(productId, adminId, "UPDATED", "base_photo", product.getBasePhotoUrl(), dto.getBasePhotoUrl());
         }
         if (dto.getBrandId() != null && (product.getBrand() == null || !product.getBrand().getId().equals(dto.getBrandId()))) {
             String oldBrandName = product.getBrand() != null ? product.getBrand().getName() : "None";
             String newBrandName = brandRepository.findById(dto.getBrandId()).map(brand -> brand.getName()).orElse("Unknown");
-            recordProductHistory(productId, adminId, "UPDATED", "brand", oldBrandName, newBrandName, null);
+            recordProductHistory(productId, adminId, "UPDATED", "brand", oldBrandName, newBrandName);
         }
 
         // Update basic product details
@@ -1500,7 +1500,7 @@ public class ProductService {
 
     // Product History Methods
     @Transactional
-    public void recordProductHistory(Long productId, Long adminId, String action, String fieldName, String oldValue, String newValue, Long variantId) {
+    public void recordProductHistory(Long productId, Long adminId, String action, String fieldName, String oldValue, String newValue) {
         ProductHistory history = new ProductHistory();
         history.setProductId(productId);
         history.setAdminId(adminId);
@@ -1508,21 +1508,12 @@ public class ProductService {
         history.setFieldName(fieldName);
         history.setOldValue(oldValue);
         history.setNewValue(newValue);
-        history.setVariantId(variantId);
         productHistoryRepository.save(history);
     }
 
     @Transactional
     public List<ProductHistoryDTO> getProductHistory(Long productId) {
         List<ProductHistory> histories = productHistoryRepository.findByProductIdOrderByCreatedAtDesc(productId);
-        return histories.stream()
-                .map(this::convertToProductHistoryDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public List<ProductHistoryDTO> getProductHistoryByVariant(Long variantId) {
-        List<ProductHistory> histories = productHistoryRepository.findByVariantIdOrderByCreatedAtDesc(variantId);
         return histories.stream()
                 .map(this::convertToProductHistoryDTO)
                 .collect(Collectors.toList());
@@ -1545,7 +1536,6 @@ public class ProductService {
         dto.setFieldName(history.getFieldName());
         dto.setOldValue(history.getOldValue());
         dto.setNewValue(history.getNewValue());
-        dto.setVariantId(history.getVariantId());
         dto.setCreatedAt(history.getCreatedAt());
         
         // Get admin name

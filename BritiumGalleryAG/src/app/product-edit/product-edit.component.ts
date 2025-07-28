@@ -1024,8 +1024,9 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
 
   showHistory(variant: VariantResponse): void {
     this.selectedVariantForHistory = variant;
-    this.loadHistoryData(variant.id);
+    this.variantEditHistory = []; // Clear old data
     this.showCustomHistoryModal = true;
+    this.loadHistoryData(variant.id);
   }
 
   closeCustomHistoryModal(): void {
@@ -1117,6 +1118,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
     this.productService.getVariantEditHistory(variantId).subscribe({
       next: (data: any[]) => {
         this.variantEditHistory = data;
+        this.cdRef.detectChanges(); // Ensure UI updates
       },
       error: (error: Error) => {
         this.variantEditHistory = [];
