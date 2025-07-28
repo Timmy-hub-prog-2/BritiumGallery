@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { RefundService, RefundRequestDTO } from '../services/refund.service';
 import { OrderService } from '../services/order.service';
+import Swal from 'sweetalert2';
 
 type RefundType = 'whole' | 'partial' | null;
 
@@ -346,16 +347,73 @@ export class OrderRefundComponent {
       console.log('Submitting partial refund:', refundData, formData.getAll('proofs'));
     }
 
+    // Show loading SweetAlert
+    Swal.fire({
+      title: 'Processing Refund Request',
+      html: 'Please wait while we process your refund request...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      customClass: {
+        popup: 'swal-custom-popup',
+        title: 'swal-custom-title',
+        htmlContainer: 'swal-custom-content'
+      },
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     this.refundService.submitRefundRequest(formData).subscribe({
-      next: () => {
-        this.error = null;
+      next: (response) => {
         this.submitting = false;
-        alert('Refund request submitted successfully');
-        this.router.navigate(['/orders']);
+        
+        // Close loading alert
+        Swal.close();
+        
+        // Show success message and redirect
+        Swal.fire({
+          icon: 'success',
+          title: 'Refund Request Submitted!',
+          text: 'Your refund request has been successfully submitted. We will review it and get back to you soon.',
+          confirmButtonText: 'View Refund Details',
+          confirmButtonColor: '#000000',
+          customClass: {
+            popup: 'swal-custom-popup',
+            title: 'swal-custom-title',
+            confirmButton: 'swal-custom-confirm-btn'
+          }
+        }).then((result) => {
+          if (result.isConfirmed && response?.id) {
+            // Redirect to refund detail page
+            this.router.navigate(['/customer-order-refund', response.id]);
+          } else {
+            // Fallback redirect to orders page
+            this.router.navigate(['/orders']);
+          }
+        });
       },
       error: (err) => {
-        this.error = err?.error?.message || 'Failed to submit refund request';
         this.submitting = false;
+        
+        // Close loading alert
+        Swal.close();
+        
+        // Show error message
+        Swal.fire({
+          icon: 'error',
+          title: 'Refund Request Failed',
+          text: err?.error?.message || 'Failed to submit refund request. Please try again.',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#000000',
+          customClass: {
+            popup: 'swal-custom-popup',
+            title: 'swal-custom-title',
+            confirmButton: 'swal-custom-confirm-btn'
+          }
+        });
+        
+        this.error = err?.error?.message || 'Failed to submit refund request';
       }
     });
   }

@@ -347,7 +347,13 @@ export class ProductDetailComponent implements OnInit {
   if (userId === null) return;
 
   if (this.isProductInWishlist(productId)) {
-    this.snackBar.open('This product is already in your wishlist.', 'Close', { duration: 3000 });
+          Swal.fire({
+        icon: 'info',
+        title: 'Already in Wishlist',
+        text: 'This product is already in your wishlist.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#000000'
+      });
     return;
   }
 
@@ -355,14 +361,32 @@ export class ProductDetailComponent implements OnInit {
     next: (res) => {
       // ✅ Update local wishlist state immediately
       this.wishlist.push({ productId });
-      this.snackBar.open(res.message || 'Added to wishlist!', 'Close', { duration: 3000 });
+      Swal.fire({
+        icon: 'success',
+        title: 'Added to Wishlist!',
+        text: res.message || 'Product has been added to your wishlist.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#000000'
+      });
     },
     error: (err) => {
       if (err.status === 409) {
-        this.snackBar.open(err.error.message || 'Item already exists in wishlist.', 'Close', { duration: 3000 });
+        Swal.fire({
+          icon: 'warning',
+          title: 'Already in Wishlist',
+          text: err.error.message || 'Item already exists in wishlist.',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#000000'
+        });
       } else {
         console.error('Failed to add to wishlist', err);
-        this.snackBar.open('Failed to add to wishlist. Try again.', 'Close', { duration: 3000 });
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to Add',
+          text: 'Failed to add to wishlist. Please try again.',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#000000'
+        });
       }
     }
   });
@@ -378,18 +402,36 @@ removeFromWishlist(productId: number): void {
   this.wishlistService.removeWishlistItem(userId, productId).subscribe({
     next: (res: any) => {
       if (res && res.success !== false) {
-        this.snackBar.open('Removed from wishlist.', 'Close', { duration: 3000 });
+        Swal.fire({
+          icon: 'success',
+          title: 'Removed from Wishlist',
+          text: 'Product has been removed from your wishlist.',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#000000'
+        });
 
         // ✅ Update local wishlist state immediately
         this.wishlist = this.wishlist.filter(item => item.productId !== productId);
 
       } else {
-        this.snackBar.open(res.message || 'Could not remove from wishlist.', 'Close', { duration: 3000 });
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to Remove',
+          text: res.message || 'Could not remove from wishlist.',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#000000'
+        });
       }
     },
     error: (err) => {
       console.error('Failed to remove from wishlist', err);
-      this.snackBar.open('Failed to remove from wishlist. Try again.', 'Close', { duration: 3000 });
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed to Remove',
+        text: 'Failed to remove from wishlist. Please try again.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#000000'
+      });
     }
   });
 }
@@ -417,12 +459,24 @@ loadWishlist(): void {
   addProductToCart(): void {
     if (!this.currentUser) {
       this.router.navigate(['/login']);
-      this.snackBar.open('Please log in to add items to cart.', 'Close', { duration: 3000 });
+      Swal.fire({
+        icon: 'info',
+        title: 'Login Required',
+        text: 'Please log in to add items to cart.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#000000'
+      });
       return;
     }
 
     if (!this.latestProductDetail || !this.latestProductDetail.variants) {
-      this.snackBar.open('Product details not loaded.', 'Close', { duration: 3000 });
+      Swal.fire({
+        icon: 'error',
+        title: 'Product Not Loaded',
+        text: 'Product details not loaded. Please refresh the page.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#000000'
+      });
       return;
     }
 
@@ -435,7 +489,13 @@ loadWishlist(): void {
     });
 
     if (!selectedVariant) {
-      this.snackBar.open('Please select all product variations.', 'Close', { duration: 3000 });
+      Swal.fire({
+        icon: 'warning',
+        title: 'Select Variations',
+        text: 'Please select all product variations before adding to cart.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#000000'
+      });
       return;
     }
 
@@ -447,12 +507,20 @@ loadWishlist(): void {
         showCancelButton: true,
         confirmButtonText: 'Remind Me',
         cancelButtonText: 'Cancel',
+        confirmButtonColor: '#000000',
+        cancelButtonColor: '#6c757d'
       }).then((result) => {
         if (result.isConfirmed) {
           this.notificationService.registerRestockNotification(this.currentUser!.id, selectedVariant.id).subscribe({
             next: (res) => {
               console.log('Restock notification success:', res);
-              Swal.fire('Registered!', 'You will be notified when this product is restocked.', 'success');
+              Swal.fire({
+                icon: 'success',
+                title: 'Registered!',
+                text: 'You will be notified when this product is restocked.',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#000000'
+              });
             },
             error: (err) => {
               console.log('Restock notification error:', err);
@@ -464,7 +532,13 @@ loadWishlist(): void {
                   msg = err.error.message;
                 }
               }
-              Swal.fire('Notice', msg, 'info');
+              Swal.fire({
+                icon: 'info',
+                title: 'Notice',
+                text: msg,
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#000000'
+              });
             }
           });
         }
@@ -484,9 +558,21 @@ loadWishlist(): void {
 
     const added = this.cartService.addToCart(item, this.currentUser.id);
     if (added) {
-      this.snackBar.open('Item added to cart!', 'Close', { duration: 3000 });
+      Swal.fire({
+        icon: 'success',
+        title: 'Added to Cart!',
+        text: 'Item has been successfully added to your cart.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#000000'
+      });
     } else {
-      this.snackBar.open('Could not add to cart. Not enough stock.', 'Close', { duration: 3000 });
+      Swal.fire({
+        icon: 'error',
+        title: 'Cannot Add to Cart',
+        text: 'Could not add to cart. Not enough stock available.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#000000'
+      });
     }
   }
 
@@ -503,10 +589,22 @@ loadWishlist(): void {
       if (matchingVariant && this.quantity < matchingVariant.stock) {
         this.quantity++;
       } else if (matchingVariant && this.quantity >= matchingVariant.stock) {
-        this.snackBar.open('Maximum available stock reached for this item.', 'Close', { duration: 3000 });
+        Swal.fire({
+          icon: 'warning',
+          title: 'Stock Limit Reached',
+          text: 'Maximum available stock reached for this item.',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#000000'
+        });
       }
     } else {
-      this.snackBar.open('You can add a maximum of 5 items per purchase.', 'Close', { duration: 3000 });
+      Swal.fire({
+        icon: 'info',
+        title: 'Quantity Limit',
+        text: 'You can add a maximum of 5 items per purchase.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#000000'
+      });
     }
   }
 

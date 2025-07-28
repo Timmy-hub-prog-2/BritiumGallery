@@ -1003,8 +1003,8 @@
 .order-item-detail img {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  width: 60px;
-  height: 60px;
+  width: 160px;
+  height: 190px;
   object-fit: cover;
 }
 

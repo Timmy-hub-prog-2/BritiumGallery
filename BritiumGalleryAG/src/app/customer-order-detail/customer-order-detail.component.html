@@ -334,11 +334,16 @@
                         <polyline points="21,15 16,10 5,21" />
                       </svg>
                     </div>
-                    <div class="quantity-badge">{{ item.quantity }}</div>
+                    <div class="quantity-badge">
+                      {{ item.quantity }}
+                      <span *ngIf="item.refundedQty && item.refundedQty > 0" class="refunded-qty-text">
+                        ({{ item.refundedQty }} refunded)
+                      </span>
+                    </div>
                     <div *ngIf="item.isRefunded" class="refunded-badge">
-                      Refunded{{
-                        item.refundedQty ? " (" + item.refundedQty + ")" : ""
-                      }}
+                      Refunded ({{
+                        item.refundedQty ? item.refundedQty : ""
+                      }})
                     </div>
                   </div>
 
@@ -532,9 +537,9 @@
             <div class="item-details">
               <h4 class="item-name">{{ item.variant?.productName }}</h4>
               <span *ngIf="item.isRefunded" class="refunded-badge"
-                >Refunded{{
-                  item.refundedQty ? " (" + item.refundedQty + ")" : ""
-                }}</span
+                >Refunded ({{
+                  item.refundedQty ? item.refundedQty : ""
+                }})</span
               >
               <p class="item-sku" *ngIf="item.variant?.sku">
                 SKU: {{ item.variant.sku }}
@@ -577,21 +582,26 @@
                     <span class="discount-value">
                       <ng-container [ngSwitch]="item.discountType">
                         <span *ngSwitchCase="'Fixed Amount'"
-                          >MMK {{ item.discountAmount || 0 }}</span
+                          >-MMK {{ item.discountAmount || 0 }}</span
                         >
                         <span *ngSwitchCase="'Percentage'"
-                          >{{ item.discountPercent || 0 }}%</span
+                          >-{{ item.discountPercent || 0 }}%</span
                         >
                         <span *ngSwitchCase="'Free Shipping'"
                           >Free Shipping</span
                         >
-                        <span *ngSwitchDefault>0</span>
+                        <span *ngSwitchDefault>-{{ item.discountPercent || 0 }}%</span>
                       </ng-container>
                     </span>
                   </div>
                   <div class="pricing-item">
                     <span class="pricing-label">Quantity</span>
-                    <span class="pricing-value">{{ item.quantity }}</span>
+                    <span class="pricing-value">
+                      {{ item.quantity }}
+                      <span *ngIf="item.refundedQty && item.refundedQty > 0" class="refunded-qty-text">
+                        ({{ item.refundedQty }} refunded)
+                      </span>
+                    </span>
                   </div>
                   <div class="pricing-item total">
                     <span class="pricing-label">Subtotal</span>
@@ -737,7 +747,7 @@
       </div>
       
       <!-- Order Status Badge -->
-      <div
+      <!-- <div
         style="
           display: inline-flex;
           align-items: center;
@@ -760,7 +770,7 @@
           "
         ></div>
         {{ order?.status }}
-      </div>
+      </div> -->
     </div>
 
     <!-- Main Content Area -->
@@ -895,7 +905,7 @@
       </div>
 
       <!-- Items Table -->
-      <div style="padding: 12px 30px 0px 30px; flex: 1; min-height: 0;">
+      <div style="padding: 12px 30px 0px 30px;">
         <div
           style="
             font-size: 12px;
@@ -1025,6 +1035,9 @@
               </td>
               <td style="padding: 8px 0; text-align: center; font-weight: 600; font-size: 9px;">
                 {{ item.quantity }}
+                <span *ngIf="item.refundedQty && item.refundedQty > 0" class="refunded-qty-text">
+                  ({{ item.refundedQty }} refunded)
+                </span>
               </td>
               <td style="padding: 8px 0; text-align: right;">
                 <ng-container
@@ -1073,7 +1086,6 @@
           padding: 12px 30px 12px 30px;
           background: #f7fafc;
           border-top: 1px solid #e2e8f0;
-          flex-shrink: 0;
           margin-top: 0;
         "
       >
@@ -1175,7 +1187,10 @@
         background: #000000;
         color: white;
         text-align: center;
-        flex-shrink: 0;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
       "
     >
       <div

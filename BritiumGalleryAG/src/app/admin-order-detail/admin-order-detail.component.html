@@ -352,8 +352,15 @@
                         <polyline points="21,15 16,10 5,21"/>
                       </svg>
                     </div>
-                    <div class="quantity-badge">{{ item.quantity }}</div>
-                    <span *ngIf="item.isRefunded" class="refunded-badge">Refunded</span>
+                    <div class="quantity-badge">
+                      {{ item.quantity }}
+                      <span *ngIf="item.refundedQty && item.refundedQty > 0" class="refunded-qty-text">
+                        ({{ item.refundedQty }} refunded)
+                      </span>
+                    </div>
+                    <span *ngIf="item.isRefunded" class="refunded-badge">
+                      Refunded{{ item.refundedQty ? ' (' + item.refundedQty + ')' : '' }}
+                    </span>
                   </div>
                   
                   <div class="item-details">
@@ -549,7 +556,12 @@
                   </div>
                   <div class="pricing-item">
                     <span class="pricing-label">Quantity</span>
-                    <span class="pricing-value">{{ item.quantity }}</span>
+                    <span class="pricing-value">
+                      {{ item.quantity }}
+                      <span *ngIf="item.refundedQty && item.refundedQty > 0" class="refunded-qty-text">
+                        ({{ item.refundedQty }} refunded)
+                      </span>
+                    </span>
                   </div>
                   <div class="pricing-item total">
                     <span class="pricing-label">Subtotal</span>

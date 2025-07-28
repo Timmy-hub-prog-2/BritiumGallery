@@ -175,10 +175,13 @@ export class AdminOrderDetailComponent implements OnInit {
   }
 
   getItemSubtotal(item: any): number {
+    // Only count non-refunded quantity
+    const refundedQty = item.refundedQty || 0;
+    const nonRefundedQty = Math.max((item.quantity || 0) - refundedQty, 0);
     if (this.hasDiscount(item)) {
-      return item.quantity * this.getDiscountedPrice(item);
+      return nonRefundedQty * this.getDiscountedPrice(item);
     }
-    return item.quantity * item.price;
+    return nonRefundedQty * item.price;
   }
 
   getTotalSubtotal(): number {
@@ -201,12 +204,8 @@ export class AdminOrderDetailComponent implements OnInit {
   }
 
   getTotalSubtotalExcludingRefunds(): number {
-    if (!this.order || !this.order.orderDetails) return 0;
-    return this.order.orderDetails
-      .filter((item: any) => !item.isRefunded)
-      .reduce((sum: number, item: any) => {
-        return sum + this.getItemSubtotal(item);
-      }, 0);
+    // This now matches getTotalSubtotal, as refunded items are excluded in getItemSubtotal
+    return this.getTotalSubtotal();
   }
 
 }

@@ -41,17 +41,19 @@ public class RefundController {
         try {
             RefundRequestDTO request = objectMapper.readValue(refundDataJson, RefundRequestDTO.class);
             
-            // Handle the refund request
+            // Handle the refund request and get the refund ID(s)
+            Long refundId = null;
             if ("FULL".equals(request.getType())) {
-                refundService.createFullOrderRefund(request, proofFile);
+                refundId = refundService.createFullOrderRefund(request, proofFile);
             } else {
-                refundService.createPartialRefund(request, itemProofs);
+                refundId = refundService.createPartialRefund(request, itemProofs);
             }
 
-            // Return a JSON object for success
+            // Return a JSON object with success and order ID
             return ResponseEntity.ok().body(java.util.Map.of(
                 "success", true,
-                "message", "Refund request submitted successfully"
+                "message", "Refund request submitted successfully",
+                "id", request.getOrderId()
             ));
         } catch (IOException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of(

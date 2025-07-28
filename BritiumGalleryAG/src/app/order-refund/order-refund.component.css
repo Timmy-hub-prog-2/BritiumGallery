@@ -1253,3 +1253,34 @@
   border-radius: 12px;
   font-weight: 500;
 }
+
+/* Custom SweetAlert Styles */
+.swal-custom-popup {
+  border-radius: 16px !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+.swal-custom-title {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #000000 !important;
+}
+
+.swal-custom-content {
+  font-size: 14px !important;
+  color: #666666 !important;
+  line-height: 1.5 !important;
+}
+
+.swal-custom-confirm-btn {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  padding: 12px 24px !important;
+  transition: all 0.3s ease !important;
+}
+
+.swal-custom-confirm-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}

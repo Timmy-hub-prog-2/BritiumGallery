@@ -18,17 +18,17 @@ import com.maven.demo.entity.ProductVariantEntity;
 import com.maven.demo.entity.RefundRequestEntity;
 import com.maven.demo.entity.RefundStatus;
 import com.maven.demo.entity.SaleFifoMappingEntity;
+import com.maven.demo.entity.TotalSpendEntity;
 import com.maven.demo.entity.TransactionStatus;
 import com.maven.demo.entity.UserEntity;
-import com.maven.demo.entity.TotalSpendEntity;
 import com.maven.demo.repository.OrderDetailRepository;
 import com.maven.demo.repository.OrderRepository;
 import com.maven.demo.repository.ProductVariantRepository;
 import com.maven.demo.repository.PurchaseHistoryRepository;
 import com.maven.demo.repository.RefundRequestRepository;
 import com.maven.demo.repository.SaleFifoMappingRepository;
-import com.maven.demo.repository.TransactionRepository;
 import com.maven.demo.repository.TotalSpendRepository;
+import com.maven.demo.repository.TransactionRepository;
 
 @Service
 public class RefundService {
@@ -64,7 +64,7 @@ public class RefundService {
     private TotalSpendRepository totalSpendRepository;
 
     @Transactional
-    public void createFullOrderRefund(RefundRequestDTO request, MultipartFile proofFile) throws IOException {
+    public Long createFullOrderRefund(RefundRequestDTO request, MultipartFile proofFile) throws IOException {
         OrderEntity order = orderRepository.findById(request.getOrderId())
             .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -100,11 +100,12 @@ public class RefundService {
             refund.setProofImageUrl(proofUrl);
         }
 
-        refundRequestRepository.save(refund);
+        RefundRequestEntity savedRefund = refundRequestRepository.save(refund);
+        return savedRefund.getId();
     }
 
     @Transactional
-    public void createPartialRefund(RefundRequestDTO request, MultipartFile[] itemProofs) throws IOException {
+    public Long createPartialRefund(RefundRequestDTO request, MultipartFile[] itemProofs) throws IOException {
         OrderEntity order = orderRepository.findById(request.getOrderId())
             .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -123,6 +124,8 @@ public class RefundService {
         int deliveryFee = order.getDeliveryFee() != null ? order.getDeliveryFee() : 0;
         int discount = order.getDiscountAmount() != null ? order.getDiscountAmount() : 0;
         double couponRatio = (subtotal + deliveryFee) > 0 ? (discount / (double)(subtotal + deliveryFee)) : 0.0;
+
+        Long firstRefundId = null;
 
         // Process each item refund request
         for (int i = 0; i < request.getItems().size(); i++) {
@@ -157,8 +160,15 @@ public class RefundService {
                 refund.setProofImageUrl(proofUrl);
             }
 
-            refundRequestRepository.save(refund);
+            RefundRequestEntity savedRefund = refundRequestRepository.save(refund);
+            
+            // Store the first refund ID to return
+            if (firstRefundId == null) {
+                firstRefundId = savedRefund.getId();
+            }
         }
+        
+        return firstRefundId;
     }
 
     // Add this method for admin to get all pending refund requests

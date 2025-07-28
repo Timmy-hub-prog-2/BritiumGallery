@@ -198,9 +198,9 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
   // Helper methods for discount display
   hasDiscount(item: any): boolean {
     return (
-      item.discountPercent != null &&
-      item.discountAmount != null &&
-      item.discountAmount > 0
+      (item.discountPercent != null && item.discountPercent > 0) ||
+      (item.discountAmount != null && item.discountAmount > 0) ||
+      (item.discountType === 'Free Shipping')
     );
   }
 
@@ -217,7 +217,10 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
   }
 
   getItemSubtotal(item: any): number {
-    return item.quantity * this.getDiscountedPrice(item);
+    // Only count non-refunded quantity
+    const refundedQty = item.refundedQty || 0;
+    const nonRefundedQty = Math.max((item.quantity || 0) - refundedQty, 0);
+    return nonRefundedQty * this.getDiscountedPrice(item);
   }
 
   getTotalSubtotal(): number {
@@ -242,7 +245,7 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
   getTotalSubtotalExcludingRefunds(): number {
     if (!this.order || !this.order.orderDetails) return 0;
     return this.order.orderDetails
-      .filter((item: any) => !item.isRefunded)
+      .filter((item: any) => !item.isRefunded || (item.quantity - (item.refundedQty || 0)) > 0)
       .reduce((sum: number, item: any) => {
         return sum + this.getItemSubtotal(item);
       }, 0);
