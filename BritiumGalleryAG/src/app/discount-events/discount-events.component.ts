@@ -2563,16 +2563,33 @@ export class DiscountEventsComponent implements OnInit {
   }
 
   // --- Discounted IDs logic ---
+  /**
+   * Updates the sets of discounted IDs based on active events only.
+   * This allows creating new discounts for items that were previously discounted by inactive events.
+   * 
+   * @param excludeEventId - Optional event ID to exclude from consideration (used during editing)
+   */
   updateDiscountedIds(excludeEventId: number | null = null) {
     this.discountedCategoryIds.clear();
     this.discountedProductIds.clear();
     this.discountedVariantIds.clear();
     this.discountedBrandIds.clear();
+    
+    // Only consider active events when determining discount availability
+    // This allows items from inactive events to be available for new discounts
+    const now = new Date();
     const eventsToCheck = excludeEventId
       ? this.allEvents.filter(e => e.id !== excludeEventId)
       : this.allEvents;
+      
     for (const event of eventsToCheck) {
-      if (!event.rules) continue;
+      // Only consider active events (both event.active and date range check)
+      const startDate = new Date(event.startDate);
+      const endDate = new Date(event.endDate);
+      const isActive = event.active && startDate <= now && endDate >= now;
+      
+      if (!isActive || !event.rules) continue;
+      
       for (const rule of event.rules) {
         if (rule.categoryId) this.discountedCategoryIds.add(rule.categoryId);
         if (rule.productId) this.discountedProductIds.add(rule.productId);
@@ -2582,9 +2599,9 @@ export class DiscountEventsComponent implements OnInit {
     }
   }
 
-  // Helper methods for UI
+  // Helper methods for UI - these now only consider active events
   isCategoryDiscounted(cat: any): boolean {
-    // Hide if discounted in any other event, or already in any rule of the current event
+    // Hide if discounted in any other active event, or already in any rule of the current event
     if (this.discountedCategoryIds.has(cat.id)) {
       return true;
     }
@@ -2631,6 +2648,9 @@ export class DiscountEventsComponent implements OnInit {
   discountedVariantIds: Set<number> = new Set();
   discountedBrandIds: Set<number> = new Set();
 
+  // Toggle state tracking
+  togglingEventIds: Set<number> = new Set();
+
   openCreateModal() {
     this.updateDiscountedIds();
     console.log('Discounted category IDs:', Array.from(this.discountedCategoryIds));
@@ -2639,6 +2659,115 @@ export class DiscountEventsComponent implements OnInit {
     console.log('Discounted brand IDs:', Array.from(this.discountedBrandIds));
     this.showCreateModal = true;
     if (this.cdr) this.cdr.detectChanges();
+  }
+
+  /**
+   * Toggles the active status of an event
+   * @param event - The event to toggle
+   */
+  toggleEventStatus(event: any) {
+    if (this.togglingEventIds.has(event.id)) {
+      return; // Prevent multiple simultaneous toggles
+    }
+
+    this.togglingEventIds.add(event.id);
+    
+    const newActiveStatus = !event.active;
+    const action = newActiveStatus ? 'ACTIVATED' : 'DEACTIVATED';
+    
+    // Update the event locally for immediate UI feedback
+    event.active = newActiveStatus;
+    
+    // Call the appropriate backend endpoint
+    const apiCall = newActiveStatus 
+      ? this.eventService.activateEvent(event.id)
+      : this.eventService.deactivateEvent(event.id);
+    
+    apiCall.subscribe({
+      next: (updatedEvent) => {
+        // Update the event in our local array
+        const index = this.allEvents.findIndex(e => e.id === event.id);
+        if (index !== -1) {
+          this.allEvents[index] = updatedEvent;
+        }
+        
+        // Update discounted IDs since event status changed
+        this.updateDiscountedIds();
+        
+        // Show success message
+        this.showToastMessage(`Event ${action.toLowerCase()} successfully`);
+        
+        this.togglingEventIds.delete(event.id);
+        if (this.cdr) this.cdr.detectChanges();
+      },
+      error: (error) => {
+        // Revert the local change on error
+        event.active = !newActiveStatus;
+        
+        console.error('Failed to toggle event status:', error);
+        this.showToastMessage(`Failed to ${action.toLowerCase()} event. Please try again.`);
+        
+        this.togglingEventIds.delete(event.id);
+        if (this.cdr) this.cdr.detectChanges();
+      }
+    });
+  }
+
+  /**
+   * Checks if an event is currently being toggled
+   * @param eventId - The ID of the event to check
+   * @returns True if the event is being toggled
+   */
+  isTogglingEvent(eventId: number): boolean {
+    return this.togglingEventIds.has(eventId);
+  }
+
+  /**
+   * Gets the actual active status considering both the active field and date range
+   * @param event - The event to check
+   * @returns true if the event is actually active (both active field and date range)
+   */
+  getActualActiveStatus(event: any): boolean {
+    if (!event.active) return false;
+    
+    const now = new Date();
+    const startDate = new Date(event.startDate);
+    const endDate = new Date(event.endDate);
+    
+    return startDate <= now && endDate >= now;
+  }
+
+  /**
+   * Gets the display status for the toggle switch
+   * @param event - The event to check
+   * @returns true if the toggle should be checked (active field is true)
+   */
+  getToggleStatus(event: any): boolean {
+    return event.active;
+  }
+
+  /**
+   * Gets the status text with date information
+   * @param event - The event to check
+   * @returns status text with date info
+   */
+  getStatusText(event: any): string {
+    const isActive = this.getActualActiveStatus(event);
+    const now = new Date();
+    const startDate = new Date(event.startDate);
+    const endDate = new Date(event.endDate);
+    
+    if (isActive) {
+      return 'Active';
+    } else if (!event.active) {
+      return 'Inactive (Toggled Off)';
+    } else if (startDate > now) {
+      return 'Inactive (Future Date)';
+    } else if (endDate < now) {
+      return 'Inactive (Expired)';
+    } else {
+      return 'Inactive';
+    }
   }
 
   // Returns true if the category has at least one product that is not discounted

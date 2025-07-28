@@ -41,6 +41,8 @@ import com.maven.demo.dto.ReduceStockHistoryResponseDTO;
 import com.maven.demo.dto.ReduceStockRequestDTO;
 import com.maven.demo.dto.VariantDTO;
 import com.maven.demo.dto.VariantResponseDTO;
+import com.maven.demo.dto.ProductHistoryDTO;
+import com.maven.demo.dto.VariantEditHistoryDTO;
 import com.maven.demo.entity.BrandEntity;
 import com.maven.demo.entity.ProductEntity;
 import com.maven.demo.entity.ProductVariantEntity;
@@ -50,6 +52,7 @@ import com.maven.demo.repository.ProductVariantRepository;
 import com.maven.demo.service.CloudinaryUploadService;
 import com.maven.demo.service.ExcelService;
 import com.maven.demo.service.ProductService;
+import com.maven.demo.service.VariantEditHistoryService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
@@ -77,6 +80,9 @@ public class ProductController {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private VariantEditHistoryService variantEditHistoryService;
 
 
     @PostMapping("/saveWithFiles")
@@ -526,6 +532,31 @@ public class ProductController {
         resp.put("success", true);
         resp.put("message", "Product unhidden successfully");
         return ResponseEntity.ok(resp);
+    }
+
+    // Product History Endpoints
+    @GetMapping("/{productId}/history")
+    public ResponseEntity<List<ProductHistoryDTO>> getProductHistory(@PathVariable Long productId) {
+        List<ProductHistoryDTO> history = productService.getProductHistory(productId);
+        return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/variants/{variantId}/history")
+    public ResponseEntity<List<ProductHistoryDTO>> getProductHistoryByVariant(@PathVariable Long variantId) {
+        List<ProductHistoryDTO> history = productService.getProductHistoryByVariant(variantId);
+        return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/admin/{adminId}/history")
+    public ResponseEntity<List<ProductHistoryDTO>> getProductHistoryByAdmin(@PathVariable Long adminId) {
+        List<ProductHistoryDTO> history = productService.getProductHistoryByAdmin(adminId);
+        return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/variants/{variantId}/edit-history")
+    public ResponseEntity<List<VariantEditHistoryDTO>> getVariantEditHistoryByVariant(@PathVariable Long variantId) {
+        List<VariantEditHistoryDTO> history = variantEditHistoryService.getVariantEditHistoryByVariantId(variantId);
+        return ResponseEntity.ok(history);
     }
 
 }

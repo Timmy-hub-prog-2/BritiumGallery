@@ -616,9 +616,22 @@
       <div class="event-card-header">
         <h3 class="event-card-title">{{ event.name }}</h3>
         <div class="event-card-meta">
-          <span class="status-badge" [ngClass]="event.active ? 'active' : 'inactive'">
-            {{ event.active ? 'Active' : 'Inactive' }}
-          </span>
+          <div class="status-toggle-container">
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                [checked]="getToggleStatus(event)" 
+                (change)="toggleEventStatus(event)"
+                [disabled]="isTogglingEvent(event.id)"
+              />
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="status-text" 
+                  [ngClass]="getActualActiveStatus(event) ? 'active' : 'inactive'"
+                  [title]="getStatusText(event)">
+              {{ getStatusText(event) }}
+            </span>
+          </div>
           <span class="rules-badge">
             <i class="fas fa-tags"></i>
             {{ event.rules?.length || 0 }} Rules

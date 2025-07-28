@@ -1,11 +1,22 @@
 <div class="brand-register-container">
   <div class="header-section">
-    <button class="btn-back" (click)="goBack()">
-      <i class="bi bi-arrow-left"></i>
-      Back to Admin
-    </button>
-    <h1 class="main-title">Brand Management</h1>
-    <p class="subtitle">Add new brands and manage existing ones</p>
+    <div class="header-content">
+      <div class="header-left">
+        <h1 class="main-title">Brand Management</h1>
+        <p class="subtitle">Add new brands and manage existing ones</p>
+      </div>
+      <div class="header-right">
+        <div class="stats-box">
+          <div class="stat-item">
+            <i class="bi bi-building"></i>
+            <div class="stat-info">
+              <span class="stat-number">{{ brands.length }}</span>
+              <span class="stat-label">Total Brands</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Add New Brand Section -->
@@ -85,7 +96,7 @@
                 </ng-container>
                 <ng-template #actionButtons>
                   <button class="btn-edit" (click)="startEdit(brand)" title="Edit brand">
-                    <i class="bi bi-pencil"></i>
+                    <i class="bi bi-gear"></i>
                   </button>
                   <button 
                     class="btn-delete" 

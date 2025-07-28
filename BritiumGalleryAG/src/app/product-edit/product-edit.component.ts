@@ -43,6 +43,7 @@ import * as XLSX from 'xlsx';
 import { CategoryService } from '../services/category.service';
 import { CategoryAttribute } from '../category';
 import Swal from 'sweetalert2';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-product-edit',
@@ -108,6 +109,7 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
   @ViewChild('editVariantModal') editVariantModal!: TemplateRef<any>;
   @ViewChild('addStockModal') addStockModal!: TemplateRef<any>;
   @ViewChild('historyModal') historyModal!: TemplateRef<any>;
+  @ViewChild('productHistoryModal') productHistoryModal!: TemplateRef<any>;
   @ViewChild('priceSort') priceSort!: MatSort;
   @ViewChild('purchaseSort') purchaseSort!: MatSort;
 
@@ -119,7 +121,13 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
   priceHistoryDataSource = new MatTableDataSource<any>();
   purchaseHistoryDataSource = new MatTableDataSource<PurchaseHistory>();
   reduceStockHistoryDataSource = new MatTableDataSource<any>();
-  activeHistoryTab: 'price' | 'purchase' | 'reduce' = 'price';
+  activeHistoryTab: 'price' | 'purchase' | 'reduce' | 'edit' = 'price';
+  variantEditHistory: any[] = [];
+  
+  // Product History Properties
+  productHistory: any[] = [];
+  filteredProductHistory: any[] = [];
+  showProductHistoryModal = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -130,7 +138,8 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
     private cdRef: ChangeDetectorRef,
     private brandService: BrandService,
     private productVariantService: ProductVariantService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private sanitizer: DomSanitizer
   ) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
@@ -1026,10 +1035,14 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
     this.purchaseHistory = [];
     this.priceHistoryDataSource.data = [];
     this.purchaseHistoryDataSource.data = [];
+    this.variantEditHistory = [];
   }
 
-  setActiveHistoryTab(tab: 'price' | 'purchase' | 'reduce'): void {
+  setActiveHistoryTab(tab: 'price' | 'purchase' | 'reduce' | 'edit'): void {
     this.activeHistoryTab = tab;
+    if (tab === 'edit' && this.selectedVariantForHistory) {
+      this.loadEditHistory(this.selectedVariantForHistory.id);
+    }
   }
 
   private loadHistoryData(variantId: number): void {
@@ -1097,6 +1110,18 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
         console.error('Error loading reduce stock history:', error);
         this.showError('Failed to load reduce stock history');
       },
+    });
+  }
+
+  private loadEditHistory(variantId: number): void {
+    this.productService.getVariantEditHistory(variantId).subscribe({
+      next: (data: any[]) => {
+        this.variantEditHistory = data;
+      },
+      error: (error: Error) => {
+        this.variantEditHistory = [];
+        this.showError('Failed to load edit history');
+      }
     });
   }
 
@@ -1647,5 +1672,106 @@ export class ProductEditComponent implements OnInit, AfterViewInit {
       restoreFocus: false,
       width: '300px',
     });
+  }
+
+  // Product History Methods
+  showProductHistory(): void {
+    if (this.product) {
+      this.loadProductHistory(this.product.id);
+      this.dialog.open(this.productHistoryModal, {
+        width: '1200px',
+        maxHeight: '90vh',
+        disableClose: false,
+      });
+    }
+  }
+
+  loadProductHistory(productId: number): void {
+    this.productService.getProductHistory(productId).subscribe({
+      next: (data: any[]) => {
+        this.productHistory = data;
+        this.filteredProductHistory = [...data];
+      },
+      error: (error: Error) => {
+        console.error('Error loading product history:', error);
+        this.showError('Failed to load product history');
+      },
+    });
+  }
+
+  formatFieldName(fieldName: string): string {
+    const fieldMap: { [key: string]: string } = {
+      'name': 'Product Name',
+      'description': 'Description',
+      'rating': 'Rating',
+      'brand': 'Brand',
+      'base_photo': 'Base Photo',
+      'variant_price': 'Variant Price',
+      'variant_stock': 'Variant Stock'
+    };
+    return fieldMap[fieldName] || fieldName;
+  }
+
+  // Helper to diff description changes
+  getDescriptionDiff(oldValue: string, newValue: string, mode: 'old' | 'new'): SafeHtml {
+    if (!oldValue && !newValue) return '';
+    if (!oldValue) return mode === 'new'
+      ? this.sanitizer.bypassSecurityTrustHtml(`<span class='desc-added'>${this.escapeHtml(newValue)}</span>`)
+      : '';
+    if (!newValue) return mode === 'old'
+      ? this.sanitizer.bypassSecurityTrustHtml(`<span class='desc-removed'>${this.escapeHtml(oldValue)}</span>`)
+      : '';
+
+    // Word-level LCS diff
+    const oldWords = oldValue.split(/([\s.,!?:;]+)/);
+    const newWords = newValue.split(/([\s.,!?:;]+)/);
+    const lcsMatrix: number[][] = Array(oldWords.length + 1).fill(null).map(() => Array(newWords.length + 1).fill(0));
+
+    // Build LCS matrix
+    for (let i = 1; i <= oldWords.length; i++) {
+      for (let j = 1; j <= newWords.length; j++) {
+        if (oldWords[i - 1] === newWords[j - 1]) {
+          lcsMatrix[i][j] = lcsMatrix[i - 1][j - 1] + 1;
+        } else {
+          lcsMatrix[i][j] = Math.max(lcsMatrix[i - 1][j], lcsMatrix[i][j - 1]);
+        }
+      }
+    }
+
+    // Backtrack to get diff
+    let result = '';
+    let i = oldWords.length, j = newWords.length;
+    const parts: {type: 'same'|'added'|'removed', text: string}[] = [];
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && oldWords[i - 1] === newWords[j - 1]) {
+        parts.unshift({ type: 'same', text: oldWords[i - 1] });
+        i--; j--;
+      } else if (j > 0 && (i === 0 || lcsMatrix[i][j - 1] >= lcsMatrix[i - 1][j])) {
+        parts.unshift({ type: 'added', text: newWords[j - 1] });
+        j--;
+      } else if (i > 0 && (j === 0 || lcsMatrix[i][j - 1] < lcsMatrix[i - 1][j])) {
+        parts.unshift({ type: 'removed', text: oldWords[i - 1] });
+        i--;
+      }
+    }
+
+    for (const part of parts) {
+      if (part.type === 'same') {
+        result += this.escapeHtml(part.text);
+      } else if (part.type === 'added' && mode === 'new') {
+        result += `<span class='desc-added'>${this.escapeHtml(part.text)}</span>`;
+      } else if (part.type === 'removed' && mode === 'old') {
+        result += `<span class='desc-removed'>${this.escapeHtml(part.text)}</span>`;
+      } else if (mode === 'old' && part.type === 'added') {
+        // skip
+      } else if (mode === 'new' && part.type === 'removed') {
+        // skip
+      }
+    }
+    return this.sanitizer.bypassSecurityTrustHtml(result);
+  }
+
+  escapeHtml(text: string): string {
+    return text.replace(/[&<>'"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','\'':'&#39;','"':'&quot;'}[c]||c));
   }
 }
