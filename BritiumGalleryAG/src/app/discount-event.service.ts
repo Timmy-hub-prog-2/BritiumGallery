@@ -28,5 +28,13 @@ export class DiscountEventService {
     return this.http.get<any[]>(`${this.baseUrl}/events/${eventId}/history`);
   }
 
+  activateEvent(eventId: number): Observable<any> {
+    return this.http.put(`${this.baseUrl}/events/${eventId}/activate`, {});
+  }
+
+  deactivateEvent(eventId: number): Observable<any> {
+    return this.http.put(`${this.baseUrl}/events/${eventId}/deactivate`, {});
+  }
+
   // Add other methods as needed, using this.baseUrl
 } 

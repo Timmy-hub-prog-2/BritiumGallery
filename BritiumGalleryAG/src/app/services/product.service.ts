@@ -182,4 +182,21 @@ export class ProductService {
   unhideProduct(productId: number): Observable<any> {
     return this.http.put(`${this.baseUrl}/unhide/${productId}`, {});
   }
+
+  // Product History Methods
+  getProductHistory(productId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/${productId}/history`);
+  }
+
+  getProductHistoryByVariant(variantId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/variants/${variantId}/history`);
+  }
+
+  getProductHistoryByAdmin(adminId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/admin/${adminId}/history`);
+  }
+
+  getVariantEditHistory(variantId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/variants/${variantId}/edit-history`);
+  }
 }
