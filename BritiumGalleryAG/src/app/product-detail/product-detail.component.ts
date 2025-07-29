@@ -343,6 +343,17 @@ export class ProductDetailComponent implements OnInit {
   }
 
  addToWishlist(productId: number): void {
+   if (!this.currentUser) {
+      this.router.navigate(['/login']);
+      Swal.fire({
+        icon: 'info',
+        title: 'Login Required',
+        text: 'Please log in to add items to wishlist.',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#000000'
+      });
+      return;
+    }
   const userId = this.authService.getLoggedInUserId();
   if (userId === null) return;
 

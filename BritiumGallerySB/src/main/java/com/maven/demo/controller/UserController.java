@@ -149,6 +149,30 @@ import com.maven.demo.service.UserService1;
             return userService1.getCustomers(status);
         }
 
+        @GetMapping("/customers/analytics")
+        public ResponseEntity<List<CustomerAnalyticsDTO>> getCustomersWithAnalytics() {
+            List<CustomerAnalyticsDTO> customers = userService1.getCustomersWithAnalytics();
+            return ResponseEntity.ok(customers);
+        }
+
+        @GetMapping("/admin/customer-type-stats")
+        public ResponseEntity<List<CustomerTypeStatsDTO>> getCustomerTypeStats() {
+            List<CustomerTypeStatsDTO> stats = userService1.getCustomerTypeStats();
+            return ResponseEntity.ok(stats);
+        }
+
+        @GetMapping("/admin/geographic-stats")
+        public ResponseEntity<List<GeographicStatsDTO>> getGeographicStats() {
+            List<GeographicStatsDTO> stats = userService1.getGeographicStats();
+            return ResponseEntity.ok(stats);
+        }
+
+        @GetMapping("/admin/active-user-stats")
+        public ResponseEntity<ActiveUserStatsDTO> getActiveUserStats() {
+            ActiveUserStatsDTO stats = userService1.getActiveUserStats();
+            return ResponseEntity.ok(stats);
+        }
+
         @GetMapping(value = "/admin/customer-growth", produces = "application/json")
         public ResponseEntity<java.util.List<CustomerGrowthDTO>> getCustomerGrowth(
                 @RequestParam String from,

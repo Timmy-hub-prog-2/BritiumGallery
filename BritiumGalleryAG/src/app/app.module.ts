@@ -112,6 +112,10 @@ import { PrivacypolicyListComponent } from './privacypolicy-list/privacypolicy-l
 import { BritiumComponent } from './britium/britium.component';
 import { NewPasswordComponent } from './new-password/new-password.component';
 import { UserRemainderListComponent } from './user-remainder-list/user-remainder-list.component';
+import { CustomerAnalysisComponent } from './customer-analysis/customer-analysis.component';
+import { ViewCustomerDetailComponent } from './view-customer-detail/view-customer-detail.component';
+import { MatTabsModule } from '@angular/material/tabs';
+
 
 @NgModule({
   declarations: [
@@ -205,7 +209,8 @@ import { UserRemainderListComponent } from './user-remainder-list/user-remainder
     BritiumComponent,
     NewPasswordComponent,
     UserRemainderListComponent,
-    
+    CustomerAnalysisComponent,
+    ViewCustomerDetailComponent
   ],
   imports: [
     BrowserModule,
@@ -235,7 +240,9 @@ import { UserRemainderListComponent } from './user-remainder-list/user-remainder
     MapToAttributeLinePipe,
     BrandRegisterComponent,
     CategoryFilterPipe,
-    ProductFilterPipe
+    ProductFilterPipe,
+    MatTabsModule
+   
   ],
   providers: [
     NotificationService,

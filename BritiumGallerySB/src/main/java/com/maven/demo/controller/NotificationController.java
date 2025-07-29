@@ -37,6 +37,14 @@ import com.maven.demo.service.NotificationService;
 import com.maven.demo.service.PendingOrderNotificationService;
 import com.maven.demo.service.NotificationScheduler;
 import org.springframework.http.HttpStatus;
+import com.cronutils.model.Cron;
+import com.cronutils.model.CronType;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.model.time.ExecutionTime;
+import com.cronutils.parser.CronParser;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -600,6 +608,63 @@ public class NotificationController {
 
     // DTO for scheduled notification list
 
+    // DTO for notification occurrence
+    class ScheduledNotificationOccurrenceDTO {
+        public Long id;
+        public String title;
+        public String message;
+        public LocalDateTime occurrenceDate;
+        public ScheduledNotificationOccurrenceDTO(Long id, String title, String message, LocalDateTime occurrenceDate) {
+            this.id = id;
+            this.title = title;
+            this.message = message;
+            this.occurrenceDate = occurrenceDate;
+        }
+    }
+
+    // New endpoint for scheduled notification history
+    @GetMapping("/scheduled/{id}/history")
+    public ResponseEntity<List<ScheduledNotificationOccurrenceDTO>> getScheduledNotificationHistory(
+        @PathVariable Long id,
+        @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) @org.springframework.web.bind.annotation.RequestParam("from") LocalDateTime from,
+        @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) @org.springframework.web.bind.annotation.RequestParam("to") LocalDateTime to
+    ) {
+        NotificationEntity notification = notificationRepository.findById(id).orElse(null);
+        if (notification == null || notification.getMode() != com.maven.demo.entity.NotificationMode.SCHEDULED) {
+            return ResponseEntity.notFound().build();
+        }
+        ScheduledNotificationDetail sched = scheduledNotificationDetailRepository.findByNotification(notification);
+        if (sched == null) return ResponseEntity.notFound().build();
+
+        List<ScheduledNotificationOccurrenceDTO> occurrences = new ArrayList<>();
+        try {
+            CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ));
+            Cron cron = parser.parse(sched.getCronExpression());
+            ExecutionTime executionTime = ExecutionTime.forCron(cron);
+            ZonedDateTime next = from.atZone(java.time.ZoneId.systemDefault());
+            ZonedDateTime end = to.atZone(java.time.ZoneId.systemDefault());
+            while (true) {
+                java.util.Optional<ZonedDateTime> nextExec = executionTime.nextExecution(next);
+                if (nextExec.isEmpty() || nextExec.get().isAfter(end)) break;
+                ZonedDateTime occurrence = nextExec.get();
+                // Only include if within schedule's start/end date and active
+                if (sched.isActive()
+                    && (sched.getStartDate() == null || !occurrence.toLocalDateTime().isBefore(sched.getStartDate()))
+                    && (sched.getEndDate() == null || !occurrence.toLocalDateTime().isAfter(sched.getEndDate()))) {
+                    occurrences.add(new ScheduledNotificationOccurrenceDTO(
+                        notification.getId(),
+                        notification.getTitle(),
+                        notification.getMessage(),
+                        occurrence.toLocalDateTime()
+                    ));
+                }
+                next = occurrence;
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(occurrences);
+    }
 
 }
 

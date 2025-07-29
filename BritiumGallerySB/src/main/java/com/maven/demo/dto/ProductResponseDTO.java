@@ -13,6 +13,7 @@ public class ProductResponseDTO {
     private String description;
     private double rating;
     private Long categoryId;
+    private String categoryName;
     private Long adminId;
     private String brand;
     private Long brandId;

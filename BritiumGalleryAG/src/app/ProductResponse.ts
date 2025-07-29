@@ -5,6 +5,7 @@ export interface ProductResponse {
   description?: string;
   rating?: number;
   categoryId?: number;
+  categoryName?: string;
   basePhotoUrl?: string;
   adminId?:number;
   variants: VariantResponse[];

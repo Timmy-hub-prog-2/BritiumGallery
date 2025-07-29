@@ -635,14 +635,13 @@
   </div>
 
   <!-- Hidden professional PDF receipt for export -->
-  <div
-    id="pdf-receipt"
+  <div id="pdf-receipt"
     style="
       position: absolute;
       left: -9999px;
       top: 0;
       width: 850px;
-      height: 800px;
+      height: 600px;
       background: #ffffff;
       color: #000000;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -651,20 +650,10 @@
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      border: 1px solid #e2e8f0;
     "
   >
     <!-- Professional Header with Logo and Branding -->
-    <div
-      style="
-        padding: 20px 30px 12px 30px;
-        background: #000000;
-        color: white;
-        position: relative;
-        flex-shrink: 0;
-      "
-    >
+    <div style="padding: 20px 30px 12px 30px; background: #000; color: #fff; flex-shrink: 0;">
       <div
         style="
           display: flex;
@@ -712,7 +701,6 @@
             </div>
           </div>
         </div>
-        
         <div style="text-align: right;">
           <div
             style="
@@ -745,36 +733,10 @@
           </div>
         </div>
       </div>
-      
-      <!-- Order Status Badge -->
-      <!-- <div
-        style="
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          padding: 4px 8px;
-          background: rgba(255, 255, 255, 0.15);
-          border-radius: 12px;
-          font-size: 8px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        "
-      >
-        <div
-          style="
-            width: 4px;
-            height: 4px;
-            background: #10b981;
-            border-radius: 50%;
-          "
-        ></div>
-        {{ order?.status }}
-      </div> -->
     </div>
 
     <!-- Main Content Area -->
-    <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative;">
+    <div style="flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;">
       <!-- Customer & Order Information -->
       <div
         style="
@@ -1178,48 +1140,14 @@
           </div>
         </div>
       </div>
+      <div style="flex: 1;"></div>
     </div>
 
     <!-- Footer -->
-    <div
-      style="
-        padding: 12px 30px;
-        background: #000000;
-        color: white;
-        text-align: center;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-      "
-    >
-      <div
-        style="
-          font-size: 12px;
-          font-weight: 700;
-          margin-bottom: 4px;
-        "
-      >
-        Thank You for Your Order!
-      </div>
-      <div
-        style="
-          font-size: 9px;
-          opacity: 0.8;
-          margin-bottom: 8px;
-        "
-      >
-        We appreciate your business and hope you enjoy your purchase.
-      </div>
-      <div
-        style="
-          font-size: 8px;
-          opacity: 0.6;
-          font-weight: 500;
-        "
-      >
-        www.britiumgallery.com
-      </div>
-    </div>
+    <!-- <div style="padding: 12px 30px; background: #000; color: #fff; text-align: center; flex-shrink: 0;">
+      <div style="font-size: 12px; font-weight: 700; margin-bottom: 4px;">Thank You for Your Order!</div>
+      <div style="font-size: 9px; opacity: 0.8; margin-bottom: 8px;">We appreciate your business and hope you enjoy your purchase.</div>
+      <div style="font-size: 8px; opacity: 0.6; font-weight: 500;">www.britiumgallery.com</div>
+    </div> -->
   </div>
 </div>

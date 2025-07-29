@@ -72,6 +72,8 @@ import { BritiumComponent } from './britium/britium.component';
 import { PrivacypolicyListComponent } from './privacypolicy-list/privacypolicy-list.component';
 import { NewPasswordComponent } from './new-password/new-password.component';
 import { UserRemainderListComponent } from './user-remainder-list/user-remainder-list.component';
+import { CustomerAnalysisComponent } from './customer-analysis/customer-analysis.component';
+import { ViewCustomerDetailComponent } from './view-customer-detail/view-customer-detail.component';
 
 const routes: Routes = [
   { path: 'categoryRegister/:parentId', component: CategoryRegisterComponent },
@@ -98,6 +100,7 @@ const routes: Routes = [
  { path: 'shopaddresslist', component:ShopaddresslistComponent},
   { path: 'shopaddressedit', component:ShopaddresseditComponent},
   { path: 'wishlist', component: WishlistComponent },
+  { path: 'customer-analysis', component: CustomerAnalysisComponent },
   {path:'cart-preview',component:CartPreviewComponent},
   {path:'coupon',component:CouponComponent},
   {path:'view-profile',component:ViewProfileComponent},
@@ -153,7 +156,9 @@ const routes: Routes = [
    { path: 'shippinglist', component: ShippingListComponent },
    { path: 'aboutlist', component: AboutListComponent },
    { path: 'newpassword', component: NewPasswordComponent },
-   {path:'remainder-list',component:UserRemainderListComponent}
+   {path:'remainder-list',component:UserRemainderListComponent},
+   {path:'customer-analysis',component:CustomerAnalysisComponent},
+   { path: 'customers/:id/details', component: ViewCustomerDetailComponent }
 
 
 

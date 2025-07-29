@@ -230,6 +230,7 @@
   align-items: flex-start; /* Align text to the left */
   text-decoration: none; /* Remove underline */
   color: inherit; /* Inherit text color */
+  position: relative; /* Required for absolute positioning of badges */
 }
 
 .product-card img {
@@ -444,4 +445,67 @@
     box-shadow: none;
     min-width: 0;
   }
-} 
+}
+
+/* Product Info Text - Nike Style */
+.best-seller-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e74c3c;
+  margin-bottom: 8px;
+  margin-top: 0;
+}
+
+.product-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #111;
+}
+
+.product-category-small {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 4px;
+  margin-top: 0;
+  text-transform: capitalize;
+}
+
+.product-attributes {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  margin-top: 0;
+}
+
+.discount-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #00a651;
+  margin-top: -10px;
+  margin-bottom: 0;
+}
+
+/* Price Container */
+.price-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 0.85em;
+  margin: 0;
+  font-weight: 400;
+}
+
+.discounted-price {
+  color: #e74c3c;
+  font-weight: 700;
+  margin: 0;
+  font-size: 1.05em;
+}
+
+ 

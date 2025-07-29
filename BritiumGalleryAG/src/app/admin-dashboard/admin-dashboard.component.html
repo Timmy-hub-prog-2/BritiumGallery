@@ -333,91 +333,9 @@
         </div>
 
         <!-- Customer Growth Area Chart -->
-        <div class="chart-panel">
-          <div class="panel-header">
-            <h3 class="panel-title">Customer Growth</h3>
-          </div>
-          <div
-            class="chart-container"
-            *ngIf="customerGrowth && customerGrowth.length"
-          >
-            <apx-chart
-              [series]="customerGrowthChartOptions.series"
-              [chart]="customerGrowthChartOptions.chart"
-              [xaxis]="customerGrowthChartOptions.xaxis"
-              [title]="customerGrowthChartOptions.title"
-              [dataLabels]="customerGrowthChartOptions.dataLabels"
-              [legend]="customerGrowthChartOptions.legend"
-              [tooltip]="customerGrowthChartOptions.tooltip"
-              [colors]="customerGrowthChartOptions.colors"
-              [stroke]="customerGrowthChartOptions.stroke"
-              [grid]="customerGrowthChartOptions.grid"
-            >
-            </apx-chart>
-          </div>
-        </div>
+        
 
-        <div class="customer-panel">
-          <div class="panel-header">
-            <h3 class="panel-title">Customer Segments</h3>
-            <button class="panel-btn" (click)="openCustomerModal()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </button>
-          </div>
-          <div class="customer-stats">
-            <div class="customer-item">
-              <div class="customer-count">
-                {{ normalCustomerCount | number : "1.0-0" }}
-              </div>
-              <div class="customer-label">Normal</div>
-              <div class="customer-bar">
-                <div
-                  class="bar-fill normal"
-                  [style.width.%]="
-                    totalCustomers
-                      ? (normalCustomerCount / totalCustomers) * 100
-                      : 0
-                  "
-                ></div>
-              </div>
-            </div>
-            <div class="customer-item">
-              <div class="customer-count">
-                {{ loyaltyCustomerCount | number : "1.0-0" }}
-              </div>
-              <div class="customer-label">Loyalty</div>
-              <div class="customer-bar">
-                <div
-                  class="bar-fill loyalty"
-                  [style.width.%]="
-                    totalCustomers
-                      ? (loyaltyCustomerCount / totalCustomers) * 100
-                      : 0
-                  "
-                ></div>
-              </div>
-            </div>
-            <div class="customer-item">
-              <div class="customer-count">
-                {{ vipCustomerCount | number : "1.0-0" }}
-              </div>
-              <div class="customer-label">VIP</div>
-              <div class="customer-bar">
-                <div
-                  class="bar-fill vip"
-                  [style.width.%]="
-                    totalCustomers
-                      ? (vipCustomerCount / totalCustomers) * 100
-                      : 0
-                  "
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </div>
 
       <!-- Data Tables Row -->
@@ -941,10 +859,7 @@
               <div style="position: relative; display: inline-block">
                 <button
                   class="panel-btn"
-                  (click)="
-                    showExportDropdownLostProducts =
-                      !showExportDropdownLostProducts
-                  "
+                  (click)="showExportDropdownLostProducts = !showExportDropdownLostProducts"
                   title="Export Lost Products"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -970,10 +885,7 @@
                   "
                 >
                   <button
-                    (click)="
-                      exportLostProductsTable('pdf');
-                      showExportDropdownLostProducts = false
-                    "
+                    (click)="exportLostProductsTable('pdf'); showExportDropdownLostProducts = false"
                     style="
                       display: flex;
                       align-items: center;
@@ -1009,10 +921,7 @@
                     Export as PDF
                   </button>
                   <button
-                    (click)="
-                      exportLostProductsTable('excel');
-                      showExportDropdownLostProducts = false
-                    "
+                    (click)="exportLostProductsTable('excel'); showExportDropdownLostProducts = false"
                     style="
                       display: flex;
                       align-items: center;
@@ -1493,122 +1402,118 @@
       <div class="modal-header">
         <h3 class="modal-title">{{ currentTableTitle }}</h3>
         <div class="modal-actions">
-          <div
-            class="export-btn-row"
-            style="position: relative; display: inline-block"
-          >
-            <button
-              class="export-icon-btn no-border export-menu-btn"
-              aria-label="Export options"
-              (click)="showExportDropdownModal = !showExportDropdownModal"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <line x1="10" y1="4" x2="10" y2="13" />
-                <polyline points="6,10 10,14 14,10" />
-              </svg>
-            </button>
-            <div
-              *ngIf="showExportDropdownModal"
-              class="custom-export-dropdown"
-              (mouseleave)="showExportDropdownModal = false"
-              style="
-                position: absolute;
-                right: 0;
-                top: 45px;
-                background: #fff;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-                border-radius: 12px;
-                min-width: 180px;
-                z-index: 10;
-                padding: 8px 0;
-              "
-            >
-              <button
-                (click)="
-                  exportCurrentTable('pdf'); showExportDropdownModal = false
-                "
-                style="
-                  display: flex;
-                  align-items: center;
-                  width: 100%;
-                  background: none;
-                  border: none;
-                  padding: 10px 20px;
-                  font-size: 16px;
-                  cursor: pointer;
-                  gap: 12px;
-                  color: #222;
-                "
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
+          <div style="position: relative; display: inline-block">
+                <button
+                  class="panel-btn"
+                  (click)="
+                    showExportDropdownTopProducts =
+                      !showExportDropdownTopProducts
+                  "
+                  title="Export Top Products"
                 >
-                  <rect
-                    x="3"
-                    y="3"
-                    width="18"
-                    height="18"
-                    rx="2"
-                    ry="2"
-                    stroke-width="2"
-                  />
-                  <path d="M8 7h8v4H8z" stroke-width="2" />
-                  <path d="M8 15h8" stroke-width="2" />
-                </svg>
-                Export as PDF
-              </button>
-              <button
-                (click)="
-                  exportCurrentTable('excel'); showExportDropdownModal = false
-                "
-                style="
-                  display: flex;
-                  align-items: center;
-                  width: 100%;
-                  background: none;
-                  border: none;
-                  padding: 10px 20px;
-                  font-size: 16px;
-                  cursor: pointer;
-                  gap: 12px;
-                  color: #222;
-                "
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7,10 12,15 17,10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </button>
+                <div
+                  *ngIf="showExportDropdownTopProducts"
+                  class="custom-export-dropdown"
+                  (mouseleave)="showExportDropdownTopProducts = false"
+                  style="
+                    position: absolute;
+                    right: 0;
+                    top: 40px;
+                    background: #fff;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                    border-radius: 12px;
+                    min-width: 180px;
+                    z-index: 10;
+                    padding: 8px 0;
+                  "
                 >
-                  <rect
-                    x="3"
-                    y="3"
-                    width="18"
-                    height="18"
-                    rx="2"
-                    ry="2"
-                    stroke-width="2"
-                  />
-                  <path d="M7 7h10v10H7z" stroke-width="2" />
-                  <path d="M9 9l6 6" stroke-width="2" />
-                  <path d="M15 9l-6 6" stroke-width="2" />
-                </svg>
-                Export as Excel
-              </button>
-            </div>
-          </div>
+                  <button
+                    (click)="
+                      exportTopProductsTable('pdf');
+                      showExportDropdownTopProducts = false
+                    "
+                    style="
+                      display: flex;
+                      align-items: center;
+                      width: 100%;
+                      background: none;
+                      border: none;
+                      padding: 10px 20px;
+                      font-size: 16px;
+                      cursor: pointer;
+                      gap: 12px;
+                      color: #222;
+                    "
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                        stroke-width="2"
+                      />
+                      <path d="M8 7h8v4H8z" stroke-width="2" />
+                      <path d="M8 15h8" stroke-width="2" />
+                    </svg>
+                    Export as PDF
+                  </button>
+                  <button
+                    (click)="
+                      exportTopProductsTable('excel');
+                      showExportDropdownTopProducts = false
+                    "
+                    style="
+                      display: flex;
+                      align-items: center;
+                      width: 100%;
+                      background: none;
+                      border: none;
+                      padding: 10px 20px;
+                      font-size: 16px;
+                      cursor: pointer;
+                      gap: 12px;
+                      color: #222;
+                    "
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                        stroke-width="2"
+                      />
+                      <path d="M7 7h10v10H7z" stroke-width="2" />
+                      <path d="M9 9l6 6" stroke-width="2" />
+                      <path d="M15 9l-6 6" stroke-width="2" />
+                    </svg>
+                    Export as Excel
+                  </button>
+                </div>
+              </div>
           <button class="modal-close" (click)="closeModal('table')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -2153,14 +2058,109 @@
               </option>
             </select>
           </div>
-          <button class="btn btn-sm" (click)="exportCurrentTable()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7,10 12,15 17,10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Export
-          </button>
+          <div style="position: relative; display: inline-block">
+                <button
+                  class="panel-btn"
+                  (click)="showExportDropdownLostProducts = !showExportDropdownLostProducts"
+                  title="Export Lost Products"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7,10 12,15 17,10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </button>
+                <div
+                  *ngIf="showExportDropdownLostProducts"
+                  class="custom-export-dropdown"
+                  (mouseleave)="showExportDropdownLostProducts = false"
+                  style="
+                    position: absolute;
+                    right: 0;
+                    top: 40px;
+                    background: #fff;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                    border-radius: 12px;
+                    min-width: 180px;
+                    z-index: 10;
+                    padding: 8px 0;
+                  "
+                >
+                  <button
+                    (click)="exportLostProductsTable('pdf'); showExportDropdownLostProducts = false"
+                    style="
+                      display: flex;
+                      align-items: center;
+                      width: 100%;
+                      background: none;
+                      border: none;
+                      padding: 10px 20px;
+                      font-size: 16px;
+                      cursor: pointer;
+                      gap: 12px;
+                      color: #222;
+                    "
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                        stroke-width="2"
+                      />
+                      <path d="M8 7h8v4H8z" stroke-width="2" />
+                      <path d="M8 15h8" stroke-width="2" />
+                    </svg>
+                    Export as PDF
+                  </button>
+                  <button
+                    (click)="exportLostProductsTable('excel'); showExportDropdownLostProducts = false"
+                    style="
+                      display: flex;
+                      align-items: center;
+                      width: 100%;
+                      background: none;
+                      border: none;
+                      padding: 10px 20px;
+                      font-size: 16px;
+                      cursor: pointer;
+                      gap: 12px;
+                      color: #222;
+                    "
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                    >
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="2"
+                        ry="2"
+                        stroke-width="2"
+                      />
+                      <path d="M7 7h10v10H7z" stroke-width="2" />
+                      <path d="M9 9l6 6" stroke-width="2" />
+                      <path d="M15 9l-6 6" stroke-width="2" />
+                    </svg>
+                    Export as Excel
+                  </button>
+                </div>
+              </div>
           <button class="modal-close" (click)="closeModal('lostProducts')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <line x1="18" y1="6" x2="6" y2="18" />

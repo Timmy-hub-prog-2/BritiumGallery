@@ -1,0 +1,459 @@
+<div class="customer-analysis-container">
+  <!-- Header Section -->
+  <div class="analysis-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="analysis-title">Customer Analysis</h1>
+        <p class="analysis-subtitle">Comprehensive insights into customer behavior and demographics</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Users Overview -->
+  <div class="stats-overview">
+    <div class="stat-card">
+      <div class="stat-icon online">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+          <line x1="9" y1="9" x2="9.01" y2="9"/>
+          <line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ activeUserStats.totalUsers | number }}</div>
+        <div class="stat-label">Total Users</div>
+        <div class="stat-change positive">+{{ activeUserStats.growthRate }}% from last month</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2v6m0 4v6"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ activeUserStats.onlineUsers | number }}</div>
+        <div class="stat-label">Active Users</div>
+        <div class="stat-change positive">+{{ activeUserStats.growthRate }}% from last month</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon recent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12,6 12,12 16,14"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ activeUserStats.recentUsers | number }}</div>
+        <div class="stat-label">Recent Users</div>
+        <div class="stat-change neutral">Last hour activity</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon offline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ activeUserStats.offlineUsers | number }}</div>
+        <div class="stat-label">Offline Users</div>
+        <div class="stat-change neutral">Not active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="charts-section">
+    <!-- Customer Growth Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Customer Growth</h3>
+        <div class="chart-actions">
+          <select class="chart-filter" (change)="loadCustomerGrowth()">
+            <option value="day">Last 8 Days</option>
+            <option value="week">Last 4 Weeks</option>
+            <option value="month">Last 6 Months</option>
+          </select>
+        </div>
+      </div>
+      <div class="chart-container">
+        <apx-chart
+          [series]="customerGrowthChartOptions.series!"
+          [chart]="customerGrowthChartOptions.chart!"
+          [xaxis]="customerGrowthChartOptions.xaxis!"
+          [yaxis]="customerGrowthChartOptions.yaxis!"
+          [stroke]="customerGrowthChartOptions.stroke!"
+          [colors]="customerGrowthChartOptions.colors!"
+          [legend]="customerGrowthChartOptions.legend!"
+          [dataLabels]="customerGrowthChartOptions.dataLabels!">
+        </apx-chart>
+      </div>
+    </div>
+
+    <!-- Customer Type Distribution -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Customer Type Distribution</h3>
+        <div class="chart-actions">
+          <button class="export-btn" (click)="exportCustomerTypeStats()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7,10 12,15 17,10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export
+          </button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <apx-chart
+          [series]="customerTypeChartOptions.series!"
+          [chart]="customerTypeChartOptions.chart!"
+          [labels]="customerTypeChartOptions.labels!"
+          [colors]="customerTypeChartOptions.colors!"
+          [legend]="customerTypeChartOptions.legend!"
+          [plotOptions]="customerTypeChartOptions.plotOptions!">
+        </apx-chart>
+      </div>
+    </div>
+
+    <!-- Geographic Distribution -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Geographic Distribution</h3>
+        <div class="chart-actions">
+          <button class="export-btn" (click)="exportGeographicStats()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7,10 12,15 17,10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export
+          </button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <apx-chart
+          [series]="geographicChartOptions.series!"
+          [chart]="geographicChartOptions.chart!"
+          [xaxis]="geographicChartOptions.xaxis!"
+          [yaxis]="geographicChartOptions.yaxis!"
+          [colors]="geographicChartOptions.colors!"
+          [plotOptions]="geographicChartOptions.plotOptions!">
+        </apx-chart>
+      </div>
+    </div>
+
+    <!-- Active Users Trend -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Active Users Trend</h3>
+        <div class="chart-actions">
+          <select class="chart-filter">
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+        </div>
+      </div>
+      <div class="chart-container">
+        <apx-chart
+          [series]="activeUsersChartOptions.series!"
+          [chart]="activeUsersChartOptions.chart!"
+          [xaxis]="activeUsersChartOptions.xaxis!"
+          [yaxis]="activeUsersChartOptions.yaxis!"
+          [colors]="activeUsersChartOptions.colors!"
+          [fill]="activeUsersChartOptions.fill!">
+        </apx-chart>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filters-header">
+      <h3>Customer Filters</h3>
+      <button class="clear-filters-btn" (click)="clearFilters()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Clear Filters
+      </button>
+    </div>
+    
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label>Search</label>
+        <input 
+          type="text" 
+          placeholder="Search by name or email..."
+          [(ngModel)]="searchQuery"
+          (input)="applyFilters()"
+          class="filter-input">
+      </div>
+
+      <div class="filter-group">
+        <label>Customer Type</label>
+        <select [(ngModel)]="selectedCustomerType" (change)="applyFilters()" class="filter-select">
+          <option value="all">All Types</option>
+          <option value="Normal">Normal</option>
+          <option value="Loyalty">Loyalty</option>
+          <option value="VIP">VIP</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Status</label>
+        <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="filter-select">
+          <option value="all">All Status</option>
+          <option value="online">Online</option>
+          <option value="offline">Offline</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>City</label>
+        <select [(ngModel)]="selectedCity" (change)="applyFilters()" class="filter-select">
+          <option value="all">All Cities</option>
+          <option *ngFor="let city of getUniqueCities()" [value]="city">{{ city }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Country</label>
+        <select [(ngModel)]="selectedCountry" (change)="applyFilters()" class="filter-select">
+          <option value="all">All Countries</option>
+          <option *ngFor="let country of getUniqueCountries()" [value]="country">{{ country }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Date Range</label>
+        <div class="date-range">
+          <input 
+            type="date" 
+            [(ngModel)]="dateFrom"
+            (change)="loadCustomerGrowth()"
+            class="filter-input">
+          <span>to</span>
+          <input 
+            type="date" 
+            [(ngModel)]="dateTo"
+            (change)="loadCustomerGrowth()"
+            class="filter-input">
+        </div>
+      </div>
+    </div>
+    <div class="table-section">
+    <div class="table-header">
+      <h3>Customer Details</h3>
+      <button class="export-btn" (click)="exportCustomers()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export
+      </button>
+    </div>
+    
+    <div class="table-container">
+      <table mat-table [dataSource]="customersDataSource" matSort #customersSort="matSort" class="custom-table">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
+          <td mat-cell *matCellDef="let element"> {{ element.name }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
+          <td mat-cell *matCellDef="let element"> {{ element.email }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="customerType">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Type </th>
+          <td mat-cell *matCellDef="let element">
+            <span class="customer-type-badge" [style.background-color]="getCustomerTypeColor(element.customerType)">
+              {{ element.customerType }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="totalSpend">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Total Spend </th>
+          <td mat-cell *matCellDef="let element"> {{ formatCurrency(element.totalSpend) }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="orderCount">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Orders </th>
+          <td mat-cell *matCellDef="let element"> {{ element.orderCount | number }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="averageOrderValue">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Avg Order </th>
+          <td mat-cell *matCellDef="let element"> {{ formatCurrency(element.averageOrderValue) }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="lastOrderDate">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Last Order </th>
+          <td mat-cell *matCellDef="let element"> {{ formatDate(element.lastOrderDate) }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="isOnline">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
+          <td mat-cell *matCellDef="let element">
+            <span class="status-badge" [style.background-color]="getStatusColor(element.isOnline)">
+              {{ element.isOnline ? 'Online' : 'Offline' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="city">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> City </th>
+          <td mat-cell *matCellDef="let element"> {{ element.city }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="country">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Country </th>
+          <td mat-cell *matCellDef="let element"> {{ element.country }} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="customersColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: customersColumns;"></tr>
+      </table>
+
+      <mat-paginator 
+        #customersPaginator
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        showFirstLastButtons
+        aria-label="Select page of customers">
+      </mat-paginator>
+    </div>
+  </div>
+  </div>
+
+  
+
+  <!-- Customer Type Stats Table -->
+  <div class="table-section">
+    <div class="table-header">
+      <h3>Customer Type Statistics</h3>
+      <button class="export-btn" (click)="exportCustomerTypeStats()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export
+      </button>
+    </div>
+    
+    <div class="table-container">
+      <table mat-table [dataSource]="customerTypeDataSource" matSort #customerTypeSort="matSort" class="custom-table">
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Customer Type </th>
+          <td mat-cell *matCellDef="let element">
+            <span class="customer-type-badge" [style.background-color]="getCustomerTypeColor(element.type)">
+              {{ element.type }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="count">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Count </th>
+          <td mat-cell *matCellDef="let element"> {{ element.count | number }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="percentage">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Percentage </th>
+          <td mat-cell *matCellDef="let element"> {{ element.percentage | number:'1.1-1' }}% </td>
+        </ng-container>
+
+        <ng-container matColumnDef="totalSpent">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Total Spent </th>
+          <td mat-cell *matCellDef="let element"> {{ formatCurrency(element.totalSpent) }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="averageSpent">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Average Spent </th>
+          <td mat-cell *matCellDef="let element"> {{ formatCurrency(element.averageSpent) }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="activeUsers">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Active Users </th>
+          <td mat-cell *matCellDef="let element"> {{ element.activeUsers | number }} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="customerTypeColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: customerTypeColumns;"></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Geographic Stats Table -->
+  <div class="table-section">
+    <div class="table-header">
+      <h3>Geographic Distribution</h3>
+      <button class="export-btn" (click)="exportGeographicStats()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export
+      </button>
+    </div>
+    
+    <div class="table-container">
+      <table mat-table [dataSource]="geographicDataSource" matSort #geographicSort="matSort" class="custom-table">
+        <ng-container matColumnDef="location">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Location </th>
+          <td mat-cell *matCellDef="let element"> {{ element.location }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="count">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Count </th>
+          <td mat-cell *matCellDef="let element"> {{ element.count | number }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="percentage">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Percentage </th>
+          <td mat-cell *matCellDef="let element"> {{ element.percentage | number:'1.1-1' }}% </td>
+        </ng-container>
+
+        <ng-container matColumnDef="totalSpent">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Total Spent </th>
+          <td mat-cell *matCellDef="let element"> {{ formatCurrency(element.totalSpent) }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="averageSpent">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Average Spent </th>
+          <td mat-cell *matCellDef="let element"> {{ formatCurrency(element.averageSpent) }} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="geographicColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: geographicColumns;"></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Customers Table -->
+  
+</div> 

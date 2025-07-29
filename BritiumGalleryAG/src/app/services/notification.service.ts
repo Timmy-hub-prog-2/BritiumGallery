@@ -28,6 +28,13 @@ export interface CreateNotificationRequest {
   active?: boolean;
 }
 
+export interface ScheduledNotificationOccurrence {
+  id: number;
+  title: string;
+  message: string;
+  occurrenceDate: string; // ISO string
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -79,6 +86,18 @@ export class NotificationService {
 
   getUserScheduledNotifications(userId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/scheduled/user/${userId}`);
+  }
+
+  /**
+   * Fetch the history of occurrences for a scheduled notification.
+   * @param id Scheduled notification ID
+   * @param from ISO string (start date)
+   * @param to ISO string (end date)
+   */
+  getScheduledNotificationHistory(id: number, from: string, to: string): Observable<ScheduledNotificationOccurrence[]> {
+    return this.http.get<ScheduledNotificationOccurrence[]>(`${this.apiUrl}/scheduled/${id}/history`, {
+      params: { from, to }
+    });
   }
 
   registerRestockNotification(userId: number, productVariantId: number) {

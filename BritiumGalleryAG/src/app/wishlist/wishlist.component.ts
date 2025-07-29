@@ -5,6 +5,12 @@ import { Router } from '@angular/router';
 import { ProductService } from '../services/product.service';
 import { ProductResponse } from '../ProductResponse';
 
+interface WishlistItem {
+  productId: number;
+  productName: string;
+  productPhotoUrl: string;
+}
+
 @Component({
   selector: 'app-wishlist',
   standalone: false,
@@ -12,13 +18,13 @@ import { ProductResponse } from '../ProductResponse';
   styleUrl: './wishlist.component.css'
 })
 export class WishlistComponent implements OnInit {
-  wishlist: any[] = [];
+  wishlist: WishlistItem[] = [];
   productDetails: { [productId: number]: ProductResponse } = {};
 
   constructor(
     private wishlistService: WishlistService,
     private authService: AuthService,
-    private router:Router,
+    private router: Router,
     private productService: ProductService
   ) {}
 
@@ -30,6 +36,38 @@ export class WishlistComponent implements OnInit {
     this.router.navigate(['/product-detail', productId]);
   }
 
+  goToBrowse(): void {
+    this.router.navigate(['/browse']);
+  }
+
+  clearWishlist(): void {
+    const userId = this.authService.getLoggedInUserId();
+    if (userId === null) {
+      console.error('User not logged in.');
+      return;
+    }
+
+    // Clear all items from wishlist
+    this.wishlist.forEach(item => {
+      this.wishlistService.removeWishlistItem(userId, item.productId).subscribe({
+        next: (res: any) => {
+          if (res && res.success !== false) {
+            console.log(`Removed item ${item.productId} from wishlist`);
+          } else {
+            console.error(`Failed to remove item ${item.productId}:`, res.message);
+          }
+        },
+        error: (err) => {
+          console.error(`Failed to remove item ${item.productId}:`, err);
+        }
+      });
+    });
+
+    // Clear local arrays
+    this.wishlist = [];
+    this.productDetails = {};
+  }
+
   reloadWishlist(): void {
     const userId = this.authService.getLoggedInUserId();
     if (userId === null) {
@@ -38,12 +76,17 @@ export class WishlistComponent implements OnInit {
     }
 
     this.wishlistService.getWishlistByUser(userId).subscribe({
-      next: (data) => {
+      next: (data: WishlistItem[]) => {
         this.wishlist = data;
         this.productDetails = {};
         for (const item of data) {
-          this.productService.getProductDetail(item.productId).subscribe(product => {
-            this.productDetails[item.productId] = product;
+          this.productService.getProductDetail(item.productId).subscribe({
+            next: (product: ProductResponse) => {
+              this.productDetails[item.productId] = product;
+            },
+            error: (err) => {
+              console.error(`Failed to load product details for ${item.productId}:`, err);
+            }
           });
         }
         console.log('Wishlist loaded:', data);
@@ -54,7 +97,7 @@ export class WishlistComponent implements OnInit {
     });
   }
 
-  addToCart(item: any) {
+  addToCart(item: WishlistItem): void {
     // TODO: Implement add to cart functionality
     console.log('Add to cart:', item);
   }
@@ -98,25 +141,24 @@ export class WishlistComponent implements OnInit {
   }
 
   removeFromWishlist(productId: number): void {
-  const userId = this.authService.getLoggedInUserId();
-  if (userId === null) {
-    console.error('User not logged in.');
-    return;
-  }
-
-  this.wishlistService.removeWishlistItem(userId, productId).subscribe({
-    next: (res: any) => {
-      if (res && res.success !== false) {
-        this.wishlist = this.wishlist.filter(item => item.productId !== productId);
-        delete this.productDetails[productId];
-      } else {
-        console.error(res.message || 'Failed to remove from wishlist.');
-      }
-    },
-    error: (err) => {
-      console.error('Failed to remove from wishlist:', err);
+    const userId = this.authService.getLoggedInUserId();
+    if (userId === null) {
+      console.error('User not logged in.');
+      return;
     }
-  });
-}
 
+    this.wishlistService.removeWishlistItem(userId, productId).subscribe({
+      next: (res: any) => {
+        if (res && res.success !== false) {
+          this.wishlist = this.wishlist.filter(item => item.productId !== productId);
+          delete this.productDetails[productId];
+        } else {
+          console.error(res.message || 'Failed to remove from wishlist.');
+        }
+      },
+      error: (err) => {
+        console.error('Failed to remove from wishlist:', err);
+      }
+    });
+  }
 }

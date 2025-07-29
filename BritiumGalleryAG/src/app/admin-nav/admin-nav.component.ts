@@ -3,11 +3,12 @@ import { Router } from '@angular/router';
 import { UserService } from '../services/user.service'; // Adjust path as needed
 import { User } from '../../user.model'; // Adjust path as needed
 import { Subscription } from 'rxjs';
-import { NotificationService, Notification } from '../services/notification.service';
+import { NotificationService, Notification, ScheduledNotificationOccurrence } from '../services/notification.service';
 import { NotificationWebSocketService } from '../services/notification-websocket.service';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CronExpressionParser } from 'cron-parser';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-admin-nav',
@@ -53,75 +54,53 @@ export class AdminNavComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userSubscription = this.userService.currentUser.subscribe((user: User | null) => {
       this.user = user;
-      
-      // Fetch notifications for logged-in user
       if (user && user.id) {
-        if (user.roleId === 2) {
-          // Fetch admin notifications
-          this.notificationService.getAdminNotifications().subscribe((notis) => {
-            this.notifications = notis.sort((a, b) => b.id - a.id);
-            this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+        // Fetch regular notifications
+        this.notificationService.getUserNotifications(user.id).subscribe(regularNotis => {
+          // Fetch scheduled notifications for the user
+          this.notificationService.getUserScheduledNotifications(user.id).subscribe(scheduledNotis => {
+            // For each scheduled notification, fetch its history (last 30 days)
+            const now = new Date();
+            const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30).toISOString();
+            const to = now.toISOString();
+            const historyRequests = scheduledNotis.map((sn: any) =>
+              this.notificationService.getScheduledNotificationHistory(sn.id, from, to)
+            );
+            forkJoin(historyRequests).subscribe(historyResults => {
+              // Flatten all occurrences
+              const scheduledOccurrences: ScheduledNotificationOccurrence[] = historyResults.flat();
+              // Map scheduled occurrences to notification-like objects
+              const scheduledAsNotis: Notification[] = scheduledOccurrences.map(occ => ({
+                // Use a large offset to avoid id collision with real notifications
+                id: 1000000000 + Number(occ.id) + new Date(occ.occurrenceDate).getTime() % 1000000,
+                title: occ.title,
+                message: occ.message,
+                type: 'SCHEDULED',
+                createdAt: occ.occurrenceDate,
+                isRead: true // Always mark as read
+              }));
+              // Merge and sort
+              const allNotis = [...regularNotis, ...scheduledAsNotis].sort(
+                (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              );
+              this.notifications = allNotis;
+              this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+            });
           });
-          
-          // Fetch scheduled notifications for admin
-          this.notificationService.getUserScheduledNotifications(user.id).subscribe((scheduled: any[]) => {
-            this.scheduledNotificationsRaw = scheduled;
-            this.filterScheduledNotifications();
-            // Apply filtering to regular notifications after scheduled notifications are loaded
-            this.applyNotificationFiltering();
-          });
-          
-          // Set up interval to re-filter every minute
-          this.scheduledInterval = setInterval(() => {
-            this.filterScheduledNotifications();
-          }, 60000);
-        } else {
-          this.fetchNotifications(user.id);
-          
-          // Fetch scheduled notifications for regular users
-          this.notificationService.getUserScheduledNotifications(user.id).subscribe((scheduled: any[]) => {
-            this.scheduledNotificationsRaw = scheduled;
-            this.filterScheduledNotifications();
-            // Apply filtering to regular notifications after scheduled notifications are loaded
-            this.applyNotificationFiltering();
-          });
-          
-          // Set up interval to re-filter every minute
-          this.scheduledInterval = setInterval(() => {
-            this.filterScheduledNotifications();
-          }, 60000);
-        }
+        });
       }
-
+      // WebSocket logic remains unchanged
       if (user) {
         this.notificationWebSocketService.connect(user.id);
         this.notificationWebSocketService.notifications$.subscribe((noti) => {
-          // Check if this is a scheduled notification that was pushed
-          const now = new Date();
-          const isScheduledNotification = this.scheduledNotificationsRaw.some(sched => sched.id === noti.id);
-          
-          if (isScheduledNotification) {
-            // For scheduled notifications, check if they're within valid date range
-            const scheduledNoti = this.scheduledNotificationsRaw.find(sched => sched.id === noti.id);
-            if (scheduledNoti && !this.isScheduledNotificationInValidRange(scheduledNoti, now)) {
-              return; // Don't add to notifications if outside date range
-            }
-            
-            // Remove from scheduledNotifications if present (for real-time scheduled notis)
-            this.scheduledNotifications = this.scheduledNotifications.filter(n => n.id !== noti.id);
-          }
-          
+          // (existing real-time logic)
           const idx = this.notifications.findIndex(n => n.id === noti.id);
           if (idx !== -1) {
-            // Update existing notification (e.g., isRead status)
             this.notifications[idx] = { ...this.notifications[idx], ...noti };
           } else {
-            // Add new notification to the top
             this.notifications.unshift(noti);
-            // Play sound and vibrate for new notification
             this.playNotificationFeedback();
           }
-          // Update unread count
           this.unreadCount = this.notifications.filter(n => !n.isRead).length;
         });
       }

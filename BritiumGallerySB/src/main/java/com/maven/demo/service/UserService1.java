@@ -5,6 +5,10 @@ import java.util.Optional;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.maven.demo.dto.ActiveUserStatsDTO;
+import com.maven.demo.dto.CustomerAnalyticsDTO;
+import com.maven.demo.dto.CustomerTypeStatsDTO;
+import com.maven.demo.dto.GeographicStatsDTO;
 import com.maven.demo.dto.UserDTO;
 import com.maven.demo.dto.UserResponseDTO;
 import com.maven.demo.entity.UserEntity;
@@ -18,4 +22,10 @@ public interface UserService1 {
     Optional<UserResponseDTO> updateUserProfile(Long id, UserDTO userDto, MultipartFile imageFile);
 
     Optional<UserEntity> getUserEntityById(Long id);
+
+    // Customer Analysis Methods
+    List<CustomerAnalyticsDTO> getCustomersWithAnalytics();
+    List<CustomerTypeStatsDTO> getCustomerTypeStats();
+    List<GeographicStatsDTO> getGeographicStats();
+    ActiveUserStatsDTO getActiveUserStats();
 }

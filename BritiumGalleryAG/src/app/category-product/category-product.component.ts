@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ProductService } from '../services/product.service';
 import { CategoryService } from '../category.service';
+import { HomepageService } from '../services/homepage.service';
 import { ProductResponse } from '../ProductResponse';
 import { category, CategoryAttribute } from '../category';
 import { CommonModule } from '@angular/common';
@@ -39,12 +40,14 @@ export class CategoryProductComponent implements OnInit {
   filteredProducts: ProductResponse[] = [];
   sortOption: string = 'featured';
   showSortMenu: boolean = false;
+  bestSellerProductIds: number[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private productService: ProductService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private homepageService: HomepageService
   ) { }
 
   ngOnInit(): void {
@@ -67,6 +70,7 @@ export class CategoryProductComponent implements OnInit {
         this.loadBreadcrumb();
         this.loadBrands();
         this.updatePriceRange();
+        this.loadBestSellers();
       }
     });
     // Debounced search
@@ -108,6 +112,17 @@ export class CategoryProductComponent implements OnInit {
     if (this.categoryId) {
       this.productService.getFilteredProducts(this.categoryId, this.selectedAttributeFilters, this.searchTerm).subscribe(products => {
         this.products = products.filter(product => product.status === 1);
+        console.log('Loaded products with discount info:', this.products.map(p => ({
+          id: p.id, 
+          name: p.name, 
+          variants: p.variants?.map(v => ({
+            id: v.id,
+            price: v.price, 
+            discountPercent: v.discountPercent, 
+            discountedPrice: v.discountedPrice,
+            sku: v.sku
+          }))
+        })));
         this.sortProducts();
       });
     }
@@ -330,5 +345,109 @@ export class CategoryProductComponent implements OnInit {
     } else {
       this.products = [...this.products].sort(sortFn);
     }
+  }
+
+  loadBestSellers(): void {
+    this.homepageService.getBestSellers(50).subscribe(bestSellers => {
+      this.bestSellerProductIds = bestSellers.map(product => product.productId);
+      console.log('Best sellers loaded:', this.bestSellerProductIds);
+    });
+  }
+
+  isBestSeller(product: ProductResponse): boolean {
+    const isBest = this.bestSellerProductIds.includes(product.id);
+    console.log(`Product ${product.id} (${product.name}) is best seller:`, isBest);
+    return isBest;
+  }
+
+  getMaxDiscountPercent(product: ProductResponse): number | null {
+    if (!product.variants || product.variants.length === 0) {
+      return null;
+    }
+    
+    // Get all variants with valid discounts
+    const variantsWithDiscounts = product.variants.filter(variant => 
+      variant.discountPercent !== null && 
+      variant.discountPercent !== undefined && 
+      variant.discountPercent > 0
+    );
+    
+    if (variantsWithDiscounts.length === 0) {
+      console.log(`Product ${product.id} (${product.name}) has no discounts`);
+      return null;
+    }
+    
+    // Find the maximum discount percentage across all variants
+    const maxDiscount = Math.max(...variantsWithDiscounts.map(v => v.discountPercent!));
+    console.log(`Product ${product.id} (${product.name}) max discount:`, maxDiscount, 'from variants:', variantsWithDiscounts.map(v => ({ id: v.id, discount: v.discountPercent })));
+    return maxDiscount;
+  }
+
+  getDiscountedPriceRange(product: ProductResponse): string {
+    if (!product.variants || product.variants.length === 0) {
+      return 'N/A';
+    }
+    
+    // Get variants that have discounted prices
+    const variantsWithDiscounts = product.variants.filter(variant => 
+      variant.discountedPrice !== null && 
+      variant.discountedPrice !== undefined && 
+      variant.discountedPrice > 0
+    );
+    
+    if (variantsWithDiscounts.length === 0) {
+      // No discounts, return original price range
+      return this.getPriceRange(product);
+    }
+    
+    // Use the backend-calculated discounted prices
+    const discountedPrices = variantsWithDiscounts.map(v => v.discountedPrice!);
+    const minDiscountedPrice = Math.min(...discountedPrices);
+    const maxDiscountedPrice = Math.max(...discountedPrices);
+    
+    if (minDiscountedPrice === maxDiscountedPrice) {
+      return `${minDiscountedPrice} MMK`;
+    } else {
+      return `${minDiscountedPrice} - ${maxDiscountedPrice} MMK`;
+    }
+  }
+
+  getAttributeSummary(product: ProductResponse): string {
+    if (!product.variants || product.variants.length === 0) {
+      return '';
+    }
+    
+    // Collect all unique attribute values
+    const attributeMap = new Map<string, Set<string>>();
+    
+    product.variants.forEach(variant => {
+      if (variant.attributes) {
+        Object.entries(variant.attributes).forEach(([key, value]) => {
+          if (!attributeMap.has(key)) {
+            attributeMap.set(key, new Set());
+          }
+          attributeMap.get(key)!.add(value);
+        });
+      }
+    });
+    
+    // Build summary string - show all attributes, even if only 1 option
+    const summaries: string[] = [];
+    attributeMap.forEach((values, key) => {
+      const count = values.size;
+      const plural = count > 1 ? 's' : '';
+      summaries.push(`${count} ${key}${plural}`);
+    });
+    
+    return summaries.join(', ');
+  }
+
+  getCurrentCategoryName(): string {
+    return this.currentCategory?.name || '';
+  }
+
+  getProductCategoryName(product: ProductResponse): string {
+    // Use the product's own category name if available
+    return product.categoryName || this.currentCategory?.name || '';
   }
 } 

@@ -8,11 +8,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.maven.demo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +21,7 @@ import com.maven.demo.dto.AttributeOptionDTO;
 import com.maven.demo.dto.EventDiscountProductsDTO;
 import com.maven.demo.dto.LostProductAnalyticsDTO;
 import com.maven.demo.dto.PriceHistoryResponseDTO;
+import com.maven.demo.dto.ProductHistoryDTO;
 import com.maven.demo.dto.ProductRequestDTO;
 import com.maven.demo.dto.ProductResponseDTO;
 import com.maven.demo.dto.ProductSearchResultDTO;
@@ -35,6 +36,7 @@ import com.maven.demo.entity.CategoryEntity;
 import com.maven.demo.entity.DiscountEvent;
 import com.maven.demo.entity.DiscountRule;
 import com.maven.demo.entity.ProductEntity;
+import com.maven.demo.entity.ProductHistory;
 import com.maven.demo.entity.ProductVariantEntity;
 import com.maven.demo.entity.ProductVariantImage;
 import com.maven.demo.entity.ProductVariantPriceHistoryEntity;
@@ -42,12 +44,24 @@ import com.maven.demo.entity.PurchaseHistoryEntity;
 import com.maven.demo.entity.ReduceStockHistoryEntity;
 import com.maven.demo.entity.UserEntity;
 import com.maven.demo.entity.VariantAttributeValueEntity;
-import com.maven.demo.entity.ProductHistory;
-import com.maven.demo.dto.ProductHistoryDTO;
-import com.maven.demo.service.VariantEditHistoryService;
+import com.maven.demo.repository.AttributeOptionRepository;
+import com.maven.demo.repository.AttributeRepository;
+import com.maven.demo.repository.BrandRepository;
+import com.maven.demo.repository.CategoryRepository;
+import com.maven.demo.repository.DiscountEventRepository;
+import com.maven.demo.repository.DiscountRuleRepository;
+import com.maven.demo.repository.OrderDetailRepository;
+import com.maven.demo.repository.ProductHistoryRepository;
+import com.maven.demo.repository.ProductRepository;
+import com.maven.demo.repository.ProductVariantPriceHistoryRepository;
+import com.maven.demo.repository.ProductVariantRepository;
+import com.maven.demo.repository.PurchaseHistoryRepository;
+import com.maven.demo.repository.ReduceStockHistoryRepository;
+import com.maven.demo.repository.RefundRequestRepository;
+import com.maven.demo.repository.RestockNotificationRepository;
+import com.maven.demo.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
-import java.util.Objects;
 
 @Service
 public class ProductService {
@@ -230,6 +244,7 @@ public class ProductService {
                 dto.setDescription(product.getDescription());
                 dto.setRating(product.getRating());
                 dto.setCategoryId(product.getCategory().getId());
+                dto.setCategoryName(product.getCategory().getName());
                 dto.setAdminId(product.getAdmin_id());
                 dto.setBasePhotoUrl(product.getBasePhotoUrl());
                 dto.setStatus(product.getStatus());
@@ -262,6 +277,7 @@ public class ProductService {
         dto.setBrandId(product.getBrand() != null ? product.getBrand().getId() : null);
         dto.setRating(product.getRating());
         dto.setCategoryId(product.getCategory().getId());
+        dto.setCategoryName(product.getCategory().getName());
         dto.setAdminId(product.getAdmin_id());
         dto.setBasePhotoUrl(product.getBasePhotoUrl());
         dto.setStatus(product.getStatus());
@@ -612,6 +628,7 @@ public class ProductService {
         dto.setDescription(product.getDescription());
         dto.setRating(product.getRating());
         dto.setCategoryId(product.getCategory().getId());
+        dto.setCategoryName(product.getCategory().getName());
         dto.setAdminId(product.getAdmin_id());
         dto.setBasePhotoUrl(product.getBasePhotoUrl());
         dto.setStatus(product.getStatus());
@@ -633,6 +650,48 @@ public class ProductService {
                     .map(ProductVariantImage::getImageUrl)
                     .toList();
             varDTO.setImageUrls(imageUrls);
+
+            // --- Discount logic ---
+            Double discountPercent = null;
+            java.time.LocalDate today = java.time.LocalDate.now();
+            // 1. Variant discount (highest priority)
+            List<DiscountRule> variantDiscounts = discountRuleRepository.findActiveVariantDiscounts(variant.getId(), today);
+            if (!variantDiscounts.isEmpty()) {
+                discountPercent = variantDiscounts.get(0).getDiscountPercent();
+            } else {
+                // 2. Product discount
+                List<DiscountRule> productDiscounts = discountRuleRepository.findActiveProductDiscountsByDate(product.getId(), today);
+                if (!productDiscounts.isEmpty()) {
+                    discountPercent = productDiscounts.get(0).getDiscountPercent();
+                } else {
+                    // 3. Category discount (check all ancestors, closest first)
+                    CategoryEntity cat = product.getCategory();
+                    while (cat != null && discountPercent == null) {
+                        List<DiscountRule> categoryDiscounts = discountRuleRepository.findActiveCategoryDiscountsByDate(cat.getId(), today);
+                        if (!categoryDiscounts.isEmpty()) {
+                            discountPercent = categoryDiscounts.get(0).getDiscountPercent();
+                            break;
+                        }
+                        cat = cat.getParentCategory();
+                    }
+                    // 4. Brand discount (lowest priority)
+                    if (discountPercent == null && product.getBrand() != null) {
+                        List<DiscountRule> brandDiscounts = discountRuleRepository.findActiveBrandDiscountsByDate(product.getBrand().getId(), today);
+                        if (!brandDiscounts.isEmpty()) {
+                            discountPercent = brandDiscounts.get(0).getDiscountPercent();
+                        }
+                    }
+                }
+            }
+            if (discountPercent != null && discountPercent > 0) {
+                varDTO.setDiscountPercent(discountPercent);
+                int discounted = (int) Math.round(variant.getPrice() * (1 - discountPercent / 100.0));
+                varDTO.setDiscountedPrice(discounted);
+            } else {
+                varDTO.setDiscountPercent(null);
+                varDTO.setDiscountedPrice(null);
+            }
+            // --- End discount logic ---
 
             return varDTO;
         }).toList();

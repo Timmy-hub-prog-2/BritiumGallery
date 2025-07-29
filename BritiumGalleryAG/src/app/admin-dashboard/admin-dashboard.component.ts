@@ -1014,6 +1014,9 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     const shopName = 'Britium Gallery';
     const shopEmail = 'britiumgallery@gmail.com';
     const shopPhone = '09678878539';
+    const filterSummary = [
+      `Date Range: ${this.topProductsFrom} to ${this.topProductsTo}`
+    ];
     const logoBase64 =
       format === 'pdf' ? await this.getLogoBase64() : undefined;
     const columns = [
@@ -1057,6 +1060,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       const header = [
         [title],
         [generated],
+        filterSummary,
         [],
         columns.map((col) => col.header),
       ];
@@ -1097,10 +1101,15 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       y += 6; // moderate space after title
       doc.setFontSize(10);
       doc.text(generated, 10, y);
+      y += 6;
+      filterSummary.forEach((line) => {
+        doc.text(line, 10, y);
+        y += 5;
+      });
       autoTable(doc, {
         columns,
         body: rows,
-        startY: y + 8,
+        startY: y + 2,
         styles: {
           textColor: [34, 34, 34],
           fillColor: [255, 255, 255],
@@ -1131,6 +1140,10 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   async exportLostProductsTable(format: 'pdf' | 'excel' = 'excel') {
     const title = 'Lost Products Analytics Report';
     const generated = `Generated: ${new Date().toLocaleString()}`;
+    const filterSummary = [
+      `Date Range: ${this.modalDateFrom} to ${this.modalDateTo}`,
+      `Reason: ${this.selectedLostReason || 'All'}`
+    ];
     const columns = [
       { header: 'Product', dataKey: 'product' },
       { header: 'SKU', dataKey: 'sku' },
@@ -1158,7 +1171,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       admin: row.adminName + (row.adminId ? ` (${row.adminId})` : ''),
     }));
     if (format === 'excel') {
-      const header = [[title], [], columns.map((col) => col.header)];
+      const header = [[title], [generated], filterSummary, [], columns.map((col) => col.header)];
       const rowArr = this.lostProductsDataSource.data.map((row: any) => [
         row.productName +
           (row.variantAttributes ? ` (${row.variantAttributes})` : ''),
@@ -1206,11 +1219,16 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       y += 6; // moderate space after title
       doc.setFontSize(10);
       doc.text(generated, 10, y);
+      y += 6;
+      filterSummary.forEach((line) => {
+        doc.text(line, 10, y);
+        y += 5;
+      });
       // Add margin-bottom before table
       autoTable(doc, {
         columns,
         body: rows,
-        startY: y + 8, // moderate space before table
+        startY: y + 2, // moderate space before table
         styles: {
           textColor: [34, 34, 34],
           fillColor: [255, 255, 255],
@@ -1241,6 +1259,9 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   async exportDailyOrdersTable(format: 'pdf' | 'excel' = 'excel') {
     const title = 'Daily Orders Report';
     const generated = `Generated: ${new Date().toLocaleString()}`;
+    const filterSummary = [
+      `Date: ${this.selectedDate}`
+    ];
     const columns = [
       { header: 'Order ID', dataKey: 'orderId' },
       { header: 'Tracking', dataKey: 'trackingCode' },
@@ -1267,6 +1288,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       const header = [
         [title],
         [generated],
+        filterSummary,
         [],
         columns.map((col) => col.header),
       ];
@@ -1312,10 +1334,15 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       y += 6; // moderate space after title
       doc.setFontSize(10);
       doc.text(generated, 10, y);
+      y += 6;
+      filterSummary.forEach((line) => {
+        doc.text(line, 10, y);
+        y += 5;
+      });
       autoTable(doc, {
         columns,
         body: rows,
-        startY: y + 8, // moderate space before table
+        startY: y + 2, // moderate space before table
         styles: {
           textColor: [34, 34, 34],
           fillColor: [255, 255, 255],
@@ -1547,8 +1574,14 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     if (reasonParam === '__other__') {
       reasonParam = '';
     }
+    // Use a fixed default range for lost product analysis (e.g., last 30 days)
+    const today = new Date();
+    const prior = new Date();
+    prior.setDate(today.getDate() - 29);
+    const defaultFrom = prior.toISOString().slice(0, 10);
+    const defaultTo = today.toISOString().slice(0, 10);
     this.orderService
-      .getLostProductsAnalytics(this.dateFrom, this.dateTo, reasonParam)
+      .getLostProductsAnalytics(defaultFrom, defaultTo, reasonParam)
       .subscribe({
         next: (data) => {
           let filtered = data;
@@ -1600,9 +1633,12 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   }
 
   openLostProductsModal(): void {
-    // Set modal date range to current dashboard range by default
-    this.modalDateFrom = this.dateFrom;
-    this.modalDateTo = this.dateTo;
+    // Set modal date range to a fixed default (last 30 days), not dashboard filters
+    const today = new Date();
+    const prior = new Date();
+    prior.setDate(today.getDate() - 29);
+    this.modalDateFrom = prior.toISOString().slice(0, 10);
+    this.modalDateTo = today.toISOString().slice(0, 10);
     this.showLostProductsModal = true;
     this.fetchLostProductsModal();
     setTimeout(() => this.assignSorts(), 0);
@@ -1629,10 +1665,13 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       // We'll filter client-side after fetching all data for the date range
       reasonParam = '';
     }
+    // Always use modalDateFrom and modalDateTo, never dashboard filters
+    const from = this.modalDateFrom;
+    const to = this.modalDateTo;
     this.orderService
       .getLostProductsAnalytics(
-        this.modalDateFrom,
-        this.modalDateTo,
+        from,
+        to,
         reasonParam
       )
       .subscribe({

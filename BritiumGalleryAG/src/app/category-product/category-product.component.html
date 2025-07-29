@@ -116,10 +116,14 @@
             <a *ngFor="let product of filteredProducts" class="product-card" [routerLink]="['/product-detail', product.id]">
               <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" alt="Product Image">
               <div class="product-info">
-                <p class="product-category">{{ currentCategory?.name }}</p>
+                <div *ngIf="isBestSeller(product)" class="best-seller-text">Best Seller</div>
                 <h3 class="product-name">{{ product.name }}</h3>
-                <p class="product-subtitle">{{ product.description }}</p>
-                <p class="product-price">{{ getPriceRange(product) }}</p>
+                <p class="product-category-small">{{ getProductCategoryName(product) }}</p>
+                <p class="product-attributes">{{ getAttributeSummary(product) }}</p>
+                <div class="price-container">
+                  <p class="product-price">{{ getDiscountedPriceRange(product) }}</p>
+                  <div *ngIf="getMaxDiscountPercent(product)" class="discount-text">Extra {{ getMaxDiscountPercent(product) }}% off</div>
+                </div>
               </div>
             </a>
           </div>
@@ -134,10 +138,14 @@
         <a *ngFor="let product of products" class="product-card" [routerLink]="['/product-detail', product.id]">
           <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" alt="Product Image">
           <div class="product-info">
-            <p class="product-category">{{ currentCategory?.name }}</p>
+            <div *ngIf="isBestSeller(product)" class="best-seller-text">Best Seller</div>
             <h3 class="product-name">{{ product.name }}</h3>
-            <p class="product-subtitle">{{ product.description }}</p> 
-              <p class="product-price">{{ getPriceRange(product) }}</p>
+            <p class="product-category-small">{{ getProductCategoryName(product) }}</p>
+            <p class="product-attributes">{{ getAttributeSummary(product) }}</p>
+            <div class="price-container">
+              <p class="product-price">{{ getDiscountedPriceRange(product) }}</p>
+              <div *ngIf="getMaxDiscountPercent(product)" class="discount-text">Extra {{ getMaxDiscountPercent(product) }}% off</div>
+            </div>
           </div>
         </a>
       </div>

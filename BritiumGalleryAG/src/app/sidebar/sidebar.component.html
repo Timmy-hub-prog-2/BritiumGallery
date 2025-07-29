@@ -36,19 +36,39 @@
 
   <!-- Navigation Menu -->
   <nav class="sidebar-nav" [class.scrollable]="expanded">
+
+    <h3 class="section-title" *ngIf="expanded">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 3h7v7H3V3zM14 3h7v7h-7V3zM14 14h7v7h-7v-7zM3 14h7v7H3v-7z"/>
+
+          </svg>
+        Dashboards
+      </h3>
     
     <!-- Dashboard (Super Admin & Admin only) -->
     <div class="nav-section" *ngIf="roleId === 1 || roleId === 2">
       <a routerLink="/admin-dashboard" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Dashboard' : ''" aria-label="Dashboard">
         <div class="nav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <rect x="3" y="4" width="7" height="7"/>
-            <rect x="14" y="4" width="7" height="7"/>
-            <rect x="14" y="15" width="7" height="7"/>
-            <rect x="3" y="15" width="7" height="7"/>
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+<path d="M3.27 6.96L12 12l8.73-5.04" />
+<path d="M12 22V12" />
           </svg>
         </div>
-        <span class="nav-label" *ngIf="expanded">Dashboard</span>
+        <span class="nav-label" *ngIf="expanded">Sales and Product Analysis </span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+    </div>
+
+    <div class="nav-section" *ngIf="roleId === 1 || roleId === 2">
+      <a routerLink="/customer-analysis" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Dashboard' : ''" aria-label="Dashboard">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+<path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+          </svg>
+        </div>
+        <span class="nav-label" *ngIf="expanded">Customer Analysis Dashboard</span>
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
     </div>
@@ -347,6 +367,16 @@
           <i class="fas fa-shipping-fast"></i>
         </div>
         <span class="nav-label" *ngIf="expanded">Shipping Policy</span>
+        <div class="nav-indicator" *ngIf="expanded"></div>
+      </a>
+
+
+      <!-- Shipping Policy (Manager and others except Customer Support) -->
+      <a routerLink="/about" routerLinkActive="active" class="nav-item" [title]="!expanded ? 'Shipping Policy' : ''" aria-label="Shipping Policy" *ngIf="roleId == 1 || roleId == 2 || roleId == 4">
+        <div class="nav-icon">
+          <i class="fas fa-about"></i>
+        </div>
+        <span class="nav-label" *ngIf="expanded">About</span>
         <div class="nav-indicator" *ngIf="expanded"></div>
       </a>
 

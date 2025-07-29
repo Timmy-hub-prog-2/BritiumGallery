@@ -177,6 +177,26 @@ export class UserService {
     return this.http.get<CustomerGrowthDTO[]>(`${this.userBase}/admin/customer-growth?from=${from}&to=${to}&groupBy=${groupBy}`);
   }
 
+  getCustomersWithAnalytics(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.userBase}/customers/analytics`);
+  }
+
+  getCustomersByStatus(status: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.userBase}/customers?status=${status}`);
+  }
+
+  getCustomerTypeStats(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.userBase}/admin/customer-type-stats`);
+  }
+
+  getGeographicStats(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.userBase}/admin/geographic-stats`);
+  }
+
+  getActiveUserStats(): Observable<any> {
+    return this.http.get<any>(`${this.userBase}/admin/active-user-stats`);
+  }
+
   getPeopleById(id: number): Observable<People> {
     return this.http.get<People>(`${this.userBase}/people/${id}`);
   }
