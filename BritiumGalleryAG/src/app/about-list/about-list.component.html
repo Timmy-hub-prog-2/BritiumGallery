@@ -3,7 +3,9 @@
     <h2>About Us</h2>
 
     <!-- Story -->
-    <p class="about-card__story">{{ about.story }}</p>
+  
+    <div class="section-title"><strong>Our Story</strong></div>
+    <div class="section-content" [innerHTML]="about.story"></div>
 
     <!-- ✅ Image placed after story -->
     <div class="about-card__image">

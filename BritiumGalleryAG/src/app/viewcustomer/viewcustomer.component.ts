@@ -4,6 +4,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';  
 import { PeopleService } from '../people.service';
 import { MatTableDataSource } from '@angular/material/table';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-viewcustomer',
@@ -12,7 +13,7 @@ import { MatTableDataSource } from '@angular/material/table';
   styleUrls: ['./viewcustomer.component.css']
 })
 export class ViewcustomerComponent implements OnInit {
-  displayedColumns: string[] = ['no', 'name', 'email', 'gender', 'phNumber', 'address','status'];
+  displayedColumns: string[] = ['no', 'name', 'email', 'gender', 'phNumber', 'address','status','detail'];
   dataSource: MatTableDataSource<People> = new MatTableDataSource<People>();
   searchText: string = '';
   pageIndex: number = 0;
@@ -22,7 +23,7 @@ export class ViewcustomerComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private peopleService: PeopleService) {}
+  constructor(private peopleService: PeopleService,private router: Router) {}
 
   ngOnInit(): void {
     this.loadCustomers();
@@ -69,4 +70,8 @@ filterByStatus(): void {
     return addressParts.filter(part => part != null && part.trim() !== '').join(', ');
   }
   
+  viewCustomerDetail(customer: People): void {
+  this.router.navigate(['/customers', customer.id, 'details']);
+}
+
 }

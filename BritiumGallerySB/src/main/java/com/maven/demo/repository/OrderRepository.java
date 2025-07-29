@@ -44,4 +44,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     List<OrderDetailEntity> findAllOrderDetails();
 
     Optional<OrderEntity> findByTrackingCode(String trackingCode);
-} 
+
+    @Query("SELECT od FROM OrderDetailEntity od WHERE od.order.user.id = :userId")
+    List<OrderDetailEntity> findRemaindersByUserId(@Param("userId") Long userId);
+
+}

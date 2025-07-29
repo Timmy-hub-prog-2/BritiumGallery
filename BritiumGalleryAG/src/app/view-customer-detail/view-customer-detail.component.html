@@ -1,0 +1,211 @@
+<!-- Page Title -->
+<div class="customer-profile-container">
+  <div class="profile-header">
+    <img [src]="personalInfo?.imageUrls?.[0] || 'assets/img/default-avatar.png'" alt="Customer Image"
+      class="profile-image" />
+    <div class="profile-details">
+      <h2>{{ personalInfo?.name || 'Customer Name' }}</h2>
+      <p>{{ personalInfo?.email || 'No email provided' }}</p>
+      <span class="badge" [ngClass]="getCustomerTypeClass(personalInfo?.customerType)">
+        {{ personalInfo?.customerType || 'Normal' }} Customer
+      </span>
+    </div>
+  </div>
+
+  <!-- Customer Status Bar -->
+  <div class="status-bar">
+    <h3>{{ personalInfo?.customerType || 'Normal' }} Status</h3>
+    <p>Total Lifetime Spending</p>
+    <h1>{{ personalInfo?.totalSpend | number:'1.0-0' }} MMK</h1>
+    <div class="progress-container">
+      <div class="progress-bar" [style.width]="getSpendPercent(personalInfo?.totalSpend || 0) + '%'"></div>
+    </div>
+    <p class="remaining" *ngIf="personalInfo?.totalSpend !== undefined">
+      <ng-container *ngIf="personalInfo.totalSpend < 3000000">
+        Spend {{ (3000000 - personalInfo.totalSpend) | number:'1.0-0' }} MMK more to reach Loyalty status
+      </ng-container>
+      <ng-container *ngIf="personalInfo.totalSpend >= 3000000 && personalInfo.totalSpend < 6000000">
+        Spend {{ (6000000 - personalInfo.totalSpend) | number:'1.0-0' }} MMK more to reach VIP status
+      </ng-container>
+      <ng-container *ngIf="personalInfo.totalSpend >= 6000000">
+        Congratulations! You've achieved VIP status!
+      </ng-container>
+    </p>
+  </div>
+
+  <!-- Details Grid -->
+  <div class="info-grid">
+    <div class="info-box">
+      <strong>Phone:</strong>
+      <span>{{ personalInfo?.phoneNumber || 'No phone number provided' }}</span>
+    </div>
+    <div class="info-box">
+      <strong>Address:</strong>
+      <span *ngIf="personalInfo?.address && getFullAddress(personalInfo.address)">
+        {{ getFullAddress(personalInfo.address) }}
+      </span>
+      <span *ngIf="!personalInfo?.address || !getFullAddress(personalInfo.address)">
+        No address provided
+      </span>
+    </div>
+  </div>
+
+  <!-- Tabs Section -->
+  <mat-tab-group>
+    <mat-tab label="Orders">
+      <div *ngIf="orders.length > 0; else noOrders">
+        <div *ngFor="let order of orders" class="order-card">
+          <span class="order-label">Order</span>
+          <h1 class="order-id">#{{ order?.trackingCode }}</h1>
+          <p><strong>Submitted At:</strong> {{ order.orderDate | date: 'medium' }}</p>
+          <p><strong>Status:</strong> {{ order.status }}</p>
+          <p><strong>Delivery Method:</strong> {{ order.deliveryMethod }} ({{ order.deliveryProvider }})</p>
+          <!-- <p><strong>Payment Method:</strong> {{ order.paymentMethod }}</p> -->
+          <p><strong>Amount Paid:</strong> MMK {{ order.total | number: '1.0-0' }}</p>
+
+          <div *ngIf="order.deliveryAddress">
+            <p><strong>Delivery Address:</strong>
+              {{ order.deliveryAddress.street }},
+              {{ order.deliveryAddress.township }},
+              {{ order.deliveryAddress.city }},
+              {{ order.deliveryAddress.state }},
+              {{ order.deliveryAddress.country }}
+            </p>
+          </div>
+
+          <div *ngFor="let item of order.orderDetails" class="order-item">
+            <img [src]="item.variant?.imageUrls?.[0] || 'assets/img/default-product.png'" alt="Product Image"
+              class="product-image" />
+            <div class="item-details">
+              <h4>{{ item.variant?.productName }}</h4>
+              <p *ngIf="item.variant?.sku"><strong>SKU:</strong> {{ item.variant.sku }}</p>
+
+              <div class="item-attributes" *ngIf="item.variant?.attributes">
+                <span *ngFor="let attr of item.variant.attributes | keyvalue" class="attribute-tag">
+                  {{ attr.key }}: {{ attr.value }}
+                </span>
+              </div>
+
+              <div class="item-pricing">
+                <p><strong>Unit Price:</strong> MMK {{ (item.price / item.quantity) | number: '1.0-0' }}</p>
+                <p><strong>Quantity:</strong> {{ item.quantity }}</p>
+                <p><strong>Total:</strong> MMK {{ item.price | number: '1.0-0' }}</p>
+              </div>
+            </div>
+          </div>
+          <button class="action-btn primary" (click)="viewOrderDetails(order.id)">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            View Details
+          </button>
+        </div>
+      </div>
+
+      <ng-template #noOrders>
+        <p class="no-data">No orders found</p>
+      </ng-template>
+    </mat-tab>
+
+
+    <mat-tab label="Refunds">
+      <div *ngIf="refunds.length > 0; else noRefunds" class="refund-table-wrapper">
+        <table class="refund-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Reason</th>
+              <th>Status</th>
+              <th>Amount</th>
+              <th>Requested At</th>
+              <th>Type</th>
+              <th>Proof</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let refund of refunds">
+              <td>#{{ refund.orderTrackingCode }}</td>
+              <td>{{ refund.reason }}</td>
+              <td>{{ refund.status }}</td>
+              <td>{{ refund.amount | number }} Ks</td>
+              <td>{{ refund.requestedAt | date:'medium' }}</td>
+              <td>
+                <span class="badge" [ngClass]="refund.fullReturn ? 'badge-full' : 'badge-partial'">
+                  {{ refund.fullReturn ? 'Full Return' : 'Partial Return' }}
+                </span>
+              </td>
+              <td>
+                <img *ngIf="refund.proofImageUrl" [src]="refund.proofImageUrl" alt="Proof" class="proof-thumbnail" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #noRefunds>
+        <p class="no-data">No refunds found</p>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Remainder Items">
+      <div *ngIf="(remainders ?? []).length > 0; else noRemainders" class="remainder-grid">
+        <div *ngFor="let item of remainders" class="remainder-card">
+          <img [src]="item.imageUrls?.[0] || 'assets/img/default-product.png'" alt="Product Image"
+            class="product-image" />
+          <div class="remainder-details">
+            <h4>{{ item.productName }}</h4>
+            <p><strong>SKU:</strong> {{ item.sku }}</p>
+
+            <!-- Variant Attributes -->
+            <div class="item-attributes" *ngIf="item.attributes">
+              <span *ngFor="let attr of item.attributes | keyvalue" class="attribute-tag">
+                {{ attr.key }}: {{ attr.value }}
+              </span>
+            </div>
+
+            <p>
+              <strong>Stock:</strong> {{ item.stock }} &nbsp;
+              <strong>Price:</strong> {{ item.price | number:'1.0-0' }} MMK
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noRemainders>
+        <p class="no-data">No remainder items found</p>
+      </ng-template>
+    </mat-tab>
+
+
+    <mat-tab label="Wishlist">
+      <div *ngIf="wishlist.length > 0; else noWishlist" class="wishlist-grid">
+        <div *ngFor="let item of wishlist" class="wishlist-card">
+          <img [src]="item.productPhotoUrl || 'assets/img/default-product.png'" alt="Product Image"
+            class="product-image" />
+
+          <div class="wishlist-details">
+            <h4>{{ item.productName }}</h4>
+            <p><strong>Product ID:</strong> {{ item.productId }}</p>
+
+            <!-- Dynamically show all variant attributes like Color, Size, Battery, etc. -->
+            <div class="item-attributes" *ngIf="item.variantAttributes">
+              <span *ngFor="let attr of item.variantAttributes | keyvalue" class="attribute-tag">
+                {{ attr.key }}: {{ attr.value || '-' }}
+              </span>
+            </div>
+
+            <p><strong>Price:</strong> {{ item.price | number:'1.0-0' }} MMK</p>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noWishlist>
+        <p class="no-data">No wishlist items found</p>
+      </ng-template>
+    </mat-tab>
+
+
+
+  </mat-tab-group>
+</div>

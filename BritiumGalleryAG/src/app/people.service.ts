@@ -26,4 +26,5 @@ getAdmins(status: string = ''): Observable<People[]> {
   }
   return this.http.get<People[]>(url);
 }
+
 }

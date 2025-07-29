@@ -114,5 +114,23 @@ public class OrderEntity {
         }
         return sb.toString();
     }
+
+    private String paymentMethod;  // Add this field
+    private Integer refundedAmount;
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public Integer getRefundedAmount() {
+        return refundedAmount;
+    }
+
+    public void setRefundedAmount(Integer refundedAmount) {
+        this.refundedAmount = refundedAmount;
+    }
 }
 
