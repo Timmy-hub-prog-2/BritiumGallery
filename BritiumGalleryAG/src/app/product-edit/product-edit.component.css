@@ -1888,33 +1888,91 @@ button.mat-icon-button mat-icon,
   z-index: 100000;
 }
 
+/* --- Export Button & Dropdown: Admin Dashboard Style --- */
 .panel-btn {
-  width: 28px;
-  height: 28px;
-  background: none;
-  border: none;
-  border-radius: 0;
+  width: 36px;
+  height: 36px;
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6c757d;
+  color: #495057;
   cursor: pointer;
-  transition: color 0.2s;
-  box-shadow: none;
-  padding: 0;
-  margin-top: 4px;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  outline: none;
+  position: relative;
+  z-index: 2;
 }
 
 .panel-btn:hover,
 .panel-btn:focus {
-  color: #000000;
-  background: none;
+  background: #f5f7fa;
+  color: #222;
+  border-color: #adb5bd;
 }
 
 .panel-btn svg {
   width: 18px;
   height: 18px;
-  stroke-width: 2;
+  stroke-width: 2.2;
+}
+
+.custom-export-dropdown {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.13);
+  z-index: 1001;
+  min-width: 190px;
+  padding: 4px 0;
+  margin-top: 6px;
+  animation: fadeInModal 0.18s;
+}
+
+.custom-export-dropdown button {
+  width: 100%;
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  color: #495057;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 4px;
+  transition: background 0.16s, color 0.16s;
+  font-family: "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.custom-export-dropdown button:hover,
+.custom-export-dropdown button:focus {
+  background: #f5f7fa;
+  color: #1976d2;
+}
+
+.custom-export-dropdown button:active {
+  background: #e9ecef;
+}
+
+.custom-export-dropdown button mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: inherit;
+}
+
+/* Export dropdown container positioning */
+.export-dropdown-container {
+  position: relative;
+  display: inline-block;
 }
 
 /* Product History Styles - Original */
@@ -2103,7 +2161,7 @@ button.mat-icon-button mat-icon,
 
 .history-section-clean .data-table-clean img {
   border: 1px solid #dee2e6;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
 }
 
@@ -2123,14 +2181,24 @@ button.mat-icon-button mat-icon,
   .history-section-clean .data-table-clean {
     font-size: 0.8rem;
   }
-  
+
   .history-section-clean .data-table-clean th,
   .history-section-clean .data-table-clean td {
     padding: 8px 12px;
   }
-  
+
   .history-section-clean .data-table-clean img {
     max-width: 40px;
     max-height: 40px;
   }
+}
+
+.export-btn-row.right-align {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+  margin-bottom: 12px;
+  margin-top: 24px;
+  margin-right: 24px;
 }
