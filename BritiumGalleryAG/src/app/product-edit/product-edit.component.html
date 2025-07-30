@@ -63,15 +63,6 @@
           <mat-icon>history</mat-icon>
           Product History
         </button>
-        <button
-          mat-flat-button
-          color="primary"
-          (click)="addNewVariant()"
-          class="action-btn-clean add-variant"
-        >
-          <mat-icon>add</mat-icon>
-          Add Variant
-        </button>
       </div>
     </div>
   </div>
@@ -1001,7 +992,12 @@
               >
                 <mat-form-field appearance="outline" class="attr-field-clean">
                   <mat-label>Attribute Name</mat-label>
-                  <input matInput formControlName="key" [readonly]="true" [disabled]="true" />
+                  <input
+                    matInput
+                    formControlName="key"
+                    [readonly]="true"
+                    [disabled]="true"
+                  />
                   <mat-icon matSuffix>label</mat-icon>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="attr-field-clean">
@@ -1401,7 +1397,7 @@
       <div class="history-content-clean">
         <!-- Price History -->
         <div class="history-section-clean" *ngIf="activeHistoryTab === 'price'">
-          <div class="export-btn-row" style="position: relative">
+          <div class="export-btn-row right-align" style="position: relative">
             <button
               class="panel-btn"
               (click)="showExportDropdownPrice = !showExportDropdownPrice"
@@ -1530,7 +1526,7 @@
           class="history-section-clean"
           *ngIf="activeHistoryTab === 'purchase'"
         >
-          <div class="export-btn-row" style="position: relative">
+          <div class="export-btn-row right-align" style="position: relative">
             <button
               class="panel-btn"
               (click)="showExportDropdownPurchase = !showExportDropdownPurchase"
@@ -1663,7 +1659,8 @@
                   </div>
                 </th>
                 <td mat-cell *matCellDef="let row" class="data-cell-clean">
-                  {{ row.adminName || 'N/A' }} <span *ngIf="row.adminId">({{ row.adminId }})</span>
+                  {{ row.adminName || "N/A" }}
+                  <span *ngIf="row.adminId">({{ row.adminId }})</span>
                 </td>
               </ng-container>
               <tr
@@ -1713,7 +1710,7 @@
           class="history-section-clean"
           *ngIf="activeHistoryTab === 'reduce'"
         >
-          <div class="export-btn-row" style="position: relative">
+          <div class="export-btn-row right-align" style="position: relative">
             <button
               class="panel-btn"
               (click)="showExportDropdownReduce = !showExportDropdownReduce"
@@ -1834,28 +1831,57 @@
               </thead>
               <tbody>
                 <tr *ngFor="let history of variantEditHistory">
-                  <td>{{ history.createdAt | date : 'MMM dd, yyyy HH:mm' }}</td>
+                  <td>{{ history.createdAt | date : "MMM dd, yyyy HH:mm" }}</td>
                   <td>{{ formatFieldName(history.fieldName) }}</td>
                   <td>
-                    <span class="action-badge" [class]="'action-' + history.action.toLowerCase()">
+                    <span
+                      class="action-badge"
+                      [class]="'action-' + history.action.toLowerCase()"
+                    >
                       {{ history.action }}
                     </span>
                   </td>
                   <td>
                     <ng-container *ngIf="history.fieldName === 'photo'">
-                      <img [src]="history.oldValue" *ngIf="history.oldValue" style="max-width: 60px; max-height: 60px; object-fit: cover; border-radius: 4px;" />
-                      <span *ngIf="!history.oldValue" class="no-value">N/A</span>
+                      <img
+                        [src]="history.oldValue"
+                        *ngIf="history.oldValue"
+                        style="
+                          max-width: 60px;
+                          max-height: 60px;
+                          object-fit: cover;
+                          border-radius: 4px;
+                        "
+                      />
+                      <span *ngIf="!history.oldValue" class="no-value"
+                        >N/A</span
+                      >
                     </ng-container>
-                    <span *ngIf="history.fieldName !== 'photo'">{{ history.oldValue || 'N/A' }}</span>
+                    <span *ngIf="history.fieldName !== 'photo'">{{
+                      history.oldValue || "N/A"
+                    }}</span>
                   </td>
                   <td>
                     <ng-container *ngIf="history.fieldName === 'photo'">
-                      <img [src]="history.newValue" *ngIf="history.newValue" style="max-width: 60px; max-height: 60px; object-fit: cover; border-radius: 4px;" />
-                      <span *ngIf="!history.newValue" class="no-value">N/A</span>
+                      <img
+                        [src]="history.newValue"
+                        *ngIf="history.newValue"
+                        style="
+                          max-width: 60px;
+                          max-height: 60px;
+                          object-fit: cover;
+                          border-radius: 4px;
+                        "
+                      />
+                      <span *ngIf="!history.newValue" class="no-value"
+                        >N/A</span
+                      >
                     </ng-container>
-                    <span *ngIf="history.fieldName !== 'photo'">{{ history.newValue || 'N/A' }}</span>
+                    <span *ngIf="history.fieldName !== 'photo'">{{
+                      history.newValue || "N/A"
+                    }}</span>
                   </td>
-                  <td>{{ history.adminName || 'N/A' }}</td>
+                  <td>{{ history.adminName || "N/A" }}</td>
                 </tr>
                 <tr *ngIf="variantEditHistory.length === 0">
                   <td colspan="6">
@@ -1912,44 +1938,110 @@
               <tr *ngFor="let history of filteredProductHistory">
                 <td>{{ history.createdAt | date : "MMM dd, yyyy HH:mm" }}</td>
                 <td>
-                  <span class="action-badge-clean" [class]="'action-' + history.action.toLowerCase()">
+                  <span
+                    class="action-badge-clean"
+                    [class]="'action-' + history.action.toLowerCase()"
+                  >
                     {{ history.action }}
                   </span>
                 </td>
                 <td>{{ formatFieldName(history.fieldName) }}</td>
                 <td>{{ history.adminName || "Unknown" }}</td>
                 <td>
-                  <ng-container *ngIf="history.fieldName === 'base_photo' && history.oldValue; else oldValueText">
-                    <img [src]="history.oldValue" alt="Old Base Photo" style="max-width: 80px; max-height: 80px; border-radius: 6px; border: 1px solid #eee;" />
+                  <ng-container
+                    *ngIf="
+                      history.fieldName === 'base_photo' && history.oldValue;
+                      else oldValueText
+                    "
+                  >
+                    <img
+                      [src]="history.oldValue"
+                      alt="Old Base Photo"
+                      style="
+                        max-width: 80px;
+                        max-height: 80px;
+                        border-radius: 6px;
+                        border: 1px solid #eee;
+                      "
+                    />
                   </ng-container>
                   <ng-template #oldValueText>
-                    <ng-container *ngIf="history.fieldName === 'description'; else oldValueTextPlain">
+                    <ng-container
+                      *ngIf="
+                        history.fieldName === 'description';
+                        else oldValueTextPlain
+                      "
+                    >
                       <div class="desc-diff-box">
-                        <span class="old-value-clean" [innerHTML]="getDescriptionDiff(history.oldValue, history.newValue, 'old')"></span>
+                        <span
+                          class="old-value-clean"
+                          [innerHTML]="
+                            getDescriptionDiff(
+                              history.oldValue,
+                              history.newValue,
+                              'old'
+                            )
+                          "
+                        ></span>
                       </div>
                     </ng-container>
                     <ng-template #oldValueTextPlain>
-                      <span class="old-value-clean">{{ history.oldValue || 'N/A' }}</span>
+                      <span class="old-value-clean">{{
+                        history.oldValue || "N/A"
+                      }}</span>
                     </ng-template>
                   </ng-template>
                 </td>
                 <td>
-                  <ng-container *ngIf="history.fieldName === 'base_photo' && history.newValue; else newValueText">
-                    <img [src]="history.newValue" alt="New Base Photo" style="max-width: 80px; max-height: 80px; border-radius: 6px; border: 1px solid #eee;" />
+                  <ng-container
+                    *ngIf="
+                      history.fieldName === 'base_photo' && history.newValue;
+                      else newValueText
+                    "
+                  >
+                    <img
+                      [src]="history.newValue"
+                      alt="New Base Photo"
+                      style="
+                        max-width: 80px;
+                        max-height: 80px;
+                        border-radius: 6px;
+                        border: 1px solid #eee;
+                      "
+                    />
                   </ng-container>
                   <ng-template #newValueText>
-                    <ng-container *ngIf="history.fieldName === 'description'; else newValueTextPlain">
+                    <ng-container
+                      *ngIf="
+                        history.fieldName === 'description';
+                        else newValueTextPlain
+                      "
+                    >
                       <div class="desc-diff-box">
-                        <span class="new-value-clean" [innerHTML]="getDescriptionDiff(history.oldValue, history.newValue, 'new')"></span>
+                        <span
+                          class="new-value-clean"
+                          [innerHTML]="
+                            getDescriptionDiff(
+                              history.oldValue,
+                              history.newValue,
+                              'new'
+                            )
+                          "
+                        ></span>
                       </div>
                     </ng-container>
                     <ng-template #newValueTextPlain>
-                      <span class="new-value-clean">{{ history.newValue || 'N/A' }}</span>
+                      <span class="new-value-clean">{{
+                        history.newValue || "N/A"
+                      }}</span>
                     </ng-template>
                   </ng-template>
                 </td>
               </tr>
-              <tr *ngIf="filteredProductHistory.length === 0" class="empty-row-clean">
+              <tr
+                *ngIf="filteredProductHistory.length === 0"
+                class="empty-row-clean"
+              >
                 <td colspan="6" class="empty-cell-clean">
                   <div class="empty-state-clean">
                     <mat-icon>history</mat-icon>
@@ -1964,4 +2056,3 @@
     </div>
   </div>
 </ng-template>
-
