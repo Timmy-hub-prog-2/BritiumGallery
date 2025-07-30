@@ -3,6 +3,7 @@ import { ShopAddressService } from '../shop-address.service';
 import { AddressService } from '../address.service';
 import * as L from 'leaflet';
 import { AuthService } from '../AuthService';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-shop-map-view',
@@ -18,9 +19,17 @@ export class ShopMapViewComponent implements OnInit {
   searchQuery: string = '';
   private map: L.Map | null = null;
   showAllShops: boolean = false;
+mainAddress: any = null;
 
   private locationIcon = L.icon({
     iconUrl: 'assets/img/shoplocation.png',
+    iconSize: [70, 70],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40]
+  });
+
+    private shopIcon = L.icon({
+    iconUrl: 'assets/img/shoplocation.png', // Set the same icon for all shops
     iconSize: [70, 70],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40]
@@ -34,33 +43,34 @@ export class ShopMapViewComponent implements OnInit {
 
   ngOnInit(): void {
     this.getUserLocation();
+    
   }
 
-  getUserLocation(): void {
-    const userId = this.authService.getLoggedInUserId();
-    if (!userId) {
-      console.error('User not logged in. Cannot fetch main address.');
-      this.userLocation = [16.8661, 96.1951]; // fallback Yangon
-      this.loadAddresses();
-      return;
-    }
+ getUserLocation(): void {
+  const userId = this.authService.getLoggedInUserId();
 
-    this.addressService.getMainAddressByUserId(userId).subscribe(
-      (mainAddress) => {
-        if (mainAddress.latitude && mainAddress.longitude) {
-          this.userLocation = [mainAddress.latitude, mainAddress.longitude];
-        } else {
-          this.userLocation = [16.8661, 96.1951]; // fallback Yangon
-        }
-        this.loadAddresses();
-      },
-      (error) => {
-        console.error('Failed to fetch main address', error);
-        this.userLocation = [16.8661, 96.1951];
-        this.loadAddresses();
+  if (!userId) {
+    // 👉 No login: Don't show user's main address
+    this.userLocation = null;
+    this.loadAddresses(); // still show shops, but not user location
+    return;
+  }
+
+  this.addressService.getMainAddressByUserId(userId).subscribe(
+    (mainAddress) => {
+       this.mainAddress = mainAddress; 
+      if (mainAddress.latitude && mainAddress.longitude) {
+        this.userLocation = [mainAddress.latitude, mainAddress.longitude];
       }
-    );
-  }
+      this.loadAddresses(); // only call this if user location is available
+    },
+    (error) => {
+      console.error('Failed to fetch main address', error);
+      this.userLocation = null;
+      this.loadAddresses();
+    }
+  );
+}
 
   loadAddresses(): void {
     this.shopAddressService.getAll().subscribe(
@@ -79,6 +89,7 @@ export class ShopMapViewComponent implements OnInit {
         if (this.userLocation) {
           const [userLat, userLng] = this.userLocation;
           let minDistance = Infinity;
+           let nearest: any = null;
           this.nearbyShops = [];
 
           data.forEach(addr => {
@@ -92,23 +103,26 @@ export class ShopMapViewComponent implements OnInit {
 
               if (dist < minDistance) {
                 minDistance = dist;
-                this.nearestShop = addr;
+                 nearest = addr; 
               }
             }
           });
-
-          // ✅ Sort nearby shops by distance (nearest first)
-          this.nearbyShops.sort((a, b) => a.distance - b.distance);
-        } else {
-          // Fallback if user location is not available
-          this.nearbyShops = data;
+  if (this.nearbyShops.length === 0 && nearest) {
+          this.nearbyShops.push(nearest);
         }
 
-        setTimeout(() => this.initMap(), 100);
-      },
-      (error) => console.error('Error loading shop addresses:', error)
-    );
-  }
+        this.nearestShop = nearest;
+        this.nearbyShops.sort((a, b) => a.distance - b.distance);
+      } else {
+        this.nearbyShops = data;
+        this.nearestShop = data.length > 0 ? data[0] : null;
+      }
+
+      setTimeout(() => this.initMap(), 100);
+    },
+    (error) => console.error('Error loading shop addresses:', error)
+  );
+}
 
 
   initMap(): void {
@@ -132,8 +146,14 @@ export class ShopMapViewComponent implements OnInit {
           iconAnchor: [15, 30],
           popupAnchor: [0, -30]
         })
-      }).addTo(this.map).bindPopup('<b>Your Main Address</b>');
-    }
+      }).addTo(this.map).bindPopup(`
+    <b>Your Main Address</b><br>
+    ${this.mainAddress.houseNumber ?? ''},${this.mainAddress.wardName ?? ''},
+     ${this.mainAddress.street ?? ''},
+    ${this.mainAddress.township ?? ''}, ${this.mainAddress.city ?? ''}
+    ${this.mainAddress.state ?? ''}, ${this.mainAddress.country ?? ''}
+  `);
+}
 
     // Show nearby shop markers
     this.nearbyShops.forEach(addr => {
@@ -150,8 +170,13 @@ export class ShopMapViewComponent implements OnInit {
 
         L.marker([addr.latitude, addr.longitude], { icon })
           .addTo(this.map!)
-          .bindPopup(`
-            <b>${addr.houseNumber}</b><br>${addr.street}
+         .bindPopup(`
+    ${addr.houseNumber ?? 'N/A'},
+     ${addr.wardName ?? 'Ward Not Provided'},
+    ${addr.street ?? 'Street Not Provided'},
+    ${addr.township ?? 'Township Not Provided'}, ${addr.city ?? 'City Not Provided'}
+    ${addr.state ?? 'State Not Provided'}, ${addr.country ?? 'Country Not Provided'}
+    ${addr.postalCode ?? 'Postal Code Not Provided'}<br>
             ${isNearest ? '<br><span style="color: green;">🟢 Nearest Shop</span>' : ''}
           `);
       }
@@ -162,45 +187,60 @@ export class ShopMapViewComponent implements OnInit {
     if (this.map && address.latitude && address.longitude) {
       const latLng: [number, number] = [address.latitude, address.longitude];
       this.map.setView(latLng, 16);
+      
       const popupContent = `
         <b>${address.township || 'Unknown Township'} Branch</b><br>
         ${address.houseNumber}, ${address.wardName}, ${address.street}<br>
         ${address.township}, ${address.city}, ${address.state}<br>
         ${address.country} - ${address.postalCode || 'N/A'}
       `;
-      L.popup()
-        .setLatLng(latLng)
-        .setContent(popupContent)
-        .openOn(this.map);
+     L.marker(latLng, { icon: this.shopIcon })
+        .addTo(this.map!)
+        .bindPopup(popupContent)
+        .openPopup();
     }
   }
 
-  searchLocation(): void {
-    if (!this.searchQuery) return;
 
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchQuery)}`;
+searchLocation(): void {
+  const query = this.searchQuery.trim().toLowerCase();
 
-    fetch(url)
-      .then(res => res.json())
-      .then(results => {
-        if (results.length > 0) {
-          const lat = parseFloat(results[0].lat);
-          const lon = parseFloat(results[0].lon);
-          if (this.map) {
-            this.map.setView([lat, lon], 14);
-            L.marker([lat, lon], {
-              icon: L.icon({
-                iconUrl: 'assets/img/shoplocation.png',
-                iconSize: [70, 70],
-                iconAnchor: [15, 30]
-              })
-            }).addTo(this.map).bindPopup(`<b>${this.searchQuery}</b>`).openPopup();
-          }
-        } else {
-          alert('Location not found');
-        }
-      });
-  }
+  if (!query) return;
+
+  // Search in the shop address list
+  const matchedAddress = this.addresses.find(addr =>
+    addr.township?.toLowerCase().includes(query) ||
+    addr.city?.toLowerCase().includes(query) ||
+    addr.state?.toLowerCase().includes(query) ||
+    addr.street?.toLowerCase().includes(query) ||
+    addr.houseNumber?.toLowerCase().includes(query)
+  );
+
+  if (matchedAddress && matchedAddress.latitude && matchedAddress.longitude) {
+    const latLng: [number, number] = [matchedAddress.latitude, matchedAddress.longitude];
+    this.map?.setView(latLng, 16);
+    const popupContent = `
+      <b>${matchedAddress.township || 'Unknown Township'} Branch</b><br>
+      ${matchedAddress.houseNumber}, ${matchedAddress.wardName}, ${matchedAddress.street}<br>
+      ${matchedAddress.township}, ${matchedAddress.city}, ${matchedAddress.state}<br>
+      ${matchedAddress.country} - ${matchedAddress.postalCode || 'N/A'}
+    `;
+    L.popup()
+      .setLatLng(latLng)
+      .setContent(popupContent)
+      .openOn(this.map!);
+} else {
+  Swal.fire({
+    icon: 'info',
+    title: 'No Branch Found',
+    text: '📍 There is no shop branch in the location you searched.',
+    confirmButtonText: 'OK',
+    customClass: {
+      confirmButton: 'swal2-confirm'
+    }
+  });
+}
+}
 
   getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371;
