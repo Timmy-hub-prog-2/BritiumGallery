@@ -159,6 +159,7 @@ const routes: Routes = [
    {path:'remainder-list',component:UserRemainderListComponent},
    {path:'customer-analysis',component:CustomerAnalysisComponent},
    { path: 'customers/:id/details', component: ViewCustomerDetailComponent }
+   
 
 
 

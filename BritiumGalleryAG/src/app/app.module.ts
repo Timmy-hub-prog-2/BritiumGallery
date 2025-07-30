@@ -113,8 +113,8 @@ import { BritiumComponent } from './britium/britium.component';
 import { NewPasswordComponent } from './new-password/new-password.component';
 import { UserRemainderListComponent } from './user-remainder-list/user-remainder-list.component';
 import { CustomerAnalysisComponent } from './customer-analysis/customer-analysis.component';
-import { ViewCustomerDetailComponent } from './view-customer-detail/view-customer-detail.component';
 import { MatTabsModule } from '@angular/material/tabs';
+import { ViewCustomerDetailComponent } from './view-customer-detail/view-customer-detail.component';
 
 
 @NgModule({
@@ -209,8 +209,9 @@ import { MatTabsModule } from '@angular/material/tabs';
     BritiumComponent,
     NewPasswordComponent,
     UserRemainderListComponent,
-    CustomerAnalysisComponent,
-    ViewCustomerDetailComponent
+    ViewCustomerDetailComponent,
+    CustomerAnalysisComponent
+    
   ],
   imports: [
     BrowserModule,
@@ -242,7 +243,6 @@ import { MatTabsModule } from '@angular/material/tabs';
     CategoryFilterPipe,
     ProductFilterPipe,
     MatTabsModule
-   
   ],
   providers: [
     NotificationService,

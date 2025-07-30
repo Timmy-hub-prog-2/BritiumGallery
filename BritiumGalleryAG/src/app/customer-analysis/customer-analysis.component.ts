@@ -15,9 +15,9 @@ export interface CustomerAnalytics {
   totalSpend: number;
   orderCount: number;
   averageOrderValue: number;
-  lastOrderDate: string;
+  lastOrderDate: string | null;
   isOnline: boolean;
-  lastSeenAt: string;
+  lastSeenAt: string | null;
   city: string;
   country: string;
   registrationDate: string;
@@ -109,11 +109,11 @@ export class CustomerAnalysisComponent implements OnInit, AfterViewInit {
     series: [
       {
         name: 'New Customers',
-        data: []
+        data: [0]
       },
       {
         name: 'Total Customers',
-        data: []
+        data: [0]
       }
     ],
     chart: {
@@ -129,7 +129,7 @@ export class CustomerAnalysisComponent implements OnInit, AfterViewInit {
     },
     colors: ['#3B82F6', '#10B981'],
     xaxis: {
-      categories: []
+      categories: ['Loading...']
     },
     yaxis: {
       title: {
@@ -240,6 +240,12 @@ export class CustomerAnalysisComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.setupTableSorting();
+    // Ensure charts are properly initialized
+    setTimeout(() => {
+      this.cdr.detectChanges();
+      this.appRef.tick();
+      window.dispatchEvent(new Event('resize'));
+    });
   }
 
   private initializeData(): void {
@@ -376,13 +382,14 @@ export class CustomerAnalysisComponent implements OnInit, AfterViewInit {
       const stats = typeMap.get(type)!;
       stats.count++;
       stats.totalSpent += customer.totalSpend;
+      stats.averageSpent += customer.averageOrderValue;
       if (customer.isOnline) stats.activeUsers++;
     });
     const totalCustomers = this.customers.length;
     this.customerTypeStats = Array.from(typeMap.values()).map(stats => ({
       ...stats,
       percentage: (stats.count / totalCustomers) * 100,
-      averageSpent: stats.count > 0 ? stats.totalSpent / stats.count : 0
+      averageSpent: stats.count > 0 ? stats.averageSpent / stats.count : 0
     }));
     this.customerTypeDataSource.data = this.customerTypeStats;
     this.updateCustomerTypeChart();
@@ -406,12 +413,13 @@ export class CustomerAnalysisComponent implements OnInit, AfterViewInit {
       const stats = locationMap.get(location)!;
       stats.count++;
       stats.totalSpent += customer.totalSpend;
+      stats.averageSpent += customer.averageOrderValue;
     });
     const totalCustomers = this.customers.length;
     this.geographicStats = Array.from(locationMap.values()).map(stats => ({
       ...stats,
       percentage: (stats.count / totalCustomers) * 100,
-      averageSpent: stats.count > 0 ? stats.totalSpent / stats.count : 0
+      averageSpent: stats.count > 0 ? stats.averageSpent / stats.count : 0
     }));
     this.geographicDataSource.data = this.geographicStats;
     this.updateGeographicChart();
@@ -422,6 +430,7 @@ export class CustomerAnalysisComponent implements OnInit, AfterViewInit {
     const totalUsers = this.customers.length;
     const onlineUsers = this.customers.filter(c => c.isOnline).length;
     const recentUsers = this.customers.filter(c => {
+      if (!c.lastSeenAt) return false;
       const lastSeen = new Date(c.lastSeenAt);
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       return lastSeen > oneHourAgo && !c.isOnline;
@@ -438,7 +447,7 @@ export class CustomerAnalysisComponent implements OnInit, AfterViewInit {
     console.log('Active user stats:', this.activeUserStats);
   }
 
-  public loadCustomerGrowth(): void {
+  public loadCustomerGrowth(groupBy: string = 'day'): void {
     // Ensure dates are set
     if (!this.dateFrom || !this.dateTo) {
       const today = new Date();
@@ -446,17 +455,38 @@ export class CustomerAnalysisComponent implements OnInit, AfterViewInit {
       this.dateFrom = thirtyDaysAgo.toISOString().split('T')[0];
       this.dateTo = today.toISOString().split('T')[0];
     }
-    this.userService.getCustomerGrowth(this.dateFrom, this.dateTo, 'day').subscribe({
+    
+    this.loading.charts = true;
+    this.userService.getCustomerGrowth(this.dateFrom, this.dateTo, groupBy).subscribe({
       next: (data) => {
         this.customerGrowthData = data;
         this.updateCustomerGrowthChart();
+        this.loading.charts = false;
+        // Trigger change detection and chart update
+        setTimeout(() => {
+          this.cdr.detectChanges();
+          this.appRef.tick();
+          window.dispatchEvent(new Event('resize'));
+        });
       },
       error: (error) => {
         console.error('Error loading customer growth:', error);
         // Load mock data
         this.loadMockCustomerGrowth();
+        this.loading.charts = false;
+        // Trigger change detection and chart update
+        setTimeout(() => {
+          this.cdr.detectChanges();
+          this.appRef.tick();
+          window.dispatchEvent(new Event('resize'));
+        });
       }
     });
+  }
+
+  public onCustomerGrowthFilterChange(event: any): void {
+    const groupBy = event.target.value;
+    this.loadCustomerGrowth(groupBy);
   }
 
   private loadMockCustomerGrowth(): void {
@@ -472,19 +502,24 @@ export class CustomerAnalysisComponent implements OnInit, AfterViewInit {
   }
 
   private updateCustomerGrowthChart(): void {
-    this.customerGrowthChartOptions.series = [
-      {
-        name: 'New Customers',
-        data: this.customerGrowthData.map(d => d.count)
-      },
-      {
-        name: 'Total Customers',
-        data: this.customerGrowthData.map(d => d.cumulativeCount)
-      }
-    ];
-    this.customerGrowthChartOptions.xaxis = {
-      categories: this.customerGrowthData.map(d => d.period)
-    };
+    if (this.customerGrowthData && this.customerGrowthData.length > 0) {
+      this.customerGrowthChartOptions.series = [
+        {
+          name: 'New Customers',
+          data: this.customerGrowthData.map(d => d.count)
+        },
+        {
+          name: 'Total Customers',
+          data: this.customerGrowthData.map(d => d.cumulativeCount)
+        }
+      ];
+      this.customerGrowthChartOptions.xaxis = {
+        categories: this.customerGrowthData.map(d => d.period)
+      };
+      
+      // Force chart update
+      this.customerGrowthChartOptions = { ...this.customerGrowthChartOptions };
+    }
   }
 
   private updateCustomerTypeChart(): void {
@@ -578,7 +613,8 @@ export class CustomerAnalysisComponent implements OnInit, AfterViewInit {
     }).format(amount);
   }
 
-  formatDate(date: string): string {
+  formatDate(date: string | null): string {
+    if (!date) return 'No orders';
     return new Date(date).toLocaleDateString();
   }
 

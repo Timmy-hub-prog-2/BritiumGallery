@@ -86,7 +86,7 @@
       <div class="chart-header">
         <h3>Customer Growth</h3>
         <div class="chart-actions">
-          <select class="chart-filter" (change)="loadCustomerGrowth()">
+          <select class="chart-filter" (change)="onCustomerGrowthFilterChange($event)">
             <option value="day">Last 8 Days</option>
             <option value="week">Last 4 Weeks</option>
             <option value="month">Last 6 Months</option>
@@ -94,7 +94,12 @@
         </div>
       </div>
       <div class="chart-container">
+        <div *ngIf="loading.charts" class="chart-loading">
+          <div class="loading-spinner"></div>
+          <p>Loading chart data...</p>
+        </div>
         <apx-chart
+          *ngIf="!loading.charts && customerGrowthData.length > 0"
           [series]="customerGrowthChartOptions.series!"
           [chart]="customerGrowthChartOptions.chart!"
           [xaxis]="customerGrowthChartOptions.xaxis!"
@@ -104,6 +109,9 @@
           [legend]="customerGrowthChartOptions.legend!"
           [dataLabels]="customerGrowthChartOptions.dataLabels!">
         </apx-chart>
+        <div *ngIf="!loading.charts && customerGrowthData.length === 0" class="no-data">
+          <p>No customer growth data available</p>
+        </div>
       </div>
     </div>
 

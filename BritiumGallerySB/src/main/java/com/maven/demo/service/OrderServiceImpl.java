@@ -705,11 +705,11 @@ public class OrderServiceImpl implements OrderService {
                 // Use calculated estimated delivery time
                 String estimatedDeliveryText = "";
                 if (order.getEstimatedDeliveryTime() != null) {
-                    estimatedDeliveryText = order.getEstimatedDeliveryTime().format(DateTimeFormatter.ofPattern("MMMM d, yyyy"));
+                    estimatedDeliveryText = order.getEstimatedDeliveryTime().format(DateTimeFormatter.ofPattern("MMMM d, yyyy h:mm a"));
                 } else {
                     // Fallback if not calculated yet
-                    LocalDate estimatedArrival = LocalDate.now().plusDays(3);
-                    estimatedDeliveryText = estimatedArrival.format(DateTimeFormatter.ofPattern("MMMM d, yyyy"));
+                    LocalDateTime fallbackTime = LocalDateTime.now().plusDays(3);
+                    estimatedDeliveryText = fallbackTime.format(DateTimeFormatter.ofPattern("MMMM d, yyyy h:mm a"));
                 }
 
                 String message = String.format(
@@ -1703,7 +1703,7 @@ public class OrderServiceImpl implements OrderService {
         double totalHours = 0.0;
         
         if (delivery != null) {
-            // Use new calculation logic matching frontend
+            // Use new calculation logic matching clarified business logic
             double distance = calculateDistance(order);
             System.out.println("Delivery calculation - Distance: " + distance + " km");
             
@@ -1711,16 +1711,16 @@ public class OrderServiceImpl implements OrderService {
             double baseDelayDays = delivery.getBaseDelayDays() != null ? delivery.getBaseDelayDays() : 0.0;
             double speedKmHr = delivery.getSpeedKmHr() != null ? delivery.getSpeedKmHr() : 30.0;
             
-            // For standard delivery: use baseDelayHours as minimum
             if ("standard".equalsIgnoreCase(delivery.getDeliveryType())) {
                 double travelHours = distance / speedKmHr;
                 totalHours = Math.max(baseDelayHours, travelHours);
                 System.out.println("Standard delivery - Base delay hours: " + baseDelayHours + ", Travel time: " + travelHours + " hours (using max)");
             } else {
-                // For express and ship: use baseDelayDays as minimum
+                // For express and ship: compare base delay (in hours) and travel hours, take the max
+                double baseDelayHoursForExpress = baseDelayDays * 24;
                 double travelHours = distance / speedKmHr;
-                totalHours = Math.max(baseDelayDays * 24, travelHours);
-                System.out.println("Express/Ship delivery - Base delay days: " + baseDelayDays + ", Travel time: " + travelHours + " hours (using max)");
+                totalHours = Math.max(baseDelayHoursForExpress, travelHours);
+                System.out.println("Express/Ship delivery - Base delay hours: " + baseDelayHoursForExpress + ", Travel time: " + travelHours + " hours (using max)");
             }
             
             System.out.println("Total delivery hours: " + totalHours);
@@ -1748,27 +1748,9 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         
-        // Add processing time (1 day for order processing)
-        totalHours += 24;
-        
-        // Convert hours to days
-        int totalDays = (int) Math.ceil(totalHours / 24);
-        
-        System.out.println("Total delivery days (including processing): " + totalDays);
-        
-        // Calculate estimated delivery date
-        LocalDateTime estimatedDate = baseTime.plusDays(totalDays);
-        
-        // Adjust for weekends (skip weekends)
-        while (estimatedDate.getDayOfWeek().getValue() > 5) { // Saturday = 6, Sunday = 7
-            estimatedDate = estimatedDate.plusDays(1);
-        }
-        
-        // Set delivery time to 2:00 PM (14:00) for a reasonable delivery window
-        LocalDateTime estimatedTime = estimatedDate.toLocalDate().atTime(14, 0);
-        
+        // Calculate estimated delivery date and time (no rounding, no forced 2:00 PM)
+        LocalDateTime estimatedTime = baseTime.plusMinutes((long)(totalHours * 60));
         System.out.println("Final estimated delivery time: " + estimatedTime);
-        
         return estimatedTime;
     }
     

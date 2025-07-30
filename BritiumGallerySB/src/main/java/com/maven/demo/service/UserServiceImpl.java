@@ -21,6 +21,7 @@ import com.maven.demo.dto.GeographicStatsDTO;
 import com.maven.demo.dto.UserDTO;
 import com.maven.demo.dto.UserResponseDTO;
 import com.maven.demo.entity.AddressEntity;
+import com.maven.demo.entity.OrderEntity;
 import com.maven.demo.entity.UserEntity;
 import com.maven.demo.entity.UserOnlineStatusEntity;
 import com.maven.demo.repository.ShopAddressRepository;
@@ -359,27 +360,46 @@ public class UserServiceImpl implements UserService1 {
             dto.setCustomerType("Normal");
         }
         
-        // Calculate total spend and order count
-        if (user.getTotalSpends() != null && !user.getTotalSpends().isEmpty()) {
-            int totalSpent = user.getTotalSpends().stream().mapToInt(ts -> ts.getAmount()).sum();
+        // Calculate total spend and order count from actual orders
+        List<OrderEntity> userOrders = user.getOrders();
+        if (userOrders != null && !userOrders.isEmpty()) {
+            int totalSpent = userOrders.stream()
+                .mapToInt(order -> order.getTotal() != null ? order.getTotal() : 0)
+                .sum();
             dto.setTotalSpend(totalSpent);
-            dto.setOrderCount(user.getTotalSpends().size());
-            dto.setAverageOrderValue((double) totalSpent / user.getTotalSpends().size());
+            dto.setOrderCount(userOrders.size());
+            dto.setAverageOrderValue(userOrders.size() > 0 ? (double) totalSpent / userOrders.size() : 0.0);
+            
+            // Set last order date
+            userOrders.stream()
+                .map(OrderEntity::getOrderDate)
+                .max(LocalDateTime::compareTo)
+                .ifPresent(dto::setLastOrderDate);
         } else {
             dto.setTotalSpend(0);
             dto.setOrderCount(0);
             dto.setAverageOrderValue(0.0);
+            dto.setLastOrderDate(null);
         }
         
         // Set address information
-        if (user.getAddresses() != null) {
-            Optional<AddressEntity> mainAddress = user.getAddresses().stream()
+        List<AddressEntity> userAddresses = user.getAddresses();
+        if (userAddresses != null && !userAddresses.isEmpty()) {
+            Optional<AddressEntity> mainAddress = userAddresses.stream()
                     .filter(AddressEntity::isMainAddress)
                     .findFirst();
             if (mainAddress.isPresent()) {
                 dto.setCity(mainAddress.get().getCity());
                 dto.setCountry(mainAddress.get().getCountry());
+            } else {
+                // Set default values if no main address
+                dto.setCity("Unknown");
+                dto.setCountry("Unknown");
             }
+        } else {
+            // Set default values if no addresses
+            dto.setCity("Unknown");
+            dto.setCountry("Unknown");
         }
         
         // Set online status

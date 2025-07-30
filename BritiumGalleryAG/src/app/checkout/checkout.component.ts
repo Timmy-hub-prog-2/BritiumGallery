@@ -432,35 +432,32 @@ export class CheckoutComponent implements OnInit {
     return Math.round(fee);
   }
 
-  // Get delivery time for a specific option (matches delivery.component.ts)
+  // Get delivery time for a specific option (matches backend logic)
   getDeliveryTimeForOption(option: Delivery): string {
     if (!this.calculatedDistance || this.calculatedDistance <= 0) return '';
+    let totalHours = 0;
+
     if (option.deliveryType === 'standard') {
       const baseHours = option.baseDelayHours || 0;
       const speedKmHr = option.speedKmHr || 30;
       const travelHours = this.calculatedDistance / speedKmHr;
-      const totalHours = baseHours + travelHours;
-      const days = Math.floor(totalHours / 24);
-      const hours = Math.round(totalHours % 24);
-      if (days > 0) {
-        return `${days} day${days > 1 ? 's' : ''} ${hours > 0 ? hours + ' hour' + (hours > 1 ? 's' : '') : ''}`.trim();
-      } else {
-        return `${hours} hour${hours > 1 ? 's' : ''}`;
-      }
+      totalHours = Math.max(baseHours, travelHours);
     } else if (option.deliveryType === 'express' || option.deliveryType === 'ship') {
       const baseDays = option.baseDelayDays || 0;
       const speedKmHr = option.speedKmHr || 30;
       const travelHours = this.calculatedDistance / speedKmHr;
-      const totalHours = (baseDays * 24) + travelHours;
-      const days = Math.floor(totalHours / 24);
-      const hours = Math.round(totalHours % 24);
-      if (days > 0) {
-        return `${days} day${days > 1 ? 's' : ''} ${hours > 0 ? hours + ' hour' + (hours > 1 ? 's' : '') : ''}`.trim();
-      } else {
-        return `${hours} hour${hours > 1 ? 's' : ''}`;
-      }
+      const baseDelayHours = baseDays * 24;
+      totalHours = Math.max(baseDelayHours, travelHours);
     }
-    return '';
+
+    const days = Math.floor(totalHours / 24);
+    const hours = Math.round(totalHours % 24);
+
+    if (days > 0) {
+      return `${days} day${days > 1 ? 's' : ''} ${hours > 0 ? hours + ' hour' + (hours > 1 ? 's' : '') : ''}`.trim();
+    } else {
+      return `${hours} hour${hours > 1 ? 's' : ''}`;
+    }
   }
 
   private loadCartItems(): void {

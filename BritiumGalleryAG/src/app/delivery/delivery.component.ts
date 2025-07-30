@@ -72,6 +72,25 @@ export class DeliveryComponent implements OnInit {
     this.showPreview = false;
     this.previewExamples = [];
     this.showModal = true;
+    
+    // Show helpful message about existing combinations
+    if (this.deliveries.length > 0) {
+      const existingCombinations = this.getExistingCombinations();
+      if (existingCombinations.length > 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Existing Delivery Methods',
+          html: `
+            <p>You already have the following delivery methods registered:</p>
+            <ul style="text-align: left; margin: 10px 0;">
+              ${existingCombinations.map(combo => `<li>• ${combo}</li>`).join('')}
+            </ul>
+            <p style="font-size: 0.9em; color: #666;">You cannot register duplicate combinations.</p>
+          `,
+          confirmButtonText: 'Got it!'
+        });
+      }
+    }
   }
 
   closeModal() {
@@ -440,6 +459,16 @@ export class DeliveryComponent implements OnInit {
     this.delivery.feesPer1km = this.delivery.feePerKm;
     this.delivery.fixAmount = this.delivery.baseFee;
 
+    // Check for duplicate delivery type and speed type combination
+    if (!this.isEditMode && this.isDuplicateDelivery()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Duplicate Delivery Method',
+        text: `A ${this.delivery.deliveryType} delivery with ${this.delivery.speedType} speed type already exists. Please choose a different combination.`
+      });
+      return;
+    }
+
     // Validation
     if (this.delivery.deliveryType === 'standard') {
       if (!this.delivery.feePerKm || this.delivery.feePerKm <= 0) {
@@ -657,5 +686,46 @@ export class DeliveryComponent implements OnInit {
   // Check if base delay hours should be disabled
   isBaseDelayHoursDisabled(): boolean {
     return this.delivery.deliveryType === 'express' || this.delivery.deliveryType === 'ship';
+  }
+
+  // Check if the current delivery type and speed type combination already exists
+  isDuplicateDelivery(): boolean {
+    if (!this.delivery.deliveryType || !this.delivery.speedType) {
+      return false;
+    }
+
+    return this.deliveries.some(existingDelivery => 
+      existingDelivery.deliveryType === this.delivery.deliveryType &&
+      existingDelivery.speedType === this.delivery.speedType
+    );
+  }
+
+  // Get available speed types for a given delivery type
+  getAvailableSpeedTypes(deliveryType: string): string[] {
+    const existingSpeedTypes = this.deliveries
+      .filter(d => d.deliveryType === deliveryType)
+      .map(d => d.speedType || '')
+      .filter(speedType => speedType !== '');
+
+    return this.speedTypeOptions.filter(speedType => 
+      !existingSpeedTypes.includes(speedType)
+    );
+  }
+
+  // Check if a speed type is available for the current delivery type
+  isSpeedTypeAvailable(speedType: string): boolean {
+    if (!this.delivery.deliveryType) return true;
+    
+    return !this.deliveries.some(existingDelivery => 
+      existingDelivery.deliveryType === this.delivery.deliveryType &&
+      existingDelivery.speedType === speedType
+    );
+  }
+
+  // Get existing combinations for display
+  getExistingCombinations(): string[] {
+    return this.deliveries.map(delivery => 
+      `${delivery.deliveryType?.toUpperCase()} - ${delivery.speedType?.toUpperCase()}`
+    );
   }
 }

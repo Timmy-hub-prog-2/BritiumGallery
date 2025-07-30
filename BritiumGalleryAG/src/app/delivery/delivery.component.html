@@ -134,11 +134,20 @@
                         <div class="form-group">
                             <label>Speed Type:</label>
                             <select [(ngModel)]="delivery.speedType" name="speedType" required (change)="onSpeedTypeChange()">
-                                <option value="normal">Normal</option>
-                                <option value="fast">Fast</option>
-                                <option value="speed plus">Speed Plus</option>
+                                <option value="normal" [disabled]="!isSpeedTypeAvailable('normal')">
+                                    Normal {{ !isSpeedTypeAvailable('normal') ? '(Already registered)' : '' }}
+                                </option>
+                                <option value="fast" [disabled]="!isSpeedTypeAvailable('fast')">
+                                    Fast {{ !isSpeedTypeAvailable('fast') ? '(Already registered)' : '' }}
+                                </option>
+                                <option value="speed plus" [disabled]="!isSpeedTypeAvailable('speed plus')">
+                                    Speed Plus {{ !isSpeedTypeAvailable('speed plus') ? '(Already registered)' : '' }}
+                                </option>
                                 <option value="custom">Custom (Manual Input)</option>
                             </select>
+                            <small class="field-note" *ngIf="delivery.deliveryType">
+                                Available for {{ delivery.deliveryType }}: {{ getAvailableSpeedTypes(delivery.deliveryType).join(', ') || 'None' }}
+                            </small>
                         </div>
                     </div>
 
