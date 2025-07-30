@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { OrderService } from '../services/order.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-customer-order-detail',
@@ -38,7 +39,7 @@ export class AdminOrderDetailComponent implements OnInit {
     'Other'
   ];
 
-  constructor(private route: ActivatedRoute, private orderService: OrderService) {}
+  constructor(private route: ActivatedRoute, private orderService: OrderService) { }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -119,12 +120,16 @@ export class AdminOrderDetailComponent implements OnInit {
 
   rejectOrder() {
     const finalReason = this.showCustomReason ? this.rejectReason : this.selectedRejectReason;
-    
+
     if (!finalReason.trim()) {
-      alert('Please select or enter a reason for rejection.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Reason Required',
+        text: 'Please select or enter a reason for rejection.',
+      });
       return;
     }
-    
+
     this.updateOrderStatus('CANCELLED', finalReason);
     this.showRejectModal = false;
     this.rejectReason = '';

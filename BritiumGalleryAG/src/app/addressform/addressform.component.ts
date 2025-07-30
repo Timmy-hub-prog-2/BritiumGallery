@@ -41,7 +41,7 @@ export class AddressformComponent implements AfterViewInit {
     popupAnchor: [0, -40]
   });
 
-  constructor(private http: HttpClient,private router: Router) { }
+  constructor(private http: HttpClient, private router: Router) { }
 
   ngAfterViewInit(): void {
     this.initializeMap();
@@ -52,8 +52,8 @@ export class AddressformComponent implements AfterViewInit {
     this.map = L.map('map').setView([this.center.lat, this.center.lng], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(this.map);
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(this.map);
 
     this.marker = L.marker([this.center.lat, this.center.lng], {
       draggable: true,
@@ -92,14 +92,21 @@ export class AddressformComponent implements AfterViewInit {
         },
         error => {
           console.error('Geolocation error:', error);
-          alert('Unable to get your current location.');
+          Swal.fire({
+            icon: 'error',
+            title: 'Location Error',
+            text: 'Unable to get your current location. Please check your device or browser settings.',
+          });
         }
       );
     } else {
-      alert('Geolocation is not supported by your browser.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Geolocation Unsupported',
+        text: 'Geolocation is not supported by your browser.',
+      });
     }
   }
-
   searchLocation() {
     const query = this.searchQuery.trim();
     if (query.length <= 2) return;
@@ -127,14 +134,22 @@ export class AddressformComponent implements AfterViewInit {
         this.street = addr.road || addr.street || '';
         this.postalCode = addr.postcode || '';
       } else {
-        alert('No location found.');
+        Swal.fire({
+          icon: 'info',
+          title: 'No Location Found',
+          text: 'We could not find a location for the selected place.',
+        });
       }
+
     }, error => {
       console.error('Geocoding failed:', error);
-      alert('Failed to fetch location.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Geocoding Failed',
+        text: 'Something went wrong while trying to fetch the location. Please try again later.',
+      });
     });
   }
-
   reverseGeocode(lat: number, lng: number) {
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`;
 
@@ -143,12 +158,12 @@ export class AddressformComponent implements AfterViewInit {
 
       this.city = addr.city || addr.town || addr.village || '';
       this.township = addr.suburb
-         addr.neighbourhood
-         addr.village
-         addr.hamlet
-         addr.quarter
-         addr.town
-         addr.city_district
+      addr.neighbourhood
+      addr.village
+      addr.hamlet
+      addr.quarter
+      addr.town
+      addr.city_district
         || '';
       this.street = addr.road || addr.street || '';
       this.state = addr.state || '';
@@ -163,19 +178,19 @@ export class AddressformComponent implements AfterViewInit {
     });
   }
 
- 
-submitForm(form: NgForm) {
-  this.formSubmitAttempted = true;
 
-  if (!form.valid) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Missing Required Fields',
-      text: 'Please fill in all required fields.',
-      confirmButtonText: 'OK'
-    });
-    return;
-  }
+  submitForm(form: NgForm) {
+    this.formSubmitAttempted = true;
+
+    if (!form.valid) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Required Fields',
+        text: 'Please fill in all required fields.',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
 
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
     const userId = loggedInUser.id;
@@ -202,31 +217,31 @@ submitForm(form: NgForm) {
       ? this.http.put(url, addressPayload)
       : this.http.post(url, addressPayload);
 
-   request.subscribe({
-  next: () => {
-    Swal.fire({
-      icon: 'success',
-      title: this.editingId ? 'Address updated successfully' : 'Address saved successfully',
-      timer: 2000,
-      showConfirmButton: false
-    });
+    request.subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: this.editingId ? 'Address updated successfully' : 'Address saved successfully',
+          timer: 2000,
+          showConfirmButton: false
+        });
 
-    this.resetForm();
-    this.loadAddresses();
-    this.router.navigate(['/addresslist']);
-  },
-  error: err => {
-    console.error('Address save failed:', err);
+        this.resetForm();
+        this.loadAddresses();
+        this.router.navigate(['/addresslist']);
+      },
+      error: err => {
+        console.error('Address save failed:', err);
 
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Something went wrong. Please try again.',
-      confirmButtonText: 'OK'
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Something went wrong. Please try again.',
+          confirmButtonText: 'OK'
+        });
+      }
     });
   }
-});
-}
 
   loadAddresses() {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
@@ -255,31 +270,31 @@ submitForm(form: NgForm) {
     }
   }
 
- deleteAddress(id: number) {
-  Swal.fire({
-    title: 'Are you sure?',
-    text: 'Do you really want to delete this address?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!',
-    cancelButtonText: 'Cancel'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      this.http.delete(`http://localhost:8080/api/addresses/${id}`).subscribe(() => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'Address deleted successfully.',
-          timer: 2000,
-          showConfirmButton: false
+  deleteAddress(id: number) {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you really want to delete this address?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.http.delete(`http://localhost:8080/api/addresses/${id}`).subscribe(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'Address deleted successfully.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.loadAddresses();
         });
-        this.loadAddresses();
-      });
-    }
-  });
-}
+      }
+    });
+  }
 
   resetForm() {
     this.city = '';

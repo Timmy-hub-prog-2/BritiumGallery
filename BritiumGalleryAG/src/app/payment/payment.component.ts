@@ -6,6 +6,7 @@ import { UserService } from '../services/user.service';
 import { User } from '../../user.model';
 import { Payment, PaymentService } from '../payment.service';
 import { FileUploadService } from '../services/file-upload.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-payment',
@@ -36,7 +37,7 @@ export class PaymentComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private fileUploadService: FileUploadService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadCurrentUser();
@@ -165,7 +166,7 @@ export class PaymentComponent implements OnInit {
     this.showReceiptPreview = false;
   }
 
-  submitPayment(): void {
+submitPayment(): void {
     if (this.paymentForm.invalid) {
       this.error = 'Please fill in all required fields.';
       return;
@@ -175,7 +176,7 @@ export class PaymentComponent implements OnInit {
     const amount = this.getTotalAmount();
     const notes = '';
     const reviewerUserId = undefined;
-    
+
     if (paymentType !== 'CreditCard' && !this.selectedReceiptFile) {
       this.error = 'Please upload a payment receipt.';
       return;
@@ -193,38 +194,70 @@ export class PaymentComponent implements OnInit {
         expiry: this.paymentForm.get('expiry')?.value,
         cvv: this.paymentForm.get('cvv')?.value
       };
-      this.processPaymentRequest(paymentRequest);
+      this.processCreditCardPayment(paymentRequest);
     } else {
       // For QR code payments, upload the receipt first
-      this.fileUploadService.uploadReceipt(this.selectedReceiptFile!).subscribe({
-        next: (imageUrl) => {
-          // Call the new endpoint to mark order as paid and create transaction
-          this.orderService.markOrderPaidAndCreateTransaction(this.orderId!, {
-            paymentMethod: paymentType,
-            amount: amount,
-            proofImageUrl: imageUrl,
-            reviewerUserId: reviewerUserId,
-            notes: notes
-          }).subscribe({
-            next: () => {
-              this.loading = false;
-              alert('Payment submitted! Your transaction is pending verification.');
-              this.router.navigate(['/customer-order-detail', this.orderId]);
-            },
-            error: (err) => {
-              this.loading = false;
-              this.error = err.error?.message || 'Failed to submit payment. Please try again.';
-            }
+      this.uploadReceiptAndProcessPayment(amount, notes, reviewerUserId, paymentType);
+    }
+  }
+
+private processCreditCardPayment(paymentRequest: any): void {
+  this.orderService.processPayment(paymentRequest).subscribe({
+    next: (response) => {
+      this.loading = false;
+      if (response.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Payment completed successfully!',
+          text: 'Your order has been confirmed.',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          this.router.navigate(['/customer-order-detail', this.orderId]);
+        });
+      } else {
+        this.error = response.message || 'Payment failed. Please try again.';
+      }
+    },
+    error: (err) => {
+      this.loading = false;
+      this.error = err.error?.message || 'Payment processing failed. Please try again.';
+    }
+  });
+}
+
+private uploadReceiptAndProcessPayment(amount: number, notes: string, reviewerUserId: any, paymentType: string): void {
+  this.fileUploadService.uploadReceipt(this.selectedReceiptFile!).subscribe({
+    next: (imageUrl) => {
+      this.orderService.markOrderPaidAndCreateTransaction(this.orderId!, {
+        paymentMethod: paymentType,
+        amount: amount,
+        proofImageUrl: imageUrl,
+        reviewerUserId: reviewerUserId,
+        notes: notes
+      }).subscribe({
+        next: () => {
+          this.loading = false;
+          Swal.fire({
+            icon: 'success',
+            title: 'Payment submitted!',
+            text: 'Your transaction is pending verification.',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            this.router.navigate(['/customer-order-detail', this.orderId]);
           });
         },
         error: (err) => {
           this.loading = false;
-          console.error('File upload error:', err);
-          this.error = 'Failed to upload receipt. Please try again.';
+          this.error = err.error?.message || 'Failed to submit payment. Please try again.';
         }
       });
+    },
+    error: (err) => {
+      this.loading = false;
+      this.error = 'Failed to upload receipt. Please try again.';
     }
-  }
+  });
+}
 
   private processPaymentRequest(paymentRequest: any): void {
     console.log('Processing payment:', paymentRequest);
@@ -233,19 +266,36 @@ export class PaymentComponent implements OnInit {
       next: (response) => {
         this.loading = false;
         console.log('Payment response:', response);
-        
+
         if (response.success) {
           if (response.paymentStatus === 'PAID') {
-            alert('Payment completed successfully! Your order has been confirmed.');
-            this.router.navigate(['/customer-order-detail', this.orderId]);
+            Swal.fire({
+              icon: 'success',
+              title: 'Payment completed successfully!',
+              text: 'Your order has been confirmed.',
+              confirmButtonText: 'OK'
+            }).then(() => {
+              this.router.navigate(['/customer-order-detail', this.orderId]);
+            });
           } else if (response.paymentStatus === 'PENDING_VERIFICATION') {
-            alert('Payment receipt uploaded successfully! Your order will be processed after admin verification.');
-            this.router.navigate(['/customer-order-detail', this.orderId]);
-          } else {
-            alert(`Payment processed: ${response.message}`);
-            this.router.navigate(['/customer-order-detail', this.orderId]);
-          }
-        } else {
+            Swal.fire({
+              icon: 'info',
+              title: 'Payment receipt uploaded successfully!',
+              text: 'Your order will be processed after admin verification.',
+              confirmButtonText: 'OK'
+            }).then(() => {
+              this.router.navigate(['/customer-order-detail', this.orderId]);
+            });
+          }else {
+    Swal.fire({
+      icon: 'info',
+      title: `Payment processed: ${response.message}`,
+      confirmButtonText: 'OK'
+    }).then(() => {
+      this.router.navigate(['/customer-order-detail', this.orderId]);
+    });
+  }
+} else {
           this.error = response.message || 'Payment failed. Please try again.';
         }
       },
@@ -259,13 +309,13 @@ export class PaymentComponent implements OnInit {
 
   isFormValid(): boolean {
     const paymentType = this.paymentForm.get('paymentType')?.value;
-    
+
     if (!paymentType) return false;
-    
+
     if (paymentType === 'CreditCard') {
-      return this.paymentForm.get('cardNumber')?.value && 
-             this.paymentForm.get('expiry')?.value && 
-             this.paymentForm.get('cvv')?.value;
+      return this.paymentForm.get('cardNumber')?.value &&
+        this.paymentForm.get('expiry')?.value &&
+        this.paymentForm.get('cvv')?.value;
     } else {
       return !!this.selectedReceiptFile;
     }

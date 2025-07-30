@@ -130,15 +130,22 @@ export class AddresseditComponent implements OnInit {
         this.address.township = addr.suburb || addr.neighbourhood || '';
         this.address.street = addr.road || addr.street || '';
         this.address.postalCode = addr.postcode || '';
-      } else {
-        alert('No location found.');
-      }
-    }, error => {
-      console.error('Geocoding failed:', error);
-      alert('Failed to fetch location.');
-    });
+    } else {
+  Swal.fire({
+    icon: 'warning',
+    title: 'No location found',
+    text: 'Please try a different place or zoom in further.',
+  });
+}
+}, error => {
+  console.error('Geocoding failed:', error);
+  Swal.fire({
+    icon: 'error',
+    title: 'Geocoding Failed',
+    text: 'Failed to fetch location. Please try again later.',
+  });
+});
   }
-
   // Get current location
   getCurrentLocation() {
     if (navigator.geolocation) {
@@ -155,16 +162,23 @@ export class AddresseditComponent implements OnInit {
 
           this.reverseGeocode(lat, lng);
         },
-        error => {
-          console.error('Geolocation error:', error);
-          alert('Unable to get your current location.');
-        }
-      );
-    } else {
-      alert('Geolocation is not supported by your browser.');
-    }
+     error => {
+  console.error('Geolocation error:', error);
+  Swal.fire({
+    icon: 'error',
+    title: 'Location Error',
+    text: 'Unable to get your current location. Please check your device settings.',
+  });
+}
+);
+} else {
+  Swal.fire({
+    icon: 'warning',
+    title: 'Unsupported Feature',
+    text: 'Geolocation is not supported by your browser.',
+  });
+}
   }
-
   reverseGeocode(lat: number, lng: number) {
     this.address.latitude = lat;
     this.address.longitude = lng;
