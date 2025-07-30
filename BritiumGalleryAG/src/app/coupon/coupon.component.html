@@ -85,12 +85,7 @@
         Coupon code must be exactly 3 uppercase letters followed by 3 digits (e.g. ABC123).
       </div>
 
-      <label>Type:</label>
-      <select [(ngModel)]="newCoupon.type" name="type" required>
-        <option value="Percentage">Percentage</option>
-        <option value="Fixed Amount">Fixed Amount</option>
-        <option value="Free-Shipping">Free-Shipping</option>
-      </select>
+    <input type="hidden" [(ngModel)]="newCoupon.type" name="type" />
 
       <label>Discount:</label>
       <input [(ngModel)]="newCoupon.discount" name="discount" required />
@@ -209,7 +204,8 @@
       <tr>
         <td>{{ c.code || 'N/A' }}</td>
         <td>{{ c.type }}</td>
-        <td>{{ c.discount }}</td>
+<td>{{ formatDiscount(c.discount) }}</td>
+
         <td [ngStyle]="{ 'color': c.status === 'Active' ? 'green' : 'red' }">{{ c.status }}</td>
         <td>{{ c.startDate | date }}</td>
         <td>{{ c.endDate | date }}</td>

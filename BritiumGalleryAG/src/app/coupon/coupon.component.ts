@@ -21,7 +21,7 @@ export class CouponComponent implements OnInit {
 
   newCoupon: Coupon = {
     code: '',
-    type: '',
+   type: 'Percentage',
     discount: '',
     status: 'Active',
     startDate: '',
@@ -79,6 +79,11 @@ export class CouponComponent implements OnInit {
     });
   }
 
+  formatDiscount(value: string | number): string {
+  const val = typeof value === 'string' ? parseFloat(value) : value;
+  return isNaN(val) ? '' : `${val}%`;
+}
+
   getCustomerTypeName(id: number): string {
     const type = this.customerTypes.find(ct => ct.id === id);
     return type ? type.name : 'Unknown';
@@ -96,18 +101,7 @@ export class CouponComponent implements OnInit {
     });
   }
 
-  // filterCoupons(): void {
-  //   const term = this.searchTerm.toLowerCase().trim();
-  //   if (!term) {
-  //     this.filteredCoupons = this.coupons;
-  //   } else {
-  //     this.filteredCoupons = this.coupons.filter(coupon =>
-  //       coupon.code?.toLowerCase().includes(term) ||
-  //       coupon.type?.toLowerCase().includes(term)
-  //     );
-  //   }
-  // }
-
+ 
   filterCoupons(): void {
     const term = this.searchTerm.toLowerCase().trim();
     this.filteredCoupons = this.coupons.filter(coupon => {
@@ -137,7 +131,7 @@ export class CouponComponent implements OnInit {
   resetForm(): void {
     this.newCoupon = {
       code: '',
-      type: '',
+     type: 'Percentage',
       discount: '',
       status: 'Active',
       startDate: '',
@@ -160,7 +154,7 @@ export class CouponComponent implements OnInit {
   isFormValid(): boolean {
     return (
       !!this.newCoupon.code &&
-      !!this.newCoupon.type &&
+      // !!this.newCoupon.type &&
       !!this.newCoupon.discount &&
       !!this.newCoupon.startDate &&
       !this.codeError
