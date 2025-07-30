@@ -478,6 +478,23 @@ public class OrderServiceImpl implements OrderService {
                     // Simulate successful credit card payment
                     order.setStatus(OrderStatus.PAID);
                     orderRepository.save(order);
+
+                    // Save order status history: PAID
+                    OrderStatusHistory paidHistory = new OrderStatusHistory();
+                    paidHistory.setOrder(order);
+                    paidHistory.setStatus(OrderStatus.PAID);
+                    paidHistory.setTimestamp(java.time.LocalDateTime.now());
+                    orderStatusHistoryRepository.save(paidHistory);
+
+                    // Create transaction with status SUCCESS for credit card payments
+                    TransactionEntity transaction = new TransactionEntity();
+                    transaction.setOrder(order);
+                    transaction.setAmount(order.getTotal());
+                    transaction.setPaymentMethod(paymentRequest.getPaymentMethod());
+                    transaction.setStatus(TransactionStatus.SUCCESS);
+                    transaction.setCreatedAt(java.time.LocalDateTime.now());
+                    transaction.setNotes("Credit card payment processed successfully");
+                    transactionRepository.save(transaction);
                     
                     response.setSuccess(true);
                     response.setPaymentStatus("PAID");

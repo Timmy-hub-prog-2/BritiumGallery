@@ -313,17 +313,16 @@ export class DeliveryComponent implements OnInit {
 
   // Calculate delivery time for Standard
   calculateStandardDeliveryTime(distance: number): string {
-    const baseHours = this.delivery.baseDelayHours || 0;
+    const baseDelayHours = this.delivery.baseDelayHours || 0;
     const speedKmHr = this.delivery.speedKmHr || 30;
-    
     const travelHours = distance / speedKmHr;
-    const totalHours = baseHours + travelHours;
-    
-    const days = Math.floor(totalHours / 24);
-    const hours = Math.round(totalHours % 24);
-    
-    if (days > 0) {
-      return `${days} day${days > 1 ? 's' : ''} ${hours > 0 ? hours + ' hour' + (hours > 1 ? 's' : '') : ''}`.trim();
+    const chosenHours = Math.max(travelHours, baseDelayHours);
+    const days = Math.floor(chosenHours / 24);
+    const hours = Math.ceil(chosenHours % 24);
+    if (days > 0 && hours > 0) {
+      return `${days} day${days > 1 ? 's' : ''} ${hours} hour${hours > 1 ? 's' : ''}`;
+    } else if (days > 0) {
+      return `${days} day${days > 1 ? 's' : ''}`;
     } else {
       return `${hours} hour${hours > 1 ? 's' : ''}`;
     }
@@ -331,17 +330,17 @@ export class DeliveryComponent implements OnInit {
 
   // Calculate delivery time for Express
   calculateExpressDeliveryTime(distance: number): string {
-    const baseDays = this.delivery.baseDelayDays || 0;
+    const baseDelayDays = this.delivery.baseDelayDays || 0;
     const speedKmHr = this.delivery.speedKmHr || 30;
-    
     const travelHours = distance / speedKmHr;
-    const totalHours = (baseDays * 24) + travelHours;
-    
-    const days = Math.floor(totalHours / 24);
-    const hours = Math.round(totalHours % 24);
-    
-    if (days > 0) {
-      return `${days} day${days > 1 ? 's' : ''} ${hours > 0 ? hours + ' hour' + (hours > 1 ? 's' : '') : ''}`.trim();
+    const baseDelayHours = baseDelayDays * 24;
+    const chosenHours = Math.max(travelHours, baseDelayHours);
+    const days = Math.floor(chosenHours / 24);
+    const hours = Math.ceil(chosenHours % 24);
+    if (days > 0 && hours > 0) {
+      return `${days} day${days > 1 ? 's' : ''} ${hours} hour${hours > 1 ? 's' : ''}`;
+    } else if (days > 0) {
+      return `${days} day${days > 1 ? 's' : ''}`;
     } else {
       return `${hours} hour${hours > 1 ? 's' : ''}`;
     }
@@ -349,17 +348,17 @@ export class DeliveryComponent implements OnInit {
 
   // Calculate delivery time for Ship
   calculateShipDeliveryTime(distance: number): string {
-    const baseDays = this.delivery.baseDelayDays || 0;
+    const baseDelayDays = this.delivery.baseDelayDays || 0;
     const speedKmHr = this.delivery.speedKmHr || 30;
-    
     const travelHours = distance / speedKmHr;
-    const totalHours = (baseDays * 24) + travelHours;
-    
-    const days = Math.floor(totalHours / 24);
-    const hours = Math.round(totalHours % 24);
-    
-    if (days > 0) {
-      return `${days} day${days > 1 ? 's' : ''} ${hours > 0 ? hours + ' hour' + (hours > 1 ? 's' : '') : ''}`.trim();
+    const baseDelayHours = baseDelayDays * 24;
+    const chosenHours = Math.max(travelHours, baseDelayHours);
+    const days = Math.floor(chosenHours / 24);
+    const hours = Math.ceil(chosenHours % 24);
+    if (days > 0 && hours > 0) {
+      return `${days} day${days > 1 ? 's' : ''} ${hours} hour${hours > 1 ? 's' : ''}`;
+    } else if (days > 0) {
+      return `${days} day${days > 1 ? 's' : ''}`;
     } else {
       return `${hours} hour${hours > 1 ? 's' : ''}`;
     }

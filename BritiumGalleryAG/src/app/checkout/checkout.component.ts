@@ -13,6 +13,7 @@ import { OrderService } from '../services/order.service';
 import { ProductService } from '../services/product.service';
 import { distinctUntilChanged } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-checkout',
@@ -69,7 +70,8 @@ export class CheckoutComponent implements OnInit {
     private couponService: CouponService,
     private route: ActivatedRoute,
     private orderService: OrderService,
-    private productService: ProductService
+    private productService: ProductService,
+    private cdr: ChangeDetectorRef // <-- Inject ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -148,7 +150,7 @@ export class CheckoutComponent implements OnInit {
         this.mainAddress = this.formatAddress(address);
         // Calculate delivery fee after address is loaded
         setTimeout(() => {
-        this.calculateDeliveryFee();
+          this.calculateDeliveryFee(); // Always recalculate after loading address
         }, 0);
       },
       error: err => console.error('❌ Error loading main address:', err)
@@ -206,14 +208,14 @@ export class CheckoutComponent implements OnInit {
         this.standardOptions = standardDeliveries || [];
         this.expressOptions = expressDeliveries || [];
         this.shipOptions = shipDeliveries || [];
-        
-        // Now that all options are loaded, auto-select and calculate
         this.autoSelectDeliveryOptions();
+        this.calculateDeliveryFee(); // Always recalculate after loading options
       })
       .catch(err => {
         console.error('Error loading delivery options:', err);
         // Still try to auto-select with whatever data we have
         this.autoSelectDeliveryOptions();
+        this.calculateDeliveryFee(); // Always recalculate after loading options
       });
   }
 
@@ -237,18 +239,13 @@ export class CheckoutComponent implements OnInit {
       this.checkoutForm.patchValue({ deliveryType: validType });
     }
 
-    // Always set speed type to the first available option for the selected delivery type
-    if (validType === 'standard' && this.standardOptions.length > 0) {
-      this.checkoutForm.patchValue({ speedType: this.standardOptions[0].speedType });
-    } else if (validType === 'express' && this.expressOptions.length > 0) {
-      this.checkoutForm.patchValue({ speedType: this.expressOptions[0].speedType });
-    } else if (validType === 'ship' && this.shipOptions.length > 0) {
-      this.checkoutForm.patchValue({ speedType: this.shipOptions[0].speedType });
-    }
+    // NEVER auto-select speed type - let user choose manually
+    // Always reset speed type to empty, regardless of availability
+    this.checkoutForm.patchValue({ speedType: '' });
 
     // Force calculation after setting form values programmatically
     setTimeout(() => {
-      this.calculateDeliveryFee();
+      this.calculateDeliveryFee(); // Always recalculate after auto-select
     }, 0);
   }
 
@@ -279,6 +276,12 @@ export class CheckoutComponent implements OnInit {
       selectedOption = this.shipOptions.find(opt => opt.speedType === speedType);
     }
 
+    // Prevent calculation and summary update if the selected option is not available (e.g., disabled)
+    if (!selectedOption) {
+      this.isCalculatingDeliveryFee = false;
+      return;
+    }
+
     // Debug logging
     console.log('🔍 Delivery Calculation Debug:', {
       deliveryType,
@@ -295,15 +298,6 @@ export class CheckoutComponent implements OnInit {
       expressOptions: this.expressOptions.map(opt => ({ speedType: opt.speedType, baseFee: opt.baseFee })),
       shipOptions: this.shipOptions.map(opt => ({ speedType: opt.speedType, baseFee: opt.baseFee }))
     });
-
-    if (!selectedOption) {
-      this.deliveryFee = 0;
-      this.selectedDelayTime = null;
-      this.selectedDelayRange = null;
-      this.calculatedDistance = 0;
-      this.isCalculatingDeliveryFee = false;
-      return;
-    }
 
     // Calculate fee using the new backend structure
     const dto: DeliveryFeeRequestDTO = {
@@ -322,6 +316,11 @@ export class CheckoutComponent implements OnInit {
         this.selectedDelayTime = this.getDeliveryTimeForOption(selectedOption);
         this.selectedDelayRange = this.selectedDelayTime; // Direct assignment
         
+        // Debug logging for summary
+        console.log('Selected Option:', selectedOption);
+        console.log('Calculated Distance:', this.calculatedDistance);
+        console.log('Calculated Fee:', this.deliveryFee);
+        
         // Update suggested method
         const validMethods = ['standard', 'express', 'ship'];
         const backendMethod = (res.suggestedMethod ?? '').toLowerCase();
@@ -332,7 +331,7 @@ export class CheckoutComponent implements OnInit {
         // Auto-change delivery type if backend suggests different
         if (normalizedMethod && normalizedMethod !== prevMethod) {
           this.methodAutoChanged = true;
-          this.checkoutForm.patchValue({ deliveryType: this.suggestedMethod });
+          this.checkoutForm.patchValue({ deliveryType: this.suggestedMethod, speedType: '' });
           setTimeout(() => {
             this.methodAutoChanged = false;
           }, 8000);
@@ -344,6 +343,7 @@ export class CheckoutComponent implements OnInit {
         
         this.reapplyCouponIfNeeded();
         this.isCalculatingDeliveryFee = false;
+        this.cdr.detectChanges(); // <-- Force UI update
       },
       error: () => {
         this.deliveryFee = 0;
@@ -356,7 +356,16 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
+  onDeliveryTypeChange(type: string) {
+    // Always reset speed type to empty when delivery type changes, regardless of availability
+    this.checkoutForm.patchValue({ deliveryType: type, speedType: '' }, { emitEvent: false });
+    this.calculateDeliveryFee();
+  }
 
+  onSpeedTypeChange(type: string) {
+    this.checkoutForm.patchValue({ speedType: type }, { emitEvent: false });
+    this.calculateDeliveryFee();
+  }
 
   // Get available speed types for the selected delivery type
   getAvailableSpeedTypes(): Delivery[] {
@@ -370,6 +379,8 @@ export class CheckoutComponent implements OnInit {
     }
     return [];
   }
+
+
 
   // Get icon class for delivery type and speed
   getDeliveryIconClass(deliveryType: string, speedType: string): string {
@@ -417,6 +428,7 @@ export class CheckoutComponent implements OnInit {
 
   // Calculate fee for a specific delivery option (matches delivery.component.ts)
   calculateFeeForOption(option: Delivery): number {
+    console.log('calculateFeeForOption:', option, 'distance:', this.calculatedDistance);
     if (!this.calculatedDistance || this.calculatedDistance <= 0) return 0;
     const baseFee = option.baseFee || 0;
     const feePerKm = option.feePerKm || 0;
@@ -429,6 +441,7 @@ export class CheckoutComponent implements OnInit {
     if (maxFee > 0 && fee > maxFee) {
       fee = maxFee;
     }
+    console.log('Fee calculated:', fee, 'for option:', option.speedType);
     return Math.round(fee);
   }
 

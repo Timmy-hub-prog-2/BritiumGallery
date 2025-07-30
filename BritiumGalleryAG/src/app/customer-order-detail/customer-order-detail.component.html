@@ -536,11 +536,7 @@
 
             <div class="item-details">
               <h4 class="item-name">{{ item.variant?.productName }}</h4>
-              <span *ngIf="item.isRefunded" class="refunded-badge"
-                >Refunded ({{
-                  item.refundedQty ? item.refundedQty : ""
-                }})</span
-              >
+              
               <p class="item-sku" *ngIf="item.variant?.sku">
                 SKU: {{ item.variant.sku }}
               </p>

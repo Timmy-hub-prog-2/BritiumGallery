@@ -96,7 +96,7 @@
                 <div class="delivery-option" 
                      [class.selected]="checkoutForm.get('deliveryType')?.value === 'standard'"
                      [class.disabled]="suggestedMethod !== 'standard'"
-                     (click)="checkoutForm.patchValue({deliveryType: 'standard'})">
+                     (click)="onDeliveryTypeChange('standard')">
                   <div class="delivery-icon">
                     <i class="fa fa-truck"></i>
                   </div>
@@ -109,7 +109,7 @@
                 <div class="delivery-option" 
                      [class.selected]="checkoutForm.get('deliveryType')?.value === 'express'"
                      [class.disabled]="suggestedMethod !== 'express'"
-                     (click)="checkoutForm.patchValue({deliveryType: 'express'})">
+                     (click)="onDeliveryTypeChange('express')">
                   <div class="delivery-icon">
                     <i class="fa fa-bolt"></i>
                   </div>
@@ -122,7 +122,7 @@
                 <div class="delivery-option" 
                      [class.selected]="checkoutForm.get('deliveryType')?.value === 'ship'"
                      [class.disabled]="suggestedMethod !== 'ship'"
-                     (click)="checkoutForm.patchValue({deliveryType: 'ship'})">
+                     (click)="onDeliveryTypeChange('ship')">
                   <div class="delivery-icon">
                     <i class="fa fa-ship"></i>
                   </div>
@@ -157,7 +157,7 @@
                 <div *ngFor="let option of getAvailableSpeedTypes()" 
                      class="speed-option" 
                      [class.selected]="checkoutForm.get('speedType')?.value === option.speedType"
-                     (click)="checkoutForm.patchValue({speedType: option.speedType})">
+                     (click)="onSpeedTypeChange(option.speedType!)">
                   <div class="speed-icon">
                     <i [class]="getDeliveryIconClass(option.deliveryType || '', option.speedType || '')"></i>
                   </div>
@@ -171,6 +171,8 @@
                   </div>
                 </div>
               </div>
+              
+
             </div>
 
             <!-- Delivery Information -->
