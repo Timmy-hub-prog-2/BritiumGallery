@@ -28,6 +28,8 @@ public class ExcelService {
     @Autowired private UserRepository userRepository;
 
     public void parseAndInsertExcelData(MultipartFile file, Long categoryId, Long adminId) throws IOException {
+        UserEntity admin = userRepository.findById(adminId).orElse(null);
+
         InputStream is = file.getInputStream();
         Workbook workbook = new XSSFWorkbook(is);
         Sheet sheet = workbook.getSheetAt(0);
@@ -132,6 +134,7 @@ public class ExcelService {
             purchase.setRemainingQuantity(lastStock);
             purchase.setPurchasePrice(lastPurchasePrice != null ? lastPurchasePrice : 0);
             purchase.setPurchaseDate(LocalDateTime.now());
+            purchase.setAdmin(admin);
             variant.getPurchaseHistories().add(purchase);
 
             ProductVariantPriceHistoryEntity priceHistory = new ProductVariantPriceHistoryEntity();
@@ -139,7 +142,7 @@ public class ExcelService {
             priceHistory.setPrice(lastPrice.intValue());
             priceHistory.setPriceDate(LocalDateTime.now());
 
-            UserEntity admin = userRepository.findById(adminId).orElse(null);
+
             if (admin != null) {
                 priceHistory.setAdmin(admin);
             }

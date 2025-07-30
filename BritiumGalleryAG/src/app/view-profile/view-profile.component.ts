@@ -5,6 +5,8 @@ import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { AddressService } from '../address.service';
 import { AddressDTO } from '../../AddressDTO';
+import Swal from 'sweetalert2';
+
 
 @Component({
   selector: 'app-view-profile',
@@ -101,16 +103,27 @@ export class ViewProfileComponent {
         this.user = updatedUser;
         this.userService.setLoggedInUser(updatedUser);
         this.updateProfileImageUrl();
-        alert('Profile saved successfully!');
         this.isSaving = false;
-      },
-      error: () => {
-        alert('Failed to save profile. Please try again.');
-        this.isSaving = false;
-      },
-    });
-  }
+      Swal.fire({
+        icon: 'success',
+        title: '✅ Profile Updated',
+        text: 'Your profile has been saved successfully!',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    },
+    error: () => {
+      this.isSaving = false;
 
+      Swal.fire({
+        icon: 'error',
+        title: '❌ Save Failed',
+        text: 'Failed to save profile. Please try again.',
+        confirmButtonText: 'OK'
+      });
+    },
+  });
+}
   updateProfileImageUrl(): void {
     if (this.user?.imageUrls && this.user.imageUrls.length > 0 && this.user.imageUrls[0]) {
       const baseUrl = this.user.imageUrls[0];
