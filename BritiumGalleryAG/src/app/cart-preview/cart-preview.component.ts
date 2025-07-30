@@ -122,7 +122,7 @@ export class CartPreviewComponent implements OnInit {
   }
 
   continueShopping(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/customer-homepage']);
   }
 
   clearCart() {
