@@ -21,7 +21,7 @@ export class CouponComponent implements OnInit {
 
   newCoupon: Coupon = {
     code: '',
-   type: 'Percentage',
+    type: 'Percentage',
     discount: '',
     status: 'Active',
     startDate: '',
@@ -40,6 +40,7 @@ export class CouponComponent implements OnInit {
   todayDate: string;
   codeError: boolean = false;
   formSubmitted: boolean = false;
+  percentageError: boolean = false;
 
   showCustomerTypeRules: boolean = false;
   allCustomerTypesEnabled: boolean = false;
@@ -75,14 +76,14 @@ export class CouponComponent implements OnInit {
       text: msg,
       timer: 2000,
       showConfirmButton: false,
-     
+
     });
   }
 
   formatDiscount(value: string | number): string {
-  const val = typeof value === 'string' ? parseFloat(value) : value;
-  return isNaN(val) ? '' : `${val}%`;
-}
+    const val = typeof value === 'string' ? parseFloat(value) : value;
+    return isNaN(val) ? '' : `${val}%`;
+  }
 
   getCustomerTypeName(id: number): string {
     const type = this.customerTypes.find(ct => ct.id === id);
@@ -101,7 +102,7 @@ export class CouponComponent implements OnInit {
     });
   }
 
- 
+
   filterCoupons(): void {
     const term = this.searchTerm.toLowerCase().trim();
     this.filteredCoupons = this.coupons.filter(coupon => {
@@ -131,7 +132,7 @@ export class CouponComponent implements OnInit {
   resetForm(): void {
     this.newCoupon = {
       code: '',
-     type: 'Percentage',
+      type: 'Percentage',
       discount: '',
       status: 'Active',
       startDate: '',
@@ -157,7 +158,8 @@ export class CouponComponent implements OnInit {
       // !!this.newCoupon.type &&
       !!this.newCoupon.discount &&
       !!this.newCoupon.startDate &&
-      !this.codeError
+      !this.codeError &&
+       !this.percentageError
     );
   }
 
@@ -211,18 +213,22 @@ export class CouponComponent implements OnInit {
       const start = new Date(this.newCoupon.startDate);
       const end = new Date(this.newCoupon.endDate);
       if (end < start) {
-        alert('End date cannot be before start date.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Date',
+          text: 'End date cannot be before start date.',
+        });
         return;
       }
     }
 
     if (!this.isFormValid()) {
-    Swal.fire({
-  icon: 'warning',
-  title: 'Incomplete Form',
-  text: 'Please fill in all required fields.',
-  confirmButtonColor: '#f59e0b'
-});
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete Form',
+        text: 'Please fill in all required fields.',
+        confirmButtonColor: '#f59e0b'
+      });
 
       return;
     }
@@ -420,4 +426,18 @@ export class CouponComponent implements OnInit {
     return this.coupons.reduce((acc, c) => acc + (c.rules?.length || 0), 0);
   }
 
+ validatePercentage(): void {
+  const discountValue = parseFloat(this.newCoupon.discount);
+
+  if (
+    this.newCoupon.discount === null || 
+    this.newCoupon.discount === '' || 
+    isNaN(discountValue) || 
+    discountValue <= 0
+  ) {
+    this.percentageError = true;
+  } else {
+    this.percentageError = false;
+  }
+}
 }

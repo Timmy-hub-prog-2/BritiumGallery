@@ -12,4 +12,7 @@ public interface UserCouponUsageRepository extends JpaRepository<UserCouponUsage
     List<UserCouponUsageEntity> findByUserAndCoupon(UserEntity user, CouponEntity coupon);
 
     long countByUserAndCoupon(UserEntity user, CouponEntity coupon);
+
+    void deleteByCoupon(CouponEntity coupon);
+
 }

@@ -17,7 +17,8 @@
     <div class="policy-item">
       <div *ngFor="let policy of policies">
         <h3 class="combined-policy-title">{{ policy.title }}</h3>
-        <p class="combined-policy-text">{{ policy.content }}</p>
+       <p class="combined-policy-text" [innerHTML]="policy.content"></p>
+
       </div>
     </div>
   </div>

@@ -52,14 +52,20 @@ public class CouponController {
         CouponEntity updatedCoupon = couponService.updateCoupon(code, coupon);
         return new ResponseEntity<>(updatedCoupon, HttpStatus.OK);
     }
-
     @DeleteMapping("/{code}")
     public ResponseEntity<?> deleteCoupon(@PathVariable String code) {
         try {
             couponService.deleteByCode(code);
-            return ResponseEntity.ok().build(); // Return a successful response
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Coupon not found or unable to delete.");
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            // If it's the "not found" exception
+            if ("Coupon not found".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Coupon not found.");
+            } else {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Unable to delete coupon: " + e.getMessage());
+            }
         }
     }
 

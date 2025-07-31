@@ -118,17 +118,18 @@ public class CouponService {
         String numbers = RandomStringUtils.randomNumeric(3);
         return letters + numbers;
     }
-
     @Transactional
     public void deleteByCode(String code) {
-        // First, delete all related CouponCustomerTypeEntity entries
-        CouponEntity coupon = couponRepository.findByCode(code)
+        CouponEntity coupon = couponRepository.findByCodeIgnoreCase(code)
                 .orElseThrow(() -> new RuntimeException("Coupon not found"));
 
-        // Delete related coupon customer type records
+        // 1. Delete user-coupon usage records
+        userCouponUsageRepository.deleteByCoupon(coupon);
+
+        // 2. Delete coupon-customer-type records
         couponCustomerTypeRepository.deleteByCouponId(coupon.getId());
 
-        // Then delete the coupon
+        // 3. Delete the coupon itself
         couponRepository.delete(coupon);
     }
 

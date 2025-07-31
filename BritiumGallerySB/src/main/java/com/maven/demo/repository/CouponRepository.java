@@ -12,4 +12,7 @@ public interface CouponRepository extends JpaRepository<CouponEntity, Long> {
     Optional<CouponEntity> findByCode(String code);
 
     boolean existsByCode(String code);
+
+    Optional<CouponEntity> findByCodeIgnoreCase(String code);
+
 }
