@@ -299,7 +299,7 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
     console.log('Can export PDF:', this.canExportPDF());
     
     if (!this.order || !this.canExportPDF()) {
-      alert('PDF download is only available for shipped, delivered, or completed orders.');
+      alert('PDF download is only available for delivered or completed orders.');
       return;
     }
 
@@ -385,7 +385,13 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
 
   canExportPDF(): boolean {
     if (!this.order || !this.order.status) return false;
-    const allowedStatuses = ['SHIPPED', 'DELIVERED', 'COMPLETED'];
+    const allowedStatuses = ['DELIVERED', 'COMPLETED'];
     return allowedStatuses.includes(this.order.status.toUpperCase());
+  }
+
+  shouldShowEstimatedDelivery(): boolean {
+    if (!this.order || !this.order.status) return false;
+    const hideForStatuses = ['DELIVERED', 'COMPLETED', 'REFUNDED'];
+    return !hideForStatuses.includes(this.order.status.toUpperCase());
   }
 }

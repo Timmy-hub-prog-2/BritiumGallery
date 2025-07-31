@@ -76,12 +76,8 @@
             </button>
           </div>
         </div>
-      </div>
-    </div>
-    <!-- Countdown & Pay Button for Pending Orders (moved below status) -->
-
-    <!-- Top right Export button with arrow icon and styled as requested -->
-    <div
+        
+      </div><div
       style="
         display: flex;
         justify-content: flex-end;
@@ -94,20 +90,6 @@
           (click)="downloadPDF()"
           [disabled]="!canExportPDF()"
           [ngClass]="{ 'export-enabled': canExportPDF() }"
-          style="
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 22px;
-            background: #fff;
-            color: #111;
-            border: 2px solid #111;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, border 0.2s;
-          "
         >
           Export
           <svg
@@ -127,6 +109,12 @@
         </button>
       </div>
     </div>
+        
+    </div>
+    <!-- Countdown & Pay Button for Pending Orders (moved below status) -->
+
+    <!-- Top right Export button with arrow icon and styled as requested -->
+    
     <!-- Removed voucher review modal and voucher-crumple related code -->
 
     <!-- Main Content -->
@@ -200,7 +188,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="info-item" *ngIf="order?.estimatedDeliveryTime">
+                <div class="info-item" *ngIf="order?.estimatedDeliveryTime && shouldShowEstimatedDelivery()">
                   <span class="info-label">Estimated Delivery</span>
                   <span class="info-value">{{
                     order?.estimatedDeliveryTime | date : "mediumDate"
@@ -209,7 +197,7 @@
                 <div
                   class="info-item"
                   *ngIf="
-                    !order?.estimatedDeliveryTime && order?.selectedDelayTime
+                    !order?.estimatedDeliveryTime && order?.selectedDelayTime && shouldShowEstimatedDelivery()
                   "
                 >
                   <span class="info-label">Estimated Delivery</span>

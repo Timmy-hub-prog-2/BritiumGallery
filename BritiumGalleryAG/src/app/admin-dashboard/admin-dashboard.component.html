@@ -1309,10 +1309,10 @@
                 <button
                   class="panel-btn"
                   (click)="
-                    showExportDropdownTopProducts =
-                      !showExportDropdownTopProducts
+                    showExportDropdownTableModal =
+                      !showExportDropdownTableModal
                   "
-                  title="Export Top Products"
+                  [title]="'Export ' + (currentTableType === 'sales' ? 'Sales Analytics' : 'Top Products')"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
@@ -1321,9 +1321,9 @@
                   </svg>
                 </button>
                 <div
-                  *ngIf="showExportDropdownTopProducts"
+                  *ngIf="showExportDropdownTableModal"
                   class="custom-export-dropdown"
-                  (mouseleave)="showExportDropdownTopProducts = false"
+                  (mouseleave)="showExportDropdownTableModal = false"
                   style="
                     position: absolute;
                     right: 0;
@@ -1338,8 +1338,8 @@
                 >
                   <button
                     (click)="
-                      exportTopProductsTable('pdf');
-                      showExportDropdownTopProducts = false
+                      exportCurrentTableModal('pdf');
+                      showExportDropdownTableModal = false
                     "
                     style="
                       display: flex;
@@ -1377,8 +1377,8 @@
                   </button>
                   <button
                     (click)="
-                      exportTopProductsTable('excel');
-                      showExportDropdownTopProducts = false
+                      exportCurrentTableModal('excel');
+                      showExportDropdownTableModal = false
                     "
                     style="
                       display: flex;

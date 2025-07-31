@@ -1397,7 +1397,11 @@
       <div class="history-content-clean">
         <!-- Price History -->
         <div class="history-section-clean" *ngIf="activeHistoryTab === 'price'">
-          <div class="export-btn-row right-align" style="position: relative">
+          
+          <div class="section-title-clean">
+            <mat-icon>trending_up</mat-icon>
+            <span>Selling Price History</span>
+            <div class="export-btn-row right-align" style="position: relative">
             <button
               class="panel-btn"
               (click)="showExportDropdownPrice = !showExportDropdownPrice"
@@ -1431,9 +1435,7 @@
               </button>
             </div>
           </div>
-          <div class="section-title-clean">
-            <mat-icon>trending_up</mat-icon>
-            <span>Selling Price History</span>
+
           </div>
 
           <div class="history-table-clean">
@@ -1526,7 +1528,11 @@
           class="history-section-clean"
           *ngIf="activeHistoryTab === 'purchase'"
         >
-          <div class="export-btn-row right-align" style="position: relative">
+          
+          <div class="section-title-clean">
+            <mat-icon>shopping_basket</mat-icon>
+            <span>Purchase History</span>
+            <div class="export-btn-row right-align" style="position: relative">
             <button
               class="panel-btn"
               (click)="showExportDropdownPurchase = !showExportDropdownPurchase"
@@ -1561,9 +1567,6 @@
               </button>
             </div>
           </div>
-          <div class="section-title-clean">
-            <mat-icon>shopping_basket</mat-icon>
-            <span>Purchase History</span>
           </div>
 
           <div class="history-table-clean">
@@ -1710,7 +1713,11 @@
           class="history-section-clean"
           *ngIf="activeHistoryTab === 'reduce'"
         >
-          <div class="export-btn-row right-align" style="position: relative">
+          
+          <div class="section-title-clean">
+            <mat-icon>remove_shopping_cart</mat-icon>
+            <span>Reduce Stock History</span>
+            <div class="export-btn-row right-align" style="position: relative">
             <button
               class="panel-btn"
               (click)="showExportDropdownReduce = !showExportDropdownReduce"
@@ -1746,9 +1753,6 @@
               </button>
             </div>
           </div>
-          <div class="section-title-clean">
-            <mat-icon>remove_shopping_cart</mat-icon>
-            <span>Reduce Stock History</span>
           </div>
 
           <div class="history-table-clean">

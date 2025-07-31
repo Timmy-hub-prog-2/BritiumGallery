@@ -70,6 +70,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   showExportDropdownTopProducts = false;
   showExportDropdownLostProducts = false;
   showExportDropdownDailyOrders = false;
+  showExportDropdownTableModal = false;
 
   // Table modal state
   currentTableType: 'sales' | 'products' = 'sales';
@@ -559,6 +560,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
         break;
       case 'table':
         this.showTableModal = false;
+        this.showExportDropdownTableModal = false;
         break;
       case 'dailyOrders':
         this.showDailyOrdersModal = false;
@@ -1134,6 +1136,15 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
         tableLineWidth: 0.1,
       });
       doc.save('top-products-report.pdf');
+    }
+  }
+
+  // Dynamic table export method based on current table type
+  async exportCurrentTableModal(format: 'pdf' | 'excel' = 'excel') {
+    if (this.currentTableType === 'sales') {
+      await this.exportTable(format);
+    } else if (this.currentTableType === 'products') {
+      await this.exportTopProductsTable(format);
     }
   }
 

@@ -17,7 +17,7 @@
           <div class="main-categories-list">
             <div class="my-categories-header">Categories</div>
             <div *ngFor="let category of categories"
-                 class="main-category-item"
+                 class="main-category-item" (click)="goToCategoryProduct(category.id)"
                  [class.active]="category === activeCategory"
                  (mouseover)="setActiveCategory(category)">
               {{ category.name }}

@@ -1890,18 +1890,18 @@ button.mat-icon-button mat-icon,
 
 /* --- Export Button & Dropdown: Admin Dashboard Style --- */
 .panel-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   background: #fff;
-  border: 1.5px solid #e0e0e0;
+  border: 1px solid #e0e0e0;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #495057;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s, border-color 0.18s;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   outline: none;
   position: relative;
   z-index: 2;
@@ -1909,46 +1909,48 @@ button.mat-icon-button mat-icon,
 
 .panel-btn:hover,
 .panel-btn:focus {
-  background: #f5f7fa;
-  color: #222;
-  border-color: #adb5bd;
+  background: #f8f9fa;
+  color: #1976d2;
+  border-color: #1976d2;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .panel-btn svg {
-  width: 18px;
-  height: 18px;
-  stroke-width: 2.2;
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
 }
 
 .custom-export-dropdown {
   position: absolute;
-  top: 110%;
+  top: 105%;
   right: 0;
   background: #fff;
-  border: 1.5px solid #e0e0e0;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.13);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   z-index: 1001;
-  min-width: 190px;
+  min-width: 180px;
   padding: 4px 0;
-  margin-top: 6px;
-  animation: fadeInModal 0.18s;
+  margin-top: 4px;
+  animation: fadeInModal 0.15s;
 }
 
 .custom-export-dropdown button {
   width: 100%;
-  padding: 10px 18px;
+  padding: 8px 16px;
   background: none;
   border: none;
   color: #495057;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   border-radius: 4px;
-  transition: background 0.16s, color 0.16s;
+  transition: all 0.2s ease;
   font-family: "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -2198,7 +2200,7 @@ button.mat-icon-button mat-icon,
   justify-content: flex-end;
   align-items: center;
   position: relative;
-  margin-bottom: 12px;
-  margin-top: 24px;
-  margin-right: 24px;
+  margin-bottom: 8px;
+  margin-top: 8px;
+  margin-right: 0;
 }
