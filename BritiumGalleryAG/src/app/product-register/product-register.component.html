@@ -186,7 +186,7 @@
           <div class="form-group">
             <label class="form-label">
               <i class="fa fa-tag"></i>
-              Base Price
+              Base Selling Price
             </label>
             <input type="number" [(ngModel)]="basePrice" name="basePrice" class="form-input" placeholder="0.00" step="0.01" (ngModelChange)="updateAllVariants('price', $event)" required />
           </div>
@@ -229,7 +229,7 @@
               <thead>
                 <tr>
                   <th *ngFor="let attr of attributes">{{ attr.name }}</th>
-                  <th>Price</th>
+                  <th>Selling Price</th>
                   <th>Stock</th>
                   <th>Purchase Price</th>
                   <th>Photos</th>
