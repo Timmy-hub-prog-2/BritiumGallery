@@ -432,7 +432,7 @@
                 <div class="summary-row">
                   <span class="summary-label">Subtotal</span>
                   <span class="summary-value"
-                    >MMK {{ order?.subtotal | number : "1.0-0" }}</span
+                    >MMK {{ getTotalSubtotalExcludingRefunds() | number : "1.0-0" }}</span
                   >
                 </div>
 
@@ -445,18 +445,18 @@
 
                 <div
                   class="summary-row discount"
-                  *ngIf="order?.discountAmount > 0"
+                  *ngIf="getDiscountAmountExcludingRefunds() > 0"
                 >
                   <span class="summary-label">Discount</span>
                   <span class="summary-value">
                     <ng-container *ngIf="order?.discountType === 'Percentage'">
                       -{{ order?.discountValue }}% (MMK
-                      {{ order?.discountAmount | number : "1.0-0" }})
+                      {{ getDiscountAmountExcludingRefunds() | number : "1.0-0" }})
                     </ng-container>
                     <ng-container
                       *ngIf="order?.discountType === 'Fixed Amount'"
                     >
-                      -MMK {{ order?.discountAmount | number : "1.0-0" }}
+                      -MMK {{ getDiscountAmountExcludingRefunds() | number : "1.0-0" }}
                     </ng-container>
                   </span>
                 </div>
@@ -466,7 +466,7 @@
                 <div class="summary-row total">
                   <span class="summary-label">Total Amount</span>
                   <span class="summary-value"
-                    >MMK {{ order?.total | number : "1.0-0" }}</span
+                    >MMK {{ getTotalAmountExcludingRefunds() | number : "1.0-0" }}</span
                   >
                 </div>
               </div>

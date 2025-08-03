@@ -116,7 +116,7 @@
         <div class="products-grid">
           <div *ngFor="let product of filteredProducts" class="product-card" [ngClass]="{'hidden-item': product.status === 0}">
             <div class="product-image">
-              <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" [alt]="product.name">
+              <img [src]="product.basePhotoUrl || 'assets/img/productdefault.png'" [alt]="product.name">
               <div class="product-overlay">
                 <div class="product-actions">
                   <button class="btn-icon" (click)="navigateToProductEdit(product.id)" title="Edit Product">
@@ -220,7 +220,7 @@
         <div class="products-grid">
           <div *ngFor="let product of productList" class="product-card" [ngClass]="{'hidden-item': product.status === 0}">
             <div class="product-image">
-              <img [src]="product.basePhotoUrl || 'assets/img/iphone15.jpg'" [alt]="product.name">
+              <img [src]="product.basePhotoUrl || 'assets/img/productdefault.png'" [alt]="product.name">
               <div class="product-overlay">
                 <div class="product-actions">
                   <button class="btn-icon" (click)="navigateToProductEdit(product.id)" title="Edit Product">

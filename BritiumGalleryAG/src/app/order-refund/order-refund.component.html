@@ -225,9 +225,9 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Proof Photo <span class="required">*</span></label>
+          <label class="form-label">Proof Photo <span class="optional">(optional)</span></label>
           <div class="file-upload-area">
-            <input type="file" (change)="onProofChange($event)" accept="image/*" class="file-input" id="proof-upload" required />
+            <input type="file" (change)="onProofChange($event)" accept="image/*" class="file-input" id="proof-upload" />
             <label for="proof-upload" class="file-upload-label">
               <div class="upload-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -239,9 +239,6 @@
               <span class="upload-text">Click to upload or drag and drop</span>
               <span class="upload-hint">PNG, JPG up to 10MB</span>
             </label>
-          </div>
-          <div *ngIf="refundForm.get('proof')?.touched && !refundForm.get('proof')?.value" class="error-text">
-            Proof photo is required
           </div>
           
           <div *ngIf="refundForm.get('proofPreview')?.value" class="proof-preview">
@@ -426,9 +423,9 @@
               </div>
 
               <div class="field-group">
-                <label class="field-label">Proof Photo <span class="required">*</span></label>
+                <label class="field-label">Proof Photo <span class="required">(required)</span></label>
                 <div class="file-upload-area-small">
-                  <input type="file" (change)="onProofChange($event, i)" accept="image/*" class="file-input" [id]="'proof-upload-' + i" required />
+                  <input type="file" (change)="onProofChange($event, i)" accept="image/*" class="file-input" [id]="'proof-upload-' + i" />
                   <label [for]="'proof-upload-' + i" class="file-upload-label-small">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -437,9 +434,6 @@
                     </svg>
                     Upload Photo
                   </label>
-                </div>
-                <div *ngIf="item.get('proof')?.touched && !item.get('proof')?.value" class="error-text">
-                  Proof photo is required
                 </div>
                 
                 <div *ngIf="item.get('proofPreview')?.value" class="proof-preview-small">

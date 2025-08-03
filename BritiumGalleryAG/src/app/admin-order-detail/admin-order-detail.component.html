@@ -457,14 +457,14 @@
                   <span class="summary-value">MMK {{ order.deliveryFee | number:'1.0-0' }}</span>
                 </div>
                 
-                <div class="summary-row discount" *ngIf="order.discountAmount > 0">
+                <div class="summary-row discount" *ngIf="getDiscountAmountExcludingRefunds() > 0">
                   <span class="summary-label">Discount</span>
                   <span class="summary-value">
                     <ng-container *ngIf="order.discountType === 'Percentage'">
-                      -{{ order.discountValue }}% (MMK {{ order.discountAmount | number:'1.0-0' }})
+                      -{{ order.discountValue }}% (MMK {{ getDiscountAmountExcludingRefunds() | number:'1.0-0' }})
                     </ng-container>
                     <ng-container *ngIf="order.discountType === 'Fixed Amount'">
-                      -MMK {{ order.discountAmount | number:'1.0-0' }}
+                      -MMK {{ getDiscountAmountExcludingRefunds() | number:'1.0-0' }}
                     </ng-container>
                   </span>
                 </div>

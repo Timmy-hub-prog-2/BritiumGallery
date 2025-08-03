@@ -257,8 +257,26 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
     if (!this.order) return 0;
     const subtotalExcludingRefunds = this.getTotalSubtotalExcludingRefunds();
     const deliveryFee = this.order.deliveryFee || 0;
-    const discountAmount = this.order.discountAmount || 0;
-    return subtotalExcludingRefunds + deliveryFee - discountAmount;
+    const discountAmountExcludingRefunds = this.getDiscountAmountExcludingRefunds();
+    return subtotalExcludingRefunds + deliveryFee - discountAmountExcludingRefunds;
+  }
+
+  getDiscountAmountExcludingRefunds(): number {
+    if (!this.order || !this.order.orderDetails) return 0;
+    
+    // Simple calculation: (subtotal + delivery fee) × discount percentage
+    const subtotal = this.getTotalSubtotalExcludingRefunds();
+    const deliveryFee = this.order.deliveryFee || 0;
+    const totalAmount = subtotal + deliveryFee;
+    
+    // If it's a percentage discount, calculate based on total amount
+    if (this.order.discountType === 'Percentage') {
+      const discountPercent = parseFloat(this.order.discountValue) || 0;
+      return Math.round(totalAmount * (discountPercent / 100));
+    } else {
+      // For fixed amount discount, return the original amount
+      return this.order.discountAmount || 0;
+    }
   }
 
   getReceiptSummary(): string {
