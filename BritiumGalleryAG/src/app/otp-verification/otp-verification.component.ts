@@ -219,10 +219,25 @@ export class OtpVerificationComponent implements OnInit {
               localStorage.setItem('loggedInUser', JSON.stringify(user));
               // Redirect based on role
               const roleId = user.roleId;
-              if (roleId === 1 || roleId === 2 || roleId === 4 || roleId === 5 || roleId === 6) {
-                this.router.navigate(['/admin-dashboard']);
-              } else {
-                this.router.navigate(['/customer-homepage']);
+              switch (roleId) {
+                case 1: // Super Admin
+                case 2: // Admin
+                  this.router.navigate(['/admin-dashboard']);
+                  break;
+                case 3: // Customer
+                  this.router.navigate(['/customer-homepage']);
+                  break;
+                case 4: // Manager
+                  this.router.navigate(['/customer-analysis']);
+                  break;
+                case 5: // Customer Support
+                  this.router.navigate(['/admin-message']);
+                  break;
+                case 6: // Growth Lead
+                  this.router.navigate(['/discount-events']);
+                  break;
+                default:
+                  this.router.navigate(['/login']);
               }
             },
             error: () => {

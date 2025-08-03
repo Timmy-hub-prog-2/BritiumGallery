@@ -49,7 +49,7 @@ export class OrderRefundComponent {
   private initRefundForm(): FormGroup {
     return this.fb.group({
       reason: ['', Validators.required],
-      proof: [null],
+      proof: [null, Validators.required],
       proofPreview: [null],
       items: this.fb.array([])
     });
@@ -105,7 +105,7 @@ export class OrderRefundComponent {
             actualRefundableAmount: [item.actualRefundableAmount],
             refundQuantity: [1],
             reason: [''],
-            proof: [null],
+            proof: [null, Validators.required],
             proofPreview: [null]
           }));
         }
@@ -118,11 +118,15 @@ export class OrderRefundComponent {
     this.refundForm = this.initRefundForm();
     if (type === 'whole') {
       this.refundForm.get('reason')?.setValidators([Validators.required]);
+      this.refundForm.get('proof')?.setValidators([Validators.required]);
       this.refundForm.get('reason')?.updateValueAndValidity();
+      this.refundForm.get('proof')?.updateValueAndValidity();
       this.items.clear();
     } else if (type === 'partial') {
       this.refundForm.get('reason')?.clearValidators();
+      this.refundForm.get('proof')?.clearValidators();
       this.refundForm.get('reason')?.updateValueAndValidity();
+      this.refundForm.get('proof')?.updateValueAndValidity();
       if (this.order) {
         this.initItemsForm();
       }
@@ -138,6 +142,7 @@ export class OrderRefundComponent {
       // Reset values when unchecked
       item.get('refundQuantity')?.clearValidators();
       item.get('reason')?.clearValidators();
+      item.get('proof')?.clearValidators();
       item.patchValue({
         refundQuantity: 1,
         reason: '',
@@ -146,6 +151,7 @@ export class OrderRefundComponent {
       });
       item.get('refundQuantity')?.updateValueAndValidity();
       item.get('reason')?.updateValueAndValidity();
+      item.get('proof')?.updateValueAndValidity();
     } else {
       // Set validators before patching value
       item.get('refundQuantity')?.setValidators([
@@ -154,17 +160,21 @@ export class OrderRefundComponent {
         Validators.max(item.value.remainingQty)
       ]);
       item.get('reason')?.setValidators([Validators.required]);
+      item.get('proof')?.setValidators([Validators.required]);
       item.patchValue({
         refundQuantity: 1
       });
       item.get('refundQuantity')?.markAsTouched();
       item.get('reason')?.markAsTouched();
+      item.get('proof')?.markAsTouched();
       item.get('reason')?.markAsDirty();
       item.get('refundQuantity')?.updateValueAndValidity();
       item.get('reason')?.updateValueAndValidity();
+      item.get('proof')?.updateValueAndValidity();
       // Debug log for reason and refundQuantity fields
       console.log('reason value:', item.get('reason')?.value, 'valid:', item.get('reason')?.valid);
       console.log('refundQuantity value:', item.get('refundQuantity')?.value, 'valid:', item.get('refundQuantity')?.valid);
+      console.log('proof value:', item.get('proof')?.value, 'valid:', item.get('proof')?.valid);
     }
     this.refundForm.updateValueAndValidity();
   }
@@ -216,13 +226,14 @@ export class OrderRefundComponent {
 
   isFormValid(): boolean {
     if (this.refundType === 'whole') {
-      return this.refundForm.get('reason')?.valid ?? false;
+      return (this.refundForm.get('reason')?.valid && this.refundForm.get('proof')?.valid) ?? false;
     } else if (this.refundType === 'partial') {
       const selectedItems = this.items.controls.filter(item => item.get('selected')?.value);
       if (selectedItems.length === 0) return false;
       return selectedItems.every(item =>
         item.get('refundQuantity')?.valid &&
-        item.get('reason')?.valid
+        item.get('reason')?.valid &&
+        item.get('proof')?.valid
       );
     }
     return false;
@@ -305,10 +316,30 @@ export class OrderRefundComponent {
   submitRefund() {
     // Log validity of all items before submitting
     this.items.controls.forEach((item, idx) => {
-      console.log(`Item ${idx} - selected:`, item.get('selected')?.value, 'reason valid:', item.get('reason')?.valid, 'refundQuantity valid:', item.get('refundQuantity')?.valid);
+      console.log(`Item ${idx} - selected:`, item.get('selected')?.value, 'reason valid:', item.get('reason')?.valid, 'refundQuantity valid:', item.get('refundQuantity')?.valid, 'proof valid:', item.get('proof')?.valid);
     });
     console.log('submitRefund called', this.refundForm.valid, this.submitting, this.refundType);
-    if (this.refundForm.invalid || this.submitting) return;
+    
+    // Check if form is valid and proof images are uploaded
+    if (this.refundForm.invalid || this.submitting) {
+      console.log('Form validation failed:', this.refundForm.errors);
+      return;
+    }
+    
+    // Additional validation for proof images
+    if (this.refundType === 'whole' && !this.refundForm.get('proof')?.value) {
+      this.error = 'Proof photo is required for refund request.';
+      return;
+    }
+    
+    if (this.refundType === 'partial') {
+      const selectedItems = this.items.controls.filter(item => item.get('selected')?.value);
+      const itemsWithoutProof = selectedItems.filter(item => !item.get('proof')?.value);
+      if (itemsWithoutProof.length > 0) {
+        this.error = 'Proof photo is required for all selected items.';
+        return;
+      }
+    }
     
     this.submitting = true;
     this.error = null;

@@ -244,12 +244,24 @@ export class DiscountEventsComponent implements OnInit {
         this.loading = false;
         this.applyFilters(); // Apply any existing filters
         this.updateDiscountedIds(); // Update discounted IDs for create modal
+        
+        // Set up periodic status updates for real-time status changes
+        this.setupStatusUpdates();
       },
       error: (err: any) => {
         this.error = "Failed to load events."
         this.loading = false
       },
     })
+  }
+
+  private setupStatusUpdates() {
+    // Update status every minute to handle expired events
+    setInterval(() => {
+      if (this.allEvents.length > 0) {
+        this.applyFilters(); // Re-apply filters to update status
+      }
+    }, 60000); // 1 minute
   }
 
   // Add new filter methods
@@ -277,11 +289,8 @@ export class DiscountEventsComponent implements OnInit {
 
     // Apply status filter
     if (this.selectedStatus !== 'all') {
-      const now = new Date();
       filteredEvents = filteredEvents.filter(event => {
-        const startDate = new Date(event.startDate);
-        const endDate = new Date(event.endDate);
-        const isActive = startDate <= now && endDate >= now;
+        const isActive = this.getActualActiveStatus(event);
         return this.selectedStatus === 'active' ? isActive : !isActive;
       });
     }
@@ -2604,6 +2613,7 @@ deleteEvent(eventId: number) {
     // Only consider active events when determining discount availability
     // This allows items from inactive events to be available for new discounts
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Get today's date only
     const eventsToCheck = excludeEventId
       ? this.allEvents.filter(e => e.id !== excludeEventId)
       : this.allEvents;
@@ -2611,8 +2621,10 @@ deleteEvent(eventId: number) {
     for (const event of eventsToCheck) {
       // Only consider active events (both event.active and date range check)
       const startDate = new Date(event.startDate);
+      const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
       const endDate = new Date(event.endDate);
-      const isActive = event.active && startDate <= now && endDate >= now;
+      const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+      const isActive = event.active && startDateOnly <= today && endDateOnly >= today;
       
       if (!isActive || !event.rules) continue;
       
@@ -2757,10 +2769,13 @@ deleteEvent(eventId: number) {
     if (!event.active) return false;
     
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Get today's date only
     const startDate = new Date(event.startDate);
+    const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
     const endDate = new Date(event.endDate);
+    const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
     
-    return startDate <= now && endDate >= now;
+    return startDateOnly <= today && endDateOnly >= today;
   }
 
   /**
@@ -2780,16 +2795,19 @@ deleteEvent(eventId: number) {
   getStatusText(event: any): string {
     const isActive = this.getActualActiveStatus(event);
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Get today's date only
     const startDate = new Date(event.startDate);
+    const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
     const endDate = new Date(event.endDate);
+    const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
     
     if (isActive) {
       return 'Active';
     } else if (!event.active) {
       return 'Inactive (Toggled Off)';
-    } else if (startDate > now) {
+    } else if (startDateOnly > today) {
       return 'Inactive (Future Date)';
-    } else if (endDate < now) {
+    } else if (endDateOnly < today) {
       return 'Inactive (Expired)';
     } else {
       return 'Inactive';

@@ -72,14 +72,14 @@
     <span class="event-due-date">Ends: {{ event.eventDueDate | date:'mediumDate' }}</span>
   </div>
   <div class="event-product-carousel">
-    <div class="event-product-card" *ngFor="let product of event.products">
+    <div class="event-product-card" *ngFor="let product of getDisplayProducts(event.products)">
       <a class="image-ratio-box" [routerLink]="['/product-detail', product.productId]">
         <div class="discount-badge" *ngIf="product.discountPercent">-{{ product.discountPercent }}%</div>
         <img [src]="product.imageUrl || product.productImage" alt="{{product.productName}}" />
       </a>
       <div class="event-product-name">{{product.productName}}</div>
     </div>
-    <div class="event-product-card view-all-card" [routerLink]="['/discounted-items',event.eventId]">
+    <div class="event-product-card view-all-card" *ngIf="hasMoreProducts(event.products)" [routerLink]="['/discounted-items',event.eventId]">
       <div class="view-all-text">View all</div>
     </div>
   </div>

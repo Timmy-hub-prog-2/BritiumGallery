@@ -41,4 +41,14 @@ export class CustomerHomepageComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     document.body.classList.remove('customer-homepage-active');
   }
+
+  // Method to get limited products for display (max 10)
+  getDisplayProducts(products: any[]): any[] {
+    return products.slice(0, 10);
+  }
+
+  // Method to check if there are more than 10 products
+  hasMoreProducts(products: any[]): boolean {
+    return products.length > 10;
+  }
 }

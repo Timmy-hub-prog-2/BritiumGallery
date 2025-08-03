@@ -4,6 +4,7 @@ import { OrderService } from '../services/order.service';
 import { UserService } from '../services/user.service';
 import { User } from '../../user.model';
 import { RefundService } from '../services/refund.service';
+import { PermissionService } from '../services/permission.service';
 
 @Component({
   selector: 'app-admin-order-list',
@@ -44,7 +45,8 @@ export class AdminOrderListComponent implements OnInit {
     private orderService: OrderService,
     private userService: UserService,
     private router: Router,
-    private refundService: RefundService
+    private refundService: RefundService,
+    public permissionService: PermissionService
   ) {
     this.pendingRefunds = [];
     this.groupedRefunds = [];

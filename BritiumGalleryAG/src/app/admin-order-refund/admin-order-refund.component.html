@@ -128,7 +128,7 @@
         </div>
 
         <div class="col-actions">
-          <div class="action-buttons" *ngIf="refund.status === 'REQUESTED'">
+          <div class="action-buttons" *ngIf="refund.status === 'REQUESTED' && permissionService.canManageRefunds()">
             <button class="action-btn accept" (click)="acceptRefund(refund.id)" [disabled]="actionLoading[refund.id]" title="Accept">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M9 12l2 2 4-4"/>
@@ -140,6 +140,13 @@
                 <line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
+          </div>
+          <div class="read-only-notice" *ngIf="refund.status === 'REQUESTED' && permissionService.isCustomerSupport()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span>View Only - Customer Support</span>
           </div>
           <div class="status-completed" *ngIf="refund.status !== 'REQUESTED'">
             <span class="completed-text" [ngClass]="refund.status?.toLowerCase()">

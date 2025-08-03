@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RefundService } from '../services/refund.service';
 import { Router } from '@angular/router';
+import { PermissionService } from '../services/permission.service';
 
 @Component({
   selector: 'app-admin-order-refund-list',
@@ -27,7 +28,11 @@ export class AdminOrderRefundListComponent implements OnInit {
     { value: 'COMPLETED', label: 'Completed' },
   ];
 
-  constructor(private refundService: RefundService, private router: Router) {}
+  constructor(
+    private refundService: RefundService, 
+    private router: Router,
+    public permissionService: PermissionService
+  ) {}
 
   ngOnInit(): void {
     this.loadRefundsByStatus();

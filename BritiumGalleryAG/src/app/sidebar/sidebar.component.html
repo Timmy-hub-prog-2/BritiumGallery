@@ -35,7 +35,7 @@
   <!-- Navigation Menu -->
   <nav class="sidebar-nav" [class.scrollable]="expanded">
 
-    <h3 class="section-title" *ngIf="expanded">
+    <h3 class="section-title" *ngIf="expanded && roleId !== 5 && roleId !== 6">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path d="M3 3h7v7H3V3zM14 3h7v7h-7V3zM14 14h7v7h-7v-7zM3 14h7v7H3v-7z" />
 

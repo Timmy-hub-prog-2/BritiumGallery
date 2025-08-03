@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { OrderService } from '../services/order.service';
+import { PermissionService } from '../services/permission.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -39,7 +40,11 @@ export class AdminOrderDetailComponent implements OnInit {
     'Other'
   ];
 
-  constructor(private route: ActivatedRoute, private orderService: OrderService) { }
+  constructor(
+    private route: ActivatedRoute, 
+    private orderService: OrderService,
+    public permissionService: PermissionService
+  ) { }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -203,9 +208,11 @@ export class AdminOrderDetailComponent implements OnInit {
 
   getTotalQuantityExcludingRefunds(): number {
     if (!this.order || !this.order.orderDetails) return 0;
-    return this.order.orderDetails
-      .filter((item: any) => !item.isRefunded)
-      .reduce((sum: number, item: any) => sum + item.quantity, 0);
+    return this.order.orderDetails.reduce((sum: number, item: any) => {
+      const refundedQty = item.refundedQty || 0;
+      const nonRefundedQty = Math.max((item.quantity || 0) - refundedQty, 0);
+      return sum + nonRefundedQty;
+    }, 0);
   }
 
   getTotalSubtotalExcludingRefunds(): number {

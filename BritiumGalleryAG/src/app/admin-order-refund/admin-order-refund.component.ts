@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { RefundService } from '../services/refund.service';
 import { UserService } from '../services/user.service';
+import { PermissionService } from '../services/permission.service';
 
 interface RefundedItem {
   productName: string;
@@ -55,7 +56,12 @@ export class AdminOrderRefundComponent implements OnInit {
   // Expanded rows state
   expandedRows: boolean[] = [];
 
-  constructor(private route: ActivatedRoute, private refundService: RefundService, private userService: UserService) {}
+  constructor(
+    private route: ActivatedRoute, 
+    private refundService: RefundService, 
+    private userService: UserService,
+    public permissionService: PermissionService
+  ) {}
 
   ngOnInit(): void {
     this.orderId = +this.route.snapshot.paramMap.get('refundId')!;

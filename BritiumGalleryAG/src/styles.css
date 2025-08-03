@@ -98,6 +98,44 @@ html, body {
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+/* Permission-based UI styles */
+.read-only-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 8px 0;
+}
+
+.read-only-notice svg {
+  width: 16px;
+  height: 16px;
+  color: #6c757d;
+  flex-shrink: 0;
+}
+
+.read-only-notice span {
+  color: #6c757d;
+}
+
+/* Disabled action buttons for customer support */
+.action-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.action-btn.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 /* Remove overly broad overlay rules and scope only to dialogs */
 
 /* Remove or comment out the following global rules: */

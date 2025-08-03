@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NotificationService, CreateNotificationRequest } from '../services/notification.service';
 import { NgxEditorModule, Editor, Toolbar } from 'ngx-editor';
 import { toHTML } from 'ngx-editor';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-create-notification',
@@ -137,12 +138,23 @@ export class CreateNotificationComponent implements OnInit {
       next: () => {
         // Success - status is already updated locally
         console.log('Notification status updated successfully');
+        Swal.fire({
+          title: 'Status Updated!',
+          text: `Notification "${noti.title}" has been ${newActiveStatus ? 'activated' : 'deactivated'}.`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
       },
       error: (err) => {
         // Revert local change on error
         noti.active = !newActiveStatus;
         console.error('Failed to update notification status:', err);
-        alert('Failed to update notification status. Please try again.');
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to update notification status. Please try again.',
+          icon: 'error'
+        });
       }
     });
   }
@@ -364,8 +376,34 @@ export class CreateNotificationComponent implements OnInit {
   }
 
   fetchScheduledNotifications() {
-    this.notificationService.getScheduledNotifications().subscribe(data => {
-      this.scheduledNotifications = data;
+    // Show loading state only if there are existing notifications (not on initial load)
+    if (this.scheduledNotifications.length > 0) {
+      Swal.fire({
+        title: 'Loading...',
+        text: 'Please wait while we fetch the latest notifications.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+    }
+
+    this.notificationService.getScheduledNotifications().subscribe({
+      next: (data) => {
+        this.scheduledNotifications = data;
+        // Close loading if it was shown
+        if (this.scheduledNotifications.length > 0) {
+          Swal.close();
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching notifications:', err);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to load notifications. Please refresh the page.',
+          icon: 'error'
+        });
+      }
     });
   }
 
@@ -424,17 +462,67 @@ export class CreateNotificationComponent implements OnInit {
   }
 
   deleteNotification(noti: any) {
-    if (confirm('Delete this notification?')) {
-      this.notificationService.deleteScheduledNotification(noti.id).subscribe(() => {
-        this.fetchScheduledNotifications();
-      });
-    }
+    Swal.fire({
+      title: 'Delete Notification',
+      text: `Are you sure you want to delete "${noti.title}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Show loading state
+        Swal.fire({
+          title: 'Deleting...',
+          text: 'Please wait while we delete the notification.',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        this.notificationService.deleteScheduledNotification(noti.id).subscribe({
+          next: () => {
+            this.fetchScheduledNotifications();
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'Notification has been deleted successfully.',
+              icon: 'success',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          },
+          error: (err) => {
+            console.error('Error deleting notification:', err);
+            Swal.fire({
+              title: 'Error!',
+              text: 'Failed to delete notification. Please try again.',
+              icon: 'error'
+            });
+          }
+        });
+      }
+    });
   }
 
   onSubmit() {
     this.isSubmitting = true;
     this.submitSuccess = null;
     this.submitError = null;
+    
+    // Show loading state
+    Swal.fire({
+      title: this.editMode ? 'Updating...' : 'Creating...',
+      text: this.editMode ? 'Please wait while we update the notification.' : 'Please wait while we create the notification.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     const formValue = this.notificationForm.value;
     // Get senderId from local storage (loggedInUser)
     let senderId: number | undefined = undefined;
@@ -468,28 +556,72 @@ export class CreateNotificationComponent implements OnInit {
       this.notificationService.updateScheduledNotification(this.editingNotificationId, payload).subscribe({
         next: () => {
           this.isSubmitting = false;
-          this.submitSuccess = 'Notification updated successfully!';
           this.closeModal();
           this.fetchScheduledNotifications();
+          Swal.fire({
+            title: '✅ Notification Updated Successfully!',
+            html: `
+              <div style="text-align: left; margin: 20px 0;">
+                <p><strong>Title:</strong> ${formValue.title}</p>
+                <p><strong>Type:</strong> ${formValue.type}</p>
+                <p><strong>Mode:</strong> ${formValue.mode}</p>
+                ${formValue.mode === 'SCHEDULED' ? `<p><strong>Schedule:</strong> ${this.cronPreviewLabel}</p>` : ''}
+                <p><strong>Status:</strong> <span style="color: ${formValue.active ? '#28a745' : '#dc3545'}">${formValue.active ? 'Active' : 'Inactive'}</span></p>
+              </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Perfect!',
+            confirmButtonColor: '#28a745',
+            timer: 5000,
+            timerProgressBar: true,
+            showConfirmButton: true
+          });
         },
         error: (err) => {
           this.isSubmitting = false;
           this.submitError = err?.error?.error || 'Failed to update notification.';
           console.error('Backend error:', err?.error);
+          Swal.fire({
+            title: 'Error!',
+            text: this.submitError || 'An error occurred while updating the notification.',
+            icon: 'error'
+          });
         }
       });
     } else {
       this.notificationService.createNotification(payload).subscribe({
         next: () => {
           this.isSubmitting = false;
-          this.submitSuccess = 'Notification created successfully!';
           this.closeModal();
           this.fetchScheduledNotifications();
+          Swal.fire({
+            title: '🎉 Notification Created Successfully!',
+            html: `
+              <div style="text-align: left; margin: 20px 0;">
+                <p><strong>Title:</strong> ${formValue.title}</p>
+                <p><strong>Type:</strong> ${formValue.type}</p>
+                <p><strong>Mode:</strong> ${formValue.mode}</p>
+                ${formValue.mode === 'SCHEDULED' ? `<p><strong>Schedule:</strong> ${this.cronPreviewLabel}</p>` : ''}
+                <p><strong>Status:</strong> <span style="color: ${formValue.active ? '#28a745' : '#dc3545'}">${formValue.active ? 'Active' : 'Inactive'}</span></p>
+              </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Great!',
+            confirmButtonColor: '#28a745',
+            timer: 5000,
+            timerProgressBar: true,
+            showConfirmButton: true
+          });
         },
         error: (err) => {
           this.isSubmitting = false;
           this.submitError = err?.error?.error || 'Failed to create notification.';
           console.error('Backend error:', err?.error);
+          Swal.fire({
+            title: 'Error!',
+            text: this.submitError || 'An error occurred while creating the notification.',
+            icon: 'error'
+          });
         }
       });
     }

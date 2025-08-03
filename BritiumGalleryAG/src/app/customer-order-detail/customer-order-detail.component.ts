@@ -237,9 +237,11 @@ export class CustomerOrderDetailComponent implements OnInit, OnDestroy {
 
   getTotalQuantityExcludingRefunds(): number {
     if (!this.order || !this.order.orderDetails) return 0;
-    return this.order.orderDetails
-      .filter((item: any) => !item.isRefunded)
-      .reduce((sum: number, item: any) => sum + item.quantity, 0);
+    return this.order.orderDetails.reduce((sum: number, item: any) => {
+      const refundedQty = item.refundedQty || 0;
+      const nonRefundedQty = Math.max((item.quantity || 0) - refundedQty, 0);
+      return sum + nonRefundedQty;
+    }, 0);
   }
 
   getTotalSubtotalExcludingRefunds(): number {

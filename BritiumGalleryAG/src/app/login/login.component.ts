@@ -29,12 +29,27 @@ login() {
     next: (user: User) => {
       this.userService.setLoggedInUser(user);
       localStorage.setItem('loggedInUser', JSON.stringify(user));
-      if (user.roleId === 3) {
-        this.router.navigate(['/customer-homepage']).then(() => window.location.reload());
-      } else if ([1, 2, 4, 5, 6].includes(user.roleId)) {
-        this.router.navigate(['/admin-dashboard']).then(() => window.location.reload());
-      } else {
-        this.message = 'Unauthorized role. Please contact support.';
+      
+      // Role-based redirects
+      switch (user.roleId) {
+        case 1: // Super Admin
+        case 2: // Admin
+          this.router.navigate(['/admin-dashboard']).then(() => window.location.reload());
+          break;
+        case 3: // Customer
+          this.router.navigate(['/customer-homepage']).then(() => window.location.reload());
+          break;
+        case 4: // Manager
+          this.router.navigate(['/customer-analysis']).then(() => window.location.reload());
+          break;
+        case 5: // Customer Support
+          this.router.navigate(['/admin-message']).then(() => window.location.reload());
+          break;
+        case 6: // Growth Lead
+          this.router.navigate(['/discount-events']).then(() => window.location.reload());
+          break;
+        default:
+          this.message = 'Unauthorized role. Please contact support.';
       }
     },
     error: (err) => {

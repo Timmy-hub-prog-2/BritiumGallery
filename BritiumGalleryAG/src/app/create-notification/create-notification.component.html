@@ -82,7 +82,6 @@
           <th>Start Date</th>
           <th>End Date</th>
           <th>Status</th>
-          <th>Cron Expression</th>
           <th>Roles</th>
           <th>Customer Types</th>
           <th>Actions</th>
@@ -101,7 +100,6 @@
             </label>
             <span class="status-label">{{ notification.active !== false ? 'Active' : 'Inactive' }}</span>
           </td>
-          <td>{{ notification.cronExpression || '-' }}</td>
           <td>
             <span *ngFor="let roleId of notification.roleIds; let last = last">
               {{ getRoleName(roleId) }}<span *ngIf="!last">, </span>
