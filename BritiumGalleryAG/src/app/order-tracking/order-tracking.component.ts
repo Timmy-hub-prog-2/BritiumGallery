@@ -179,7 +179,7 @@ export class OrderTrackingComponent {
   }
 
   reportIssue() {
-    alert('Please contact customer service at 1-800-TRACK-ME or support@company.com');
+    alert('Please contact customer service');
   }
 
   private calculateEstimatedDelivery(history: any[]): Date {

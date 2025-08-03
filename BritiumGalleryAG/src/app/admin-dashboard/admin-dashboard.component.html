@@ -20,13 +20,13 @@
             <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46" />
           </svg>
         </button>
-        <button class="header-btn" (click)="openExportModal()" title="Export">
+        <!-- <button class="header-btn" (click)="openExportModal()" title="Export">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
             <polyline points="7,10 12,15 17,10" />
             <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-        </button>
+        </button> -->
         <button class="header-btn" (click)="refreshDashboard()" title="Refresh">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <polyline points="23,4 23,10 17,10" />
@@ -79,7 +79,7 @@
         <div class="stat-content">
           <div class="stat-value">{{ totalSales | currency : "MMK " : "symbol" : "1.0-0" }}</div>
           <div class="stat-label">Total Sales</div>
-          <div class="stat-change positive">+12.5% from last month</div>
+          
             </div>
           </div>
 
@@ -94,7 +94,7 @@
         <div class="stat-content">
           <div class="stat-value">{{ totalCost | currency : "MMK " : "symbol" : "1.0-0" }}</div>
           <div class="stat-label">Total COGS</div>
-          <div class="stat-change negative">+8.2% from last month</div>
+          
             </div>
           </div>
 
@@ -107,7 +107,7 @@
         <div class="stat-content">
           <div class="stat-value">{{ totalProfit | currency : "MMK " : "symbol" : "1.0-0" }}</div>
           <div class="stat-label">Net Profit</div>
-          <div class="stat-change positive">{{ profitMargin | number : "1.1-1" }}% margin</div>
+          
             </div>
           </div>
 
@@ -121,7 +121,7 @@
         <div class="stat-content">
           <div class="stat-value">{{ totalTransactions | number : "1.0-0" }}</div>
           <div class="stat-label">Transactions</div>
-          <div class="stat-change positive">+15.3% from last month</div>
+          
             </div>
           </div>
 
@@ -2073,6 +2073,48 @@
         </div>
       </div>
       <div class="modal-body">
+        <!-- Total Summary Section -->
+        <div class="summary-section" *ngIf="lostProductsDataSource.data.length > 0">
+          <div class="summary-cards">
+            <div class="summary-card">
+              <div class="summary-icon lost">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <div class="summary-content">
+                <div class="summary-value">{{ totalLostProductsAmount | currency : 'MMK ' : 'symbol' : '1.0-0' }}</div>
+                <div class="summary-label">Total Lost Amount</div>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon quantity">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="9" y1="9" x2="15" y2="9"/>
+                  <line x1="9" y1="12" x2="15" y2="12"/>
+                  <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+              </div>
+              <div class="summary-content">
+                <div class="summary-value">{{ totalLostProductsQuantity | number : '1.0-0' }}</div>
+                <div class="summary-label">Total Lost Quantity</div>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon items">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <path d="M9 9h6v6H9z"/>
+                </svg>
+              </div>
+              <div class="summary-content">
+                <div class="summary-value">{{ lostProductsDataSource.data.length }}</div>
+                <div class="summary-label">Total Products</div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="table-container full">
           <table
             mat-table
@@ -2171,6 +2213,23 @@
               mat-row
               *matRowDef="let item; columns: lostProductsColumns"
             ></tr>
+            <!-- Summary Row -->
+            <tr class="summary-row" *ngIf="lostProductsDataSource.data.length > 0">
+              <td class="summary-cell">
+                <strong>Total</strong>
+              </td>
+              <td class="summary-cell">-</td>
+              <td class="summary-cell">-</td>
+              <td class="summary-cell">-</td>
+              <td class="summary-cell">
+                <strong class="quantity-badge lost">{{ totalLostProductsQuantity | number : "1.0-0" }}</strong>
+              </td>
+              <td class="summary-cell">
+                <strong class="amount cost">{{ totalLostProductsAmount | currency : "MMK " : "symbol" : "1.0-0" }}</strong>
+              </td>
+              <td class="summary-cell">-</td>
+              <td class="summary-cell">-</td>
+            </tr>
           </table>
         </div>
       </div>

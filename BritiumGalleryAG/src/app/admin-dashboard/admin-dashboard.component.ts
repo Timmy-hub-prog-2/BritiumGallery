@@ -244,6 +244,19 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   otherReasons: string[] = [];
   showLostProductsModal = false;
 
+  // Total lost amount calculation
+  get totalLostProductsAmount(): number {
+    return this.lostProductsDataSource.data.reduce((total, item) => {
+      return total + (item.totalPurchasePriceLost || 0);
+    }, 0);
+  }
+
+  get totalLostProductsQuantity(): number {
+    return this.lostProductsDataSource.data.reduce((total, item) => {
+      return total + (item.totalQuantityLost || 0);
+    }, 0);
+  }
+
   // Product View and Sort Properties - explicitly typed as string to avoid union type issues
   productViewMode: any = 'grid';
   productSortBy = 'name';
@@ -1153,7 +1166,10 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
     const generated = `Generated: ${new Date().toLocaleString()}`;
     const filterSummary = [
       `Date Range: ${this.modalDateFrom} to ${this.modalDateTo}`,
-      `Reason: ${this.selectedLostReason || 'All'}`
+      `Reason: ${this.selectedLostReason || 'All'}`,
+      `Total Lost Amount: MMK ${this.totalLostProductsAmount.toLocaleString()}`,
+      `Total Lost Quantity: ${this.totalLostProductsQuantity.toLocaleString()}`,
+      `Total Products: ${this.lostProductsDataSource.data.length}`
     ];
     const columns = [
       { header: 'Product', dataKey: 'product' },
@@ -1182,7 +1198,13 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       admin: row.adminName + (row.adminId ? ` (${row.adminId})` : ''),
     }));
     if (format === 'excel') {
-      const header = [[title], [generated], filterSummary, [], columns.map((col) => col.header)];
+      const header = [
+        [title], 
+        [generated], 
+        filterSummary, 
+        [], 
+        columns.map((col) => col.header)
+      ];
       const rowArr = this.lostProductsDataSource.data.map((row: any) => [
         row.productName +
           (row.variantAttributes ? ` (${row.variantAttributes})` : ''),
@@ -1200,6 +1222,20 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       ]);
       const ws = XLSX.utils.aoa_to_sheet(header);
       XLSX.utils.sheet_add_aoa(ws, rowArr, { origin: -1 });
+      
+      // Add summary row at the end
+      const summaryRow = [
+        'TOTAL',
+        '',
+        '',
+        '',
+        this.totalLostProductsQuantity,
+        `MMK ${this.totalLostProductsAmount.toLocaleString()}`,
+        '',
+        ''
+      ];
+      XLSX.utils.sheet_add_aoa(ws, [summaryRow], { origin: -1 });
+      
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'LostProducts');
       XLSX.writeFile(wb, 'lost-products-analytics-report.xlsx');
@@ -1235,6 +1271,23 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
         doc.text(line, 10, y);
         y += 5;
       });
+      
+      // Ensure values are calculated properly for header only
+      const totalAmount = this.totalLostProductsAmount || 0;
+      const totalQuantity = this.totalLostProductsQuantity || 0;
+      const totalProducts = this.lostProductsDataSource.data.length || 0;
+      
+      // Debug logging
+      console.log('PDF Export - Summary Values:', {
+        totalAmount,
+        totalQuantity,
+        totalProducts,
+        dataLength: this.lostProductsDataSource.data.length,
+        rawData: this.lostProductsDataSource.data
+      });
+      
+      y += 10;
+      
       // Add margin-bottom before table
       autoTable(doc, {
         columns,
