@@ -46,7 +46,7 @@ login() {
           this.router.navigate(['/admin-message']).then(() => window.location.reload());
           break;
         case 6: // Growth Lead
-          this.router.navigate(['/discount-events']).then(() => window.location.reload());
+          this.router.navigate(['/events']).then(() => window.location.reload());
           break;
         default:
           this.message = 'Unauthorized role. Please contact support.';

@@ -234,7 +234,7 @@ export class OtpVerificationComponent implements OnInit {
                   this.router.navigate(['/admin-message']);
                   break;
                 case 6: // Growth Lead
-                  this.router.navigate(['/discount-events']);
+                  this.router.navigate(['/events']);
                   break;
                 default:
                   this.router.navigate(['/login']);
